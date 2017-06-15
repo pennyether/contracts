@@ -185,6 +185,16 @@ contract('PennyAuctionController', function(accounts){
             assert.equal(await openAuction.state(), 1, "Auction is opened");
         });
 
+        it("getNumActionableAuctions returns 0", async function(){
+            var num = await pac.getNumActionableAuctions({from: dummyMainController});
+            assert.strEqual(num, 0);
+        });
+
+        it("getAvailableFees returns proper amount", async function(){
+            var num = await pac.getAvailableFees({from: dummyMainController});
+            assert.strEqual(num, await openAuction.fees());
+        });
+
         it("only MainController can call checkOpenAuctions", async function(){
             await EXPECT_INVALID_OPCODE(pac.checkOpenAuctions({from: bidder1}));
         });
@@ -226,6 +236,10 @@ contract('PennyAuctionController', function(accounts){
             it("Open Auction is still in openAuctions array", async function(){
                 assert.equal(await pac.openAuctions(0), openAuction.address, "Auction is opened");
             });
+
+            it("getAvailableFees is 0", async function(){
+                assert.strEqual(await pac.getAvailableFees({from: dummyMainController}), 0);
+            });
         });
     });
 
@@ -242,6 +256,11 @@ contract('PennyAuctionController', function(accounts){
             var numBids = await openAuction.numBids();
             TestUtil.fastForward(auctionTimeS.add(bidTimeS.mul(numBids)).add(1).toNumber());
             assert.equal(await openAuction.isCloseable(), true, "No time left.");
+        });
+
+        it("getNumActionableAuctions returns 1", async function(){
+            var num = await pac.getNumActionableAuctions({from: dummyMainController});
+            assert.strEqual(num, 1);
         });
     })
 
@@ -322,8 +341,16 @@ contract('PennyAuctionController', function(accounts){
         });
     });
 
+    xdescribe("more checkOpenAuctions tests", async function(){
+        it("Honors maxOpenAuctions", async function(){
 
+        });
+        it("Still redeems prize and fees for an auction that is already closed.", async function(){
 
+        });
+        it("Still redeems fees (but not prize) for an auction that is already redeemed.", async function(){
 
+        });
+    });
 
 });

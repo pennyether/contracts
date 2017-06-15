@@ -27,6 +27,8 @@ contract MainController is
 	UsingTreasury,
 	UsingAdmin
 {
+	event PennyAuctionStarted(address addr, uint time);
+	event UpdatedPennyAuctions(uint numAuctionsClosed, uint time);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)

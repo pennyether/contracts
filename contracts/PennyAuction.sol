@@ -3,15 +3,42 @@ pragma solidity ^0.4.0;
 /**
 An auction for $_initialPrize.
 
-An address may bid $_bidPrice, in which case they are entitled to
-the prize if nobody else bids within $_bidTimeS.
+An address may bid exactly $_bidPrice, in which case they
+are entitled to the prize if nobody else bids within $_bidTimeS.
 
 For each bid, a fee is taken, and the rest added to the prize.
-The admin can redeem fees to the collector at any time.
 
 The winning bidder can obtain their payout once the auction is
-completed.  First .updateAuctionCompleted() must be called to
-officially end the auction, then .redeemPrize() may be called.
+closed.  First .close() must be called to officially end the
+auction, then .redeem() may be called.
+
+The admin can redeem fees to the collector at any time.
+
+------------------------
+
+The auction will transition through four states, in order:
+
+	PENDING:  	  	The auction has been set up, but not yet started.
+					No bids may be accepted.  Only .open() may be 
+					called by the admin.
+
+	OPENED:  	  	Funds have been transferred to the auction and it is
+					open for bidding.  If no one bids, the auction will
+					expire in $auctionTimeS, and the admin can redeem.
+					If someone bids, they become the current winner,
+					the prize is increased, and the auction time extended.
+
+	[CLOSEABLE]:    Not really a state, but can be read via .isCloseable().
+				    When true, the auction is OPENED but time has expired.
+				    No more bidding may occur during this phase.
+				    It is waiting to have .close() called (by anyone).
+
+	CLOSED:			The auction is officially closed, and the prize can
+					be redeemed by the winner.
+
+	REDEEMED:		The winner was sent the prize.
+
+
 */
 //@createInterface
 contract PennyAuction {
@@ -25,13 +52,14 @@ contract PennyAuction {
 	uint public bidFeePct;			// amt of bid that gets kept as fees
 	uint public bidTimeS;	        // amt of time auction is extended
     uint public auctionTimeS;       // amt of time auction starts with
+    uint public timeOpened;		    // time auction was opened
 
 	State public state;			    // current state
 	uint public prize;				// current prize
 	address public currentWinner;	// current winner
+	uint public timeClosed;		    // the time after which no further bids can occur
+
 	uint public numBids;			// total number of bids
-	uint public timeOpened;		    // time auction was opened
-	uint public timeClosed;		    // time auction will close or was closed
 	uint public fees;				// total fees collected
 
 	
@@ -84,17 +112,15 @@ contract PennyAuction {
 	    onlyDuring(State.PENDING)
 	    fromAdmin
     {
-		require(msg.value > 0);
 		require(msg.value == initialPrize);
 
-		prize = initialPrize;
-		timeOpened = now;
 		state = State.OPENED;
-		Started(now);
-
-		// initialize auction with collector as winner.
+		prize = initialPrize;
 		currentWinner = collector;
+		timeOpened = now;
 		timeClosed = now + auctionTimeS;
+
+		Started(now);
 	}
 
 	/**
@@ -107,7 +133,7 @@ contract PennyAuction {
 	    fromNotWinner
 	{
 		// make sure bid is correct and that auction is not closed
-		require(now <= timeClosed);
+		require(now < timeClosed);
 		require(msg.value == bidPrice);
 
 		// increment prize by the msg value (minus the fee)
@@ -201,7 +227,7 @@ contract PennyAuction {
 
 	// Whether or not you can call closeAuction() on the auction
 	function isCloseable() constant returns (bool _bool) {
-		return (state == State.OPENED && now > timeClosed);
+		return (state == State.OPENED && now >= timeClosed);
 	}
 
 	// self-explainatory, i hope

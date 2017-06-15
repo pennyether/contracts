@@ -95,7 +95,11 @@ function MakeTestUtil(web3, assert){
 			return function(contract){
 				var obj = {};
 				contract.abi.forEach(o => {
-					if (o.constant && o.inputs.length==0){ obj[o.name] = contract[o.name].call(); }
+					if (o.constant && o.inputs.length==0){
+						obj[o.name] = contract[o.name].call().catch(function(e){
+							return e;
+						});
+					}
 				});
 				return multiPromise(obj);
 			}

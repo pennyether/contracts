@@ -15,6 +15,7 @@ contract IPennyAuction {
   function timeOpened() public constant returns(uint);
   function timeClosed() public constant returns(uint);
   function fees() public constant returns(uint);
+  
   function open() payable;
   function close();
   function redeem() returns (uint _prizeSent);
