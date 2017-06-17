@@ -9,8 +9,8 @@ contract UsingPennyAuctionController is
 	function UsingPennyAuctionController(address _registry) UsingRegistry(_registry){}
 
 	modifier fromPennyAuctionController(){
-		require(msg.sender == address(getPennyAuctionController()));
-		_;
+		if (msg.sender == address(getPennyAuctionController())) _;
+		else RegistryError("Only callable by PennyAuctionController");
 	}
 
 	function getPennyAuctionController()

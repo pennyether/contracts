@@ -14,11 +14,16 @@ contract IPennyAuctionController {
   function getNumOpenAuctions() constant returns (uint _len);
   function getNumClosedAuctions() constant returns (uint _len);
 
-  function setSettings(uint _maxOpenAuctions, uint _maxInitialPrize);
+  function setSettings(uint _maxOpenAuctions, uint _maxInitialPrize)
+      returns (bool _success);
+
   function startNewAuction(uint _initialPrize,
 	    					           uint _bidPrice,
 	    					           uint _bidTimeS,
 	    					           uint _bidFeePct,
-        				           uint _auctionTimeS) payable returns (address _addr);
-  function checkOpenAuctions() returns (uint _numAuctionsCompleted, uint _feesRedeemed);
+        				           uint _auctionTimeS) payable
+      returns (bool _success, address _addr);
+
+  function checkOpenAuctions()
+      returns (bool _success, uint _numAuctionsCompleted, uint _feesRedeemed);
 }

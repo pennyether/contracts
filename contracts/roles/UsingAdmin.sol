@@ -8,8 +8,8 @@ contract UsingAdmin is
 	function UsingAdmin(address _registry) UsingRegistry(_registry){}
 
 	modifier fromAdmin(){
-		require(msg.sender == getAdmin());
-		_;
+		if (msg.sender == getAdmin()) _;
+		else RegistryError("Only callable by Admin");
 	}
 	
 	function getAdmin()

@@ -27,10 +27,10 @@ contract MainController is
 	UsingTreasury,
 	UsingAdmin
 {
+	event Error(string msg);
 	event PennyAuctionStarted(address addr, uint time);
 	event UpdatedPennyAuctions(uint numAuctionsClosed, uint time);
-	event CreateCalled(uint initialPrize, uint bidPrice, uint bidTimeS, uint bidFeePct, uint auctionTimeS);
-
+	
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)
 		UsingTreasury(_registry)
@@ -44,37 +44,46 @@ contract MainController is
 	    					 	uint _bidFeePct,
         					 	uint _auctionTimeS)
 		fromAdmin
-		returns (address _pennyAuction)
+		returns (bool _success, address _pennyAuction)
 	{
 		// get wei from treasury, so we can pass to PAC
 		getTreasury().fundMainController(_initialPrize);
 		// attempt to start a new auction, passing it _initialPrize
-		IPennyAuctionController _pac = getPennyAuctionController();
-		return _pac.startNewAuction.value(_initialPrize)(
-			_initialPrize,
-			_bidPrice,
-			_bidTimeS,
-			_bidFeePct,
-			_auctionTimeS
-		);
+		var(_tempSuccess, _pa) =
+			getPennyAuctionController().startNewAuction.value(_initialPrize)(
+				_initialPrize,
+				_bidPrice,
+				_bidTimeS,
+				_bidFeePct,
+				_auctionTimeS
+			);
+		if (!_tempSuccess) {
+			Error("Unable to start a new auction");
+			return;
+		}
+
+		return (true, _pa);
 	}
 
 	function updatePennyAuctions(uint _minFeeThreshold)
 		fromAdmin
-		returns (bool _didUpdate)
+		returns (bool _success, bool _didUpdate)
 	{
 		IPennyAuctionController _pac = getPennyAuctionController();
-		if (_pac.getNumActionableAuctions() > 0 || _pac.getAvailableFees() > _minFeeThreshold){
+		var (, _naa) = _pac.getNumActionableAuctions();
+		var (, _af) = _pac.getAvailableFees();
+		if (_naa > 0 || _af > _minFeeThreshold) {
 			getPennyAuctionController().checkOpenAuctions();
-			return true;
+			return (true, true);
 		}
-		return false;
+		return (true, false);
 	}
 
 	function changePennyAuctionSettings()
 		fromOwner
+		returns (bool _success)
 	{
-
+		return false;
 	}
 
 

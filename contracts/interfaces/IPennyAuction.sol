@@ -1,6 +1,7 @@
 pragma solidity ^0.4.0;
 //@dontRegenerate
 contract IPennyAuction {
+  // public state variables
   function admin() public constant returns(address);
   function collector() public constant returns(address);
   function initialPrize() public constant returns(uint);
@@ -15,13 +16,15 @@ contract IPennyAuction {
   function timeOpened() public constant returns(uint);
   function timeClosed() public constant returns(uint);
   function fees() public constant returns(uint);
-  
-  function open() payable;
-  function close();
-  function redeem() returns (uint _prizeSent);
-  function redeemFees() returns (uint _feesSent);
+  // constants
   function isCloseable() constant returns (bool _bool);
   function isClosed() constant returns (bool _bool);
   function isClosedOrRedeemed() constant returns (bool _bool);
   function getTimeRemaining() constant returns (uint _timeRemaining);
+  
+  // non-constants
+  function open() payable returns (bool _success);
+  function close() returns (bool _success);
+  function redeem() returns (bool _success, uint _prizeSent);
+  function redeemFees() returns (bool _success, uint _feesSent);
 }

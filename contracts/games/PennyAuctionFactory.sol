@@ -28,7 +28,7 @@ contract PennyAuctionFactory is
 	                       uint _bidFeePct,
                            uint _auctionTimeS)
         fromPennyAuctionController
-        returns (PennyAuction _addr)
+        returns (bool _success, PennyAuction _addr)
     {
         // create an auction
 		PennyAuction _auction = new PennyAuction({
@@ -55,6 +55,6 @@ contract PennyAuctionFactory is
             auctionTimeS: _auctionTimeS
         });
 
-        return _auction;
+        return (true, _auction);
     }
 }

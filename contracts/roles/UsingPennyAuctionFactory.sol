@@ -9,8 +9,8 @@ contract UsingPennyAuctionFactory is
 	function UsingPennyAuctionFactory(address _registry) UsingRegistry(_registry){}
 
 	modifier fromPennyAuctionFactory(){ 
-		require(msg.sender == address(getPennyAuctionFactory()));
-		_;
+		if (msg.sender == address(getPennyAuctionFactory())) _;
+		else RegistryError("Only callable by PennyAuctionFactory");
 	}
 
 	function getPennyAuctionFactory()

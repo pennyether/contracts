@@ -97,8 +97,7 @@
 			});
 		};
 		this.onBlockChange = function(res){
-			console.log("block changed!");
-			// todo: update all balances
+			_instances.forEach(i => { i.updateBalance(); });
 		};
 		this.get$ = () => _$;
 
@@ -157,41 +156,39 @@
 
 		function _init(name, inst){
 			_$remove.click(function(){ _self.kill(); });
-			_$clear_events.click(function(){
-				_$events.remove();
-				_$events.text("no events");
-			});
+			_$clear_events.click(function(){ _$events.remove(); });
 			_$tabFuncs.click(function(){ _self.toggleTab("funcs"); });
 			_$tabEvents.click(function(){ _self.toggleTab("events"); });
 
 			_$ctnrFuncs.text("todo, add funcs...");
-			_$events.text("no events");
 
 			_self.toggleTab("events");
 			_self.setName(name);
 			_self.setAddress(inst.address);
-			_web3.eth.getBalance(inst.address, function(err, res){
-				_self.setBalance(res);
-			});
+			_self.updateBalance();
 		}
 
 		// public methods
 		this.setName = function(name){
 			_$name.text(name);
 		}
-		this.setBalance = function(amt){
-			if (typeof amt != "object"){ amt = new BigNumber(amt); }
-			_curBalance = amt;
-			_$balance.text(amt.div(1e18).toNumber().toFixed(5) + " ETH");
-			if (!amt.equals(_curBalance)) {
-				_$balance.css({"background": "green"});
-				setTimeout(function(){
-					_$balance.css({"background": ""});
-				}, 5000);
-			}
-		};
 		this.setAddress = function(addr){
 			_$address.text(addr);
+		};
+		this.updateBalance = function(){
+			_web3.eth.getBalance(_inst.address, function(err, amt){
+				if (err) return;
+
+				if (typeof amt != "object"){ amt = new BigNumber(amt); }
+				_$balance.text(amt.div(1e18).toNumber().toFixed(5) + " ETH");
+				if (!amt.equals(_curBalance)) {
+					_$balance.css({"background": "green"});
+					setTimeout(function(){
+						_$balance.css({"background": ""});
+					}, 5000);
+				}
+				_curBalance = amt;
+			});
 		};
 		this.addEvent = function(event){
 			console.log(event);
@@ -212,7 +209,7 @@
 					if (val.greaterThan(1e12)){
 						asString = val.div(1e18).toNumber().toFixed(5) + " ETH?";	
 					} else if (val.greaterThan(1400000000) && val.lessThan(1600000000)){
-						asString = (new Date(val.toNumber()*1000)).toString()
+						asString = (new Date(val.toNumber()*1000)).toString();
 					} else {
 						asString = val.toNumber();
 					}

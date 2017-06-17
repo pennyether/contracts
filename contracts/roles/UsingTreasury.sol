@@ -9,8 +9,8 @@ contract UsingTreasury is
 	function UsingTreasury(address _registry) UsingRegistry(_registry){}
 
 	modifier fromTreasury(){
-		require(msg.sender == address(getTreasury()));
-		_;
+		if (msg.sender == address(getTreasury())) _;
+		else RegistryError("Only callable by Treasury");
 	}
 	
 	function getTreasury()
