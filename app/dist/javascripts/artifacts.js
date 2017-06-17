@@ -471,12 +471,12 @@ module.exports = {
 				}
 			},
 			"links": {},
-			"address": "0x853c8ce3a35b71ef223b0e0c39308ecbf74e442b",
-			"updated_at": 1497667719889
+			"address": "0x9ea21fb09d67f68dcd90e921905f1f7556bc2f58",
+			"updated_at": 1497686308120
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1497667719889
+	"updated_at": 1497686308120
 };
 
 /***/ }),
@@ -1603,12 +1603,12 @@ module.exports = {
 				}
 			},
 			"links": {},
-			"address": "0xee7bb73ed26b123f2c9bcda202331017e8b50f52",
-			"updated_at": 1497667719893
+			"address": "0x849f7fdc158f64e63ab00cfcb92fb89811931c13",
+			"updated_at": 1497686308123
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1497667719893
+	"updated_at": 1497686308123
 };
 
 /***/ }),
@@ -1920,12 +1920,12 @@ module.exports = {
 				}
 			},
 			"links": {},
-			"address": "0x9fca44fceae2f8b9b0ad733726dbf0667e3341d1",
-			"updated_at": 1497667719892
+			"address": "0x5a10d5b0d6a317323ac8c4f8d3fc3b23073475d1",
+			"updated_at": 1497686308123
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1497667719892
+	"updated_at": 1497686308123
 };
 
 /***/ }),
@@ -2005,12 +2005,12 @@ module.exports = {
 		"1497667709496": {
 			"events": {},
 			"links": {},
-			"address": "0x4d05c06b60a7307eb6f652874e668e93ee83c8fa",
-			"updated_at": 1497667719886
+			"address": "0x3675a36b53f567d7760d5970d5c50b0f94e27ef1",
+			"updated_at": 1497686308118
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1497667719886
+	"updated_at": 1497686308118
 };
 
 /***/ }),
@@ -2021,11 +2021,249 @@ module.exports = {
 // copy over
 window.Artifacts = {
 	Registry: 					__webpack_require__(4),
+	Treasury: 					__webpack_require__(7),
 	MainController: 			__webpack_require__(0),
 	PennyAuctionController: 	__webpack_require__(2),
 	PennyAuctionFactory: 		__webpack_require__(3),
 	PennyAuction: 				__webpack_require__(1)
 }
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+module.exports = {
+	"contract_name": "Treasury",
+	"abi": [
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "_value",
+					"type": "uint256"
+				}
+			],
+			"name": "withdraw",
+			"outputs": [],
+			"payable": false,
+			"type": "function"
+		},
+		{
+			"constant": true,
+			"inputs": [],
+			"name": "getRegistry",
+			"outputs": [
+				{
+					"name": "_addr",
+					"type": "address"
+				}
+			],
+			"payable": false,
+			"type": "function"
+		},
+		{
+			"constant": true,
+			"inputs": [],
+			"name": "getOwner",
+			"outputs": [
+				{
+					"name": "_addr",
+					"type": "address"
+				}
+			],
+			"payable": false,
+			"type": "function"
+		},
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "_value",
+					"type": "uint256"
+				}
+			],
+			"name": "fundMainController",
+			"outputs": [
+				{
+					"name": "_success",
+					"type": "bool"
+				}
+			],
+			"payable": false,
+			"type": "function"
+		},
+		{
+			"constant": true,
+			"inputs": [],
+			"name": "getMainController",
+			"outputs": [
+				{
+					"name": "",
+					"type": "address"
+				}
+			],
+			"payable": false,
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"name": "_registry",
+					"type": "address"
+				}
+			],
+			"payable": false,
+			"type": "constructor"
+		},
+		{
+			"payable": true,
+			"type": "fallback"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"name": "requestor",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"name": "value",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"name": "msg",
+					"type": "string"
+				}
+			],
+			"name": "NotEnoughFunds",
+			"type": "event"
+		}
+	],
+	"unlinked_binary": "0x6060604052341561000c57fe5b60405160208061035783398101604052515b805b805b600160a060020a03811615156100385760006000fd5b60008054600160a060020a031916600160a060020a0383161790555b505b505b505b6102ee806100696000396000f300606060405236156100515763ffffffff60e060020a6000350416632e1a7d4d811461005a5780635ab1bd531461006f578063893d20e81461009b578063c12eab90146100c7578063cd769b37146100ee575b6100585b5b565b005b341561006257fe5b61005860043561011a565b005b341561007757fe5b61007f610147565b60408051600160a060020a039092168252519081900360200190f35b34156100a357fe5b61007f610157565b60408051600160a060020a039092168252519081900360200190f35b34156100cf57fe5b6100da6004356101cf565b604080519115158252519081900360200190f35b34156100f657fe5b61007f61022c565b60408051600160a060020a039092168252519081900360200190f35b610122610157565b600160a060020a031633600160a060020a03161415156101425760006000fd5b5b5b50565b600054600160a060020a03165b90565b60008054604080516020908101849052815160e260020a632ecd14d302815260d960020a6427aba722a90260048201529151600160a060020a039093169263bb34534c92602480820193929182900301818787803b15156101b457fe5b6102c65a03f115156101c257fe5b5050604051519150505b90565b60006101d961022c565b600160a060020a031633600160a060020a03161415156101f95760006000fd5b61020161022c565b604051600160a060020a0391909116908390600081818185876187965a03f193505050505b5b919050565b600061024c608960020a6e26a0a4a72fa1a7a72a2927a62622a902610252565b90505b90565b60008054604080516020908101849052815160e260020a632ecd14d3028152600481018690529151600160a060020a039093169263bb34534c92602480820193929182900301818787803b15156102a557fe5b6102c65a03f115156102b357fe5b5050604051519150505b9190505600a165627a7a72305820ee6fd94931e9c9021c85ff428610d8c4b560bb20f60a43292c2800197b5b8db80029",
+	"networks": {
+		"1497250094702": {
+			"links": {},
+			"events": {
+				"0xdf8b2ad6fa89b986609f18f3e889d139dd700284a4dbc2af78dc7bd32cf85a18": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "requestor",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "NotEnoughFunds",
+					"type": "event"
+				}
+			},
+			"updated_at": 1497335739769,
+			"address": "0x2969c31be2cea019d73e3c7e6b9b3f17e5414434"
+		},
+		"1497564287593": {
+			"events": {
+				"0xdf8b2ad6fa89b986609f18f3e889d139dd700284a4dbc2af78dc7bd32cf85a18": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "requestor",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "NotEnoughFunds",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0x76fbfd168792f43dd52e38e1d5b4110b742d3892",
+			"updated_at": 1497652521703
+		},
+		"1497654807337": {
+			"events": {
+				"0xdf8b2ad6fa89b986609f18f3e889d139dd700284a4dbc2af78dc7bd32cf85a18": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "requestor",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "NotEnoughFunds",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0x8bd9ec8f089e77be74289df123a5e4a7bcca2961",
+			"updated_at": 1497659500741
+		},
+		"1497667709496": {
+			"events": {
+				"0xdf8b2ad6fa89b986609f18f3e889d139dd700284a4dbc2af78dc7bd32cf85a18": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "requestor",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "NotEnoughFunds",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0xa6cf80fe6d1402061dd2cb696aca90f04f92d68e",
+			"updated_at": 1497686308118
+		}
+	},
+	"schema_version": "0.0.5",
+	"updated_at": 1497686308118
+};
 
 /***/ })
 /******/ ]);

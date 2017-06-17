@@ -15,6 +15,8 @@ var web3 = new Web3(provider);
 
 var Registry = Contract(Artifacts.Registry);
 	Registry.setProvider(provider);
+var Treasury = Contract(Artifacts.Treasury);
+	Treasury.setProvider(provider);
 var MainController = Contract(Artifacts.MainController);
 	MainController.setProvider(provider);
 var PennyAuctionController = Contract(Artifacts.PennyAuctionController);
@@ -31,43 +33,65 @@ var accounts = web3.eth.accounts;
 var registry;
 var owner;
 var admin;
+var treasury;
 var mainController;
-var mainControllerWatcher;
 var pac;
-var pacWatcher;
 var paf;
-var pafWatcher;
-// load registry, mainController, pac
-Registry.deployed().then(function(r){
-	registry = r;
-	return Promise.all([
-		registry.addressOf("OWNER").then(ownerAddr => {
-			owner = ownerAddr;
-		}),
-		registry.addressOf("ADMIN").then(adminAddr => {
-			admin = adminAddr;
-		}),
-		registry.addressOf("MAIN_CONTROLLER").then(mcAddr => {
-			mainController = MainController.at(mcAddr);
-			mainControllerWatcher = mainController.allEvents(function(e, log){
-				logEvent("MainController", log);
-			});
-		}),
-		registry.addressOf("PENNY_AUCTION_CONTROLLER").then(pacAddr => {
-			pac = PennyAuctionController.at(pacAddr);
-			pacWatcher = pac.allEvents(function(e, log){
-				logEvent("PennyAuctionController", log);
+var playground = new Playground(web3);
+
+
+$(function(){
+	playground.get$().appendTo(document.body);
+
+	// load registry, mainController, pac
+	Registry.deployed().then(function(r){
+		registry = r;
+		return Promise.all([
+			registry.addressOf("OWNER").then(ownerAddr => {
+				owner = ownerAddr;
+			}),
+			registry.addressOf("ADMIN").then(adminAddr => {
+				admin = adminAddr;
+			}),
+			registry.addressOf("TREASURY").then(tAddr => {
+				treasury = Treasury.at(tAddr);
+			}),
+			registry.addressOf("MAIN_CONTROLLER").then(mcAddr => {
+				mainController = MainController.at(mcAddr);
+			}),
+			registry.addressOf("PENNY_AUCTION_CONTROLLER").then(pacAddr => {
+				pac = PennyAuctionController.at(pacAddr);
+			}),
+			registry.addressOf("PENNY_AUCTION_FACTORY").then(pafAddr =>{
+				paf = PennyAuctionFactory.at(pafAddr);
 			})
-		}),
-		registry.addressOf("PENNY_AUCTION_FACTORY").then(pafAddr =>{
-			paf = PennyAuctionFactory.at(pafAddr);
-			pafWatcher = paf.allEvents(function(e, log){
-				logEvent("PennyAuctionFactory", log);
-			})
-		})
-	])
-}).then(function(ownerAddr){
-	console.log("Done loading stuff...");
+		])
+	}).then(function(){
+		playground.addInstance("Treasury", treasury);
+		playground.addInstance("MainController", mainController);
+		playground.addInstance("PennyAuctionController", pac);
+		playground.addInstance("PennyAuctionFactory", paf);
+	});
+
+	$("#newAuction").click(function(){
+		var initialPrize = new BigNumber(.05e18);
+		var bidPrice     = new BigNumber(.005e18);
+		var bidTimeS     = new BigNumber(600);          // 10 minutes
+		var bidFeePct    = new BigNumber(60);
+		var auctionTimeS = new BigNumber(60*60*12);     // 12 hours
+
+		mainController.createPennyAuction(
+			initialPrize,
+			bidPrice,
+			bidTimeS,
+			bidFeePct,
+			auctionTimeS,
+			{from: admin, gas: 4000000}
+		).then(function(){
+			logEvent("Created it!");
+		});	
+	});
+
 });
 
 function logEvent(name, eventLog){
@@ -95,34 +119,3 @@ function logEvent(name, eventLog){
 		})
 		.append($contents)
 }
-
-
-$(function(){
-
-	$("#newAuction").click(function(){
-		var initialPrize = new BigNumber(.05e18);
-		var bidPrice     = new BigNumber(.005e18);
-		var bidTimeS     = new BigNumber(600);          // 10 minutes
-		var bidFeePct    = new BigNumber(60);
-		var auctionTimeS = new BigNumber(60*60*12);     // 12 hours
-
-		console.log("is big number:", initialPrize instanceof BigNumber);
-
-		console.log("REGISTRY:", registry.address);
-		console.log("ADMIN:", admin);
-		console.log("MAIN_CONTROLLER:", mainController.address);
-		mainController.createPennyAuction(
-			initialPrize,
-			bidPrice,
-			bidTimeS,
-			bidFeePct,
-			auctionTimeS,
-			{from: admin, gas: 4000000}
-		).then(function(){
-			logEvent("Created it!");
-		});	
-	});
-
-	(new Playground()).get$().appendTo(document.body);
-
-});

@@ -29,11 +29,14 @@ contract MainController is
 {
 	event PennyAuctionStarted(address addr, uint time);
 	event UpdatedPennyAuctions(uint numAuctionsClosed, uint time);
+	event CreateCalled(uint initialPrize, uint bidPrice, uint bidTimeS, uint bidFeePct, uint auctionTimeS);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)
 		UsingTreasury(_registry)
 		UsingAdmin(_registry) {}
+
+	function() payable {}
 
 	function createPennyAuction(uint _initialPrize,
 	    					 	uint _bidPrice,
@@ -56,10 +59,16 @@ contract MainController is
 		);
 	}
 
-	function updatePennyAuctions()
+	function updatePennyAuctions(uint _minFeeThreshold)
 		fromAdmin
+		returns (bool _didUpdate)
 	{
-		getPennyAuctionController().checkOpenAuctions();
+		IPennyAuctionController _pac = getPennyAuctionController();
+		if (_pac.getNumActionableAuctions() > 0 || _pac.getAvailableFees() > _minFeeThreshold){
+			getPennyAuctionController().checkOpenAuctions();
+			return true;
+		}
+		return false;
 	}
 
 	function changePennyAuctionSettings()

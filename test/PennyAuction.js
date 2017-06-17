@@ -136,7 +136,7 @@ contract('PennyAuction', function(accounts) {
             await EXPECT_INVALID_OPCODE(auction.send(bidPrice, {from: bidder1, gas: 300000}));
         });
 
-        describe("Opening", function(){
+        describe("Opening...", function(){
             it("should not start from non-admin", async function(){
                 await EXPECT_INVALID_OPCODE(auction.open({from: bidder1, value: initialPrize}));
             });
@@ -239,39 +239,40 @@ contract('PennyAuction', function(accounts) {
                 await EXPECT_INVALID_OPCODE(auction.close());
             });
         });
+
+        describe("Past timeClosed", function(){
+            before("fastforward to make timeRemaining() 0", async function(){
+                assert.equal((await auction.state()).toNumber(), 1, "Is currently opened");
+                assert.isAbove((await auction.getTimeRemaining()).toNumber(), 0, "More than 0 timeRemaining");
+
+                await TestUtil.fastForward((await auction.getTimeRemaining()).toNumber() + 1);
+                assert.strEqual(await auction.getTimeRemaining(), 0, "Should be no time left");
+            });
+
+            it("should not accept bids", async function(){
+                await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: nonBidder, value: bidPrice}));
+            });
+
+            it("should now be closeable", async function(){
+                var closeable = await auction.isCloseable();
+                assert.equal(closeable, true, "Should be closeable");
+                var closedOrRedeemed = await auction.isClosedOrRedeemed();
+                assert.equal(closedOrRedeemed, false, "Auction is not closed or redeemed");
+            });
+
+            it("should still not be able to be opened again", async function(){
+                await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
+            });
+
+            describe("Closing...", function(){
+                it("should be closeable by anyone", async function(){
+                    await auction.close({from: nonBidder});
+                    assert.equal((await auction.state()).toNumber(), 2, "Auction should be closed.");
+                });  
+            })
+        });
     });
 
-    describe("When Opened, but past timeEnded", function(){
-        before("fastforward to make timeRemaining() 0", async function(){
-            assert.equal((await auction.state()).toNumber(), 1, "Is currently opened");
-            assert.isAbove((await auction.getTimeRemaining()).toNumber(), 0, "More than 0 timeRemaining");
-
-            await TestUtil.fastForward((await auction.getTimeRemaining()).toNumber() + 1);
-            assert.strEqual(await auction.getTimeRemaining(), 0, "Should be no time left");
-        });
-
-        it("should not accept bids", async function(){
-            await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: nonBidder, value: bidPrice}));
-        });
-
-        it("should now be closeable", async function(){
-            var closeable = await auction.isCloseable();
-            assert.equal(closeable, true, "Should be closeable");
-            var closedOrRedeemed = await auction.isClosedOrRedeemed();
-            assert.equal(closedOrRedeemed, false, "Auction is not closed or redeemed");
-        });
-
-        it("should still not be able to be opened again", async function(){
-            await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
-        });
-
-        describe("Closing", function(){
-            it("should be closeable by anyone", async function(){
-                await auction.close({from: nonBidder});
-                assert.equal((await auction.state()).toNumber(), 2, "Auction should be closed.");
-            });  
-        })
-    });
 
     describe("When Closed", function(){
         before("should be closed", async function(){
@@ -285,7 +286,7 @@ contract('PennyAuction', function(accounts) {
             assert.equal(closedOrRedeemed, true, "Auction is closed or redeemed"); 
         });
 
-        it("should have the proper closing balance", async function(){
+        it("should have balance of prize + fees", async function(){
             var state = await TestUtil.getContractState(auction);
             var expectedBalance = state.prize.plus(state.fees);
             assert.strEqual(TestUtil.getBalance(auction.address), expectedBalance, "Correct final balance");
@@ -305,7 +306,7 @@ contract('PennyAuction', function(accounts) {
             });
         });
 
-        describe("Redeeming", function(){
+        describe("Redeeming...", function(){
             it("should not be redeemable by losers", async function(){
                 await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: nonBidder}));
             });

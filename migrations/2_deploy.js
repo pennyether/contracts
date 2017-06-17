@@ -5,24 +5,33 @@ var PennyAuctionFactory = artifacts.require("./PennyAuctionFactory.sol");
 var PennyAuctionController = artifacts.require("./PennyAuctionController.sol");
 
 module.exports = function(deployer, network, accounts) {
+	var maxOpenAuctions = 2;
+	var maxInitialPrize = .1e18;
+
 	deployer.then(async function(){
-		console.log("Deploying PennyEth contracts...");
+		console.log("Deploying PennyEth singletons...");
 		await deployer.deploy(Registry);
 		var registry = Registry.at(Registry.address);
 		await deployer.deploy(Treasury, registry.address);
 		var treasury = Treasury.at(Treasury.address);
 		await deployer.deploy(MainController, registry.address);
 		var mainController = MainController.at(MainController.address);
-		await deployer.deploy(PennyAuctionController, registry.address, 1, 1e18);
+		await deployer.deploy(PennyAuctionController, registry.address, maxOpenAuctions, maxInitialPrize);
 		var pac = PennyAuctionController.at(PennyAuctionController.address);
 		await deployer.deploy(PennyAuctionFactory, registry.address);
 		var paf = PennyAuctionFactory.at(PennyAuctionFactory.address);
 
 		// connect everything.
+		await registry.register("ADMIN", accounts[1]);
 		await registry.register("TREASURY", treasury.address);
 		await registry.register("MAIN_CONTROLLER", mainController.address);
 		await registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
 		await registry.register("PENNY_AUCTION_FACTORY", paf.address);
+		web3.eth.sendTransaction({from: accounts[0], to: treasury.address, value: 1e18});
+		console.log("REGISTRY:", registry.address);
+		console.log("OWNER:", accounts[0]);
+		console.log("ADMIN:", accounts[1]);
+		console.log("Funded treasury with 1 ETH.");
 		
 		function assertEquals(arg1, arg2, msg){
 			if (arg1 != arg2) throw new Error(msg + ": " + arg1 + " != " + arg2);
@@ -32,6 +41,10 @@ module.exports = function(deployer, network, accounts) {
 		
 		assertEquals(await treasury.getOwner(), accounts[0], "Treasury sees correct owner.");
 		assertEquals(await treasury.getMainController(), mainController.address, "Treasury sees correct mainController.");
+
+		assertEquals(await mainController.getOwner(), accounts[0], "MainController sees correct owner");
+		assertEquals(await mainController.getAdmin(), accounts[1], "MainController sees correct admin");
+		assertEquals(await mainController.getPennyAuctionController(), pac.address, "MainController sees correct PAC");
 		
 		assertEquals(await pac.getOwner(), accounts[0], "PAC sees correct owner.");
 		assertEquals(await pac.getMainController(), mainController.address, "PAC sees correct MainController");
@@ -40,6 +53,6 @@ module.exports = function(deployer, network, accounts) {
 		assertEquals(await paf.getOwner(), accounts[0], "PAF sees correct owner.");
 		assertEquals(await paf.getTreasury(), treasury.address, "PAF sees correct treasury.");
 		assertEquals(await paf.getPennyAuctionController(), pac.address, "PAF sees correct PAC.");
-		console.log("Done deploying.");
+		console.log("Done deploying PennyEth singletons.");
 	});
 };

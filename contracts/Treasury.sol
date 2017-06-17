@@ -27,7 +27,7 @@ contract Treasury is
 		fromMainController
 		returns (bool _success)
 	{
-		// use unlimited gas in this transfer, in case PAC does stuff
+		// use unlimited gas in this transfer, in case MainController does stuff
 		return getMainController().call.value(_value)();
 	}
 
