@@ -9,6 +9,8 @@ var Ledger = TestUtil.Ledger;
 var BigNumber = require("bignumber.js");
 
 var EXPECT_INVALID_OPCODE = TestUtil.expectInvalidOpcode;
+var EXPECT_ERROR_LOG = TestUtil.expectErrorLog;
+var EXPECT_ONE_LOG = TestUtil.expectOneLog;
 var maxOpenAuctions = new BigNumber(2);
 var maxInitialPrize = new BigNumber(.05e18);
 
@@ -49,7 +51,7 @@ contract('PennyAuctionController', function(accounts){
 
         it("should point to the correct things", async function(){
             assert.equal(await pac.getPennyAuctionFactory(), paf.address, "PAC points to correct PAF");
-            assert.equal(await pac.getMainController(), dummyMainController, "PAC points to correct MainController");
+            assert.equal(await pac.getMainController(), dummyMainController, "PAC points to correct MC");
         });
 
         it("settings cannot be changed by randos", async function(){
@@ -76,40 +78,94 @@ contract('PennyAuctionController', function(accounts){
             );
         });
 
-        it("should not start without passing correct value", async function(){
-            await EXPECT_INVALID_OPCODE(
-                pac.startNewAuction(
+        it("returns false, refunds, and errors if wrong amount sent", async function(){
+            // do call, have ledger watch
+            var ledger = new Ledger([dummyMainController]);
+            await ledger.start();
+            var result = await pac.startNewAuction(
                     initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                    {from: dummyMainController, value: 1}
-                )
+                    {from: dummyMainController, value: initialPrize.plus(1)}
+                );
+            await ledger.stop();
+
+            // ensure error and refund
+            await EXPECT_ERROR_LOG(result, "Value must equal initialPrize");
+            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
+            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
+
+            // make sure call returns correctly as well
+            var res = await pac.startNewAuction.call(
+                initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                {from: dummyMainController, value: initialPrize.plus(1)}
             );
-            await EXPECT_INVALID_OPCODE(
-                pac.startNewAuction(
-                    initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                    {from: dummyMainController, value: initialPrize.minus(1)}
-                )
-            ); 
+            assert.strEqual(res[0], false, "Returns false");
         });
 
-        it("should not start an auction whose prize is too large", async function(){
-            await EXPECT_INVALID_OPCODE(
-                pac.startNewAuction(
-                    initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+        it("returns false, refunds, and errors if initialPrize is too large", async function(){
+            // do call, have ledger watch
+            var ledger = new Ledger([dummyMainController]);
+            await ledger.start();
+            var result = await pac.startNewAuction(
+                    maxInitialPrize.plus(1), bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                     {from: dummyMainController, value: maxInitialPrize.plus(1)}
-                )
+                );
+            await ledger.stop();
+
+            // ensure error and refund
+            await EXPECT_ERROR_LOG(result, "initialPrize too large");
+            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
+            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
+
+            // make sure call returns correctly as well
+            var res = await pac.startNewAuction.call(
+                maxInitialPrize.plus(1), bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                {from: dummyMainController, value: maxInitialPrize.plus(1)}
             );
+            assert.strEqual(res[0], false, "Returns false");
+        });
+
+        it("returns false, refunds, and errors if too many auctions open", async function(){
+            await pac.setSettings(0, maxInitialPrize, {from: dummyMainController});
+            
+            // do call, have ledger watch
+            var ledger = new Ledger([dummyMainController]);
+            await ledger.start();
+            var result = await pac.startNewAuction(
+                    initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                    {from: dummyMainController, value: initialPrize}
+                );
+            await ledger.stop();
+
+            // ensure error and refund
+            await EXPECT_ERROR_LOG(result, "Too many auctions open");
+            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
+            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
+
+            // make sure call returns correctly as well
+            var res = await pac.startNewAuction.call(
+                initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                {from: dummyMainController, value: initialPrize}
+            );
+            assert.strEqual(res[0], false, "Returns false");
+
+            await pac.setSettings(maxOpenAuctions, maxInitialPrize, {from: dummyMainController});
         });
     });
 
     describe("Starting an auction", async function(){
         var ledger = new Ledger([dummyMainController]);
         var result;
-        var pafWatcher;
-        var pacWatcher;
+
+        it("call should return true", async function(){
+            var res = await pac.startNewAuction.call(
+                initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                {from: dummyMainController, value: initialPrize}
+            );
+            assert.equal(res[0], true, "Should have returned true.");
+        });
 
         it("startNewAuction call should work", async function(){
             pafWatcher = paf.allEvents();
-            pacWatcher = pac.allEvents();
             ledger.start();
             result = await pac.startNewAuction(
                 initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
@@ -124,37 +180,20 @@ contract('PennyAuctionController', function(accounts){
             assert.strEqual(ledger.getDelta(dummyMainController), assumedLoss, "It costed MainController some wei.");
         });
 
-        it("should have cause PAF to trigger an AuctionCreated event", function(){
-            // make sure the PAF event happened
-            assert.equal(pafWatcher.get().length, 1, "PAF had one event");
-            var pafEvent = pafWatcher.get()[0];
-            assert.equal(pafEvent.event, "AuctionCreated", "PAF AuctionCreated event happened");
-            assert.strEqual(pafEvent.args.initialPrize, initialPrize, "PAF correct initialPrize");
-            assert.strEqual(pafEvent.args.bidPrice, bidPrice, "PAF correct bidPrice");
-            assert.strEqual(pafEvent.args.bidTimeS, bidTimeS, "PAF correct bidTimeS");
-            assert.strEqual(pafEvent.args.bidFeePct, bidFeePct, "PAF correct bidFeePct");
-            assert.strEqual(pafEvent.args.auctionTimeS, auctionTimeS, "PAF correct auctionTimeS");
-        });
-
-        it("pac should have triggered an AuctionStarted event", function(){
-            // mke sure the PAC event happened
-            assert.equal(pacWatcher.get().length, 1, "PAC had an event");
-            var pacEvent = pacWatcher.get()[0];
-            var pafEvent = pafWatcher.get()[0];
-            assert.equal(pacEvent.event, "AuctionStarted", "PAC AuctionStarted event happened");
-            // make sure it has the correct stuff in it
-            assert.equal(pacEvent.args.addr, pafEvent.args.addr, "PennyAuction addresses are equal");
-            assert.strEqual(pacEvent.args.initialPrize, initialPrize, "Correct prize logged");
-            assert.strEqual(pacEvent.args.bidPrice, bidPrice, "Correct bidPrice logged");
-            assert.strEqual(pacEvent.args.bidTimeS, bidTimeS, "Correct bidTimeS logged");
-            assert.strEqual(pacEvent.args.bidFeePct, bidFeePct, "Correct bidFeePct logged");
-            assert.strEqual(pacEvent.args.auctionTimeS, auctionTimeS, "Correct auctionTimeS logged");
+        it("pac should have triggered an AuctionStarted event", async function(){
+            await EXPECT_ONE_LOG(result, "AuctionStarted", {
+                initialPrize: initialPrize,
+                bidPrice: bidPrice,
+                bidTimeS: bidTimeS,
+                bidFeePct: bidFeePct,
+                auctionTimeS: auctionTimeS
+            });
         });
 
         it("correct address in openAuctions array", async function(){
-            var pacEventAddr = pacWatcher.get()[0].args.addr;
+            var expectedAddr = result.logs[0].args.addr;
             var addr = await pac.openAuctions(0);
-            assert.equal(addr, pacEventAddr, "matches address of openAuction");
+            assert.equal(addr, expectedAddr, "matches address of openAuction");
         });
     });
 
@@ -349,9 +388,8 @@ contract('PennyAuctionController', function(accounts){
             var closedLog = logs[0];
             var redeemedLog = logs[1];
             assert.equal(closedLog.event, "Closed");
-            assert.equal(redeemedLog.event, "RedeemAttempted");
+            assert.equal(redeemedLog.event, "Redeemed");
             assert.equal(redeemedLog.args.redeemer, pac.address, "Redeemer was PAC");
-            assert.equal(redeemedLog.args.successful, true);
         });
 
         it("Redeemed prize for winner", async function(){
@@ -418,10 +456,10 @@ contract('PennyAuctionController', function(accounts){
                 initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS.plus(240000), 
                 {from: dummyMainController, value: initialPrize}
             );
-            await EXPECT_INVALID_OPCODE(pac.startNewAuction(
+            await EXPECT_ERROR_LOG(pac.startNewAuction(
                 initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                 {from: dummyMainController, value: initialPrize}
-            ));
+            ), "Too many auctions open");
 
             assert.strEqual(await pac.getNumOpenAuctions(), 5, "5 open auctions");
             auction1 = PennyAuction.at(await pac.openAuctions(0));

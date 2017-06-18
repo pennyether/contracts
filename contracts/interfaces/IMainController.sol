@@ -7,6 +7,6 @@ contract IMainController {
         					 	uint _auctionTimeS)
   	returns (bool _success, address _pennyAuction);
 
-  function updatePennyAuctions() returns (bool _success, bool _didUpdate);
-  function changePennyAuctionSettings() returns (bool _success);
+  function updatePennyAuctions() returns (bool _didUpdate);
+  function changePennyAuctionSettings();
 }

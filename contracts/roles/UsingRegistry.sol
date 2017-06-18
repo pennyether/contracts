@@ -10,11 +10,9 @@ A base class that when inherited from provides:
 contract UsingRegistry {
 	IRegistry private registry;
 
-	event RegistryError(string msg);
-
 	modifier fromOwner(){
-		if (msg.sender == getOwner()) _;
-		else RegistryError("Only callable by Owner");
+		require(msg.sender == getOwner());
+		_;
 	}
 
 	function UsingRegistry(address _registry){

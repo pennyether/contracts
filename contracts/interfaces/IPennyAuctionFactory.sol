@@ -6,5 +6,5 @@ contract IPennyAuctionFactory {
 	                     uint _bidTimeS,
 	                     uint _bidFeePct,
                          uint _auctionTimeS)
-  	returns (bool _success, address _addr);
+  	returns (address _addr);
 }

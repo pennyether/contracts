@@ -62,9 +62,9 @@ contract PennyAuction {
 	uint public numBids;			// total number of bids
 	uint public fees;				// total fees collected
 	
-	// when added as a modifier, all next modifiers will throw instead of error.
+	// when added as a modifier, all proceeding modifiers will throw instead of error.
 	bool private strict;
-    modifier strictly() {strict = true; _; strict = false;}
+    modifier strictly() { strict = true; _; strict = false; }
     // modifiers
 	modifier fromAdmin() { 
 		if (msg.sender == admin) _;
@@ -80,7 +80,7 @@ contract PennyAuction {
 	}
 	modifier fromNotWinner() {
 		if (msg.sender != currentWinner) _;
-		else strict ? require(false) : Error("Not callable by winner");
+		else strict ? require(false) : Error("Not callable by current winner");
 	}
 	modifier onlyDuring(State _s) {
 		if (state == _s) _;
@@ -93,9 +93,10 @@ contract PennyAuction {
 
 	event Error(string msg);
 	event Started(uint time);
-	event BidOccurred(address bidder, uint time);
-	event Closed(address winner, uint time, uint prize, uint numBids);
-	event RedeemAttempted(address redeemer, address recipient, uint time, uint amtSent, bool successful);
+	event BidOccurred(uint time, address bidder);
+	event Closed(uint time, address winner, uint prize, uint numBids);
+	event Redeemed(uint time, address redeemer, address recipient, uint amtSent);
+	event RedeemFailed(uint time, address redeemer, address recipient, uint amt);
 
 	function PennyAuction(
 		address _admin,
@@ -127,14 +128,11 @@ contract PennyAuction {
 	*/
 	function open()
 	    payable
+	    strictly
 	    onlyDuring(State.PENDING)
 	    fromAdmin
-	    returns (bool _success)
     {
-		if (msg.value != initialPrize) {
-			Error("Value sent must equal initialPrize");
-			return false;
-		}
+		require(msg.value == initialPrize);
 
 		state = State.OPENED;
 		prize = initialPrize;
@@ -143,7 +141,6 @@ contract PennyAuction {
 		timeClosed = now + auctionTimeS;
 
 		Started(now);
-		return true;
 	}
 
 	/**
@@ -157,8 +154,14 @@ contract PennyAuction {
 	    fromNotWinner
 	{
 		// make sure bid is correct and that auction is not closed
-		require(now < timeClosed);
-		require(msg.value == bidPrice);
+		if (now >= timeClosed) {
+			Error("Cannot bid after timeClosed");
+			return;
+		}
+		if (msg.value != bidPrice) {
+			Error("Value must match bidPrice");
+			return;
+		}
 
 		// increment prize by the msg value (minus the fee)
 		// increment fees so we know how much we can take out
@@ -171,7 +174,7 @@ contract PennyAuction {
 		timeClosed += bidTimeS;
 		numBids++;
 
-		BidOccurred({bidder: msg.sender, time: now});
+		BidOccurred({time: now, bidder: msg.sender});
 	}
 
 
@@ -192,8 +195,8 @@ contract PennyAuction {
         state = State.CLOSED;
 
 		Closed({
+			time: now,
             winner: currentWinner,
-            time: now,
             prize: prize,
             numBids: numBids
         });
@@ -223,21 +226,24 @@ contract PennyAuction {
 
 		// rollback on failure
         if (!_didRedeem) {
+        	RedeemFailed({
+        		time: now,
+        		redeemer: msg.sender,
+        		recipient: currentWinner,
+        		amt: prize
+        	});
             state = State.CLOSED;
-            _didRedeem = false;
+            return (false, 0);
         }
 		
 		// log the attempt for good record keeping
-		RedeemAttempted({
+		Redeemed({
+			time: now,
             redeemer: msg.sender,
             recipient: currentWinner,
-            time: now,
-            amtSent: prize,
-            successful: _didRedeem
+            amtSent: prize
         });
-
-        // return the amount sent, or 0 on failure
-		return _didRedeem ? (true, prize) : (false, 0);
+		return (true, prize);
 	}
 	
 	/** run by the admin to redeem current fees to collector */

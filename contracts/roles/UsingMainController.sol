@@ -9,8 +9,8 @@ contract UsingMainController is
 	function UsingMainController(address _registry) UsingRegistry(_registry){}
 
 	modifier fromMainController(){
-		if (msg.sender == address(getMainController())) _;
-		else RegistryError("Only callable by MainController");
+		require(msg.sender == address(getMainController()));
+		_;
 	}
 	
 	function getMainController()
