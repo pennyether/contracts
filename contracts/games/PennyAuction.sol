@@ -156,10 +156,16 @@ contract PennyAuction {
 		// make sure bid is correct and that auction is not closed
 		if (now >= timeClosed) {
 			Error("Cannot bid after timeClosed");
+			if (!msg.sender.call.value(msg.value)()){
+				throw;
+			}
 			return;
 		}
 		if (msg.value != bidPrice) {
 			Error("Value must match bidPrice");
+			if (!msg.sender.call.value(msg.value)()){
+				throw;
+			}
 			return;
 		}
 

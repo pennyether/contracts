@@ -14,6 +14,8 @@ var auctionTimeS = new BigNumber(60*60*12);    // 12 hours
 
 var ledger = new Ledger();
 var EXPECT_INVALID_OPCODE = TestUtil.expectInvalidOpcode;
+var EXPECT_ERROR_LOG = TestUtil.expectErrorLog;
+var EXPECT_ONE_LOG = TestUtil.expectOneLog;
 
 contract('PennyAuction', function(accounts) {
     var admin = accounts[0];
@@ -78,8 +80,9 @@ contract('PennyAuction', function(accounts) {
 
         async function rejectCurWinnerBid(){
             var currentWinner = await auction.currentWinner();
-            await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: currentWinner, value: bidPrice}))
-        };
+            var res = await auction.sendTransaction({from: currentWinner, value: bidPrice});
+            await EXPECT_ERROR_LOG(res, "Not callable by current winner");
+        }
 
         if (description) {
             (function(){
@@ -133,12 +136,33 @@ contract('PennyAuction', function(accounts) {
         });
 
         it("should not allow bidding", async function(){
-            await EXPECT_INVALID_OPCODE(auction.send(bidPrice, {from: bidder1, gas: 300000}));
+            var ledger = new Ledger([bidder1]);
+            await ledger.start();
+            var res = await auction.send(bidPrice, {from: bidder1, gas: 300000});
+            await ledger.stop();
+            await EXPECT_ERROR_LOG(res, "Not callable in current state");
+
+            var txFee = TestUtil.getTxFee(res.tx).mul(-1);
+            assert.strEqual(ledger.getDelta(bidder1), txFee, "Lost only txFee");
         });
 
         describe("Opening...", function(){
             it("should not start from non-admin", async function(){
-                await EXPECT_INVALID_OPCODE(auction.open({from: bidder1, value: initialPrize}));
+                TxTester.watch([bidder1, auction.address])
+                    .do(auction.open({from: bidder1, value: initialPrize})
+                    .assertLostTxFee(bidder1)
+                    .assertNoChange(auction.address)
+                    .assertErrorLog("Lost only txFee");
+
+                var ledger = new Ledger([bidder1]);
+                await ledger.start();
+                await EXPECT_ERROR_LOG(auction.open({from: bidder1, value: initialPrize})
+                    , "Not callable in current state");
+                await ledger.stop();
+
+                var txFee = TestUtil.getTxFee(res.tx).mul(-1);
+                assert.strEqual(ledger.getDelta(bidder1), txFee, "Lost only txFee");
+                expect.strEqual(await auction.state(), 0, "Auction still pending.");
             });
 
             it("should not start with wrong amount", async function(){

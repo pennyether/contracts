@@ -3,6 +3,7 @@ var PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
 var PennyAuction = artifacts.require("PennyAuction");
 
 var TestUtil = require("../js/test-util.js").make(web3, assert);
+var EXPECT_ONE_LOG = TestUtil.expectOneLog;
 var BigNumber = require("bignumber.js");
 
 var initialPrize = new BigNumber(.5e18);       // half an eth
@@ -42,17 +43,17 @@ contract('PennyAuctionFactory', function(accounts){
             {from: dummyPac, gas: 2000000}
         );
 
-        // ensure the event is correct
-        assert.equal(res.logs.length, 1, "There is one log")
-        var log = res.logs[0];
-        assert.strEqual(log.args.initialPrize, initialPrize, "Logged correct initialPrize");
-        assert.strEqual(log.args.bidPrice, bidPrice, "Logged correct bidPrice");
-        assert.strEqual(log.args.bidTimeS, bidTimeS, "Logged correct bidTimeS");
-        assert.strEqual(log.args.bidFeePct, bidFeePct, "Logged correct bidFeePct");
-        assert.strEqual(log.args.auctionTimeS, auctionTimeS, "Logged correct auctionTimeS");
+        await EXPECT_ONE_LOG(res, "AuctionCreated", {
+            addr: null,
+            initialPrize: initialPrize,
+            bidPrice: bidPrice,
+            bidTimeS: bidTimeS,
+            bidFeePct: bidFeePct,
+            auctionTimeS: auctionTimeS
+        });
 
         // ensure the state of the penny auction is correct
-        var auction = PennyAuction.at(log.args.addr);
+        var auction = PennyAuction.at(res.logs[0].args.addr);
         var state = await TestUtil.getContractState(auction);
         assert.equal(state.admin, dummyPac, "Admin is set to dummyPac");
         assert.equal(state.collector, dummyTreasury, "Treasury is set to dummyTreasury");

@@ -4,7 +4,7 @@ function Ledger(web3, addresses){
 	this._state = "new";
 	this._start_balances = {};
 	this._end_balances = {};
-	this._addresses = addresses;
+	this._addresses = addresses || [];
 	this._deltas = {};
 
 	this.reset = function(addresses){
@@ -18,8 +18,6 @@ function Ledger(web3, addresses){
 	this.start = function(){
 		if (_self.state=="started")
 			throw new Error("Ledger is already started.");
-		if (!_self._addresses || _self._addresses.length == 0)
-			throw new Error("No accounts specified.");
 
 		_self._start_balances = getBalancesObject(web3, _self._addresses);
 		_self._state = "started";

@@ -5,6 +5,7 @@ var PennyAuctionController = artifacts.require("PennyAuctionController");
 var PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
 var PennyAuction = artifacts.require("PennyAuction");
 
+var TxTester = require("../js/tx-tester.js");
 var TestUtil = require("../js/test-util.js").make(web3, assert);
 var Ledger = TestUtil.Ledger;
 var BigNumber = require("bignumber.js");
@@ -22,6 +23,7 @@ var bidFeePct    = new BigNumber(60);
 var auctionTimeS = new BigNumber(60*60*12);     // 12 hours
 
 contract("MainController", function(accounts){
+	var txTester = new TxTester(web3, assert);
 	var owner = accounts[0];
 	var admin = accounts[1];
 	var rando = accounts[2];
@@ -50,49 +52,58 @@ contract("MainController", function(accounts){
 	describe("When calling createPennyAuction", function(){
 		describe("Before...", function(){
 			it("is not callable from non-admin", async function(){
-				await EXPECT_INVALID_OPCODE(mainController.createPennyAuction(
-					initialPrize,
-					bidPrice,
-					bidTimeS,
-					bidFeePct,
-					auctionTimeS,
-					{from: rando}
-				));
+				await txTester.do(() => 
+					mainController.createPennyAuction(
+						initialPrize,
+						bidPrice,
+						bidTimeS,
+						bidFeePct,
+						auctionTimeS,
+						{from: rando}
+					)
+				).assertInvalidOpCode();
 			});
 			it("cant start an auction that's more than treasury has", async function(){
-				await EXPECT_ERROR_LOG(mainController.createPennyAuction(
-					await TestUtil.getBalance(treasury.address).plus(1),
-					bidPrice,
-					bidTimeS,
-					bidFeePct,
-					auctionTimeS,
-					{from: admin}
-				), "Unable to receive funds", mainController.address);
+				await txTester.do(async () => 
+					mainController.createPennyAuction(
+						await TestUtil.getBalance(treasury.address).plus(1),
+						bidPrice,
+						bidTimeS,
+						bidFeePct,
+						auctionTimeS,
+						{from: admin}
+					)
+				).assertErrorLog("Unable to receive funds", mainController.address);
 			});
 			it("cant start an auction that's above maxInitialPrize", async function(){
-				var ledger = new Ledger([treasury.address]);
-				await ledger.start();
-				await EXPECT_ERROR_LOG(mainController.createPennyAuction(
-					maxInitialPrize.plus(1),
-					bidPrice,
-					bidTimeS,
-					bidFeePct,
-					auctionTimeS,
-					{from: admin}
-				), "Unable to start a new auction", mainController.address);
-				await ledger.stop();
-				assert.strEqual(ledger.getDelta(treasury.address), 0, "No funds lost from treasury");
+				await txTester
+					.watch([treasury.address])
+					.do(() => 
+						mainController.createPennyAuction(
+							maxInitialPrize.plus(1),
+							bidPrice,
+							bidTimeS,
+							bidFeePct,
+							auctionTimeS,
+							{from: admin}
+						)
+					).assertErrorLog("Unable to start a new auction", mainController.address)
+					.assertDelta(treasury.address, 0, "No funds lost from treasury");
 			});
 			it("started an auction", async function(){
-				var res = await mainController.createPennyAuction(
-					initialPrize,
-					bidPrice,
-					bidTimeS,
-					bidFeePct,
-					auctionTimeS,
-					{from: admin}
-				);
-				await EXPECT_ONE_LOG(res, "PennyAuctionStarted", {time: null, addr: null}, mainController.address);
+				await txTester
+					.watch([treasury.address])
+					.do( () => 
+						mainController.createPennyAuction(
+							initialPrize,
+							bidPrice,
+							bidTimeS,
+							bidFeePct,
+							auctionTimeS,
+							{from: admin}
+						)
+					).assertOneLog("PennyAuctionStarted", {time: null, addr: null})
+					.assertDelta(treasury.address, initialPrize.mul(-1), "Treasury lost funds");
 			});
 			it("returns proper stuff", async function(){
 				var res = await mainController.createPennyAuction.call(

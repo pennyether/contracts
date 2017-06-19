@@ -81,12 +81,12 @@ contract('PennyAuctionController', function(accounts){
         it("returns false, refunds, and errors if wrong amount sent", async function(){
             // do call, have ledger watch
             var ledger = new Ledger([dummyMainController]);
-            await ledger.start();
+            ledger.start();
             var result = await pac.startNewAuction(
                     initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                     {from: dummyMainController, value: initialPrize.plus(1)}
                 );
-            await ledger.stop();
+            ledger.stop();
 
             // ensure error and refund
             await EXPECT_ERROR_LOG(result, "Value must equal initialPrize");
@@ -104,12 +104,12 @@ contract('PennyAuctionController', function(accounts){
         it("returns false, refunds, and errors if initialPrize is too large", async function(){
             // do call, have ledger watch
             var ledger = new Ledger([dummyMainController]);
-            await ledger.start();
+            ledger.start();
             var result = await pac.startNewAuction(
                     maxInitialPrize.plus(1), bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                     {from: dummyMainController, value: maxInitialPrize.plus(1)}
                 );
-            await ledger.stop();
+            ledger.stop();
 
             // ensure error and refund
             await EXPECT_ERROR_LOG(result, "initialPrize too large");
@@ -129,12 +129,12 @@ contract('PennyAuctionController', function(accounts){
             
             // do call, have ledger watch
             var ledger = new Ledger([dummyMainController]);
-            await ledger.start();
+            ledger.start();
             var result = await pac.startNewAuction(
                     initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                     {from: dummyMainController, value: initialPrize}
                 );
-            await ledger.stop();
+            ledger.stop();
 
             // ensure error and refund
             await EXPECT_ERROR_LOG(result, "Too many auctions open");
