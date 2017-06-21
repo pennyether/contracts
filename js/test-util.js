@@ -73,6 +73,7 @@ function MakeTestUtil(web3, assert){
 		},
 
 		getBalance: function getBalance(address){
+			if (address.address) address = address.address;
 		    return web3.eth.getBalance(address);
 		},
 		getBlock: function getBlock(blockHash){

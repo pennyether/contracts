@@ -2,29 +2,25 @@ var PennyAuction = artifacts.require("./PennyAuction.sol");
 var PennyAuctionBidder = artifacts.require("./helpers/PennyAuctionBidder.sol");
 
 var TestUtil = require("../js/test-util.js").make(web3, assert);
-var Ledger = TestUtil.Ledger;
 var BigNumber = require("bignumber.js");
+var TxTester = require("../js/tx-tester.js");
 
-var auction;
+var txTester = new TxTester(web3, assert);
+
 var initialPrize = new BigNumber(.5e18);       // half an eth
 var bidPrice     = new BigNumber(.01e18);      // tenth of eth
 var bidTimeS     = new BigNumber(600);         // 10 minutes
 var bidFeePct    = new BigNumber(60);
 var auctionTimeS = new BigNumber(60*60*12);    // 12 hours
 
-var ledger = new Ledger();
-var EXPECT_INVALID_OPCODE = TestUtil.expectInvalidOpcode;
-var EXPECT_ERROR_LOG = TestUtil.expectErrorLog;
-var EXPECT_ONE_LOG = TestUtil.expectOneLog;
-
 contract('PennyAuction', function(accounts) {
+    var auction;
     var admin = accounts[0];
     var collector = accounts[1];
     var bidder1 = accounts[2];
     var bidder2 = accounts[3];
     var bidder3 = accounts[4];
     var nonBidder = accounts[5];
-    var currentWinner;
 
     // does bidding on behalf of account.
     // optionally creates a describe/it structure.
@@ -35,7 +31,7 @@ contract('PennyAuction', function(accounts) {
         var result;
 
         async function assertProperState(){
-            assert.equal((await auction.state()).toNumber(), 1, "Auction is open");
+            assert.strEqual(await auction.state(), 1, "Auction is open");
             assert.notEqual(await auction.currentWinner, account, "bidder should not be current winner");
             assert.notEqual((await auction.getTimeRemaining()).toNumber(), 0, "Time remaining should not be 0");
             prevState = await TestUtil.getContractState(auction);
@@ -80,8 +76,12 @@ contract('PennyAuction', function(accounts) {
 
         async function rejectCurWinnerBid(){
             var currentWinner = await auction.currentWinner();
-            var res = await auction.sendTransaction({from: currentWinner, value: bidPrice});
-            await EXPECT_ERROR_LOG(res, "Not callable by current winner");
+            await txTester
+                .watch([currentWinner, auction])
+                .do(() => auction.sendTransaction({from: currentWinner, value: bidPrice}))
+                .assertErrorLog("You are already the current winner")
+                .assertLostTxFee(currentWinner)
+                .assertDelta(auction, 0);
         }
 
         if (description) {
@@ -113,12 +113,48 @@ contract('PennyAuction', function(accounts) {
         }
     }
 
+    async function ensureNotOpenable() {
+        return txTester
+            .do(() => auction.open({from: admin, value: initialPrize}))
+            .assertInvalidOpCode();
+    }
+    async function ensureNotBiddable(errorMsg) {
+        return txTester
+            .watch([nonBidder, auction])
+            .do(() => auction.sendTransaction({from: nonBidder, value: bidPrice}))
+            .assertErrorLog(errorMsg)
+            .assertLostTxFee(nonBidder)
+            .assertDelta(auction, 0);
+    }
+    async function ensureNotCloseable(errorMsg) {
+        assert.equal(await auction.isCloseable(), false, "Should not be closeable");
+        
+        var curState = await auction.state();
+        return txTester
+            .do(() => auction.close())
+            .assertErrorLog(errorMsg)
+            .assertState(auction, "state", curState);
+    }
+    async function ensureNotRedeemable(fromAccounts, errorMsg) {
+        function tryAccount(account) {
+            return txTester
+                .watch([auction, account])
+                .do(() => auction.redeem(0, {from: account}))
+                .assertErrorLog(errorMsg)
+                .assertLostTxFee(account, `${account} lost txFee`)
+                .assertDelta(auction, 0, "auction lost no funds");
+        }
+        for (var i = 0; i < fromAccounts.length; i++){
+            await tryAccount(fromAccounts[i]);
+        }
+    }
+
+
     before("can be created", async function(){
         auction = await PennyAuction.new(admin, collector, initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS);
-        ledger.reset([auction.address, admin, collector, bidder1, bidder2, bidder3]);
     })
 
-    describe("When Pending", function(){
+    describe("When Pending:", function(){
         before("should have proper state", async function(){
             var state = await TestUtil.getContractState(auction);
             assert.equal(state.admin, admin, "Correct admin");
@@ -136,47 +172,35 @@ contract('PennyAuction', function(accounts) {
         });
 
         it("should not allow bidding", async function(){
-            var ledger = new Ledger([bidder1]);
-            await ledger.start();
-            var res = await auction.send(bidPrice, {from: bidder1, gas: 300000});
-            await ledger.stop();
-            await EXPECT_ERROR_LOG(res, "Not callable in current state");
-
-            var txFee = TestUtil.getTxFee(res.tx).mul(-1);
-            assert.strEqual(ledger.getDelta(bidder1), txFee, "Lost only txFee");
+            await ensureNotBiddable("Cannot bid when auction is pending");
         });
 
         describe("Opening...", function(){
             it("should not start from non-admin", async function(){
-                TxTester.watch([bidder1, auction.address])
-                    .do(auction.open({from: bidder1, value: initialPrize})
-                    .assertLostTxFee(bidder1)
-                    .assertNoChange(auction.address)
-                    .assertErrorLog("Lost only txFee");
-
-                var ledger = new Ledger([bidder1]);
-                await ledger.start();
-                await EXPECT_ERROR_LOG(auction.open({from: bidder1, value: initialPrize})
-                    , "Not callable in current state");
-                await ledger.stop();
-
-                var txFee = TestUtil.getTxFee(res.tx).mul(-1);
-                assert.strEqual(ledger.getDelta(bidder1), txFee, "Lost only txFee");
-                expect.strEqual(await auction.state(), 0, "Auction still pending.");
+                await txTester
+                    .do(() => auction.open({from: bidder1, value: initialPrize}))
+                    .assertInvalidOpCode();
             });
 
             it("should not start with wrong amount", async function(){
-                await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize.minus(1)}));
+                await txTester
+                    .do(() => auction.open({from: admin, value: initialPrize.minus(1)}))
+                    .assertInvalidOpCode();
             });
 
             it("should start correctly when sent the correct amount by admin", async function(){
-                var res = await auction.open({from: admin, value: initialPrize});
-                var blockTime = TestUtil.getBlock(res.receipt.blockHash).timestamp;
+                var res = await txTester
+                    .watch([admin, auction])
+                    .do(() => auction.open({from: admin, value: initialPrize}))
+                    .assertOneLog("Started", {time: null})
+                    .assertDeltaMinusTxFee(admin, initialPrize.mul(-1))
+                    .assertDelta(auction, initialPrize);
+
                 // make sure log is correct
-                assert.equal(res.logs.length, 1, "1 event logged");
-                assert.equal(res.logs[0].event, "Started", "Event name is Started");
+                var blockTime = TestUtil.getBlock(res.receipt.blockHash).timestamp;
                 assert.closeTo(res.logs[0].args.time.toNumber(), blockTime, 1, "Started.time is blocktime");
 
+                // make sure state is correct
                 var state = await TestUtil.getContractState(auction);
                 assert.equal(state.state.toNumber(), 1, "State is OPENED");
                 assert.equal(state.currentWinner, collector, "currentWinner should be collector");
@@ -187,9 +211,9 @@ contract('PennyAuction', function(accounts) {
         });
     });
     
-    describe("When Opened", function(){
+    describe("When Opened:", function(){
         before("ensure it is open", async function(){
-            assert.equal((await auction.state()).toNumber(), 1);
+            assert.strEqual(await auction.state(), 1);
         });
 
         it("should have a balance equal to the prize", async function(){
@@ -197,74 +221,74 @@ contract('PennyAuction', function(accounts) {
         });
 
         it("should not be able to be started again", async function(){
-            await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
+            await ensureNotOpenable();
         });
 
         it("should not allow prize to be redeemed", async function(){
-            await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: admin}));
-            var currentWinner = await auction.currentWinner();
-            await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: currentWinner}));
+            await ensureNotRedeemable([admin, await auction.currentWinner()], "Not callable in current state");
         });
 
         it("should not be closeable", async function(){
-            var closeable = await auction.isCloseable();
-            assert.equal(closeable, false, "Should not be closeable");
-            await EXPECT_INVALID_OPCODE(auction.close());
+            await ensureNotCloseable("Time not yet expired");
         });
 
         it("should reject bids of the wrong amount", async function(){
-            await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: bidder1, value: bidPrice.add(1)}));
-            await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: bidder1, value: bidPrice.minus(1)}));
+            await txTester
+                .watch([bidder1, auction])
+                .do(() => auction.sendTransaction({from: bidder1, value: bidPrice.add(1)}))
+                .assertErrorLog("Value must match bidPrice")
+                .assertLostTxFee(bidder1)
+                .assertDelta(auction, 0);
+
+            await txTester
+                .watch([bidder1, auction])
+                .do(() => auction.sendTransaction({from: bidder1, value: bidPrice.minus(1)}))
+                .assertErrorLog("Value must match bidPrice")
+                .assertLostTxFee(bidder1)
+                .assertDelta(auction, 0);
         });
 
         // this creates a new describe block "when bidding"
-        doBidding(bidder1, "When Bidding");
+        doBidding(bidder1, "When Bidding:");
 
-        describe("Redeeming fees", function(){
+        describe("Redeeming fees:", function(){
             it("should not allow non-admins to redeem fees", async function(){
-                await EXPECT_INVALID_OPCODE(auction.redeemFees({from: bidder1})); 
+                await txTester
+                    .watch([auction])
+                    .do(() => auction.redeemFees({from: bidder1}))
+                    .assertErrorLog("Only callable by admin")
+                    .assertDelta(auction, 0)
             });
 
             it("should allow fees to be redeemed to collector, by admin", async function(){
-                // check redeem fees returns correct amount
-                var state = await TestUtil.getContractState(auction);
-                var expectedFees = state.fees;
-
-                ledger.start();
-                var result = await auction.redeemFees({from: admin});
-                ledger.stop();
-
-                assert.strEqual(ledger.getDelta(collector), expectedFees, "Collector transferred correct amount");
-                assert.strEqual(ledger.getDelta(auction.address), expectedFees.mul(-1), "All fees transferred out of auction");
-            });
-
-            it("should now have a balance equal to the prize", async function(){
-                assert.strEqual(TestUtil.getBalance(auction.address), await auction.prize());
+                var expectedFees = await auction.fees();
+                var prize = await auction.prize();
+                await txTester
+                    .watch([collector, auction, admin])
+                    .do(() => auction.redeemFees({from: admin}))
+                    .assertDelta(collector, expectedFees)
+                    .assertDelta(auction, expectedFees.mul(-1))
+                    .assertLostTxFee(admin)
+                    .assertBalance(auction, prize);
             });
         });
 
-        describe("More bidding", function(){
+        describe("More bidding:", function(){
             it("should allow more bidding...", async function(){
                 await doBidding(bidder2);  
                 await doBidding(bidder3);
-                await doBidding(bidder1);
             });
 
-            it("should not pay out to the currentWinner", async function(){
-                var currentWinner = await auction.currentWinner();
-                await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: currentWinner}));
+            it("should not be redeemable", async function(){
+                await ensureNotRedeemable([admin, await auction.currentWinner()], "Not callable in current state");
             });
 
             it("should not be closeable", async function(){
-                var closeable = await auction.isCloseable();
-                assert.equal(closeable, false, "Auction is not closeable");
-                var closedOrRedeemed = await auction.isClosedOrRedeemed();
-                assert.equal(closedOrRedeemed, false, "Auction is not closed or redeemed");
-                await EXPECT_INVALID_OPCODE(auction.close());
+                await ensureNotCloseable("Time not yet expired");
             });
         });
 
-        describe("Past timeClosed", function(){
+        describe("Past timeClosed:", function(){
             before("fastforward to make timeRemaining() 0", async function(){
                 assert.equal((await auction.state()).toNumber(), 1, "Is currently opened");
                 assert.isAbove((await auction.getTimeRemaining()).toNumber(), 0, "More than 0 timeRemaining");
@@ -274,40 +298,31 @@ contract('PennyAuction', function(accounts) {
             });
 
             it("should not accept bids", async function(){
-                await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: nonBidder, value: bidPrice}));
+                await ensureNotBiddable("Cannot bid after timeClosed");
             });
 
             it("should now be closeable", async function(){
-                var closeable = await auction.isCloseable();
-                assert.equal(closeable, true, "Should be closeable");
-                var closedOrRedeemed = await auction.isClosedOrRedeemed();
-                assert.equal(closedOrRedeemed, false, "Auction is not closed or redeemed");
+                assert.equal(await auction.isCloseable(), true);
+                assert.equal(await auction.isClosedOrRedeemed(), false);
             });
 
             it("should still not be able to be opened again", async function(){
-                await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
+                await ensureNotOpenable();
             });
 
             describe("Closing...", function(){
                 it("should be closeable by anyone", async function(){
                     await auction.close({from: nonBidder});
-                    assert.equal((await auction.state()).toNumber(), 2, "Auction should be closed.");
+                    assert.strEqual(await auction.state(), 2, "Auction should be closed.");
                 });  
             })
         });
     });
 
 
-    describe("When Closed", function(){
+    describe("When Closed:", function(){
         before("should be closed", async function(){
-            assert.equal((await auction.state()).toNumber(), 2, "State is closed");
-        });
-
-        it("should not be closeable, and should be closedOrRedeemed", async function(){
-            var closeable = await auction.isCloseable();
-            assert.equal(closeable, false, "Should no longer be closeable");
-            var closedOrRedeemed = await auction.isClosedOrRedeemed();
-            assert.equal(closedOrRedeemed, true, "Auction is closed or redeemed"); 
+            assert.strEqual(await auction.state(), 2, "State is closed");
         });
 
         it("should have balance of prize + fees", async function(){
@@ -316,81 +331,83 @@ contract('PennyAuction', function(accounts) {
             assert.strEqual(TestUtil.getBalance(auction.address), expectedBalance, "Correct final balance");
         });
 
-        describe("Can't do anything but redeem", function(){
+        describe("Can't do anything but redeem:", function(){
             it("should not be abled to be closed again", async function(){
-                await EXPECT_INVALID_OPCODE(auction.close());
+                await ensureNotCloseable("Not callable in current state");
             });
 
             it("should not be able to be started again", async function(){
-                await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
+                await ensureNotOpenable();
             });
 
             it("should not accept bids", async function(){
-                await EXPECT_INVALID_OPCODE(auction.sendTransaction({from: bidder2, value: bidPrice}));
+                await ensureNotBiddable("Cannot bid after timeClosed");
             });
         });
 
-        describe("Redeeming...", function(){
+        describe("Redeeming:", function(){
             it("should not be redeemable by losers", async function(){
-                await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: nonBidder}));
+                await ensureNotRedeemable([nonBidder], "Only callable by admin or winner");
             });
 
             it("should be redeemable by winner", async function(){
-                var prevState = await TestUtil.getContractState(auction);
-                var currentWinner = prevState.currentWinner;
-                
-                ledger.start();
-                var result = await auction.redeem(0, {from: currentWinner});
-                ledger.stop();
-
-                // winner gets prize minus gas
-                var expectedNet = prevState.prize.minus(TestUtil.getTxFee(result.tx));
-
-                //todo: assert log
-                assert.strEqual(ledger.getDelta(currentWinner), expectedNet, "Winner xferred prize");
-                assert.strEqual(ledger.getDelta(auction.address), prevState.prize.mul(-1), "Auction xferred out prize");
-                assert.equal((await auction.state()).toNumber(), 3, "State set to redeemed");
+                var prize = await auction.prize();
+                var currentWinner = await auction.currentWinner();
+                await txTester
+                    .watch([currentWinner, auction, collector])
+                    .do(() => auction.redeem(0, {from: currentWinner}))
+                    .assertDeltaMinusTxFee(currentWinner, prize, "currentWinner gets prize minus txFee")
+                    .assertDelta(auction, prize.mul(-1), "auction loses prize")
+                    .assertDelta(collector, 0, "collector gets nothing")
+                    .assertState(auction, "state", 3);
             });
         });
     });
 
-    describe("When Redeemed", function(){
+    describe("When Redeemed:", function(){
         before("ensure it is redeemed", async function(){
-            assert.equal((await auction.state()).toNumber(), 3, "State is redeemed");
+            assert.strEqual(await auction.state(), 3, "State is redeemed");
+        });
+
+        it("should not be abled to be closed again", async function(){
+            await ensureNotCloseable("Not callable in current state");
+        });
+
+        it("should not be able to be started again", async function(){
+            await ensureNotOpenable();
+        });
+
+        it("should not accept bids", async function(){
+            await ensureNotBiddable("Cannot bid after timeClosed");
         });
 
         it("should not be redeemable again", async function(){
-            var state = await TestUtil.getContractState(auction);
-            var currentWinner = state.currentWinner;
-            await EXPECT_INVALID_OPCODE(auction.redeem(0, {from: currentWinner}));
+            await ensureNotRedeemable([admin, await auction.currentWinner()], "Not callable in current state")
         });
 
         it("should allow remaining fees to be redeemed", async function(){
-            var state = await TestUtil.getContractState(auction);
-            var expectedFees = state.fees;
+            var expectedFees = await auction.fees();
             assert(expectedFees > 0, "Expected fees > 0");
 
-            ledger.start();
-            var result = await auction.redeemFees({from: admin});
-            ledger.stop();
-
-            assert.strEqual(ledger.getDelta(collector), expectedFees, "Collector transferred correct amount");
-            assert.strEqual(ledger.getDelta(auction.address), expectedFees.mul(-1), "All fees transferred out of auction");
+            await txTester
+                .watch([auction, collector, admin])
+                .do(() => auction.redeemFees({from: admin}))
+                .assertDelta(collector, expectedFees)
+                .assertDelta(auction, expectedFees.mul(-1))
+                .assertLostTxFee(admin)
+                .assertState(auction, "fees", 0);
         });
 
         it("should have zero balance", function(){
             assert.strEqual(TestUtil.getBalance(auction.address), "0", "Zero balance");
-        });
-
-        it("should not be able to be opened again", async function(){
-            await EXPECT_INVALID_OPCODE(auction.open({from: admin, value: initialPrize}));
         });
     });
 });
 
 
 
-contract("Bidding via a Smart Contract", function(accounts){
+describe.only("Bidding via a Smart Contract", function(accounts){
+    var accounts = web3.eth.accounts;
     var auction;
     var bidderContract;
 
@@ -412,21 +429,23 @@ contract("Bidding via a Smart Contract", function(accounts){
         }).then(() => {
             // start the auction
             return auction.open({from: admin, value: initialPrize});
-        }).then(() => {
-            ledger.reset([auction.address, bidderContract.address]); 
         });
     });
 
     it("Smart Contract can bid on an auction", async function(){
-        var state = await TestUtil.getContractState(auction);
-        assert.equal(state.state, 1, "Auction is opened");
-        assert.isAbove(TestUtil.getBalance(bidderContract.address), state.bidPrice.toNumber(), "bidderContract is funded.");
-
-        ledger.start();
-        await bidderContract.doBid({from: bidderOwner});
-        ledger.stop();
-
-        assert.strEqual(ledger.getDelta(auction.address), bidPrice, "Bid sent to auction");
+        assert.strEqual(await auction.state(), 1, "Auction is opened");
+        assert.isAbove(
+            (await TestUtil.getBalance(bidderContract)).toNumber(),
+            (await auction.bidPrice()).toNumber(),
+            "bidderContract is funded."
+        );
+        
+        await txTester
+            .watch([auction, bidderContract, bidderOwner])
+            .do(() => bidderContract.doBid({from: bidderOwner}))
+            .assertDelta(auction, bidPrice)
+            .assertDelta(bidderContract, bidPrice.mul(-1))
+            .assertLostTxFee(bidderOwner);
     });
 
     it("Auction cannot be redeemed by admin, since it takes too much gas", async function(){
@@ -435,47 +454,42 @@ contract("Bidding via a Smart Contract", function(accounts){
         await auction.close();
 
         // confirm auction is closed and bidderContract is winner
-        var prevState = await TestUtil.getContractState(auction);
-        assert.equal(prevState.state, 2, "Auction is closed");
-        assert.equal(prevState.currentWinner, bidderContract.address, "Bidder is current winner");
-        
-        // try to redeem the prize.
-        var res = await auction.redeem({from: admin});
-        var log = res.logs[0].args;
+        assert.strEqual(await auction.state(), 2, "Auction is closed");
+        assert.equal(await auction.currentWinner(), bidderContract.address, "Bidder is current winner");
 
-        // log should show failure.
-        assert.equal(log.redeemer, admin, "Admin was redeemer");
-        assert.equal(log.recipient, bidderContract.address, "bidderContract was recipient");
-        assert.strEqual(log.amtSent, prevState.prize, "amtSent was the prize");
-        assert.equal(log.successful, false, "successful was false.");
-
-        // make sure auction is still good
-        var state = await TestUtil.getContractState(auction);
-        assert.equal(state.state, 2, "Auction is stll closed");
-        assert.strEqual(state.prize, prevState.prize, "Still has prize");
+        var curPrize = await auction.prize();
+        await txTester
+            .watch([auction, bidderContract, admin])
+            .do(() => auction.redeem({from: admin}))
+            .assertOneLog("RedeemFailed", {
+                time: null,
+                redeemer: admin,
+                recipient: bidderContract.address,
+                amount: curPrize
+            })
+            .assertLostTxFee(admin)
+            .assertDelta(auction, 0)
+            .assertDelta(bidderContract, 0)
+            .assertState(auction, "state", 2, "auction is still closed")
+            .assertState(auction, "prize", curPrize, "auction still has prize");
     });
 
     it("Smart Contract can redeem prize itself, even with expensive fallback function", async function(){
-        // get contract state, start watching.
-        var prevState = await TestUtil.getContractState(auction);
-        var watcher = auction.RedeemAttempted();
-
-        // do redemption, this time through the bidderContract.
-        ledger.start();
-        var res = await bidderContract.doRedemption({from: bidderOwner});
-        ledger.stop();
-
-        // it should have worked
-        var log = watcher.get()[0].args;
-        assert.equal(log.redeemer, bidderContract.address, "RedeemAttempted.redeemer is correct");
-        assert.equal(log.recipient, bidderContract.address, "RedeemAttempted.recipient was correct");
-        assert.strEqual(log.amtSent, prevState.prize, "RedeemAttempted.amtSent was the prize");
-        assert.equal(log.successful, true, "successful was true.");
-
-        // make sure funds are transferred
-        var state = await TestUtil.getContractState(auction);
-        assert.equal(state.state, 3, "Auction state is redeemed");
-        assert.strEqual(ledger.getDelta(auction.address), prevState.prize.mul(-1), "Auction funds lowered");
-        assert.strEqual(ledger.getDelta(bidderContract.address), prevState.prize, "Bidder was sent prize");
+        var prize = await auction.prize();
+        var watcher = await auction.allEvents();
+        await txTester
+            .watch([auction, bidderContract, bidderOwner])
+            .watchEvents(auction)
+            .do(() => bidderContract.doRedemption({from: bidderOwner}))
+            .assertEvent(auction, "Redeemed", {
+                time: null,
+                redeemer: bidderContract.address,
+                recipient: bidderContract.address,
+                amount: prize
+            })
+            .assertDelta(auction, prize.mul(-1))
+            .assertDelta(bidderContract, prize)
+            .assertLostTxFee(bidderOwner)
+            .assertState(auction, "state", 3);
     });
 });

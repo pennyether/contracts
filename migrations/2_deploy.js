@@ -28,14 +28,14 @@ module.exports = function(deployer, network, accounts) {
 		await registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
 		await registry.register("PENNY_AUCTION_FACTORY", paf.address);
 		web3.eth.sendTransaction({from: accounts[0], to: treasury.address, value: 1e18});
+		console.log("Funded treasury with 1 ETH.");
+		console.log("OWNER:", accounts[0]);
+		console.log("ADMIN:", accounts[1]);
 		console.log("REGISTRY:", registry.address);
 		console.log("TREASURY:", treasury.address);
 		console.log("MAIN_CONTROLLER:", mainController.address);
 		console.log("PENNY_AUCTION_CONTROLLER", pac.address);
 		console.log("PENNY_AUCTION_FACTORY", paf.address);
-		console.log("OWNER:", accounts[0]);
-		console.log("ADMIN:", accounts[1]);
-		console.log("Funded treasury with 1 ETH.");
 		
 		function assertEquals(arg1, arg2, msg){
 			if (arg1 != arg2) throw new Error(msg + ": " + arg1 + " != " + arg2);

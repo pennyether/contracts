@@ -10,9 +10,6 @@ var TestUtil = require("../js/test-util.js").make(web3, assert);
 var Ledger = TestUtil.Ledger;
 var BigNumber = require("bignumber.js");
 
-var EXPECT_INVALID_OPCODE = TestUtil.expectInvalidOpcode;
-var EXPECT_ERROR_LOG = TestUtil.expectErrorLog;
-var EXPECT_ONE_LOG = TestUtil.expectOneLog;
 var maxOpenAuctions = new BigNumber(2);
 var maxInitialPrize = new BigNumber(.05e18);
 
@@ -102,7 +99,9 @@ contract("MainController", function(accounts){
 							auctionTimeS,
 							{from: admin}
 						)
-					).assertOneLog("PennyAuctionStarted", {time: null, addr: null})
+					)
+					.assertSuccess()
+					.assertOneLog("PennyAuctionStarted", {time: null, addr: null})
 					.assertDelta(treasury.address, initialPrize.mul(-1), "Treasury lost funds");
 			});
 			it("returns proper stuff", async function(){

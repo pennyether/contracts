@@ -12,7 +12,7 @@ whoever the registry says is the PennyAuctionController can receive funds.
 contract Treasury is 
 	UsingMainController
 {
-	event NotEnoughFunds(address requestor, uint value);
+	event NotEnoughFunds(address recipient, uint value);
 	event TransferSuccess(address recipient, uint value);
 	event TransferError(address recipient, uint value);
 
@@ -37,13 +37,14 @@ contract Treasury is
 		private
 		returns (bool _success)
 	{
+
 		if (_value > this.balance) {
 			NotEnoughFunds(_address, _value);
 			return false;
 		}
 		if (_address.call.value(_value)()){
 			TransferSuccess(_address, _value);
-			return true;	
+			return true;
 		} else {
 			TransferError(_address, _value);
 			return false;

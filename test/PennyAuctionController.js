@@ -5,6 +5,7 @@ var PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
 var PennyAuction = artifacts.require("PennyAuction");
 
 var TestUtil = require("../js/test-util.js").make(web3, assert);
+var TxTester = require("../js/tx-tester.js");
 var Ledger = TestUtil.Ledger;
 var BigNumber = require("bignumber.js");
 
@@ -21,6 +22,7 @@ var bidFeePct    = new BigNumber(60);
 var auctionTimeS = new BigNumber(60*60*12);     // 12 hours
 
 contract('PennyAuctionController', function(accounts){
+    var txTester = new TxTester(web3, assert);
     var registry;
     var treasury;
     var pac;
@@ -55,7 +57,9 @@ contract('PennyAuctionController', function(accounts){
         });
 
         it("settings cannot be changed by randos", async function(){
-            await EXPECT_INVALID_OPCODE(pac.setSettings(5, 10e18));
+            await txTester.do(
+                () => pac.setSettings(5, 10e18)
+            ).assertInvalidOpCode();
         });
 
         it("settings can be changed by MainController", async function(){
@@ -70,28 +74,27 @@ contract('PennyAuctionController', function(accounts){
 
     describe("Controls on starting an auction", function(){
         it("it should not start a new auction from randos", async function(){
-            await EXPECT_INVALID_OPCODE(
+            await txTester.do(()=>
                 pac.startNewAuction(
                     initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
                     {from: accounts[3], value: initialPrize}
                 )
-            );
+            ).assertInvalidOpCode();
         });
 
         it("returns false, refunds, and errors if wrong amount sent", async function(){
             // do call, have ledger watch
-            var ledger = new Ledger([dummyMainController]);
-            ledger.start();
-            var result = await pac.startNewAuction(
-                    initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                    {from: dummyMainController, value: initialPrize.plus(1)}
-                );
-            ledger.stop();
-
-            // ensure error and refund
-            await EXPECT_ERROR_LOG(result, "Value must equal initialPrize");
-            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
-            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
+            await txTester
+                .watch([dummyMainController, treasury])
+                .do(()=>
+                    pac.startNewAuction(
+                        initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                        {from: dummyMainController, value: initialPrize.plus(1)}
+                    )
+                )
+                .assertErrorLog("Value must equal initialPrize")
+                .assertLostTxFee(dummyMainController)
+                .assertDelta(treasury.address, 0);
 
             // make sure call returns correctly as well
             var res = await pac.startNewAuction.call(
@@ -102,19 +105,17 @@ contract('PennyAuctionController', function(accounts){
         });
 
         it("returns false, refunds, and errors if initialPrize is too large", async function(){
-            // do call, have ledger watch
-            var ledger = new Ledger([dummyMainController]);
-            ledger.start();
-            var result = await pac.startNewAuction(
-                    maxInitialPrize.plus(1), bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                    {from: dummyMainController, value: maxInitialPrize.plus(1)}
-                );
-            ledger.stop();
-
-            // ensure error and refund
-            await EXPECT_ERROR_LOG(result, "initialPrize too large");
-            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
-            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
+            await txTester
+                .watch([dummyMainController, treasury.address])
+                .do(()=>
+                    pac.startNewAuction(
+                        maxInitialPrize.plus(1), bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                        {from: dummyMainController, value: maxInitialPrize.plus(1)}
+                    )
+                )
+                .assertErrorLog("initialPrize too large")
+                .assertLostTxFee(dummyMainController)
+                .assertDelta(treasury.address, 0);
 
             // make sure call returns correctly as well
             var res = await pac.startNewAuction.call(
@@ -127,20 +128,18 @@ contract('PennyAuctionController', function(accounts){
         it("returns false, refunds, and errors if too many auctions open", async function(){
             await pac.setSettings(0, maxInitialPrize, {from: dummyMainController});
             
-            // do call, have ledger watch
-            var ledger = new Ledger([dummyMainController]);
-            ledger.start();
-            var result = await pac.startNewAuction(
-                    initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                    {from: dummyMainController, value: initialPrize}
-                );
-            ledger.stop();
-
-            // ensure error and refund
-            await EXPECT_ERROR_LOG(result, "Too many auctions open");
-            var txFee = (await TestUtil.getTxFee(result.tx)).mul(-1);
-            assert.strEqual(ledger.getDelta(dummyMainController), txFee, "Lost only fees");
-
+            await txTester
+                .watch([dummyMainController, treasury])
+                .do(()=>
+                    pac.startNewAuction(
+                        initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                        {from: dummyMainController, value: initialPrize}
+                    )
+                )
+                .assertErrorLog("Too many auctions open")
+                .assertLostTxFee(dummyMainController)
+                .assertDelta(treasury, 0);
+            
             // make sure call returns correctly as well
             var res = await pac.startNewAuction.call(
                 initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
@@ -165,29 +164,23 @@ contract('PennyAuctionController', function(accounts){
         });
 
         it("startNewAuction call should work", async function(){
-            pafWatcher = paf.allEvents();
-            ledger.start();
-            result = await pac.startNewAuction(
-                initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-                {from: dummyMainController, value: initialPrize}
-            );
-            ledger.stop();
-        });
-
-        it("should have transferred funds from MainController", async function(){
-            // make sure the correct funds were transferred
-            var assumedLoss = initialPrize.add(TestUtil.getTxFee(result.tx)).mul(-1);
-            assert.strEqual(ledger.getDelta(dummyMainController), assumedLoss, "It costed MainController some wei.");
-        });
-
-        it("pac should have triggered an AuctionStarted event", async function(){
-            await EXPECT_ONE_LOG(result, "AuctionStarted", {
-                initialPrize: initialPrize,
-                bidPrice: bidPrice,
-                bidTimeS: bidTimeS,
-                bidFeePct: bidFeePct,
-                auctionTimeS: auctionTimeS
-            });
+            result = await txTester
+                .watch([dummyMainController])
+                .do(()=>
+                    pac.startNewAuction(
+                        initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
+                        {from: dummyMainController, value: initialPrize}
+                    )
+                )
+                .assertDeltaMinusTxFee(dummyMainController, -initialPrize)
+                .assertOneLog("AuctionStarted", {
+                    initialPrize: initialPrize,
+                    bidPrice: bidPrice,
+                    bidTimeS: bidTimeS,
+                    bidFeePct: bidFeePct,
+                    auctionTimeS: auctionTimeS
+                })
+                .getResult();
         });
 
         it("correct address in openAuctions array", async function(){
@@ -255,44 +248,41 @@ contract('PennyAuctionController', function(accounts){
         });
 
         it("only MainController can call checkOpenAuctions", async function(){
-            await EXPECT_INVALID_OPCODE(pac.checkOpenAuctions({from: bidder1}));
+            await txTester
+                .do(() => pac.checkOpenAuctions({from: bidder1}))
+                .assertInvalidOpCode();
         });
 
         describe("When calling checkOpenAuctions", function(){
-            var callResult;
             var result;
             var ledger;
             var fees;
 
             before("do call", async function(){
-                ledger = new Ledger([treasury.address, openAuction.address, dummyMainController]);    
                 fees = await openAuction.fees();
-                callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-                ledger.start();
-                result = await pac.checkOpenAuctions({from: dummyMainController});
-                ledger.stop();
-            })
-            
-            // this happend in before
-            it("Gets called from MainController", function(){});
+            });
 
-            it("Gets the correct return value (0 closed, X fees redeemed)", function(){
+            it("Gets the correct return value (0 closed, X fees redeemed)", async function(){
+                var callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
                 assert.strEqual(callResult[0], 0);
                 assert.strEqual(callResult[1], fees);
             });
 
-            it("It transferred fees to Treasury", async function(){
-                var txFee = TestUtil.getTxFee(result.tx);
-                assert.strEqual(ledger.getDelta(treasury.address), fees, "Treasury got transferred fees");
-                assert.strEqual(ledger.getDelta(openAuction.address), fees.mul(-1), "Auction lost fees");
-                assert.strEqual(ledger.getDelta(dummyMainController), txFee.mul(-1), "dummyMainController lost only gas");
+            it("Does call, transfers fees", async function(){
+                await txTester
+                    .watch([treasury, openAuction, dummyMainController])
+                    .do(() => pac.checkOpenAuctions({from: dummyMainController}))
+                    .assertDelta(treasury, fees, "Treasury received fees")
+                    .assertDelta(openAuction, fees.mul(-1), "Auction lost fees")
+                    .assertLostTxFee(dummyMainController, "dummyMainController lost txFee");
+
             });
 
             it("Incremented totalFees", async function(){
                 assert.strEqual(await pac.totalFees(), fees, "Correct total fees");
             });
 
-            it("Open Auction's balance is now that of the prize", async function(){
+            it("Open Auction's balance is now that of the prize, and has 0 fees", async function(){
                 // make sure auction still has correct balance
                 var state = await TestUtil.getContractState(openAuction);
                 assert.strEqual(state.prize, TestUtil.getBalance(openAuction.address), "Auction has correct balance");
@@ -346,7 +336,7 @@ contract('PennyAuctionController', function(accounts){
             assert.equal(await openAuction.state(), 1, "Auction is opened");
 
             callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-            ledger = new Ledger([treasury.address, openAuction.address, dummyMainController, bidderWinner]);    
+            ledger = new Ledger([treasury, openAuction, dummyMainController, bidderWinner]);    
             fees = await openAuction.fees();
             pacWatcher = pac.allEvents();
             paWatcher = openAuction.allEvents();
@@ -372,7 +362,7 @@ contract('PennyAuctionController', function(accounts){
 
         it("It transferred fees to Treasury", async function(){
             var txFee = TestUtil.getTxFee(result.tx);
-            assert.strEqual(ledger.getDelta(treasury.address), fees, "Treasury got transferred fees");
+            assert.strEqual(ledger.getDelta(treasury), fees, "Treasury got transferred fees");
             assert.strEqual(ledger.getDelta(dummyMainController), txFee.mul(-1), "dummyMainController lost only gas");
         });
 

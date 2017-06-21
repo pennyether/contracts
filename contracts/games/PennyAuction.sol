@@ -44,7 +44,7 @@ The auction will transition through four states, in order:
 contract PennyAuction {
     enum State {PENDING, OPENED, CLOSED, REDEEMED}
 
-	address public admin;			// can start auction, can redeem prize, can redeem fees
+	address public admin;			// can start auction, can send prize, can send fees
 	address public collector;		// address that fees get sent to
 
 	uint public initialPrize;		// amt initially staked
@@ -60,31 +60,21 @@ contract PennyAuction {
 	uint public timeClosed;		    // the time at which no further bids can occur
 
 	uint public numBids;			// total number of bids
-	uint public fees;				// total fees collected
+	uint public fees;				// total fees able to be collect
 	
-	// when added as a modifier, all proceeding modifiers will throw instead of error.
-	bool private strict;
-    modifier strictly() { strict = true; _; strict = false; }
     // modifiers
+    // note: they only error, and should not be used on payable functions
 	modifier fromAdmin() { 
 		if (msg.sender == admin) _;
-	    else strict ? require(false) : Error("Only callable by admin");
-	}
-	modifier fromCollector() {
-		if (msg.sender == collector) _;
-        else strict ? require(false) : Error("Only callable by collector");
+	    else Error("Only callable by admin");
 	}
 	modifier fromAdminOrWinner() {
 		if (msg.sender == admin || msg.sender == currentWinner) _;
-	    else strict ? require(false) : Error("Only callable by admin or winner");
-	}
-	modifier fromNotWinner() {
-		if (msg.sender != currentWinner) _;
-		else strict ? require(false) : Error("Not callable by current winner");
+	    else Error("Only callable by admin or winner");
 	}
 	modifier onlyDuring(State _s) {
 		if (state == _s) _;
-		else strict ? require(false) : Error("Not callable in current state");
+		else Error("Not callable in current state");
 	}
 
 	// only allow one "reRentry" call on the stack at a time
@@ -95,8 +85,8 @@ contract PennyAuction {
 	event Started(uint time);
 	event BidOccurred(uint time, address bidder);
 	event Closed(uint time, address winner, uint prize, uint numBids);
-	event Redeemed(uint time, address redeemer, address recipient, uint amtSent);
-	event RedeemFailed(uint time, address redeemer, address recipient, uint amt);
+	event Redeemed(uint time, address redeemer, address recipient, uint amount);
+	event RedeemFailed(uint time, address redeemer, address recipient, uint amount);
 
 	function PennyAuction(
 		address _admin,
@@ -125,13 +115,11 @@ contract PennyAuction {
 
 	/**
 	Called by the admin to start the auction.  Can only be called once.
+	This does not error, it only throws, so refund is ensured.
 	*/
-	function open()
-	    payable
-	    strictly
-	    onlyDuring(State.PENDING)
-	    fromAdmin
-    {
+	function open() payable {
+    	require(state == State.PENDING);
+    	require(msg.sender == admin);
 		require(msg.value == initialPrize);
 
 		state = State.OPENED;
@@ -144,60 +132,60 @@ contract PennyAuction {
 	}
 
 	/**
-	If auction is still active, and sender is not already the winner
-	set the sender as winner and extend auction time.
+	Checks for proper state, time, currentWinner, and bidPrice.
+	If all is good, will set current sender to winner and update time.
+	Upon failure, will Error and refund sender.
 	*/
-	function()
-	    payable
-	    strictly
-	    onlyDuring(State.OPENED)
-	    fromNotWinner
-	{
-		// make sure bid is correct and that auction is not closed
-		if (now >= timeClosed) {
-			Error("Cannot bid after timeClosed");
-			if (!msg.sender.call.value(msg.value)()){
-				throw;
-			}
+	function() payable {
+		// note: for all other states, time check is sufficient
+		if (state == State.PENDING) {
+			errorAndRefund("Cannot bid when auction is pending");
 			return;
 		}
+		// check that there is still time to bid
+		if (now >= timeClosed) {
+			errorAndRefund("Cannot bid after timeClosed");
+			return;
+		}
+		// check sender
+		if (msg.sender == currentWinner) {
+			errorAndRefund("You are already the current winner");
+			return;
+		}
+		// check that bid amount is correct
 		if (msg.value != bidPrice) {
-			Error("Value must match bidPrice");
-			if (!msg.sender.call.value(msg.value)()){
-				throw;
-			}
+			errorAndRefund("Value must match bidPrice");
 			return;
 		}
 
 		// increment prize by the msg value (minus the fee)
-		// increment fees so we know how much we can take out
 		uint _fee = (msg.value * bidFeePct)/100;
 		fees += _fee;
 		prize += msg.value - _fee;
+		numBids++;
 
 		// set the current winner and the time.
 		currentWinner = msg.sender;
 		timeClosed += bidTimeS;
-		numBids++;
-
+		
 		BidOccurred({time: now, bidder: msg.sender});
 	}
 
 
 	/**
-	Triggers AuctionCompleted if the auction has just finished.
-	Should be called when the now > _timeClosed, via offchain watcher.
-	To ensure auction can always be completed, this is callable by anyone.
+	If the auction is open and the time is past timeClosed, the auction will close.
+	To ensure the auction can always be completed, this is callable by anyone.
 	*/
 	function close()
 		onlyDuring(State.OPENED)
 		returns (bool _success)
 	{
 		if (now < timeClosed) {
-		    Error("Time not yet expired.");
+		    Error("Time not yet expired");
 		    return false;
 		}
 		
+		// setting this allows redeem() to be called by the winner.
         state = State.CLOSED;
 
 		Closed({
@@ -211,8 +199,8 @@ contract PennyAuction {
 	}
 
 	/**
-	Run by the winner (or if the admin wants to pay gas, then the admin)
-	Returns amount of prize sent, or 0 on failure.
+	Run by the winner or admin (if they are nice enough to pay gas)
+	Sends the prize to the currentWinner and sets auction to REDEEMED.
 	*/
 	function redeem()
 	    noRentry
@@ -221,9 +209,9 @@ contract PennyAuction {
 	    returns (bool _success, uint _prizeSent)
 	{
 		state = State.REDEEMED;
-		bool _didRedeem = true;
-
+		
 		// send prize with gasLimit as admin, otherwise without
+		bool _didRedeem = false;
 		if (msg.sender == admin) {
 			_didRedeem = currentWinner.send(prize);
 		} else if (msg.sender == currentWinner) {
@@ -236,7 +224,7 @@ contract PennyAuction {
         		time: now,
         		redeemer: msg.sender,
         		recipient: currentWinner,
-        		amt: prize
+        		amount: prize
         	});
             state = State.CLOSED;
             return (false, 0);
@@ -247,12 +235,14 @@ contract PennyAuction {
 			time: now,
             redeemer: msg.sender,
             recipient: currentWinner,
-            amtSent: prize
+            amount: prize
         });
 		return (true, prize);
 	}
 	
-	/** run by the admin to redeem current fees to collector */
+	/**
+	run by the admin to send current fees to collector
+	*/
 	function redeemFees()
 	    noRentry
 	    fromAdmin
@@ -263,12 +253,13 @@ contract PennyAuction {
 			return (false, 0);
 		}
 		
-		// copy _fees so we can return it
+		// copy _fees so we can return it or rollback
 		_feesSent = fees;
 		fees = 0;
-		// attempt to send
+
+		// attempt to send, rollback if unsuccessful
 		if (!collector.call.value(_feesSent)()) {
-			Error("Failed call to collector");
+			Error("Failed to send to collector");
 			fees = _feesSent;
 			return (false, 0);
 		} else {
@@ -276,13 +267,21 @@ contract PennyAuction {
 		}
 	}
 
+	// called from payable functions to refund the sender
+	// if we cannot refund, throw so that the tx reverts
+	function errorAndRefund(string _errMsg) private {
+		Error(_errMsg);
+		if (!msg.sender.call.value(msg.value)()){
+		 	throw;
+		}
+	}
 
 	// Whether or not you can call closeAuction() on the auction
 	function isCloseable() constant returns (bool _bool) {
 		return (state == State.OPENED && now >= timeClosed);
 	}
 
-	// self-explainatory, i hope
+	// Returns if the auction is closed
 	function isClosed() constant returns (bool _bool) {
 		return (state == State.CLOSED);
 	}
