@@ -100,33 +100,7 @@ function MakeTestUtil(web3, assert){
 			txParams.to = to;
 			txParams.value = amt;
 			return web3.eth.sendTransaction(txParams);
-		},
-
-		getContractState: (function(){
-			// takes a mapping of {key=>promise}
-			// returns a promise fulfilled with {key=>result}
-			function multiPromise(promisesObj){
-				var keys = Object.keys(promisesObj);
-				var values = keys.map(k => promisesObj[k]);
-				return Promise.all(values).then(arrResults => {
-					var obj = {};
-					arrResults.forEach((v,i) => obj[keys[i]] = v);
-					return obj;
-				});
-			}
-
-			return function(contract){
-				var obj = {};
-				contract.abi.forEach(o => {
-					if (o.constant && o.inputs.length==0){
-						obj[o.name] = contract[o.name].call().catch(function(e){
-							return e;
-						});
-					}
-				});
-				return multiPromise(obj);
-			}
-		}())
+		}
 	}
 	return _self;
 }
