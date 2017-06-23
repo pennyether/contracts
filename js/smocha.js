@@ -103,15 +103,20 @@ function createSmocha() {
 		_curNode.runError = null;
 		_curNode.queueError = null;
 
+		// create a context that sets `skip` to true
+		var skip = false;
+		var ctx = {skip: () => { skip = true; }};
+		
 		// run the node itself. during this, children may be added (before, after, etc.)
-		Promise.resolve().then(_curNode.run).then(
+		Promise.resolve().then(_curNode.run.bind(ctx)).then(
 			() => {
-				node.runError = null;
+				if (skip) { _logger.onSkip(node); _curNode.queue.resolve(); return; }
 				_logger.onInitialRunPass(node);
 				_buildQueue(node);
 				_curNode.queue.start()
 			},
 			(e) => {
+				if (skip) { _logger.onSkip(node); _curNode.queue.resolve(); return; }
 				node.runError = e;
 				_logger.onInitialRunFail(node);
 				_curNode.queue.resolve();

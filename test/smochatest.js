@@ -44,7 +44,7 @@ describe("DESCRIBE", async function(){
 
 	})
 
-	it("TEST TO BE SKIPPED", function(){
+	it("TEST TO BE SKIPPED bc of BEFOREEACH", function(){
 
 	})
 
@@ -55,6 +55,7 @@ describe("DESCRIBE", async function(){
 		it("a", function(){})
 		it("b", function(){ throw new Error("this is an example of a really long error message"); })
 		it("c", function(){})
+		it("d skips itself", function(){ this.skip(); })
 		after("this is a before", function(){
 			
 		})
