@@ -49,17 +49,8 @@ function createTaskQueue(allowAddingAsync) {
 		_deferredFns.push(deferredFn);
 		return deferredFn;
 	}
-
-	_obj.addDeferredFn = function(deferredFn) {
-		_deferredFns.push(deferredFn);
-	}
-
-	_obj.empty = function() {
-		_deferredFns = [];
-	}
-
-	_obj.getDeferredFns = function() {
-		return _deferredFns.slice();
+	_obj.getLength = function() {
+		return _deferredFns.length;
 	}
 
 	// starting, stopping
@@ -84,7 +75,7 @@ function createTaskQueue(allowAddingAsync) {
 	}
 
 	// getting the promise for the entire queue
-	_obj.asPromise = function(fn) {
+	_obj.asPromise = function() {
 		return _endPromise;
 	};
 
