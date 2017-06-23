@@ -1,5 +1,5 @@
 // creates a promise with a "resolve()" and "reject()" function
-// resolve(v): resolves with fn(), v, or nothing
+// resolve(...): resolves with fn(...), ...[0], or nothing
 // reject(e): fails it with e
 function createDeferredFn(fn) {
 	var resolve;
@@ -8,8 +8,9 @@ function createDeferredFn(fn) {
 	var p = new Promise((res, rej) => resolve = res)
 		.then(()=>{ return onResolve(); });
 
-	p.resolve = function(v) { 
-		onResolve = () => { return fn ? fn(v) : v }
+	p.resolve = function() { 
+		var args = arguments;
+		onResolve = () => { return fn ? fn.apply(null, args) : args[0] }
 		resolve();
 		return p;
 	};
@@ -20,4 +21,5 @@ function createDeferredFn(fn) {
 	};
 	return p;
 }
+
 module.exports = createDeferredFn;

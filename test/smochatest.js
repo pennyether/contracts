@@ -1,6 +1,9 @@
-require("../js/smocha");
-
-start();
+const path = require('path');
+Smocha = require("../js/smocha/smocha");
+if (typeof describe == "undefined") {
+	console.log("No Smocha found, creating our own...");
+	(new Smocha()).start();
+}
 
 // before("super before", function(){
 // 	console.log("in super before.before()...")
@@ -47,6 +50,27 @@ describe("DESCRIBE", async function(){
 	it("TEST TO BE SKIPPED bc of BEFOREEACH", function(){
 
 	})
+
+	it("test uses 'done' callback", function(done) {
+		setTimeout(done, 500);
+	});
+	it("test uses 'done' callback and passes a value", function(done) {
+		done(12345);
+	});
+	it("test uses 'done' callback and passes an Error", function(done) {
+		done(new Error("I hope the stacktrace is here."));
+	});
+	it("test uses 'done' callback and returns promise (should fail)", function(done) {
+		setTimeout(done, 500);
+		return Promise.resolve();
+	});
+	it("test returns failed promise", function() {
+		return Promise.reject(new Error("poop"));
+	});
+
+	file(path.join(__dirname, "./smochatest2.js"));
+
+	file.skip("some-file-to-skip.js");
 
 	describe("A describe", function(){
 		before("this is a before", function(){

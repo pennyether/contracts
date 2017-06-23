@@ -3,9 +3,10 @@ var Treasury = artifacts.require("Treasury");
 
 var TestUtil = require("../js/test-util.js").make(web3, assert);
 var createTxTester = require("../js/tx-tester.js")
-    .make(web3, assert)
-    .bind(null, describe, it);
+    .make(web3, assert);
 var BigNumber = require("bignumber.js");
+
+
 
 contract('Treasury', function(accounts){
     var treasury;
@@ -18,30 +19,30 @@ contract('Treasury', function(accounts){
         treasury = await Treasury.new(registry.address);
     });
 
-    createTxTester()
-        .it("should point to dummyPac")
-            .assertState(treasury, "getMainController", dummyMainController);
-        .it("should accept funds")
-            .doTx(() => TestUtil.transfer(accounts[0], treasury.address, 500000))
-            .assertBalance(()=>treasury, 500000, "Treasury got some wei")
-        .it("fundMainController is not callable by randos")
-            .doTx(() => treasury.fundMainController(1, {from: accounts[0]}))
-            .assertInvalidOpCode()
-            .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
-            .assertInvalidOpCode()
-        .it("transfers funds, logs correctly")
-            .watch([treasury, dummyMainController])
-            .watchEventsOf(()=>[treasury, registry])
-            .doTx(() => treasury.fundMainController(12345, {from: dummyMainController}))
-            .stopWatching()
-            .stopWatchingEvents()
-            .assertSuccess()
-            .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
-            .assertDeltaMinusTxFee(dummyMainController, 12345, "dummyMainController gained 12345 minus txFee")
-            .assertDelta(() => treasury.address, -12345, "treasury lost funds")
-        .it("returns true on success")
-            .pass()
-
+    describe("test describe", function(){
+        createTxTester(describe, it)
+            .it("should point to dummyPac")
+                .assertState(treasury, "getMainController", dummyMainController)
+            // .it("should accept funds")
+            //     .doTx(() => TestUtil.transfer(accounts[0], treasury.address, 500000))
+            //     .assertBalance(treasury, 500000, "Treasury got some wei")
+            // .it("fundMainController is not callable by randos")
+            //     .doTx(() => treasury.fundMainController(1, {from: accounts[0]}))
+            //     .assertInvalidOpCode()
+            //     .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
+            //     .assertInvalidOpCode()
+            // .it("transfers funds, logs correctly")
+            //     .watch([treasury, dummyMainController])
+            //     .watchEventsOf(()=>[treasury, registry])
+            //     .doTx(() => treasury.fundMainController(12345, {from: dummyMainController}))
+            //     .stopWatching()
+            //     .stopWatchingEvents()
+            //     .assertSuccess()
+            //     .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
+            //     .assertDeltaMinusTxFee(dummyMainController, 12345, "dummyMainController gained 12345 minus txFee")
+            //     .assertDelta(() => treasury.address, -12345, "treasury lost funds")
+            .start();
+    });
 
     it("returns true on success", async function(){
         assert.equal(

@@ -22,6 +22,7 @@ returns:
 notes:
 	Plugins are expected to read/write to the ctx object.
 */
+var cLog = console.log;
 function TxTester(mochaDesribe, mochaIt) {
 	// the object to be returned
 	var _obj = new Promise((res, rej)=>{ _resolve = res; _reject = rej; });
@@ -138,7 +139,7 @@ function TxTester(mochaDesribe, mochaIt) {
 					var skip = this.skip;
 					return deferredItFn.then(
 						() => { return itQueue.start(); },
-						() => { console.log("txTester failed outside of test, will skip."); skip(); }
+						() => { skip(); }
 					);
 				}
 			};
@@ -154,9 +155,7 @@ function TxTester(mochaDesribe, mochaIt) {
 			// also see if there are any errors
 			mainQueue.add(function(){
 				deferredItFn.resolve();
-				return itQueue.asPromise().catch((e) => {
-					console.log(`Error inside ${msg}...`);
-				});
+				return itQueue.asPromise();
 			});
 
 			// swap _queue for itQueue, so all tasks are on itQueue
