@@ -49,9 +49,15 @@ describe("DESCRIBE", async function(){
 	})
 
 	describe("A describe", function(){
+		before("this is a before", function(){
+			
+		})
 		it("a", function(){})
-		it("b", function(){})
+		it("b", function(){ throw new Error("this is an example of a really long error message"); })
 		it("c", function(){})
+		after("this is a before", function(){
+			
+		})
 	});
 
 	await new Promise(function(res, rej){
@@ -83,6 +89,7 @@ describe("DESCRIBE", async function(){
 	})
 
 	describe("bla bla bla", function(){
+
 		it("does stuff", function(){
 
 		})
@@ -120,8 +127,10 @@ it("is pretty cool", function(){
 
 })
 
-describe.skip("only do me", function(){
-
+describe("only do me", function(){
+	describe("failed describe", function(){
+		throw new Error("fjkdsa");
+	})
 })
 
 // describe("first describe", function(){

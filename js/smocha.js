@@ -94,10 +94,6 @@ function createSmocha() {
 	//
 	// if the run fails, it will not run the children nodes.
 	// if the run succeeds, it runs the queue of all children, with before/after/etc
-	//
-	// This returns a promise to the queue of children to execute.  Note, this queue
-	// is not executed if this node's run failed..  However, the queue will continue if any
-	// child run fails unless that run explicitly calls _curNode.parent.queue.reject/resolve
 	async function _run(node, throwOnError) {
 		_curNode = node;
 		_logger.onBeforeInitialRun(node);
@@ -179,13 +175,16 @@ function createSmocha() {
 	// starting runs the root node, and also replaces console.log
 	_obj.start = function() {
 		Promise.resolve().then(() => {
+			_logger.onStart();
 			console.log = () => { _logger.log(_curNode, getArgs(arguments)); }
 			return _run(_curNode);
 		}).then(
 			(v) => { console.log = _consoleLog; return v; },
-			(e) => { console.log = _consoleLog; throw e; }
-		);
-	};
+			(e) => { console.log = _consoleLog; _logger.onFailure(e); }
+		).then(() => {
+			_logger.onComplete();
+		});
+	}
 
 	// push stuff into global object
 	_obj.setGlobals = function() {
