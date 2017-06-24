@@ -3,8 +3,9 @@ const util = require("util");
 
 function SmochaLogger() {
 	colors.setTheme({
-		// indent
+		// misc
 		indent: ['dim', 'gray'],
+		log: 'yellow',
 
 		// states
 		pass: 'green',
@@ -12,7 +13,7 @@ function SmochaLogger() {
 		skip: 'gray',
 
 		// types
-		file: ['bold', 'cyan'],
+		file: 'bold',
 		describe: ['bold'],
 		before: ['dim'],
 		after: ['dim'],
@@ -21,26 +22,33 @@ function SmochaLogger() {
 
 		// overrides
 		'describe.encountered': ['bold', 'black'],
+		'file.encountered': ['bold', 'cyan']
 	});
 	const _consoleLog = console.log;
 	var _startTime;
-	var _passes = [];
-	var _errors = [];
-	var _skips = [];
+	const _passes = [];
+	const _errors = [];
+	const _skips = [];
 
 	// print args with indent.
-	function _log(node, args) {
+	function _log(node, args, colorize) {
 		args = args || [];
 		var indent = (new Array(node.getParents().length)).join("│  ") + "├ ";
 		indent = colors.indent(indent);
-		args = args.map((arg) => util.format(arg).replace(/\n/g, `\n${indent}`));
+		args = args.map((arg) => {
+			const argStr = util.format(arg).replace(/\n/g, `\n${indent}`);
+			return colorize ? colors.log(argStr) : argStr;
+		});
 		args.unshift(indent);
 		_consoleLog.apply(null, args);		
 	}
-	// prints arg[0] stylized above, and indented
+
+	// prints arg[0] stylized using $type.$state or $state then $type
 	function _logType(node, state, args) {
 		if (node.type == "root") return;
-		if (!args.map) return;
+		if (!args || !args.length) return;
+
+		// convert the first arg to a string, and colorize it.
 		var str = args[0].toString();
 		if (colors[`${node.type}.${state}`]){
 			str = colors[`${node.type}.${state}`](str);
@@ -58,18 +66,16 @@ function SmochaLogger() {
 	}
 	function _addError(node, error) {
 		_errors.push([node, error]);
-		var num = colors.red.bold(`(${_errors.length})`);
-		var trimmedMsg = error.message.length > 40
+		const errNumStr = colors.red.bold(`(${_errors.length})`);
+		const trimmedMsg = error.message.length > 40
 			? error.message.substr(0, 40) + "..."
 			: error.message;
-		var msg = colors.gray(`[${trimmedMsg}]`);
-		return [num, msg];
+		const errMsgStr = colors.gray(`[${trimmedMsg}]`);
+		return [errNumStr, errMsgStr];
 	}
 	function _addSkip(node) {
 		_skips.push(node);
 	}
-
-	this.log = _log;
 
 	this.onBeforeInitialRun = function(node) {
 		if (node.type == "describe" || node.type == "file") {
@@ -89,20 +95,21 @@ function SmochaLogger() {
 		}
 	}
 	this.onInitialRunFail = function(node) {
-		var [errNum, errMsg] = _addError(node, node.runError);
+		const [errNumStr, errMsgStr] = _addError(node, node.runError);
 		if (node.type == "describe" || node.type == "file") {
-			var str = colors.fail(`Skipped children tasks because '${node.type}' threw`);
-			_log(node, [colors.indent('└'), errNum, str, errMsg]);
+			const note = colors.fail(`Skipped children tasks because '${node.type}' threw`);
+			_log(node, [colors.indent('└'), errNumStr, note, errMsgStr]);
 		} else {
-			_logType(node, "fail", [`${errNum} ${node.name}`, errMsg]);	
+			_logType(node, "fail", [`${errNumStr} ${node.name}`, errMsgStr]);	
 		}
 		
 	}
 	this.onQueuePass = function(node) {
 		// we don't really care about this
 	}
+	// this should only happen on before -- all other errors should be handled
 	this.onQueueFail = function(node) {
-		var str = colors.indent('└') + " " + colors.fail("Skipped children tasks because 'before' threw");
+		const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because 'before' threw");
 		_log(node, [str]);
 	}
 	this.onSkip = function(node) {
@@ -115,7 +122,7 @@ function SmochaLogger() {
 		    console.log(colors.red.bold("Unhandled Rejection:\n"), colors.red(util.format(reason)));
 		});
 		_startTime = +(new Date());
-		var smochaStarting = colors.black.bold.inverse(" SMOCHA STARTING ");
+		const smochaStarting = colors.black.bold.inverse(" SMOCHA STARTING ");
 		console.log("");
 		console.log("  ========================================= ")
 		console.log(`  =========== ${smochaStarting} ===========`);
@@ -128,11 +135,11 @@ function SmochaLogger() {
 		else if (_skips.length) statusColorize = colors.gray.bold.inverse;
 		else statusColorize = colors.green.bold.inverse;
 
-		var smochaFinished = statusColorize(" SMOCHA FINISHED ");
-		var numPasses = colors.green.bold(_passes.length) + colors.green(" passed.");
-		var numErrors = colors.red.bold(_errors.length) + colors.red(" errors.");
-		var numSkips = colors.gray.bold(_skips.length) + colors.gray(" skipped.");
-		var duration = (((new Date()) - _startTime) / 1000).toFixed(2);
+		const smochaFinished = statusColorize(" SMOCHA FINISHED ");
+		const numPasses = colors.green.bold(_passes.length) + colors.green(" passed.");
+		const numErrors = colors.red.bold(_errors.length) + colors.red(" errors.");
+		const numSkips = colors.gray.bold(_skips.length) + colors.gray(" skipped.");
+		const duration = (((new Date()) - _startTime) / 1000).toFixed(2);
 
 		console.log("");
 		console.log(`  =========== ${smochaFinished}  ===========`);
@@ -140,12 +147,13 @@ function SmochaLogger() {
 		console.log(`  ${numPasses} ${numErrors} ${numSkips} ${duration}s`);
 		console.log("");
 		_errors.forEach(function(arr, i){
-			var [node, error] = arr;
-			var num = colors.red.bold(`(${i+1})`);
-			var err = util.format(error.stack).replace(/\n/g, `\n  `);
-			console.log(`  ${num}: Occurred in '${colors.bold(node.name)}'`)
+			const [node, error] = arr;
+			const nodeStr = colors.bold(node.name);
+			const numStr = colors.red.bold(`(${i+1})`);
+			const errStr = util.format(error.stack).replace(/\n/g, `\n  `);
+			console.log(`  ${numStr}: Occurred in '${nodeStr}'`)
 			console.log(`  ----------------------------------`);
-			console.log(`  ${err}`)
+			console.log(`  ${errStr}`)
 			console.log("");
 		});
 	}
@@ -153,7 +161,9 @@ function SmochaLogger() {
 		console.log(colors.red.bold("Smocha unexpectedly failed: "), colors.red(util.format(e)));
 	}
 
-	this.log = _log;
+	this.log = function(node, args){
+		_log(node, args, true);
+	}
 }
 
 function getArgs(_arguments) {

@@ -20,8 +20,6 @@ function Smocha(opts) {
 
 	function _buildQueue(node) {
 		var queue = node.queue;
-		var hasOnly = node.children.some(c => c.only);
-
 		// if runBefore fails, skip all children, and fail the queue.
 		// queue.add returns a deferredFn, the .catch wont prevent queue failure
 		var runBefore = node.before && !node.before.skip
@@ -30,7 +28,10 @@ function Smocha(opts) {
 		queue.add(runBefore).catch(e => { node.children.forEach(_skip); });
 
 		// for each child:
-		// runBefore, skip child if that errs, or run child, runAfter
+		// runBefore, skip child if that errs
+		// or run child (unless there is an only, and child is not it)
+		// run afterEach (we dont care if it fails)
+		var hasOnly = node.children.some(c => c.only);
 		node.children.forEach(child => {
 			if (child.skip || (hasOnly && !child.only)) {
 				queue.add(() => { _skip(child); return true; });
@@ -70,18 +71,18 @@ function Smocha(opts) {
 		// create a context specific for this run of node
 		var ctx = {
 			currentTest: {},
+
 			_skip: false,
 			skip: () => { ctx._skip = true; },
-			_retries: node.retries,
+			
 			retries: (num) => { console.log(".retries() not yet supported."); },
-			_timeout: node.timeout,
 			timeout: (ms) => { console.log(".timeout() not yet supported."); },
-			_slow: node.slow,
 			slow: (ms) => { console.log(".slow() not yet supported."); }
 		};
 
 		
 		// calls run, passing it a 'done' callback if arguments.length==1
+		//
 		// throws if:
 		//		- the call itself throws
 		//		- both 'done' is requested and it returns a promise
@@ -90,12 +91,12 @@ function Smocha(opts) {
 		//		- if passed done, a deferredFn
 		//		- otherwise the result of node.run.call()
 		var callRun = function(){
+			if (node.run.length >= 2)
+				throw new Error(`'Run function should take zero or one arguments.`);
 			if (node.run.length == 0){
 				var ret = node.run.call(ctx);
 				return ret;
 			}
-			if (node.run.length >= 2)
-				throw new Error(`'Run function should take zero or one arguments.`);
 
 			var deferredFn = createDeferredFn();
 			var ret = node.run.call(ctx, deferredFn.resolve);
@@ -132,7 +133,7 @@ function Smocha(opts) {
 			node.queue.reject(e);
 		});
 
-		// when the above finishes, it will start the queue, which will finish below.
+		// when the above finishes, it will start/resolve the queue, which we handle below
 		return _curNode.queue.asPromise().then(
 			() => {
 				// queue is resolved if all children run, OR initialRun fails
@@ -165,18 +166,24 @@ function Smocha(opts) {
 		_curNode = temp;
 	}
 
-	_obj.file = function(filename){
-		_curNode.children.push(createNode("file", filename, _curNode, function(){
+	_obj.file = function(optDesc, filename){
+		filename = filename ? filename : optDesc;
+		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
+		_curNode.children.push(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}));
 	};
-	_obj.file.only = function(filename){
-		_curNode.children.push(createNode("file", filename, _curNode, function(){
+	_obj.file.only = function(optDesc, filename){
+		filename = optDesc ? filename : optDesc;
+		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
+		_curNode.children.push(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}, {only: true}));
 	};
-	_obj.file.skip = function(filename){
-		_curNode.children.push(createNode("file", filename, _curNode, function(){
+	_obj.file.skip = function(optDesc, filename){
+		filename = optDesc ? filename : optDesc;
+		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
+		_curNode.children.push(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}, {skip: true}));
 	};

@@ -1,7 +1,7 @@
 const path = require('path');
-Smocha = require("../js/smocha/smocha");
 if (typeof describe == "undefined") {
-	console.log("No Smocha found, creating our own...");
+	Smocha = require("../js/smocha/smocha");
+	console.log("No mocha/smocha found, creating our own...");
 	(new Smocha()).start();
 }
 
@@ -70,7 +70,9 @@ describe("DESCRIBE", async function(){
 
 	file(path.join(__dirname, "./smochatest2.js"));
 
-	file.skip("some-file-to-skip.js");
+	file.skip("SKIP IT", "some-file-to-skip.js");
+
+	file("This file fails", path.join(__dirname, "./smochatest3.js"));
 
 	describe("A describe", function(){
 		before("this is a before", function(){

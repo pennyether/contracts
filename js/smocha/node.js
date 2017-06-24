@@ -45,6 +45,7 @@ function createNode(type, name, parentNode, run, opts) {
 	};
 }
 
+// puts opts onto obj, throws if opts has a prop that obj doenst.
 function strictExtend(obj, opts){
 	Object.keys(opts || {}).forEach((key) => {
 		if (!obj.hasOwnProperty(key))

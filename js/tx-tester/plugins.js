@@ -1,5 +1,11 @@
-function MakePlugins(Util, Ledger) {
-	var plugins = {
+const util = require("util");
+function createPlugins(testUtil, ledger) {
+	if (!testUtil)
+		throw new Error("createPlugins() expects a testUtil object.");
+	if (!ledger)
+		throw new Error("createPlugins() expects a ledger object.");
+	
+	const plugins = {
 		///////////////////////////////////////////////////////////////////
 		/// DO! ///////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////
@@ -10,66 +16,80 @@ function MakePlugins(Util, Ledger) {
 		//      .err - The error, if any, from execution
 		//		.resultPromise - A promise fulfilled/failed with execution results
 		doTx: function(fn) {
-			var ctx = this;
-			var type = Object.prototype.toString.call(fn);
+			const ctx = this;
+			const type = Object.prototype.toString.call(fn);
 			if (type !== '[object Promise]' && typeof fn !== 'function')
-				throw new Error(`.do must be passed a fn or promise, instead got: 'type'`);
+				throw new Error(`'.do' must be passed a fn or promise, instead got: '${type}'`);
 
 			// execute fn, store promise to ctx
-			var resultPromise = Promise.resolve().then(fn);
-			ctx.resultPromise = resultPromise;
+			ctx.resultPromise = Promise.resolve().then(fn);
 
 			// return the promise, so chain waits on us
-			return resultPromise.then(
+			return ctx.resultPromise.then(
 				(res) => { ctx.res = res;  ctx.err = null; },
 				(err) => { ctx.res = null; ctx.err = err; }
-			)
+			);
 		},
 		// returns the result of `do`
 		getTx: function() {
-			var ctx = this;
+			const ctx = this;
 			return ctx.resultPromise;
 		},
 		// assert .res and .res.receipt are set
 		assertSuccess: function() {
-			var ctx = this;
+			const ctx = this;
 			if (!ctx.res && !ctx.err)
 				throw new Error("'doTx' was never called.");
 
-			assert(!ctx.err, `tx resulted in error: ${ctx.err}`)
-			assert(ctx.res && ctx.res.receipt, "res.receipt should exists");
+			if (ctx.err) {
+				var e = new Error(`tx did not succeed, got this error: ${util.format(ctx.err)}`);
+				e.stack = ctx.err.stack;
+				throw e;
+			}
+			assert(!!ctx.res, `result was not truthy: ${util.format(ctx.res)}`);
+			console.log("  ✓ doTx was successful");
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
-			var ctx = this;
+			const ctx = this;
 			if (!ctx.err && !ctx.res)
 				throw new Error("'doTx' was never called.")
 			if (!ctx.err)
 				throw new Erro("Expected call to fail.");
 
-			assert.include(ctx.err.message, "invalid opcode", "Error contains 'invalid opcode'");
+			assert.include(ctx.err.message, "invalid opcode", "Error does not contain 'invalid opcode'");
+			console.log("  ✓ doTx failed with invalid opcode");
 		},
 		// assert there is one log, with name $eventName and optional $args from optional $address
 		assertOneLog: async function(eventName, args, address) {
-			var ctx = this;
+			const ctx = this;
 			if (!ctx.res && !ctx.err)
 				throw new Error("'doTx' was never called.");
 
-			return Util.expectOneLog(ctx.res, eventName, args, address);
+			testUtil.expectOneLog(ctx.res, eventName, args, address);
+			console.log(`  ✓ '${eventName}' event occurred correctly`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
-			var ctx = this;
-			return Util.expectErrorLog(ctx.res, msg, address);
+			const ctx = this;
+			testUtil.expectErrorLog(ctx.res, msg, address);
+			console.log(`  ✓ 'Error' event occurred correctly`);
+		},
+		printTxResult: function(){
+			const ctx = this;
+			if (!ctx.res && !ctx.err)
+				throw new Error("'doTx' was never called.");
+			console.log("printing tx results...");
+			console.log(ctx.res);
 		},
 		// prints the logs of the last `do`, otherwise nothing
-		logLogs: function() {
-			var ctx = this;
+		printTxLogs: function() {
+			const ctx = this;
 			if (!ctx.res && !ctx.err)
 				throw new Error("'doTx' was never called.");
 
 			if (ctx.res) {
-				console.log("txWatcher printing logs by request...");
+				console.log("printing logs");
 				console.log(ctx.res.logs);
 			}
 		},
@@ -81,46 +101,48 @@ function MakePlugins(Util, Ledger) {
 
 		// This will add "ledger" onto the ctx object
 		// It will stop tracking afterDone
-		watch: function(addresses) {
-			var ctx = this;
-
+		startLedger: function(addresses) {
+			const ctx = this;
 			return Promise.resolve().then(async function(){
-				var ledger = new Ledger(addresses);
+				ledger.reset(addresses);
 				ctx.ledger = ledger;
 				await ledger.start();	
 			});
 		},
-		stopWatching: async function() {
-			var ctx = this;
+		stopLedger: async function() {
+			const ctx = this;
 			await ctx.ledger.stop();
 		},
 		// asserts a delta of $amt in the balance of $address
-		assertDelta: function(address, amt, msg) {
-			var ctx = this;
+		assertDelta: function(address, amt) {
+			const ctx = this;
 			if (!ctx.ledger)
-				throw new Error("You never called .watch()");
+				throw new Error("You never called .startLedger()");
 
-			assert.strEqual(ctx.ledger.getDelta(address), amt, msg || "balance was changed");
+			assert.strEqual(ctx.ledger.getDelta(address), amt, "balance did not change by exact amount");
+			console.log(`  ✓ ${at(address)} balance changed correctly`);
 		},
 		// asserts $address has a delta equal to the txFee of the last result
-		assertLostTxFee: async function(address, msg) {
-			var ctx = this;
+		assertLostTxFee: async function(address) {
+			const ctx = this;
 			if (!ctx.res && !ctx.err)
 				throw new Error("'do' was never called.");
 
-			var txFee = await Util.getTxFee(ctx.res.tx).mul(-1);
-			return plugins.assertDelta.bind(ctx)
-				(address, txFee, msg || "address lost only the TxFee");
+			const txFee = await testUtil.getTxFee(ctx.res.tx).mul(-1);
+			plugins.assertDelta.bind(ctx)
+				(address, txFee, "address did not lose exactly the txFee");
+			console.log(`  ✓ ${at(address)} lost txFee`);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
-		assertDeltaMinusTxFee: async function(address, amt, msg) {
-			var ctx = this;
+		assertDeltaMinusTxFee: async function(address, amt) {
+			const ctx = this;
 			if (!ctx.res && !ctx.err)
 				throw new Error("'do' was never called.");
 
-			var expectedFee = await Util.getTxFee(ctx.res.tx).mul(-1).plus(amt);
-			return plugins.assertDelta.bind(ctx)
-				(address, expectedFee, msg || "address gained amt minus txfee");
+			const expectedFee = await testUtil.getTxFee(ctx.res.tx).mul(-1).plus(amt);
+			plugins.assertDelta.bind(ctx)
+				(address, expectedFee, "address did not gain a specific amount (minus txFee)");
+			console.log(`  ✓ ${at(address)} gain correct amount (minus txFee)`);
 		},
 
 
@@ -135,13 +157,13 @@ function MakePlugins(Util, Ledger) {
 		//
 		// AfterDone, it will stop all the watchers.
 		//
-		watchEventsOf: function(contracts) {
-			var ctx = this;
+		startWatching: function(contracts) {
+			const ctx = this;
 			
 			// validate that each item is a contract
-			contracts.forEach((c,i) => {
+			contracts.forEach((c, i) => {
 				if (!c || !c.allEvents) {
-					var e = new Error(`${i}th value is not a contract (check .val): ${c}`);
+					const e = new Error(`${i}th value is not a contract (check .val): ${c}`);
 					e.val = c;
 					throw e;
 				}
@@ -151,30 +173,33 @@ function MakePlugins(Util, Ledger) {
 			if (!ctx.contractEvents) ctx.contractEvents = {};
 			contracts.forEach(c => {
 				ctx.contractEvents[c.address] = [];
-				var watcher = c.allEvents(function(err, log){
+				const watcher = c.allEvents(function(err, log){
 					if (!err) ctx.contractEvents[c.address].push(log);
 				});
 				ctx.contractWatchers[c.address] = watcher;
 			});
 			ctx.afterDone(async () => {
-				await plugins.stopWatchingEvents.bind(ctx)();
+				if (ctx.contractWatchers)
+					await plugins.stopWatching.bind(ctx)();
 			})
 		},
-		stopWatchingEvents: async function() {
-			var ctx = this;
-			var addresses = Object.keys(ctx.contractWatchers);
+		stopWatching: async function() {
+			const ctx = this;
+			if (!ctx.contractWatchers)
+				throw new Error("Cannot stopWatching -- you never started watching any contracts.");
+
+			const addresses = Object.keys(ctx.contractWatchers);
 			while (addresses.length) {
-				var address = addresses.shift();
-				var watcher = ctx.contractWatchers[address];
-				console.log(`Stopping watcher @ ${address}...`);
+				const address = addresses.shift();
+				const watcher = ctx.contractWatchers[address];
 				await watcher.stopWatching();
 			}
 			delete ctx.contractWatchers;
 		},
-		logEvents: function() {
-			var ctx = this;
+		printEvents: function() {
+			const ctx = this;
 			Object.keys(ctx.contractEvents || {}).forEach(address => {
-				console.log(`Logs for ${address}: `, ctx.contractEvents[addr]);
+				console.log(`Logs for ${at(address)}: `, ctx.contractEvents[addr]);
 			});
 		},
 
@@ -186,55 +211,48 @@ function MakePlugins(Util, Ledger) {
 
 		// assert $contract[$name]() returns $expectedValue
 		assertState: async function(contract, name, expectedValue) {
-			assert.strEqual(await contract[name](), expectedValue, `Value of ${name}`);
+			// todo: check that its a constant
+			assert.strEqual(await contract[name](), expectedValue, `'contract.${name}()' was not as expected`);
+			console.log(`  ✓ ${at(contract)}.${name} was correct`);
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance) {
 			if (address.address) address = address.address;
-			var balance = await Util.getBalance(address);
-			assert.strEqual(balance, expectedBalance)
+			const balance = await testUtil.getBalance(address);
+			assert.strEqual(balance, expectedBalance, "balance was not as expected");
+
 		},
-		logBalance: async function(address) {
+		// print the balance of an address (or contract)
+		printBalance: async function(address) {
 			if (address.address) address = address.address;
-			var balance = await Util.getBalance(address);
-			console.log(`Balance of ${address} is ${balance}`);
+			const balance = await testUtil.getBalance(address);
+			console.log(`  ✓ Balance of ${at(address)} is correct`);
 		},
 		ret: function(v){ return v; },
 		wait: function(time, msg){
 			if (msg) { console.log(msg); }
 			return new Promise((res,rej)=>{ setTimeout(res, time); })
 		},
-		log: function(){ console.log.apply(console, arguments); },
+		print: function(){ console.log.apply(console, arguments); },
 		pass: async function(){},
-		fail: async function(){ throw new Error("Failure"); }
+		fail: async function(){ throw new Error("Failure"); },
+		testUtil: testUtil
 		////////////////////////////////////////////////////
 	};
 	return plugins;
 }
 
-module.exports.make = function(web3, assert) {
-	const Util = require("./test-util").make(web3, assert);
-	const Ledger = require("./ledger").bind(null, web3);
+function at(c) {
+	var addr = c.address
+		? c.address.substr(0,7) + "..."
+		: c.toString().substr(0,7) + "...";
 
-	// passed $fn, will return a function that invokes $fn with
-	// all arguments such that any function arguments are turned into
-	// their return value.
-	function withUnwrappedArgs(fn) {
-		return function() {
-			var args = Array.prototype.slice.call(arguments);
-			args = args.map((arg) => {
-				if (typeof arg == 'function') { return arg(); }
-				else { return arg; }
-			});
-			return fn.apply(this, args);
-		}
+	if (c.constructor.name == "TruffleContract") {
+		return `'${c.constructor._json.contract_name}[${addr}]'`;
+	} else {
+		return `'@${addr}'`;
 	}
+}
 
-	// 
-	var obj = MakePlugins(Util, Ledger);
-	Object.keys(obj).forEach((name) => {
-		obj[name] = withUnwrappedArgs(obj[name]);
-	});
-	return obj;
-};
+module.exports = createPlugins;
 

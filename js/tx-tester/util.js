@@ -1,28 +1,25 @@
 var path = require('path');
-var Ledger = require("./ledger");
 
-function MakeTestUtil(web3, assert){
+function createUtil(web3, assert){
 	// add .strEqual to assert.
-	assert.strEqual = function(val1, val2){
-	    var additionalArgs = Array.prototype.slice.call(arguments, 2);
-	    val1 = val1.toString();
-	    val2 = val2.toString();
-	    assert.equal.apply(assert.equal, [val1.toString(), val2.toString()].concat(additionalArgs));
+	assert.strEqual = function(val1, val2, msg){
+	    const additionalArgs = Array.prototype.slice.call(arguments, 2);
+	    const val1str = val1.toString();
+	    const val2str = val2.toString();
+	    assert.equal(val1str, val2str, msg);
 	}
 
 	var _self = {
-		Ledger: Ledger.bind(null, web3),
-
 		// expects 1 log, with a specific error message.
 		// note the extra address argument -- this is due to
 		// a bug in web3 where it will include logs of other addresses.
 		expectOneLog: async function expectOneLog(promise, eventName, args, address) {
 			return await Promise.resolve(promise).then(res => {
-				var logs = res.logs.filter(l => !address || l.address == address);
+				const logs = res.logs.filter(l => !address || l.address == address);
 				assert.equal(logs.length, 1, "Expected exactly 1 log");
 				assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
 				Object.keys(args).forEach(key => {
-					var val = args[key];
+					const val = args[key];
 					assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
 					if (val !== null)
 						assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
@@ -40,11 +37,12 @@ function MakeTestUtil(web3, assert){
 		        await promise;
 		    } catch (txError) {
 		        try {
-		            assert.include(txError.message, "invalid opcode", "Error contains 'invalid opcode'");
+		            assert.include(txError.message, "invalid opcode");
 		            return;
 		        } catch (assertError) {
-		            assertError.message = "Error did not contain 'invalid opcode':\n" + txError.message;
-		            throw assertError;
+		        	var e = new Error(`Error did not contain 'invalid opcode':\n${txError.message}`);
+		            e.stack = txError.stack;
+		            throw e;
 		        }
 		    }
 		    throw new Error("This transaction call was expected to fail.");
@@ -89,20 +87,20 @@ function MakeTestUtil(web3, assert){
 		    return web3.eth.getTransactionReceipt(txHash)   
 		},
 		getTxFee: function getTxFee(txHash){
-		    var tx = _self.getTx(txHash);
-		    var txReceipt = _self.getTxReceipt(txHash);
+		    const tx = _self.getTx(txHash);
+		    const txReceipt = _self.getTxReceipt(txHash);
 		    return tx.gasPrice.mul(txReceipt.gasUsed);
 		},
 
 		transfer: function(from, to, amt, txParams){
-			var txParams = txParams || {};
+			txParams = txParams || {};
 			txParams.from = from;
 			txParams.to = to;
 			txParams.value = amt;
-			return web3.eth.sendTransaction(txParams);
+			return Promise.resolve().then(() => web3.eth.sendTransaction(txParams));
 		}
 	}
 	return _self;
 }
 
-module.exports.make = MakeTestUtil;
+module.exports = createUtil;
