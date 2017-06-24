@@ -21,14 +21,15 @@ contract('Treasury', function(accounts){
     });
 
     describe.only("test describe", function(){
+        console.log("inside test describe");
         createDefaultTxTester()
             .it("should point to dummyPac")
                 .assertState(treasury, "getMainController", dummyMainController)
-            .it("should accept funds")
+            .it("should accept funds", true)
                 .doTx(() => testUtil.transfer(accounts[0], treasury.address, 500000))
                 .assertSuccess()
-                .assertBalance(treasury, 500000, "Treasury got some wei")
-            .it("fundMainController is not callable by randos")
+                .assertBalance(treasury, 500001, "Treasury got some wei")
+            .it("fundMainController is not callable by randos", true)
                 .doTx(() => treasury.fundMainController(1, {from: accounts[0]}))
                 .assertInvalidOpCode()
                 .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
@@ -42,7 +43,7 @@ contract('Treasury', function(accounts){
                 .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
                 .assertDeltaMinusTxFee(dummyMainController, 12345, "dummyMainController gained 12345 minus txFee")
                 .assertDelta(treasury, -12345, "treasury lost funds")
-            .start();
+            .start().catch((e)=>{});
     });
 
     it("returns true on success", async function(){

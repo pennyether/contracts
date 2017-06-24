@@ -65,6 +65,7 @@ function Smocha(opts) {
 
 		// reset this node (it may get run many times, eg, beforeEach)
 		node.resetQueue();
+		node.runTime = null;
 		node.runError = null;
 		node.queueError = null;
 
@@ -92,16 +93,16 @@ function Smocha(opts) {
 		//		- otherwise the result of node.run.call()
 		var callRun = function(){
 			if (node.run.length >= 2)
-				throw new Error(`'Run function should take zero or one arguments.`);
+				return Promise.reject(new Error(`'Run function should take zero or one arguments.`));
 			if (node.run.length == 0){
-				var ret = node.run.call(ctx);
-				return ret;
+				return Promise.resolve().then(() => node.run.call(ctx));
 			}
 
+			// call run, wait for `deferredFn.resolve` to be called
 			var deferredFn = createDeferredFn();
 			var ret = node.run.call(ctx, deferredFn.resolve);
 			if (ret && ret.then) {
-				throw new Error(`'Should use 'done()' or return a Promise, but not both.`);
+				return Promise.reject(new Error(`Use 'done()' or return a Promise, but not both.`));
 			}
 			return deferredFn.then(function(){
 				if (arguments[0] === undefined) return;
@@ -109,19 +110,32 @@ function Smocha(opts) {
 				var e = new Error(`'done()' was called with a value: ${doneResult}`);
 				if (doneResult && doneResult.stack) e.stack = doneResult.stack;
 				throw e;
-			});			
+			});
 		}
 
 		// run the node itself. during this, children may be added (before, after, etc.)
-		Promise.resolve().then(callRun).then(
+		var startTime = +(new Date());
+		callRun().then(
 			() => {
-				if (ctx._skip) { _skip(node); node.queue.resolve(); return; }
+				node.runTime = +(new Date()) - startTime;
+				if (ctx._skip) {
+					_skip(node);
+					node.queue.resolve();
+					return;
+				}
+				ctx.currentTest.state = "succeeded";
 				_logger.onInitialRunPass(node);
 				_buildQueue(node);
 				node.queue.start()
 			},
 			(e) => {
-				if (ctx._skip) { _skip(node); node.queue.resolve(); return; }
+				node.runTime = +(new Date()) - startTime;
+				if (ctx._skip) {
+					_skip(node);
+					node.queue.resolve();
+					return;
+				}
+				ctx.currentTest.state = "failed";
 				node.runError = e;
 				_logger.onInitialRunFail(node);
 				node.queue.resolve();
@@ -136,24 +150,20 @@ function Smocha(opts) {
 		// when the above finishes, it will start/resolve the queue, which we handle below
 		return _curNode.queue.asPromise().then(
 			() => {
-				// queue is resolved if all children run, OR initialRun fails
+				// queue is resolved if initialRun fails, OR all children run
 				_logger.onQueuePass(node);
 				if (node.runError) throw node.runError;
 			},
 			(e) => {
-				// queue is rejected if a child item fails (currently only happens on `before`)
+				// queue is rejected if a child item fails, or unhandled exception
 				node.queueError = e;
 				_logger.onQueueFail(node);
 				throw node.queueError;
 			}
 		).catch(
-			() => {
-				_curNode = node.parent;
-				ctx.currentTest.state = "succeeded";
-			},
+			() => { _curNode = node.parent; },
 			(e) => {
 				_curNode = node.parent;
-				ctx.currentTest.state = "failed";
 				if (throwOnError) throw e;
 			}
 		);

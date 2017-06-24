@@ -29,10 +29,11 @@ function createNode(type, name, parentNode, run, opts) {
 		beforeEach: null,
 		after: null,
 		afterEach: null,
-		runError: null,
 
 		// set after initial run
 		queue: null,
+		runTime: null,
+		runError: null,
 		queueError: null,
 
 		resetQueue: function() {

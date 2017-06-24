@@ -109,7 +109,7 @@ function SmochaLogger() {
 	}
 	// this should only happen on before -- all other errors should be handled
 	this.onQueueFail = function(node) {
-		const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because 'before' threw");
+		const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because something threw");
 		_log(node, [str]);
 	}
 	this.onSkip = function(node) {

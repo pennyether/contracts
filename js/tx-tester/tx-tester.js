@@ -109,7 +109,7 @@ function createTxTester(plugins, it) {
 		});
 
 		// if mainQueue fails, reject run the deferredItFn. (the it should skip)
-		mainQueue.asPromise().catch(deferredItFn.reject);
+		mainQueue.asPromise().catch(e => { deferredItFn.reject(e); });
 		
 		// otherwise, mainQueue got here.
 		// if itQueue fails (and is required), fail mainQueue
@@ -162,6 +162,7 @@ function createTxTester(plugins, it) {
 					}
 				}
 			);
+
 		return _obj;
 	}
 

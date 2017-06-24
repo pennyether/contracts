@@ -2,7 +2,7 @@ const path = require('path');
 if (typeof describe == "undefined") {
 	Smocha = require("../js/smocha/smocha");
 	console.log("No mocha/smocha found, creating our own...");
-	(new Smocha()).start();
+	(new Smocha()).run();
 }
 
 // before("super before", function(){
