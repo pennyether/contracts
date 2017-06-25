@@ -35,6 +35,7 @@ function createNode(type, name, parentNode, run, opts) {
 		runTime: null,
 		runError: null,
 		queueError: null,
+		skipReason: null,
 
 		resetQueue: function() {
 			this.queue = createTaskQueue(true);

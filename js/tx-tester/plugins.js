@@ -1,4 +1,6 @@
 const util = require("util");
+const colors = require("colors/safe");
+
 function createPlugins(testUtil, ledger) {
 	if (!testUtil)
 		throw new Error("createPlugins() expects a testUtil object.");
@@ -213,7 +215,7 @@ function createPlugins(testUtil, ledger) {
 		assertState: async function(contract, name, expectedValue) {
 			// todo: check that its a constant
 			assert.strEqual(await contract[name](), expectedValue, `'contract.${name}()' was not as expected`);
-			console.log(`✓ ${at(contract)}.${name} was correct`);
+			console.log(`✓ ${at(contract)}.${name}() returned expected value`);
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance) {
@@ -245,7 +247,6 @@ function createPlugins(testUtil, ledger) {
 
 var addrToName = {};
 function nameAddresses(obj) {
-	console.log("HELLO??");
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);
@@ -262,20 +263,19 @@ function nameAddresses(obj) {
 			throw new Error(`Unsupported address type of '${name}': '${type}'`);
 		}
 	});
-	console.log(`${Object.keys(addrToName).length} address names added.`);
 }
 function at(val) {
 	if (!val) return `<invalid address: ${address}>`;
 	if (typeof val == "string" && val.length == 42){
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
-			? `'${addrToName[shortened]}'`
-			: val;
+			? colors.yellow(`'${addrToName[val]}'`)
+			: shortened;
 	}
 	if (val.constructor.name == "TruffleContract") {
 		var shortened = val.address.substr(0, 6) + "...";
 		return addrToName[val.address]
-			? `'${addrToName[val.address]}'`
+			? colors.yellow(`'${addrToName[val.address]}'`)
 			: `'${val.constructor._json.contract_name}[${shortened}]'`;
 	}
 	return `${val}`;

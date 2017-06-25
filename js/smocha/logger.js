@@ -6,15 +6,17 @@ function SmochaLogger() {
 		// misc
 		indent: ['dim', 'gray'],
 		log: ['dim','gray'],
+		skipText: 'cyan',
 
 		// states
 		pass: 'green',
 		fail: 'red',
-		skip: 'gray',
+		skip: [],
 
 		// types
 		file: 'bold',
 		describe: ['bold'],
+		it: [],
 		before: ['dim'],
 		after: ['dim'],
 		beforeEach: [],
@@ -22,8 +24,8 @@ function SmochaLogger() {
 
 		// overrides
 		'describe.encountered': ['bold', 'black'],
-		'file.encountered': ['bold', 'cyan'],
-		'it.encountered': ['black']
+		'file.encountered': ['bold', 'magenta'],
+		'it.encountered': []
 	});
 	const _consoleLog = console.log;
 	var _startTime;
@@ -31,11 +33,17 @@ function SmochaLogger() {
 	const _errors = [];
 	const _skips = [];
 
+	const _logOnEncounter = new Set(['describe', 'file', 'it']);
+	const _logOnRunPass = new Set(['it', 'before', 'after']);
+
 	// print args with indent.
-	function _log(indents, args, colorize) {
-		args = args || [];
-		var indent = (new Array(indents)).join("│  ") + "├ ";
+	function _log(indents, args, colorize, doExtraIndent) {
+		const lastMarker = doExtraIndent ? "└ " : "├ ";
+		indents = indents + (doExtraIndent ? 1 : 0);
+		var indent = (new Array(indents)).join("│  ") + lastMarker;
 		indent = colors.indent(indent);
+
+		args = args || [];
 		args = args.map((arg) => {
 			const argStr = util.format(arg).replace(/\n/g, `\n${indent}`);
 			return colorize ? colors.log(argStr) : argStr;
@@ -45,7 +53,7 @@ function SmochaLogger() {
 	}
 
 	// prints arg[0] stylized using $type.$state or $state then $type
-	function _logType(node, state, args, additionalIndent) {
+	function _logType(node, state, args, doExtraIndent) {
 		if (node.type == "root") return;
 		if (!args || !args.length) return;
 
@@ -58,7 +66,7 @@ function SmochaLogger() {
 			if (colors[node.type]) { str = colors[node.type](str); }
 		}
 		args[0] = str;
-		_log(node.getParents().length + (additionalIndent?1:0), args);
+		_log(node.getParents().length, args, false, doExtraIndent);
 	}
 
 	// stats ///////////////////////
@@ -71,58 +79,60 @@ function SmochaLogger() {
 		const trimmedMsg = error.message.length > 50
 			? error.message.substr(0, 50) + "..."
 			: error.message;
-		const errMsgStr = colors.gray(`[${trimmedMsg}]`);
+		const errMsgStr = `[${trimmedMsg}]`;
 		return [errNumStr, errMsgStr];
 	}
 	function _addSkip(node) {
 		_skips.push(node);
 	}
 
-	this.onBeforeInitialRun = function(node) {
-		if (node.type == "describe"
-			|| node.type == "file"
-			|| node.type == "it")
-		{
-			_logType(node, "encountered", [`${node.name}`]);
-		}
+	this.onSkip = function(node) {
+		_addSkip(node);
+		_logType(node, "skip", [`${node.name}`, colors.skipText(`(skipped: ${node.skipReason})`)]);
+	}
+
+	this.onEncounter = function(node) {
+		if (!_logOnEncounter.has(node.type)) return;
+		_logType(node, "encountered", [`${node.name}`]);
 	}
 	this.onInitialRunPass = function(node) {
-		if (node.type == "describe"
-			|| node.type == "file"
-			|| node.type == "beforeEach"
-			|| node.type == "afterEach")
-		{
-			// we dont care if these pass.
+		if (!_logOnRunPass.has(node.type)) return;
+		if (node.type == "it") _addPass(node);
+		if (_logOnEncounter.has(node.type)) {
+			_logType(node, "pass", [`✓ passed (${node.runTime} ms)`], true);
 		} else {
-			if (node.type == "it") {
-				_logType(node, "pass", [`✓ passed (${node.runTime} ms)`], true);	
-			} else {
-				_logType(node, "pass", [`✓ ${node.name} (${node.runTime} ms)`]);	
-			}
-			_addPass(node);
+			_logType(node, "pass", [`✓ ${node.name} (${node.runTime} ms)`]);
 		}
 	}
 	this.onInitialRunFail = function(node) {
 		const [errNumStr, errMsgStr] = _addError(node, node.runError);
-		if (node.type == "describe" || node.type == "file") {
-			const note = colors.fail(`Skipped children tasks because '${node.type}' threw`);
-			_log(node.getParents().length, [colors.indent('└'), errNumStr, note, errMsgStr]);
+		if (_logOnEncounter.has(node.type)) {
+			_logType(node, "fail", [`${errNumStr} ${errMsgStr}`], true);
 		} else {
-			_logType(node, "fail", [`${errNumStr} ${node.name}`, errMsgStr]);	
+			_logType(node, "fail", [`${errNumStr} ${node.name}`, errMsgStr]);
 		}
-		
 	}
+	// if we logged it already, then log with an extra indent
+	// otherwise, just log the whole thing using .onSkip
+	this.onSkipDuringInitialRun = function(node) {
+		if (_logOnEncounter.has(node.type)) {
+			_logType(node, "skip", [colors.skipText(`skipped: ${node.skipReason}`)], true);
+			_addSkip(node);
+		} else {
+			this.onSkip(node);
+		}
+	}
+
 	this.onQueuePass = function(node) {
 		// we don't really care about this
 	}
 	// this should only happen on before -- all other errors should be handled
 	this.onQueueFail = function(node) {
-		const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because something threw");
-		_log(node.getParents().length, [str]);
-	}
-	this.onSkip = function(node) {
-		_logType(node, "skip", [`${node.name}`, colors.dim('(skipped)')]);
-		_addSkip(node);
+		// if (_logOnEncounter.has(node.type)) {
+		// 	const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because something threw");
+		// 	_log(node.getParents().length, [str]);
+		// }
+		// else console.log("FILL THIS IN NOW");
 	}
 
 	this.onStart = function() {

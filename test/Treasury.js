@@ -34,7 +34,7 @@ describe('Treasury', function(){
             .it("should accept funds", true)
                 .doTx(() => testUtil.transfer(accounts[0], treasury.address, 500000))
                 .assertSuccess()
-                .assertBalance(treasury, 500000, "Treasury got some wei")
+                .assertBalance(treasury, 500001, "Treasury got some wei")
             .it("fundMainController is not callable by randos", true)
                 .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
                 .assertInvalidOpCode()

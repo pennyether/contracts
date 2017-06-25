@@ -21,12 +21,19 @@ function Smocha(opts) {
 
 	function _buildQueue(node) {
 		var queue = node.queue;
-		// if runBefore fails, skip all children, and fail the queue.
-		// queue.add returns a deferredFn, the .catch wont prevent queue failure
+
+		// if runBefore fails, skip all children (and after) and fail the queue.
 		var runBefore = () => {
 			if (node.before && !node.before.skip) {
 				return _run(node.before, true).catch(e => {
-					node.children.forEach(_skip);
+					node.children.forEach((child) => {
+						child.skipReason = "before failed";
+						_skip(child);
+					});
+					if (node.after) {
+						node.after.skipReason = "before failed";
+						_skip(node.after);
+					}
 					throw e;
 				});	
 			}
@@ -40,6 +47,7 @@ function Smocha(opts) {
 		var hasOnly = node.children.some(c => c.only);
 		node.children.forEach(child => {
 			if (child.skip || (hasOnly && !child.only)) {
+				child.skipReason = "a sibling is marked as 'only'";
 				queue.add(() => { _skip(child); return true; });
 				return;
 			}
@@ -52,7 +60,10 @@ function Smocha(opts) {
 			queue.add(() => {
 				return runBeforeEach().then(
 					() => _run(child),
-					(e) => { _skip(child); }
+					(e) => {
+						child.skipReason = "beforeEach failed";
+						_skip(child);
+					}
 				).then(runAfterEach);
 			});
 		});
@@ -67,20 +78,21 @@ function Smocha(opts) {
 	// if the run succeeds, it runs the queue of all children, with before/after/etc
 	async function _run(node, throwOnError) {
 		_curNode = node;
-		_logger.onBeforeInitialRun(node);
+		_logger.onEncounter(node);
 
 		// reset this node (it may get run many times, eg, beforeEach)
 		node.resetQueue();
 		node.runTime = null;
 		node.runError = null;
 		node.queueError = null;
+		node.skipReason = null;
 
 		// create a context specific for this run of node
 		var ctx = {
 			currentTest: _lastTest,
 
 			_skip: false,
-			skip: () => { ctx._skip = true; },
+			skip: (reason) => { ctx._skip = true; node.skipReason = reason; },
 			
 			retries: (num) => { console.log(".retries() not yet supported."); },
 			timeout: (ms) => { console.log(".timeout() not yet supported."); },
@@ -125,7 +137,7 @@ function Smocha(opts) {
 			() => {
 				node.runTime = +(new Date()) - startTime;
 				if (ctx._skip) {
-					_skip(node);
+					_logger.onSkipDuringInitialRun(node);
 					node.queue.resolve();
 					return;
 				}
@@ -137,7 +149,7 @@ function Smocha(opts) {
 			(e) => {
 				node.runTime = +(new Date()) - startTime;
 				if (ctx._skip) {
-					_skip(node);
+					_logger.onSkipDuringInitialRun(node);
 					node.queue.resolve();
 					return;
 				}
@@ -175,11 +187,8 @@ function Smocha(opts) {
 		);
 	}
 
-	function _skip(node) {
-		var temp = _curNode;
-		_curNode = node;
+	function _skip(node, duringRun) {
 		_logger.onSkip(node);
-		_curNode = temp;
 	}
 
 	_obj.file = function(optDesc, filename){

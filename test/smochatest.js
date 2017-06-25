@@ -33,13 +33,48 @@ if (typeof describe == "undefined") {
 
 describe.only("test describe", function(){
 	before("i fail", function(){
-		throw new Error("i fail");
+		throw new Error("FAIL!");
 	});
 
 	describe("I should not run, before failed.", function(){
 		it("bla", function(){})
 		it("bla", function(){})
 		it("bla", function(){})
+	})
+
+	it("I should get skipped as well", function(){})
+
+	after("i should get skipped", function(){})
+});
+
+describe("this beforeEach fails", function(){
+	before("good before", function(){})
+	beforeEach("before each fails", function(){
+		throw new Error("FAIL!")
+	});
+	it("does stuff", function(){})
+	it("does stuff", function(){})
+	it("does stuff", function(){})
+	afterEach("after each", function(){})
+	after("i should run", function(){})
+});
+
+describe.only("this has its that skip", function(){
+	before("some before", function(){
+		console.log("I'm logging from within before");
+	});
+	it("logs stuff", function(){
+		console.log("hello from inside it");
+		it("a nested it", function(){
+			console.log("hello from inside nested it");
+			throw new Error("crap");
+		});
+	})
+	it("does stuff", function(){
+		this.skip("calling skip internally")
+	})
+	after("the after", function(){
+		console.log("logging from inside after");
 	})
 })
 

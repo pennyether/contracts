@@ -41,7 +41,7 @@ function createTxTester(plugins, it) {
 	// and if it fails will have a nice error message.
 	function _addPluginTask(name, args) {
 		if (!_obj.plugins[name])
-			throw new Error(`TxTester.plugins.${name} no longer exists!`)
+			throw new Error(`TxTester.${name} does not exists!`)
 
 		const pluginFn = _obj.plugins[name];
 		const promisifiedPluginFn = function() {
@@ -49,7 +49,7 @@ function createTxTester(plugins, it) {
 				.then(() => pluginFn.apply(_ctx, args))
 				.catch((pluginError) => {
 					const argsStr = argsToString(args);
-					const e = new Error(`TxTester.plugins.${name}(${argsStr}) failed:\n${pluginError.message}`);
+					const e = new Error(`failed TxTester.${name}(${argsStr}):\n${pluginError.message}`);
 					e.stack = e.message + "\n" + pluginError.stack;
 					throw e;
 				});
@@ -81,7 +81,7 @@ function createTxTester(plugins, it) {
 			const skip = this.skip;
 			return deferredItFn.then(
 				() => { return itQueue.start(); },
-				() => { skip(); }
+				() => { skip("a prior required test failed"); }
 			);
 		});
 		
