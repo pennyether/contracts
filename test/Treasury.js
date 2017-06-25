@@ -9,30 +9,36 @@ var BigNumber = require("bignumber.js");
 
 
 
-contract('Treasury', function(accounts){
-    var treasury;
+describe('Treasury', function(){
+    var accounts = web3.eth.accounts;
     var registry;
-    var dummyMainController = accounts[5];
+    var treasury;
+    var dummyMainController = accounts[0];
+    var addresses = {};
 
     before("Set up registry and treasury", async function(){
         registry = await Registry.new();
         await registry.register("MAIN_CONTROLLER", dummyMainController);
         treasury = await Treasury.new(registry.address);
+        createDefaultTxTester().plugins.nameAddresses({
+            registry: registry,
+            treasury: treasury,
+            dummyMainController: dummyMainController,
+        });
     });
 
     describe.only("test describe", function(){
-        console.log("inside test describe");
         createDefaultTxTester()
             .it("should point to dummyPac")
                 .assertState(treasury, "getMainController", dummyMainController)
             .it("should accept funds", true)
                 .doTx(() => testUtil.transfer(accounts[0], treasury.address, 500000))
                 .assertSuccess()
-                .assertBalance(treasury, 500001, "Treasury got some wei")
+                .assertBalance(treasury, 500000, "Treasury got some wei")
             .it("fundMainController is not callable by randos", true)
-                .doTx(() => treasury.fundMainController(1, {from: accounts[0]}))
-                .assertInvalidOpCode()
                 .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
+                .assertInvalidOpCode()
+                .doTx(() => treasury.fundMainController(1, {from: accounts[2]}))
                 .assertInvalidOpCode()
             .it("transfers funds, logs correctly")
                 .startLedger([treasury, dummyMainController])

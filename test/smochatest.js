@@ -31,6 +31,18 @@ if (typeof describe == "undefined") {
 // 	})
 // })
 
+describe.only("test describe", function(){
+	before("i fail", function(){
+		throw new Error("i fail");
+	});
+
+	describe("I should not run, before failed.", function(){
+		it("bla", function(){})
+		it("bla", function(){})
+		it("bla", function(){})
+	})
+})
+
 describe("DESCRIBE", async function(){
 	var count = 0;
 

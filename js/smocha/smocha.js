@@ -14,18 +14,24 @@ function Smocha(opts) {
 	}, opts);
 
 	var _timeout;
+	var _lastTest = {};	
 	var _curNode = createNode("root", "root", null, function(){});
-	var _logger = new Logger();	// will print pretty stuff
+	var _logger = new Logger();			// will print pretty stuff
 	var _consoleLog = console.log;		// we override this to provide indented console logs
 
 	function _buildQueue(node) {
 		var queue = node.queue;
 		// if runBefore fails, skip all children, and fail the queue.
 		// queue.add returns a deferredFn, the .catch wont prevent queue failure
-		var runBefore = node.before && !node.before.skip
-			? () => _run(node.before, true)
-			: () => Promise.resolve();
-		queue.add(runBefore).catch(e => { node.children.forEach(_skip); });
+		var runBefore = () => {
+			if (node.before && !node.before.skip) {
+				return _run(node.before, true).catch(e => {
+					node.children.forEach(_skip);
+					throw e;
+				});	
+			}
+		}
+		queue.add(runBefore);
 
 		// for each child:
 		// runBefore, skip child if that errs
@@ -71,7 +77,7 @@ function Smocha(opts) {
 
 		// create a context specific for this run of node
 		var ctx = {
-			currentTest: {},
+			currentTest: _lastTest,
 
 			_skip: false,
 			skip: () => { ctx._skip = true; },
@@ -123,7 +129,7 @@ function Smocha(opts) {
 					node.queue.resolve();
 					return;
 				}
-				ctx.currentTest.state = "succeeded";
+				_lastTest.state = "succeeded";
 				_logger.onInitialRunPass(node);
 				_buildQueue(node);
 				node.queue.start()
@@ -135,7 +141,7 @@ function Smocha(opts) {
 					node.queue.resolve();
 					return;
 				}
-				ctx.currentTest.state = "failed";
+				_lastTest.state = "failed";
 				node.runError = e;
 				_logger.onInitialRunFail(node);
 				node.queue.resolve();
@@ -160,7 +166,7 @@ function Smocha(opts) {
 				_logger.onQueueFail(node);
 				throw node.queueError;
 			}
-		).catch(
+		).then(
 			() => { _curNode = node.parent; },
 			(e) => {
 				_curNode = node.parent;

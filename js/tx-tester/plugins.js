@@ -47,7 +47,7 @@ function createPlugins(testUtil, ledger) {
 				throw e;
 			}
 			assert(!!ctx.res, `result was not truthy: ${util.format(ctx.res)}`);
-			console.log("  ✓ doTx was successful");
+			console.log("✓ doTx was successful");
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
@@ -55,10 +55,10 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.err && !ctx.res)
 				throw new Error("'doTx' was never called.")
 			if (!ctx.err)
-				throw new Erro("Expected call to fail.");
+				throw new Error("Expected call to fail.");
 
 			assert.include(ctx.err.message, "invalid opcode", "Error does not contain 'invalid opcode'");
-			console.log("  ✓ doTx failed with invalid opcode");
+			console.log("✓ doTx failed with invalid opcode");
 		},
 		// assert there is one log, with name $eventName and optional $args from optional $address
 		assertOneLog: async function(eventName, args, address) {
@@ -67,13 +67,13 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("'doTx' was never called.");
 
 			testUtil.expectOneLog(ctx.res, eventName, args, address);
-			console.log(`  ✓ '${eventName}' event occurred correctly`);
+			console.log(`✓ '${eventName}' event occurred correctly`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
 			const ctx = this;
 			testUtil.expectErrorLog(ctx.res, msg, address);
-			console.log(`  ✓ 'Error' event occurred correctly`);
+			console.log(`✓ 'Error' event occurred correctly`);
 		},
 		printTxResult: function(){
 			const ctx = this;
@@ -120,7 +120,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("You never called .startLedger()");
 
 			assert.strEqual(ctx.ledger.getDelta(address), amt, "balance did not change by exact amount");
-			console.log(`  ✓ ${at(address)} balance changed correctly`);
+			console.log(`✓ ${at(address)} balance changed correctly`);
 		},
 		// asserts $address has a delta equal to the txFee of the last result
 		assertLostTxFee: async function(address) {
@@ -131,7 +131,7 @@ function createPlugins(testUtil, ledger) {
 			const txFee = await testUtil.getTxFee(ctx.res.tx).mul(-1);
 			plugins.assertDelta.bind(ctx)
 				(address, txFee, "address did not lose exactly the txFee");
-			console.log(`  ✓ ${at(address)} lost txFee`);
+			console.log(`✓ ${at(address)} lost txFee`);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
 		assertDeltaMinusTxFee: async function(address, amt) {
@@ -142,7 +142,7 @@ function createPlugins(testUtil, ledger) {
 			const expectedFee = await testUtil.getTxFee(ctx.res.tx).mul(-1).plus(amt);
 			plugins.assertDelta.bind(ctx)
 				(address, expectedFee, "address did not gain a specific amount (minus txFee)");
-			console.log(`  ✓ ${at(address)} gain correct amount (minus txFee)`);
+			console.log(`✓ ${at(address)} gain correct amount (minus txFee)`);
 		},
 
 
@@ -213,20 +213,19 @@ function createPlugins(testUtil, ledger) {
 		assertState: async function(contract, name, expectedValue) {
 			// todo: check that its a constant
 			assert.strEqual(await contract[name](), expectedValue, `'contract.${name}()' was not as expected`);
-			console.log(`  ✓ ${at(contract)}.${name} was correct`);
+			console.log(`✓ ${at(contract)}.${name} was correct`);
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance) {
 			if (address.address) address = address.address;
 			const balance = await testUtil.getBalance(address);
 			assert.strEqual(balance, expectedBalance, "balance was not as expected");
-
+			console.log(`✓ Balance of ${at(address)} is correct`);
 		},
 		// print the balance of an address (or contract)
 		printBalance: async function(address) {
-			if (address.address) address = address.address;
 			const balance = await testUtil.getBalance(address);
-			console.log(`  ✓ Balance of ${at(address)} is correct`);
+			console.log(`Balance of ${at(address)} is: ${balance}`);
 		},
 		ret: function(v){ return v; },
 		wait: function(time, msg){
@@ -236,22 +235,50 @@ function createPlugins(testUtil, ledger) {
 		print: function(){ console.log.apply(console, arguments); },
 		pass: async function(){},
 		fail: async function(){ throw new Error("Failure"); },
-		testUtil: testUtil
+		
+		testUtil: testUtil,
+		nameAddresses: nameAddresses
 		////////////////////////////////////////////////////
 	};
 	return plugins;
 }
 
-function at(c) {
-	var addr = c.address
-		? c.address.substr(0,7) + "..."
-		: c.toString().substr(0,7) + "...";
-
-	if (c.constructor.name == "TruffleContract") {
-		return `'${c.constructor._json.contract_name}[${addr}]'`;
-	} else {
-		return `'@${addr}'`;
+var addrToName = {};
+function nameAddresses(obj) {
+	console.log("HELLO??");
+	Object.keys(obj).forEach((name) => {
+		var val = obj[name];
+		var type = Object.prototype.toString.call(val);
+		if (type === "[object String]") {
+			if (val.length != 42) throw new Error(`Address '${k}' should have 42 chars: '${val}'`);
+			addrToName[val] = name;
+		} else if (type === "[object Array]") {
+			val.forEach(function(addr, i){
+				addrToName[addr] = `${name}[${i}]`;
+			})
+		} else if (val.constructor.name == "TruffleContract") {
+			addrToName[val.address] = name;
+		} else {
+			throw new Error(`Unsupported address type of '${name}': '${type}'`);
+		}
+	});
+	console.log(`${Object.keys(addrToName).length} address names added.`);
+}
+function at(val) {
+	if (!val) return `<invalid address: ${address}>`;
+	if (typeof val == "string" && val.length == 42){
+		var shortened = val.substr(0, 6) + "...";
+		return addrToName[val]
+			? `'${addrToName[shortened]}'`
+			: val;
 	}
+	if (val.constructor.name == "TruffleContract") {
+		var shortened = val.address.substr(0, 6) + "...";
+		return addrToName[val.address]
+			? `'${addrToName[val.address]}'`
+			: `'${val.constructor._json.contract_name}[${shortened}]'`;
+	}
+	return `${val}`;
 }
 
 module.exports = createPlugins;

@@ -63,29 +63,6 @@ function createTxTester(plugins, it) {
 		}
 	};
 
-	// make all plugins callable on obj, and chainable
-	_obj.addPlugins = function(plugins) {
-		Object.keys(plugins).forEach( name => {
-			if (_obj[name])
-				throw new Error(`${name} is not a valid name for a plugin -- it's already in use.`);
-			_obj[name] = function(){
-				const args = Array.prototype.slice.call(arguments);
-				_addPluginTask(name, args);
-				return _obj;
-			}
-		});
-		_obj.plugins = plugins;
-	};
-
-	// remove some or all plugins
-	_obj.removePlugins = function(namesOrAll) {
-		if (!namesOrAll) namesOrAll = Object.keys(_obj.plugins);
-		namesOrAll.forEach((name) => {
-			delete _obj[name];
-			delete _obj.plugins[name];
-		});
-	}
-
 	// makes proceeding plugin calls execute on itChain
 	// the main chain will wait for this itChain to finish
 	// and the itChain will wait for 'it' to be called
@@ -107,16 +84,21 @@ function createTxTester(plugins, it) {
 				() => { skip(); }
 			);
 		});
-
-		// if mainQueue fails, reject run the deferredItFn. (the it should skip)
-		mainQueue.asPromise().catch(e => { deferredItFn.reject(e); });
 		
 		// otherwise, mainQueue got here.
-		// if itQueue fails (and is required), fail mainQueue
+		// if itQueue fails (and is required), fail mainQueue (see next part)
 		mainQueue.add(function(){
 			deferredItFn.resolve();
-			return itQueue.asPromise().catch((e) => { if (required) throw e; });
+			return itQueue.asPromise().catch((e) => {
+				if (required) {
+					console.log("TxTester: required 'it' failed, will skip all other 'it's.");
+					throw e; 
+				}
+			});
 		});
+
+		// if mainQueue fails, reject run the deferredItFn, so the it skips
+		mainQueue.asPromise().catch(e => { deferredItFn.reject(e); });
 
 		// swap _queue for itQueue, so all plugin tasks are added to itQueue
 		_queue = itQueue;
@@ -164,6 +146,29 @@ function createTxTester(plugins, it) {
 			);
 
 		return _obj;
+	}
+
+	// make all plugins callable on obj, and chainable
+	_obj.addPlugins = function(plugins) {
+		Object.keys(plugins).forEach( name => {
+			if (_obj[name])
+				throw new Error(`${name} is not a valid name for a plugin -- it's already in use.`);
+			_obj[name] = function(){
+				const args = Array.prototype.slice.call(arguments);
+				_addPluginTask(name, args);
+				return _obj;
+			}
+		});
+		_obj.plugins = plugins;
+	};
+
+	// remove some or all plugins
+	_obj.removePlugins = function(namesOrAll) {
+		if (!namesOrAll) namesOrAll = Object.keys(_obj.plugins);
+		namesOrAll.forEach((name) => {
+			delete _obj[name];
+			delete _obj.plugins[name];
+		});
 	}
 
 	if (plugins) _obj.addPlugins(plugins);

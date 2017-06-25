@@ -583,10 +583,63 @@ module.exports = {
 			"links": {},
 			"address": "0x98490b331909ce3a1eb6231cb79b097f85e66959",
 			"updated_at": 1498285429148
+		},
+		"1498368763054": {
+			"events": {
+				"0x08c379a0afcc32b1a39302f7cb8073359698411ab5fd6e3edb2c02c0b5fba8aa": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "Error",
+					"type": "event"
+				},
+				"0xab8ea2e81885c7371218ced71c5590638d262161b80681fcd3b14a14a0dfd408": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "time",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "addr",
+							"type": "address"
+						}
+					],
+					"name": "PennyAuctionStarted",
+					"type": "event"
+				},
+				"0x20b70612292d490053134f41f1fc28ded3ffd9c2db6b61e6facf48e617876a0e": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "numAuctionsClosed",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "time",
+							"type": "uint256"
+						}
+					],
+					"name": "UpdatedPennyAuctions",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0x84c1a5ebec1fe548ddc799c5bcce8392237f2077",
+			"updated_at": 1498368981227
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1498285429148
+	"updated_at": 1498368981227
 };
 
 /***/ }),
@@ -1976,10 +2029,115 @@ module.exports = {
 			"links": {},
 			"address": "0x5bc9ed242d4b7220a9bf8833186b281a3dc3ac5d",
 			"updated_at": 1498285429152
+		},
+		"1498368763054": {
+			"events": {
+				"0x08c379a0afcc32b1a39302f7cb8073359698411ab5fd6e3edb2c02c0b5fba8aa": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "Error",
+					"type": "event"
+				},
+				"0x6f5a579d15d667c25328d4d96fd687ef6db71fe369cdde0b5e193e5df1df708b": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "addr",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "time",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "initialPrize",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidPrice",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidTimeS",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidFeePct",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "auctionTimeS",
+							"type": "uint256"
+						}
+					],
+					"name": "AuctionStarted",
+					"type": "event"
+				},
+				"0x793259435822ae2d20e1178d7db3b88fc55f54398268b0607a40dbfcb9f2981a": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "addr",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "time",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "winner",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "prize",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "numBids",
+							"type": "uint256"
+						}
+					],
+					"name": "AuctionCompleted",
+					"type": "event"
+				},
+				"0x70eb68047a0eaacfaf7be4b07ab8eb1e854f4c0812caeeb2b3f0594453675c89": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "auctionAddress",
+							"type": "address"
+						}
+					],
+					"name": "WTF",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0xf82f7fc2579287d9532b561d0f3e83aa0ed5ae85",
+			"updated_at": 1498368981228
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1498285429152
+	"updated_at": 1498368981228
 };
 
 /***/ }),
@@ -2381,10 +2539,54 @@ module.exports = {
 			"links": {},
 			"address": "0x997ad147c196318cb5ea2cda6114b3af65422be9",
 			"updated_at": 1498285429151
+		},
+		"1498368763054": {
+			"events": {
+				"0xabdd2430f9e10eb5db384c1218c42f980dd5fcda760a680a0d95ec506f0963cb": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "addr",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "initialPrize",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidPrice",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidTimeS",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "bidFeePct",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"name": "auctionTimeS",
+							"type": "uint256"
+						}
+					],
+					"name": "AuctionCreated",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0xaccd87e39370e6263cc7329fde70f14e140f0948",
+			"updated_at": 1498368981227
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1498285429151
+	"updated_at": 1498368981227
 };
 
 /***/ }),
@@ -2503,10 +2705,29 @@ module.exports = {
 			"links": {},
 			"address": "0x32f53aa38ee1d9885e86acff5b003bb10b752c9c",
 			"updated_at": 1498285429146
+		},
+		"1498368763054": {
+			"events": {
+				"0xb05bfda6dbd6d545813bcb28364d94bf22bf96e946f39eca93c17eaa224d93d6": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "msg",
+							"type": "string"
+						}
+					],
+					"name": "RegistryError",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0x943169423b1b5e4403d7c5ed58a77e6698a2c658",
+			"updated_at": 1498368981221
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1498285429146
+	"updated_at": 1498368981221
 };
 
 /***/ }),
@@ -2871,10 +3092,68 @@ module.exports = {
 			"links": {},
 			"address": "0xd4a049d31d36edc3207a8699b768dd6edce9ab13",
 			"updated_at": 1498285429152
+		},
+		"1498368763054": {
+			"events": {
+				"0x13308fecf027645219266c1c34e891ab49b0dae1f45f719f35a4485cd00be4ad": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "recipient",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						}
+					],
+					"name": "NotEnoughFunds",
+					"type": "event"
+				},
+				"0x2e1ece5fb4a04cb9407bb825ceb4c6d6d402c18ba1cbe2054241fb1a86fd58da": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "recipient",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						}
+					],
+					"name": "TransferSuccess",
+					"type": "event"
+				},
+				"0x55b12570518c9cbe020a73b7f15c4f882caf03d1318b65e7e28d95a328b03867": {
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"name": "recipient",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"name": "value",
+							"type": "uint256"
+						}
+					],
+					"name": "TransferError",
+					"type": "event"
+				}
+			},
+			"links": {},
+			"address": "0x96ba1782e01bb5b4abc734183c5c19133c23ac6a",
+			"updated_at": 1498368981224
 		}
 	},
 	"schema_version": "0.0.5",
-	"updated_at": 1498285429152
+	"updated_at": 1498368981224
 };
 
 /***/ })
