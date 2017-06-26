@@ -162,33 +162,36 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
 
-			var msg = msg || `${at(address)} balance changed correctly`;
+			msg = msg || `changed correctly`;
+			msg = `balance of ${at(address)} ${msg}`;
 			assert.strEqual(ctx.ledger.getDelta(address), amt, msg);
-			console.log(`✓ ${at(address)} balance changed correctly`);
+			console.log(`✓ ${msg}`);
 		},
 		// asserts $address has a delta equal to the txFee of the last result
-		assertLostTxFee: async function(address) {
+		assertLostTxFee: async function(address, msg) {
 			const ctx = this;
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
 			if (ctx.txRes===null)
 				throw new Error("'doTx' was never called, or failed");
 
+			msg = msg || "lost txFee";
 			const txFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1);
 			plugins.assertDelta.bind(ctx)
-				(address, txFee, `${at(address)} should have lost txFee`);
+				(address, txFee, msg);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
-		assertDeltaMinusTxFee: async function(address, amt) {
+		assertDeltaMinusTxFee: async function(address, amt, msg) {
 			const ctx = this;
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
 			if (ctx.txRes===null)
 				throw new Error("'doTx' was never called, or failed");
 
+			msg = msg || "gained an amount but lost txFee";
 			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
 			plugins.assertDelta.bind(ctx)
-				(address, expectedFee, `${at(address)} should have gained an amount and lost txFee`);
+				(address, expectedFee, msg);
 		},
 
 
