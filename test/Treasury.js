@@ -27,57 +27,63 @@ describe('Treasury', function(){
         });
     });
 
-    describe.only("test describe", function(){
-        createDefaultTxTester()
-            .it("should point to dummyPac")
-                .assertState(treasury, "getMainController", dummyMainController)
-            .it("should accept funds", true)
-                .doTx(() => testUtil.transfer(accounts[0], treasury.address, 500000))
-                .assertSuccess()
-                .assertBalance(treasury, 500001, "Treasury got some wei")
-            .it("fundMainController is not callable by randos", true)
-                .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
-                .assertInvalidOpCode()
-                .doTx(() => treasury.fundMainController(1, {from: accounts[2]}))
-                .assertInvalidOpCode()
-            .it("transfers funds, logs correctly")
-                .startLedger([treasury, dummyMainController])
-                .startWatching([treasury, registry])
-                .doTx(() => treasury.fundMainController(12345, {from: dummyMainController}))
-                .assertSuccess()
-                .stopLedger()
-                .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
-                .assertDeltaMinusTxFee(dummyMainController, 12345, "dummyMainController gained 12345 minus txFee")
-                .assertDelta(treasury, -12345, "treasury lost funds")
-            .start().catch((e)=>{});
+    it("should point to dummyPac", function(){
+        return createDefaultTxTester()
+            .assertState(treasury, "getMainController", dummyMainController)
+            .start();
     });
 
-    it("returns true on success", async function(){
-        assert.equal(
-            await treasury.fundMainController.call(1, {from: dummyMainController})
-            , true, "Should return true on success"
-        );
-    });
-
-    it("logs error if funds requested is too large", async function(){
-        await txTester()
-            .watch([treasury.address, dummyMainController])
-            .do(() => treasury.fundMainController(100000, {from: dummyMainController}))
-            .stopWatching()
+    it("should accept funds", function(){
+       return createDefaultTxTester()
+            .doTx(() => testUtil.transfer(accounts[0], treasury.address, 500000))
             .assertSuccess()
-            .assertOneLog("NotEnoughFunds", {recipient: dummyMainController, value: 100000})
-            .assertLostTxFee(dummyMainController)
-            .assertDelta(treasury.address, 0);
+            .assertBalance(treasury, 500000, "Treasury got some wei")
+            .start();
     });
 
-    it("returns false if funds requested is too large", async function(){
-        assert.equal(
-            await treasury.fundMainController.call(100000, {from: dummyMainController})
-            , false, "Should return true on success"
-        );
+    it(".fundMainController() is not callable by random accounts", function(){
+        return createDefaultTxTester()
+            .doTx(() => treasury.fundMainController(1, {from: accounts[1]}))
+            .assertInvalidOpCode()
+            .doTx(() => treasury.fundMainController(1, {from: accounts[2]}))
+            .assertInvalidOpCode()
+            .start();
     });
 
-    xit("logs error if funds cannot be transferred to recipient (eg, not payable)", async function(){
-        // todo: create NotPayable contract and try to send to it.
+    describe(".fundMainController() works correctly", function(){
+        createDefaultTxTester()
+            .it("call returns true")
+                .doCall(() => treasury.fundMainController.call(1, {from: dummyMainController}))
+                .assertResultAsString(true)
+            .it("executes transaction from dummyMainController", true)
+                .startLedger([treasury, dummyMainController])
+                .doTx(() => treasury.fundMainController(12345, {from: dummyMainController}))
+                .stopLedger()
+                .assertSuccess()
+            .it("transfers correct amount")
+                .assertDeltaMinusTxFee(dummyMainController, 12345)
+                .assertDelta(treasury, -12345)
+            .it("logs correctly")
+                .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
+            .start().swallow();
+    });
+
+    describe(".fundMainController() when asking for too much", function(){
+        createDefaultTxTester()
+            .it("call returns false", true)
+                .assertBalanceLessThan(treasury, 1000000)
+                .doCall(() => treasury.fundMainController.call(1000000, {from: dummyMainController}))
+                .assertResultAsString(false)
+            .it("executes transaction from dummyMainController", true)
+                .startLedger([treasury.address, dummyMainController])
+                .doTx(() => treasury.fundMainController(1000000, {from: dummyMainController}))
+                .stopLedger()
+                .assertSuccess()
+            .it("transfers no amount")
+                .assertDelta(treasury.address, 0)
+                .assertLostTxFee(dummyMainController)
+            .it("logs 'NotEnoughFunds' with correct values")
+                .assertOneLog("NotEnoughFunds", {recipient: dummyMainController, value: 1000000})
+            .start().swallow();
     });
 });

@@ -40,12 +40,12 @@ function SmochaLogger() {
 	function _log(indents, args, colorize, doExtraIndent) {
 		const lastMarker = doExtraIndent ? "└ " : "├ ";
 		indents = indents + (doExtraIndent ? 1 : 0);
-		var indent = (new Array(indents)).join("│  ") + lastMarker;
-		indent = colors.indent(indent);
+		const indent = colors.indent((new Array(indents)).join("│  ") + lastMarker);
+		const indent2 = colors.indent((new Array(indents)).join("│  ") + "   ");
 
 		args = args || [];
 		args = args.map((arg) => {
-			const argStr = util.format(arg).replace(/\n/g, `\n${indent}`);
+			const argStr = util.format(arg).replace(/\n/g, `\n${indent2}`);
 			return colorize ? colors.log(argStr) : argStr;
 		});
 		args.unshift(indent);

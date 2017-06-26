@@ -14,86 +14,118 @@ function createPlugins(testUtil, ledger) {
 
 		// Passed a function that returns a truffle-contract res object (or a promise of one)
 		// Add to ctx:
-		// 		.res - The returning result of execution
-		//      .err - The error, if any, from execution
-		//		.resultPromise - A promise fulfilled/failed with execution results
+		// 		.txRes - The returning result of execution
+		//      .txErr - The error, if any, from execution
+		//		.txPromise - A promise fulfilled/failed with execution results
 		doTx: function(fn) {
 			const ctx = this;
 			const type = Object.prototype.toString.call(fn);
 			if (type !== '[object Promise]' && typeof fn !== 'function')
-				throw new Error(`'.do' must be passed a fn or promise, instead got: '${type}'`);
+				throw new Error(`'.doTx' must be passed a fn or promise, instead got: '${type}'`);
 
 			// execute fn, store promise to ctx
-			ctx.resultPromise = Promise.resolve().then(fn);
+			ctx.txPromise = Promise.resolve().then(fn);
 
 			// return the promise, so chain waits on us
-			return ctx.resultPromise.then(
-				(res) => { ctx.res = res;  ctx.err = null; },
-				(err) => { ctx.res = null; ctx.err = err; }
+			return ctx.txPromise.then(
+				(res) => { ctx.txRes = res;  ctx.txErr = null; },
+				(err) => { ctx.txRes = null; ctx.txErr = err; }
 			);
 		},
 		// returns the result of `do`
 		getTx: function() {
 			const ctx = this;
-			return ctx.resultPromise;
+			return ctx.txPromise;
 		},
 		// assert .res and .res.receipt are set
 		assertSuccess: function() {
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
+			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
 
-			if (ctx.err) {
-				var e = new Error(`tx did not succeed, got this error: ${util.format(ctx.err)}`);
-				e.stack = ctx.err.stack;
+			if (ctx.txErr) {
+				var e = new Error(`doTx did not succeed, got this error: ${util.format(ctx.txErr)}`);
+				e.stack = ctx.txErr.stack;
 				throw e;
 			}
-			assert(!!ctx.res, `result was not truthy: ${util.format(ctx.res)}`);
+			assert(!!ctx.txRes, `txResult was not truthy: ${util.format(ctx.txRes)}`);
 			console.log("✓ doTx was successful");
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
 			const ctx = this;
-			if (!ctx.err && !ctx.res)
+			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.")
-			if (!ctx.err)
+			if (!ctx.txErr)
 				throw new Error("Expected call to fail.");
 
-			assert.include(ctx.err.message, "invalid opcode", "Error does not contain 'invalid opcode'");
+			const errMsg = ctx.txErr.message;
+			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
 			console.log("✓ doTx failed with invalid opcode");
 		},
 		// assert there is one log, with name $eventName and optional $args from optional $address
 		assertOneLog: async function(eventName, args, address) {
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
+			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
 
-			testUtil.expectOneLog(ctx.res, eventName, args, address);
+			testUtil.expectOneLog(ctx.txRes, eventName, args, address);
 			console.log(`✓ '${eventName}' event occurred correctly`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
 			const ctx = this;
-			testUtil.expectErrorLog(ctx.res, msg, address);
+			if (ctx.txRes===null && ctx.txErr===null)
+				throw new Error("'doTx' was never called.");
+
+			testUtil.expectErrorLog(ctx.txRes, msg, address);
 			console.log(`✓ 'Error' event occurred correctly`);
 		},
 		printTxResult: function(){
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
+			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
+
 			console.log("printing tx results...");
-			console.log(ctx.res);
+			console.log(ctx.txRes);
 		},
 		// prints the logs of the last `do`, otherwise nothing
 		printTxLogs: function() {
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
+			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
 
-			if (ctx.res) {
+			if (ctx.txRes) {
 				console.log("printing logs");
-				console.log(ctx.res.logs);
+				console.log(ctx.txRes.logs);
 			}
+		},
+
+		///////////////////////////////////////////////////////////////
+		/////// CALL STUFF ////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////
+		doCall: function(fn) {
+			const ctx = this;
+			const type = Object.prototype.toString.call(fn);
+			if (type !== '[object Promise]' && typeof fn !== 'function')
+				throw new Error(`'.doCall' must be passed a fn or promise, instead got: '${type}'`);
+
+			// execute fn, store promise to ctx
+			ctx.callPromise = Promise.resolve().then(fn);
+
+			// return the promise, so chain waits on us
+			return ctx.callPromise.then(
+				(res) => { ctx.callRes = res;  ctx.callErr = null; },
+				(err) => { ctx.callRes = null; ctx.callErr = err; }
+			);
+		},
+		assertResultAsString: function(val) {
+			const ctx = this;
+			if (ctx.callRes===null && ctx.callErr===null)
+				throw new Error("'doCall' was never called.");
+
+			assert.strEqual(ctx.callRes, val, `Result of call expeted to be ${val}`);
+			console.log(`✓ Call resulted in expected value: ${val}`);
 		},
 
 
@@ -116,35 +148,38 @@ function createPlugins(testUtil, ledger) {
 			await ctx.ledger.stop();
 		},
 		// asserts a delta of $amt in the balance of $address
-		assertDelta: function(address, amt) {
+		assertDelta: function(address, amt, msg) {
 			const ctx = this;
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
 
-			assert.strEqual(ctx.ledger.getDelta(address), amt, "balance did not change by exact amount");
+			var msg = msg || `${at(address)} balance changed correctly`;
+			assert.strEqual(ctx.ledger.getDelta(address), amt, msg);
 			console.log(`✓ ${at(address)} balance changed correctly`);
 		},
 		// asserts $address has a delta equal to the txFee of the last result
 		assertLostTxFee: async function(address) {
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
-				throw new Error("'do' was never called.");
+			if (!ctx.ledger)
+				throw new Error("You never called .startLedger()");
+			if (ctx.txRes===null)
+				throw new Error("'doTx' was never called, or failed");
 
-			const txFee = await testUtil.getTxFee(ctx.res.tx).mul(-1);
+			const txFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1);
 			plugins.assertDelta.bind(ctx)
-				(address, txFee, "address did not lose exactly the txFee");
-			console.log(`✓ ${at(address)} lost txFee`);
+				(address, txFee, `${at(address)} should have lost txFee`);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
 		assertDeltaMinusTxFee: async function(address, amt) {
 			const ctx = this;
-			if (!ctx.res && !ctx.err)
-				throw new Error("'do' was never called.");
+			if (!ctx.ledger)
+				throw new Error("You never called .startLedger()");
+			if (ctx.txRes===null)
+				throw new Error("'doTx' was never called, or failed");
 
-			const expectedFee = await testUtil.getTxFee(ctx.res.tx).mul(-1).plus(amt);
+			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
 			plugins.assertDelta.bind(ctx)
-				(address, expectedFee, "address did not gain a specific amount (minus txFee)");
-			console.log(`✓ ${at(address)} gain correct amount (minus txFee)`);
+				(address, expectedFee, `${at(address)} should have gained an amount and lost txFee`);
 		},
 
 
@@ -219,10 +254,15 @@ function createPlugins(testUtil, ledger) {
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance) {
-			if (address.address) address = address.address;
 			const balance = await testUtil.getBalance(address);
 			assert.strEqual(balance, expectedBalance, "balance was not as expected");
 			console.log(`✓ Balance of ${at(address)} is correct`);
+		},
+		assertBalanceLessThan: async function(address, num) {
+			const balance = await testUtil.getBalance(address);
+			const msg = `Balance of ${at(address)} should be less than ${num.toString()}`;
+			assert(balance.lt(num), msg);
+			console.log(`✓ ${msg}`);	
 		},
 		// print the balance of an address (or contract)
 		printBalance: async function(address) {

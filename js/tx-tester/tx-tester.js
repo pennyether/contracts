@@ -110,7 +110,7 @@ function createTxTester(plugins, it) {
 			return _obj;
 		}
 		return _obj;
-	}
+	};
 
 	// Starts the main queue
 	// If the queue failed:
@@ -146,7 +146,11 @@ function createTxTester(plugins, it) {
 			);
 
 		return _obj;
-	}
+	};
+
+	_obj.swallow = function() {
+		_obj.catch((e) => { console.log("TxTester: Swallowed error."); });
+	};
 
 	// make all plugins callable on obj, and chainable
 	_obj.addPlugins = function(plugins) {
@@ -169,7 +173,7 @@ function createTxTester(plugins, it) {
 			delete _obj[name];
 			delete _obj.plugins[name];
 		});
-	}
+	};
 
 	if (plugins) _obj.addPlugins(plugins);
 
