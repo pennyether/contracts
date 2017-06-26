@@ -33,7 +33,8 @@ function createTxTester(plugins, it) {
 	const _afterDoneFns = [];			// when done, perform all of these (fail if any fail)
 	// ctx object that is passed to all plugins.
 	const _ctx = {
-		afterDone: (fn) => { _afterDoneFns.push(fn); }
+		afterDone: (fn) => { _afterDoneFns.push(fn); },
+		plugins: plugins
 	};
 
 	// adds a call to the plugin onto the queue
@@ -63,12 +64,36 @@ function createTxTester(plugins, it) {
 		}
 	};
 
+	_obj.do = function(fn) {
+		_queue.add((prev) => {
+			return fn.call(_ctx, prev)
+		});
+		return _obj;
+	};
+
 	// makes proceeding plugin calls execute on itChain
 	// the main chain will wait for this itChain to finish
 	// and the itChain will wait for 'it' to be called
-	_obj.it = function(msg, required) {
+	_obj.it = function(msg, fnOrRequired, required) {
 		if (!_it) throw new Error(`'it' function was never provided.`);
 		if (_obj.endIt) { _obj.endIt(); }
+
+		var fn;
+		if (required === undefined){
+			if (fnOrRequired === undefined) fn = null;
+			else if (typeof fnOrRequired === 'function') fn = fnOrRequired;
+			else if (typeof fnOrRequired === 'boolean') required = fnOrRequired;
+			else throw new Error("Second argument must be a function or boolean");
+		} else {
+			if (typeof fnOrRequried !== 'function')
+				throw new Error("If three args provided, second argument must be a function");
+			fn = fnOrRequired;
+		}
+
+		if (fn) {
+			_it(msg, fn.bind(_ctx));
+			return _obj;
+		}
 
 		const mainQueue = _queue;
 		const itQueue = createTaskQueue();
@@ -149,7 +174,9 @@ function createTxTester(plugins, it) {
 	};
 
 	_obj.swallow = function() {
-		_obj.catch((e) => { console.log("TxTester: Swallowed error."); });
+		return _obj.catch((e) => {
+			console.log(`WARNING: TxTester: Swallowed error: ${e.message}`);
+		});
 	};
 
 	// make all plugins callable on obj, and chainable

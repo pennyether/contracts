@@ -33,9 +33,18 @@ function createPlugins(testUtil, ledger) {
 			);
 		},
 		// returns the result of `do`
-		getTx: function() {
+		getTxResult: function() {
 			const ctx = this;
-			return ctx.txPromise;
+			if (ctx.txRes===null)
+				throw new Error("'doTx' was never called, or failed");
+			return ctx.txRes;
+		},
+		getBlock: async function() {
+			const ctx = this;
+			if (ctx.txRes===null)
+				throw new Error("'doTx' was never called, or failed");
+
+			return await testUtil.getBlock(ctx.txRes.receipt.blockHash);
 		},
 		// assert .res and .res.receipt are set
 		assertSuccess: function() {
@@ -70,7 +79,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("'doTx' was never called.");
 
 			testUtil.expectOneLog(ctx.txRes, eventName, args, address);
-			console.log(`✓ '${eventName}' event occurred correctly`);
+			console.log(`✓ '${eventName}' was the only log, and had correct args`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
@@ -247,20 +256,43 @@ function createPlugins(testUtil, ledger) {
 		///////////////////////////////////////////////////////////////////////
 
 		// assert $contract[$name]() returns $expectedValue
-		assertState: async function(contract, name, expectedValue) {
+		assertStateAsString: async function(contract, name, expectedValue, msg) {
 			// todo: check that its a constant
-			assert.strEqual(await contract[name](), expectedValue, `'contract.${name}()' was not as expected`);
-			console.log(`✓ ${at(contract)}.${name}() returned expected value`);
+			msg = msg || "should equal some value"
+			msg = `${at(contract)}.${name}() ${msg}`;
+			assert.strEqual(await contract[name](), expectedValue, msg);
+			console.log(`✓ ${msg}`);
+		},
+		assertStateCloseTo: async function(contract, name, expectedValue, tolerance, msg) {
+			const val = await contract[name]();
+			if (!val || !val.toNumber())
+				throw new Error(`assertStateCloseTo expects call to return a BigNumber.`);
+
+			msg = msg || "is close to some number";
+			msg = `${at(contract)}.${name}() ${msg}`;
+			if (expectedValue.toNumber) expectedValue = expectedValue.toNumber();
+			assert.closeTo(val.toNumber(), expectedValue, tolerance, msg);
+			console.log(`✓ ${msg}`);
+		},
+		assertCloseTo: function(val1, val2, tolerance, msg) {
+			val1 = val1.toNumber ? val1.toNumber() : val1;
+			val2 = val2.toNumber ? val2.toNumber() : val2;
+			msg = msg || `two values should be within ${tolerance}`;
+			assert.closeTo(val1, val2, tolerance, msg);
+			console.log(`✓ ${msg}`);	
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
-		assertBalance: async function(address, expectedBalance) {
+		assertBalance: async function(address, expectedBalance, msg) {
 			const balance = await testUtil.getBalance(address);
-			assert.strEqual(balance, expectedBalance, "balance was not as expected");
-			console.log(`✓ Balance of ${at(address)} is correct`);
+			msg = msg || " should equal some value";
+			msg = `Balance of ${at(address)} ${msg}`;
+			assert.strEqual(balance, expectedBalance, msg);
+			console.log(`✓ ${msg}`);
 		},
-		assertBalanceLessThan: async function(address, num) {
+		assertBalanceLessThan: async function(address, num, msg) {
 			const balance = await testUtil.getBalance(address);
-			const msg = `Balance of ${at(address)} should be less than ${num.toString()}`;
+			msg = msg || `should be less than some value`;
+			msg = `Balance of ${at(address)} ${msg}`;
 			assert(balance.lt(num), msg);
 			console.log(`✓ ${msg}`);	
 		},

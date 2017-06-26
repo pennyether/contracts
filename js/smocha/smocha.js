@@ -194,21 +194,21 @@ function Smocha(opts) {
 	_obj.file = function(optDesc, filename){
 		filename = filename ? filename : optDesc;
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
-		_curNode.children.push(createNode("file", name, _curNode, function(){
+		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}));
 	};
 	_obj.file.only = function(optDesc, filename){
 		filename = optDesc ? filename : optDesc;
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
-		_curNode.children.push(createNode("file", name, _curNode, function(){
+		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}, {only: true}));
 	};
 	_obj.file.skip = function(optDesc, filename){
 		filename = optDesc ? filename : optDesc;
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
-		_curNode.children.push(createNode("file", name, _curNode, function(){
+		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}, {skip: true}));
 	};
@@ -217,15 +217,15 @@ function Smocha(opts) {
 	['describe', 'it'].forEach((propName) => {
 		_obj[propName] = function() {
 			var [name, fn] = getNameAndFn(propName, arguments);
-			_curNode.children.push(createNode(propName, name, _curNode, fn));
+			_curNode.addChild(createNode(propName, name, _curNode, fn));
 		}
 		_obj[propName].only = function() {
 			var [name, fn] = getNameAndFn(propName, arguments);
-			_curNode.children.push(createNode(propName, name, _curNode, fn, {only: true}));
+			_curNode.addChild(createNode(propName, name, _curNode, fn, {only: true}));
 		}
 		_obj[propName].skip = function() {
 			var [name, fn] = getNameAndFn(propName, arguments);
-			_curNode.children.push(createNode(propName, name, _curNode, fn, {skip: true}));
+			_curNode.addChild(createNode(propName, name, _curNode, fn, {skip: true}));
 		}
 		Smocha[propName] = _obj[propName];
 	});

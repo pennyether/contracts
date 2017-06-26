@@ -13,7 +13,8 @@ var bidTimeS     = new BigNumber(600);         // 10 minutes
 var bidFeePct    = new BigNumber(60);
 var auctionTimeS = new BigNumber(60*60*12);    // 12 hours
 
-contract('PennyAuction', function(accounts) {
+describe('PennyAuction', function() {
+    var accounts = web3.eth.accounts;
     var auction;
     var admin = accounts[0];
     var collector = accounts[1];
@@ -21,6 +22,14 @@ contract('PennyAuction', function(accounts) {
     var bidder2 = accounts[3];
     var bidder3 = accounts[4];
     var nonBidder = accounts[5];
+    var addresses = {
+        admin: admin,
+        collector: collector,
+        bidder1: bidder1,
+        bidder2: bidder2,
+        bidder3: bidder3,
+        nonBidder: nonBidder
+    };
 
     // does bidding on behalf of account.
     // optionally creates a describe/it structure.

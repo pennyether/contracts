@@ -37,6 +37,12 @@ function createNode(type, name, parentNode, run, opts) {
 		queueError: null,
 		skipReason: null,
 
+		addChild: function(node) {
+			if (this.runTime) {
+				throw new Error(`${this.type} '${this.name}': Cannot add a child once node has started.`);
+			}
+			this.children.push(node);
+		},
 		resetQueue: function() {
 			this.queue = createTaskQueue(true);
 		},
