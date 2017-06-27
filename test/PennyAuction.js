@@ -26,7 +26,7 @@ describe('PennyAuction', function() {
     before("can be created", async function() {
         auction = await PennyAuction.new(admin, collector,
                             INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S);
-        createDefaultTxTester().plugins.nameAddresses({
+        const addresses = {
             admin: admin,
             collector: collector,
             bidder1: bidder1,
@@ -34,7 +34,9 @@ describe('PennyAuction', function() {
             bidder3: bidder3,
             nonBidder: nonBidder,
             auction: auction
-        });
+        };
+        createDefaultTxTester().plugins.nameAddresses(addresses);
+        console.log("addresses:", addresses);
     });
 
     describe("After created, when pending:", function(){
@@ -184,7 +186,7 @@ describe('PennyAuction', function() {
                 .start();
         });
         it("fees should be redeemable", async function(){
-            await ensureFeeRedeemable();
+            await ensureFeesRedeemable();
         })
     });
 
@@ -394,7 +396,6 @@ describe('PennyAuction', function() {
             .doTx(() => auction.redeemFees({from: admin}))
             .stopLedger()
             .assertSuccess()
-            .assertOneLog("")
             .assertDelta(collector, expectedFees, 'got fees')
             .assertDelta(auction, expectedFees.mul(-1), 'lost fees')
             .assertLostTxFee(admin)
@@ -438,21 +439,23 @@ describe("Bidding via a Smart Contract", function(){
     before("create auction, bidderContract, and fund bidderContract", async function(){
         auction = await PennyAuction
             .new(admin, collector, INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S);
-        bidderContract =  await PennyAuctionBidder
+        bidderContract = await PennyAuctionBidder
             .new(auction.address, {from: bidderOwner});
 
-        await testUtil.transfer(bidderOwner, bidderContract.address, BID_PRICE.mul(5));
+        await bidderContract.fund({from: bidderOwner, value: BID_PRICE.mul(5)});
         await auction.open({from: admin, value: INITIAL_PRIZE});
         assert.strEqual(await auction.state(), 1, "Auction is opened");
         assert.strEqual(await testUtil.getBalance(bidderContract), BID_PRICE.mul(5));
 
-        createDefaultTxTester().plugins.nameAddresses({
+        const addresses = {
             admin: admin,
             collector: collector,
             bidderOwner: bidderOwner,
-            auction: auction,
-            bidderContract: bidderContract
-        });
+            auction: auction.address,
+            bidderContract: bidderContract.address
+        };
+        createDefaultTxTester().plugins.nameAddresses(addresses);
+        console.log("addresses:", addresses)
     });
 
     it("Smart Contract can bid on an auction", async function(){        
@@ -477,30 +480,38 @@ describe("Bidding via a Smart Contract", function(){
         // log
         console.log("Fastforwarded, and closed auction. Current winner is bidderContract");
 
-        const curPrize = await auction.prize();
+        const prize = await auction.prize();
         await createDefaultTxTester()
             .startLedger([auction, bidderContract, admin])
-            .doTx(() => auction.redeem({from: admin}))
+            .doTx(() => auction.redeem({from: admin, gas: 3000000}))
             .stopLedger()
             .assertSuccess()
+            .assertOneLog("RedeemFailed", {
+                time: null,
+                redeemer: admin,
+                recipient: bidderContract.address,
+                amount: prize
+            })
+            .assertGasUsedLt(60000)
             .assertLostTxFee(admin)
             .assertNoDelta(auction)
             .assertNoDelta(bidderContract)
             .assertStateAsString(auction, "state", 2, "still CLOSED")
-            .assertStateAsString(auction, "prize", curPrize, "still has prize")
+            .assertStateAsString(auction, "prize", prize, "still has prize")
             .start();
     });
 
     it("Smart Contract can redeem prize itself, even with expensive fallback function", async function(){
-        var prize = await auction.prize();
-        var watcher = await auction.allEvents();
+        var prize = await auction.prize();        
+
         await createDefaultTxTester()
             .startLedger([auction, bidderContract, bidderOwner])
-            .startWatching([auction])
+            .startWatching([auction, bidderContract])
             .doTx(() => bidderContract.doRedemption({from: bidderOwner, gas: 3000000}))
-            .assertSuccess()
             .stopLedger()
             .stopWatching()
+            .assertSuccess()
+            .assertGasUsedGt(100000)
             .assertOneEvent(auction, "Redeemed", {
                 time: null,
                 redeemer: bidderContract.address,

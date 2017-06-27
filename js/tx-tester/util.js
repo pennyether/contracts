@@ -13,28 +13,33 @@ function createUtil(web3, assert){
 		// expects 1 log, with a specific error message.
 		// note the extra address argument -- this is due to
 		// a bug in web3 where it will include logs of other addresses.
-		expectOneLog: async function expectOneLog(logs, eventName, args, address) {
-			address = address.address ? address.address : address;
+		// https://github.com/ethereum/web3.js/issues/895
+		expectOneLog: function expectOneLog(logs, eventName, args, address) {
+			address = (address && address.address) ? address.address : address;
 			logs = logs.filter(l => !address || l.address == address);
 
-			
-			assert.equal(logs.length, 1, "Expected exactly 1 log");
-			assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
-			Object.keys(args).forEach(key => {
-				const val = args[key];
-				assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
-				if (val !== null)
-					assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
-			});
+			try {
+				assert.equal(logs.length, 1, "Expected exactly 1 log");
+				assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
+				Object.keys(args).forEach(key => {
+					const val = args[key];
+					assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
+					if (val !== null)
+						assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
+				});
+			} catch (e) {
+				console.log("expectOneLog failed, showing logs:", logs);
+				throw e;
+			}
 		},
 
-		expectErrorLog: async function expectedErrorLog(promise, msg, address) {
-			return await _self.expectOneLog(promise, "Error", {msg: msg}, address);
+		expectErrorLog: function expectedErrorLog(logs, msg, address) {
+			_self.expectOneLog(logs, "Error", {msg: msg}, address);
 		},
 
-		expectInvalidOpcode: async function expectInvalidOpcode(promise){
+		expectInvalidOpcode: async function expectInvalidOpcode(txPromise){
 		    try {
-		        await promise;
+		        await txPromise;
 		    } catch (txError) {
 		        try {
 		            assert.include(txError.message, "invalid opcode");
@@ -70,6 +75,9 @@ function createUtil(web3, assert){
 	        });
 		},
 
+		getBlockNumber: function() {
+			return web3.eth.blockNumber;
+		},
 		getBalance: function getBalance(address){
 			if (address.address) address = address.address;
 		    return web3.eth.getBalance(address);

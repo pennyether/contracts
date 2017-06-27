@@ -7,8 +7,6 @@ contract IPennyAuction {
 
 contract PennyAuctionBidder {
 	IPennyAuction public auction;
-	bool public didRedeem;
-	bool public didFallback;
 
 	function PennyAuctionBidder(address _auctionAddress){
 		auction = IPennyAuction(_auctionAddress);
@@ -19,17 +17,13 @@ contract PennyAuctionBidder {
 		  	throw;
 		}
 	}
-	function doRedemption(){
-		didFallback = false;
-		auction.redeem();
-		didRedeem = true;
-	}
+	function doRedemption(){ auction.redeem(); }
+	function fund() payable {}
 	function () payable {
 		// burn some gas.
 		uint bla;
-		for (var i=0; i<100; i++){
+		for (uint i=0; i<2000; i++){
 			bla += i;
 		}
-		didFallback = true;
 	}
 }

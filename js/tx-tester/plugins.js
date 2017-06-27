@@ -66,7 +66,7 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.")
 			if (!ctx.txErr)
-				throw new Error("Expected call to fail.");
+				throw new Error("Expected 'doTx' to fail.");
 
 			const errMsg = ctx.txErr.message;
 			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
@@ -77,19 +77,45 @@ function createPlugins(testUtil, ledger) {
 			const ctx = this;
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
 
 			testUtil.expectOneLog(ctx.txRes.logs, eventName, args, address);
 			const keysStr = Object.keys(args || {}).join(", ");
-			console.log(`✓ '${eventName}(${keysStr})' was the only log, and had correct args`);
+			console.log(`✓ '${eventName}(${keysStr})' was the only log`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
 			const ctx = this;
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
 
-			testUtil.expectErrorLog(ctx.txRes, msg, address);
+			testUtil.expectErrorLog(ctx.txRes.logs, msg, address);
 			console.log(`✓ 'Error' event occurred correctly`);
+		},
+		assertGasUsedLt: function(val) {
+			const ctx = this;
+			if (ctx.txRes===null && ctx.txErr===null)
+				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
+
+			const gasUsed = ctx.txRes.receipt.gasUsed;
+			assert.isAtMost(gasUsed, val);
+			console.log(`✓ less than ${val} gas used (${gasUsed})`);
+		},
+		assertGasUsedGt: function(val) {
+			const ctx = this;
+			if (ctx.txRes===null && ctx.txErr===null)
+				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
+
+			const gasUsed = ctx.txRes.receipt.gasUsed;
+			assert.isAtLeast(gasUsed, val);
+			console.log(`✓ more than ${val} gas used (${gasUsed})`);
 		},
 		printTxResult: function(){
 			const ctx = this;
@@ -106,7 +132,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("'doTx' was never called.");
 
 			if (ctx.txRes) {
-				console.log("printing logs");
+				console.log(".printTxLogs called:");
 				console.log(ctx.txRes.logs);
 			}
 		},
@@ -206,11 +232,7 @@ function createPlugins(testUtil, ledger) {
 		////////////////////////////////////////////////////////////////////
 
 		// This will add:
-		//		- ctx.contractEvents[address]
-		// 		- ctx.contractWatchers[address]
-		//
-		// AfterDone, it will stop all the watchers.
-		//
+		// 		- ctx.contractWatchers = {address: watcher}
 		startWatching: function(contracts) {
 			const ctx = this;
 			
@@ -224,49 +246,63 @@ function createPlugins(testUtil, ledger) {
 			});
 
 			if (!ctx.contractWatchers) ctx.contractWatchers = {};
-			if (!ctx.contractEvents) ctx.contractEvents = {};
+			const nextBlock = testUtil.getBlockNumber() + 1;
 			contracts.forEach(c => {
-				ctx.contractEvents[c.address] = [];
-				const watcher = c.allEvents(function(err, log){
-					if (!err) ctx.contractEvents[c.address].push(log);
-				});
-				ctx.contractWatchers[c.address] = watcher;
+				ctx.contractWatchers[c.address] = c.allEvents({fromBlock: nextBlock});
 			});
 			ctx.afterDone(async () => {
-				if (ctx.contractWatchers) await plugins.stopWatching.call(ctx);
-			})
+				if (!ctx.contractWatchers) return;
+				await plugins.stopWatching.call(ctx);
+				console.log(`WARNING: .startWatching() was called, but .stopWatching() wasn't.`);
+			});
 		},
-		stopWatching: async function() {
+		// This will add:
+		//		- ctx.contractEvents = {address: logs}
+		// And remove:
+		//		- ctx.contractWatchers
+		stopWatching: function() {
 			const ctx = this;
 			if (!ctx.contractWatchers)
 				throw new Error("Cannot stopWatching -- you never started watching any contracts.");
 
-			const addresses = Object.keys(ctx.contractWatchers);
-			while (addresses.length) {
-				const address = addresses.shift();
-				const watcher = ctx.contractWatchers[address];
-				await watcher.stopWatching();
-			}
-			delete ctx.contractWatchers;
+			console.log(`Stopping watching`);
+			ctx.contractEvents = {};
+			const promises = Object.keys(ctx.contractWatchers).map(address => {
+				return new Promise((res, rej) => {
+					ctx.contractWatchers[address].get((error, events) => {
+						ctx.contractEvents[address] = events;
+						res();
+					})
+				});
+			});
+			return Promise.all(promises).then(()=>{ delete ctx.contractWatchers; });
 		},
 		assertOneEvent: async function(address, eventName, args) {
 			const ctx = this;
 			address = address.address ? address.address : address;
 			if (!ctx.contractEvents)
-				throw new Error("'startWatching' was never called.");
+				throw new Error("'startWatching' and 'stopWatching' weren't called.");
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
 			const logs = ctx.contractEvents[address];
 			testUtil.expectOneLog(logs, eventName, args, address);
 			const keysStr = Object.keys(args || {}).join(", ");
-			console.log(`✓ '${eventName}(${keysStr})' was the only log, and had correct args`);
+			console.log(`✓ '${eventName}(${keysStr})' was the only event for ${at(address)}`);
 		},
 		printEvents: function() {
 			const ctx = this;
+			if (!ctx.contractEvents)
+				throw new Error("'startWatching' and 'stopWatching' weren't called.");
+
+			var hadEvent = false;
 			Object.keys(ctx.contractEvents || {}).forEach(address => {
-				console.log(`Logs for ${at(address)}: `, ctx.contractEvents[addr]);
+				ctx.contractEvents[address].forEach((log, i) => {
+					hadEvent = true;
+					console.log(`Event #${i+1} for ${at(address)}:`, log);
+				});
 			});
+			if (!hadEvent) { console.log('No events found.'); }
 		},
 
 
@@ -278,7 +314,7 @@ function createPlugins(testUtil, ledger) {
 		// assert $contract[$name]() returns $expectedValue
 		assertStateAsString: async function(contract, name, expectedValue, msg) {
 			// todo: check that its a constant
-			msg = msg || "should equal some value"
+			msg = msg || `should equal '${expectedValue}'`;
 			msg = `${at(contract)}.${name}() ${msg}`;
 			assert.strEqual(await contract[name](), expectedValue, msg);
 			console.log(`✓ ${msg}`);

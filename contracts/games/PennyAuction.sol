@@ -209,7 +209,7 @@ contract PennyAuction {
 	    returns (bool _success, uint _prizeSent)
 	{
 		state = State.REDEEMED;
-		
+
 		// send prize with gasLimit as admin, otherwise without
 		bool _didRedeem = false;
 		if (msg.sender == admin) {
