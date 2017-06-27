@@ -480,6 +480,11 @@ describe("Bidding via a Smart Contract", function(){
         // log
         console.log("Fastforwarded, and closed auction. Current winner is bidderContract");
 
+        // call returns (false, 0)
+        const result = await auction.redeem.call({from: admin, gas: 3000000});
+        assert.equal(result[0], false);
+        assert.strEqual(result[1], 0);
+
         const prize = await auction.prize();
         await createDefaultTxTester()
             .startLedger([auction, bidderContract, admin])
@@ -502,7 +507,12 @@ describe("Bidding via a Smart Contract", function(){
     });
 
     it("Smart Contract can redeem prize itself, even with expensive fallback function", async function(){
-        var prize = await auction.prize();        
+        var prize = await auction.prize();
+
+        // call returns (true, prize)
+        const result = await bidderContract.doRedemption.call({from: bidderOwner, gas: 3000000});
+        assert.equal(result[0], true);
+        assert.strEqual(result[1], prize);
 
         await createDefaultTxTester()
             .startLedger([auction, bidderContract, bidderOwner])

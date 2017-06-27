@@ -2,7 +2,7 @@ pragma solidity ^0.4.0;
 
 contract IPennyAuction {
 	function bidPrice() returns (uint _bidPrice);
-	function redeem() returns (uint _prizeSent);
+	function redeem() returns (bool _success, uint _prizeSent);
 }
 
 contract PennyAuctionBidder {
@@ -17,7 +17,11 @@ contract PennyAuctionBidder {
 		  	throw;
 		}
 	}
-	function doRedemption(){ auction.redeem(); }
+	function doRedemption()
+		returns (bool _success, uint _prizeSent)
+	{
+		return auction.redeem(); 
+	}
 	function fund() payable {}
 	function () payable {
 		// burn some gas.

@@ -265,7 +265,6 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.contractWatchers)
 				throw new Error("Cannot stopWatching -- you never started watching any contracts.");
 
-			console.log(`Stopping watching`);
 			ctx.contractEvents = {};
 			const promises = Object.keys(ctx.contractWatchers).map(address => {
 				return new Promise((res, rej) => {
