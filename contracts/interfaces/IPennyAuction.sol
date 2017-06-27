@@ -19,7 +19,7 @@ contract IPennyAuction {
   // constants
   function isCloseable() constant returns (bool _bool);
   function isClosed() constant returns (bool _bool);
-  function isClosedOrRedeemed() constant returns (bool _bool);
+  function isRedeemed() constant returns (bool _bool);
   function getTimeRemaining() constant returns (uint _timeRemaining);
   
   // non-constants

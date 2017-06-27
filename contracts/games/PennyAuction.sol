@@ -276,19 +276,19 @@ contract PennyAuction {
 		}
 	}
 
-	// Whether or not you can call closeAuction() on the auction
+	// Whether or not you can call close() on the auction
 	function isCloseable() constant returns (bool _bool) {
 		return (state == State.OPENED && now >= timeClosed);
 	}
 
-	// Returns if the auction is closed
+	// Returns true if the auction is closed
 	function isClosed() constant returns (bool _bool) {
 		return (state == State.CLOSED);
 	}
 
-	// This is so anyone watching the auction knows it is no longer opened.
-	function isClosedOrRedeemed() constant returns (bool _bool) {
-		return (state > State.OPENED);
+	// Returns true if the auction is redeemed
+	function isRedeemed() constant returns (bool _bool) {
+		return (state == State.REDEEMED);
 	}
 	
 	// returns the time remaining, or 0.

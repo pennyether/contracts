@@ -167,6 +167,12 @@ function createPlugins(testUtil, ledger) {
 			assert.strEqual(ctx.ledger.getDelta(address), amt, msg);
 			console.log(`✓ ${msg}`);
 		},
+		assertNoDelta: function(address) {
+			const ctx = this;
+			if (!ctx.ledger)
+				throw new Error("You never called .startLedger()");
+			plugins.assertDelta.call(ctx, address, 0, "did not change");
+		},
 		// asserts $address has a delta equal to the txFee of the last result
 		assertLostTxFee: async function(address, msg) {
 			const ctx = this;
@@ -177,8 +183,7 @@ function createPlugins(testUtil, ledger) {
 
 			msg = msg || "lost txFee";
 			const txFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1);
-			plugins.assertDelta.bind(ctx)
-				(address, txFee, msg);
+			plugins.assertDelta.call(ctx, address, txFee, msg);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
 		assertDeltaMinusTxFee: async function(address, amt, msg) {
@@ -190,8 +195,7 @@ function createPlugins(testUtil, ledger) {
 
 			msg = msg || "gained an amount but lost txFee";
 			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
-			plugins.assertDelta.bind(ctx)
-				(address, expectedFee, msg);
+			plugins.assertDelta.call(ctx, address, expectedFee, msg);
 		},
 
 
@@ -228,8 +232,7 @@ function createPlugins(testUtil, ledger) {
 				ctx.contractWatchers[c.address] = watcher;
 			});
 			ctx.afterDone(async () => {
-				if (ctx.contractWatchers)
-					await plugins.stopWatching.bind(ctx)();
+				if (ctx.contractWatchers) await plugins.stopWatching.call(ctx);
 			})
 		},
 		stopWatching: async function() {
