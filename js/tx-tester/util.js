@@ -13,18 +13,18 @@ function createUtil(web3, assert){
 		// expects 1 log, with a specific error message.
 		// note the extra address argument -- this is due to
 		// a bug in web3 where it will include logs of other addresses.
-		expectOneLog: async function expectOneLog(promise, eventName, args, address) {
-			return await Promise.resolve(promise).then(res => {
-				const logs = res.logs.filter(l => !address || l.address == address);
-				assert.equal(logs.length, 1, "Expected exactly 1 log");
-				assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
-				Object.keys(args).forEach(key => {
-					const val = args[key];
-					assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
-					if (val !== null)
-						assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
-				});
-				return res;
+		expectOneLog: async function expectOneLog(logs, eventName, args, address) {
+			address = address.address ? address.address : address;
+			logs = logs.filter(l => !address || l.address == address);
+
+			
+			assert.equal(logs.length, 1, "Expected exactly 1 log");
+			assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
+			Object.keys(args).forEach(key => {
+				const val = args[key];
+				assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
+				if (val !== null)
+					assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
 			});
 		},
 

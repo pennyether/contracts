@@ -78,8 +78,9 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
 
-			testUtil.expectOneLog(ctx.txRes, eventName, args, address);
-			console.log(`✓ '${eventName}' was the only log, and had correct args`);
+			testUtil.expectOneLog(ctx.txRes.logs, eventName, args, address);
+			const keysStr = Object.keys(args || {}).join(", ");
+			console.log(`✓ '${eventName}(${keysStr})' was the only log, and had correct args`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
 		assertErrorLog: async function(msg, address) {
@@ -248,6 +249,19 @@ function createPlugins(testUtil, ledger) {
 			}
 			delete ctx.contractWatchers;
 		},
+		assertOneEvent: async function(address, eventName, args) {
+			const ctx = this;
+			address = address.address ? address.address : address;
+			if (!ctx.contractEvents)
+				throw new Error("'startWatching' was never called.");
+			if (!ctx.contractEvents[address])
+				throw new Error(`'startWatching' was never called for ${at(address)}.`);
+
+			const logs = ctx.contractEvents[address];
+			testUtil.expectOneLog(logs, eventName, args, address);
+			const keysStr = Object.keys(args || {}).join(", ");
+			console.log(`✓ '${eventName}(${keysStr})' was the only log, and had correct args`);
+		},
 		printEvents: function() {
 			const ctx = this;
 			Object.keys(ctx.contractEvents || {}).forEach(address => {
@@ -325,6 +339,7 @@ function createPlugins(testUtil, ledger) {
 
 var addrToName = {};
 function nameAddresses(obj) {
+	addrToName = {};
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);

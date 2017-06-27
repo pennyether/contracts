@@ -34,6 +34,7 @@ function Smocha(opts) {
 						node.after.skipReason = "before failed";
 						_skip(node.after);
 					}
+					console.log("caught node.before failure", e);
 					throw e;
 				});	
 			}
@@ -111,7 +112,9 @@ function Smocha(opts) {
 		//		- otherwise the result of node.run.call()
 		var callRun = function(){
 			if (node.run.length >= 2)
-				return Promise.reject(new Error(`'Run function should take zero or one arguments.`));
+				return Promise.reject(
+					new Error(`'${node.run.toString()}'' should take zero or one arguments, not ${node.run.length}`)
+				);
 			if (node.run.length == 0){
 				return Promise.resolve().then(() => node.run.call(ctx));
 			}
@@ -120,7 +123,7 @@ function Smocha(opts) {
 			var deferredFn = createDeferredFn();
 			var ret = node.run.call(ctx, deferredFn.resolve);
 			if (ret && ret.then) {
-				return Promise.reject(new Error(`Use 'done()' or return a Promise, but not both.`));
+				return Promise.reject(new Error(`Smocha Error: '${node.name}' should use done or return a Promise, but not both.`));
 			}
 			return deferredFn.then(function(){
 				if (arguments[0] === undefined) return;
@@ -295,7 +298,7 @@ function getNameAndFn(fnName, _arguments) {
 	} else if (_arguments.length == 1) {
 		if (typeof _arguments[0] !== "function")
 			throw new Error(`If passing one argument to ${fnName}, it must be a function.`);
-		fn = arguments[0]
+		fn = _arguments[0]
 		name = fn.name || "(unnamed)";
 	} else {
 		throw new Error(`'${fnName}' must be passed one or two arguments.`);
