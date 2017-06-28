@@ -6,11 +6,11 @@ const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
 const BigNumber = web3.toBigNumber(0).constructor;
 const testUtil = createDefaultTxTester().plugins.testUtil;
 
-const INITIAL_PRIZE  = new BigNumber(.5e18);       // half an eth
-const BID_PRICE      = new BigNumber(.01e18);      // tenth of eth
-const BID_TIME_S     = new BigNumber(600);         // 10 minutes
+const INITIAL_PRIZE  = new BigNumber(.05e18);
+const BID_PRICE      = new BigNumber(.001e18);
+const BID_TIME_S     = new BigNumber(600);
 const BID_FEE_PCT    = new BigNumber(60);
-const AUCTION_TIME_S = new BigNumber(60*60*12);    // 12 hours
+const AUCTION_TIME_S = new BigNumber(60*60*12);
 
 const accounts = web3.eth.accounts;
 
@@ -33,7 +33,7 @@ describe('PennyAuction', function() {
             bidder2: bidder2,
             bidder3: bidder3,
             nonBidder: nonBidder,
-            auction: auction
+            auction: auction.address
         };
         createDefaultTxTester().plugins.nameAddresses(addresses);
         console.log("addresses:", addresses);
@@ -93,24 +93,22 @@ describe('PennyAuction', function() {
                 .it("'Started' event is correct", async function(){
                     const ctx = this;
                     const _ = ctx.plugins;
-                    _.assertOneLog.call(ctx, "Started", {time: null})
+                    _.assertOnlyLog.call(ctx, "Started", {time: null})
 
                     const blocktime = (await _.getBlock.call(ctx)).timestamp;
-                    const logTime = ctx.txRes.logs[0].args.time;
                     _.assertCloseTo.call(ctx,
-                        logTime, blocktime, 1, "log time is within 1 second of blocktime");
-                    ctx.blocktime = blocktime;
+                        ctx.txRes.logs[0].args.time, blocktime, 1, "log has correct time");
                 })
                 .it("has correct state", async function(){
                     var ctx = this;
                     const _ = ctx.plugins;
-                    const blocktime = ctx.blocktime;
-                    await _.assertStateAsString.call(ctx, auction, "state", 1,
-                        "should be OPENED");
-                    await _.assertStateAsString.call(ctx, auction, "currentWinner", collector,
-                        "should be collector");
-                    await _.assertStateCloseTo.call(ctx, auction, "timeOpened", blocktime, 1,
-                        "should be close to blocktime");
+                    const blocktime = (await _.getBlock.call(ctx)).timestamp;
+                    await _.assertStateAsString.call(ctx,
+                        auction, "state", 1, "should be OPENED");
+                    await _.assertStateAsString.call(ctx,
+                        auction, "currentWinner", collector, "should be collector");
+                    await _.assertStateCloseTo.call(ctx,
+                        auction, "timeOpened", blocktime, 1, "should be close to blocktime");
                     await _.assertStateCloseTo.call(ctx,
                         auction, "timeClosed", AUCTION_TIME_S.add(blocktime), 1,
                         "should be blocktime plus AUCTION_TIME_S");
@@ -147,7 +145,7 @@ describe('PennyAuction', function() {
                 .startLedger([bidder1, auction])
                 .doTx(() => auction.sendTransaction({from: bidder1, value: BID_PRICE.add(1)}))
                 .stopLedger()
-                .assertErrorLog("Value must match bidPrice")
+                .assertOnlyErrorLog("Value must match bidPrice")
                 .assertLostTxFee(bidder1)
                 .assertDelta(auction, 0)
                 .start();
@@ -158,7 +156,7 @@ describe('PennyAuction', function() {
                 .startLedger([bidder1, auction])
                 .doTx(() => auction.sendTransaction({from: bidder1, value: BID_PRICE.minus(1)}))
                 .stopLedger()
-                .assertErrorLog("Value must match bidPrice")
+                .assertOnlyErrorLog("Value must match bidPrice")
                 .assertLostTxFee(bidder1)
                 .assertDelta(auction, 0)
                 .start(); 
@@ -181,7 +179,7 @@ describe('PennyAuction', function() {
                 .doTx(() => auction.redeemFees({from: bidder1}))
                 .stopLedger()
                 .assertSuccess()
-                .assertErrorLog("Only callable by admin")
+                .assertOnlyErrorLog("Only callable by admin")
                 .assertNoDelta(auction)
                 .start();
         });
@@ -234,15 +232,14 @@ describe('PennyAuction', function() {
         before(".isCloseable() should be true", async function(){
             assert.equal(await auction.isCloseable(), true);
         })
-        createDefaultTxTester()
-            .it("is closeable by anyone")
+        it("works correctly", function(){
+            createDefaultTxTester()
                 .doTx(() => auction.close({from: nonBidder}))
                 .assertSuccess()
-            .it("updated state to CLOSED")
                 .assertStateAsString(auction, 'state', 2, "is CLOSED")
-            .it("produced correct log")
-                .assertOneLog('Closed', {time:null, winner:null, prize:null, numBids:null})
-            .start().swallow();
+                .assertOnlyLog('Closed', {time:null, winner:null, prize:null, numBids:null})
+                .start();
+        });
     })
 
     describe("When Closed:", function(){
@@ -290,7 +287,7 @@ describe('PennyAuction', function() {
                 .doTx(() => auction.redeem({from: currentWinner}))
                 .stopLedger()
                 .assertSuccess()
-                .assertOneLog("Redeemed", {
+                .assertOnlyLog("Redeemed", {
                     time: null,
                     redeemer: currentWinner,
                     recipient: currentWinner,
@@ -327,6 +324,9 @@ describe('PennyAuction', function() {
         it("should now have zero balance", function(){
             assert.strEqual(testUtil.getBalance(auction), "0", "Zero balance");
         });
+        it(".isRedeemed() should be true", async function(){
+            assert.equal(await auction.isRedeemed(), true);
+        })
     });
 
 
@@ -342,7 +342,7 @@ describe('PennyAuction', function() {
             .doTx(() => auction.sendTransaction({from: bidder, value: BID_PRICE}))
             .stopLedger()
             .assertSuccess()
-            .assertErrorLog(errorMsg)
+            .assertOnlyErrorLog(errorMsg)
             .assertLostTxFee(bidder)
             .assertNoDelta(auction, "bidder was refunded")
             .start();
@@ -357,7 +357,7 @@ describe('PennyAuction', function() {
             .assertStateAsString(auction, "isCloseable", false)
             .doTx(() => auction.close())
             .assertSuccess()
-            .assertErrorLog(errorMsg)
+            .assertOnlyErrorLog(errorMsg)
             .assertStateAsString(auction, "state", curState)
             .start();
     }
@@ -373,7 +373,7 @@ describe('PennyAuction', function() {
             .doTx(() => auction.redeem({from: account}))
             .stopLedger()
             .assertSuccess()
-            .assertErrorLog(errorMsg)
+            .assertOnlyErrorLog(errorMsg)
             .assertLostTxFee(account)
             .assertNoDelta(auction)
             .start();
@@ -416,7 +416,7 @@ describe('PennyAuction', function() {
             .stopLedger()
             .assertSuccess()
             .assertDelta(auction, BID_PRICE, "increased by bidPrice")
-            .assertOneLog('BidOccurred', {bidder: bidder, time: null})
+            .assertOnlyLog('BidOccurred', {bidder: bidder, time: null})
             .assertStateAsString(auction, 'prize', newPrize, "increased correctly")
             .assertStateAsString(auction, 'fees', newFees, "increased correctly")
             .assertStateAsString(auction, 'currentWinner', bidder, "is new currentWinner")
@@ -491,7 +491,7 @@ describe("Bidding via a Smart Contract", function(){
             .doTx(() => auction.redeem({from: admin, gas: 3000000}))
             .stopLedger()
             .assertSuccess()
-            .assertOneLog("RedeemFailed", {
+            .assertOnlyLog("RedeemFailed", {
                 time: null,
                 redeemer: admin,
                 recipient: bidderContract.address,
@@ -522,7 +522,7 @@ describe("Bidding via a Smart Contract", function(){
             .stopWatching()
             .assertSuccess()
             .assertGasUsedGt(100000)
-            .assertOneEvent(auction, "Redeemed", {
+            .assertOnlyEvent(auction, "Redeemed", {
                 time: null,
                 redeemer: bidderContract.address,
                 recipient: bidderContract.address,

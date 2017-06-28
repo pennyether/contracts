@@ -8,8 +8,13 @@ function createPlugins(testUtil, ledger) {
 		throw new Error("createPlugins() expects a ledger object.");
 	
 	const plugins = {
+		doFn: function(fn) {
+			const ctx = this;
+			return fn.call(ctx);
+		},
+
 		///////////////////////////////////////////////////////////////////
-		/// DO! ///////////////////////////////////////////////////////////
+		/// DO TX /////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////
 
 		// Passed a function that returns a truffle-contract res object (or a promise of one)
@@ -24,7 +29,11 @@ function createPlugins(testUtil, ledger) {
 				throw new Error(`'.doTx' must be passed a fn or promise, instead got: '${type}'`);
 
 			// execute fn, store promise to ctx
-			ctx.txPromise = Promise.resolve().then(fn);
+			ctx.txPromise = Promise.resolve().then(fn).then(res => {
+				if (res === undefined)
+					throw new Error(`'.doTx' function returned undefined -- expected a result.`);
+				return res;
+			});
 
 			// return the promise, so chain waits on us
 			return ctx.txPromise.then(
@@ -66,14 +75,14 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.")
 			if (!ctx.txErr)
-				throw new Error("Expected 'doTx' to fail.");
+				throw new Error(`Expected 'doTx' to fail, but got result: ${ctx.txRes}`);
 
 			const errMsg = ctx.txErr.message;
 			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
 			console.log("✓ doTx failed with invalid opcode");
 		},
 		// assert there is one log, with name $eventName and optional $args from optional $address
-		assertOneLog: async function(eventName, args, address) {
+		assertOnlyLog: async function(eventName, args, address) {
 			const ctx = this;
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
@@ -85,7 +94,7 @@ function createPlugins(testUtil, ledger) {
 			console.log(`✓ '${eventName}(${keysStr})' was the only log`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
-		assertErrorLog: async function(msg, address) {
+		assertOnlyErrorLog: async function(msg, address) {
 			const ctx = this;
 			if (ctx.txRes===null && ctx.txErr===null)
 				throw new Error("'doTx' was never called.");
@@ -93,7 +102,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("Expected 'doTx' to succeed.");
 
 			testUtil.expectErrorLog(ctx.txRes.logs, msg, address);
-			console.log(`✓ 'Error' event occurred correctly`);
+			console.log(`✓ 'Error(msg: ${msg})' event was the only log`);
 		},
 		assertGasUsedLt: function(val) {
 			const ctx = this;
@@ -276,7 +285,7 @@ function createPlugins(testUtil, ledger) {
 			});
 			return Promise.all(promises).then(()=>{ delete ctx.contractWatchers; });
 		},
-		assertOneEvent: async function(address, eventName, args) {
+		assertOnlyEvent: async function(address, eventName, args) {
 			const ctx = this;
 			address = address.address ? address.address : address;
 			if (!ctx.contractEvents)
@@ -313,7 +322,7 @@ function createPlugins(testUtil, ledger) {
 		// assert $contract[$name]() returns $expectedValue
 		assertStateAsString: async function(contract, name, expectedValue, msg) {
 			// todo: check that its a constant
-			msg = msg || `should equal '${expectedValue}'`;
+			msg = msg || `should equal '${at(expectedValue)}'`;
 			msg = `${at(contract)}.${name}() ${msg}`;
 			assert.strEqual(await contract[name](), expectedValue, msg);
 			console.log(`✓ ${msg}`);
@@ -339,7 +348,7 @@ function createPlugins(testUtil, ledger) {
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance, msg) {
 			const balance = await testUtil.getBalance(address);
-			msg = msg || " should equal some value";
+			msg = msg || `should equal ${expectedBalance}`;
 			msg = `Balance of ${at(address)} ${msg}`;
 			assert.strEqual(balance, expectedBalance, msg);
 			console.log(`✓ ${msg}`);
@@ -373,8 +382,8 @@ function createPlugins(testUtil, ledger) {
 }
 
 var addrToName = {};
-function nameAddresses(obj) {
-	addrToName = {};
+function nameAddresses(obj, reset) {
+	if (reset === undefined || !!reset) addrToName = {};
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);
@@ -393,18 +402,18 @@ function nameAddresses(obj) {
 	});
 }
 function at(val) {
-	if (!val) return `<invalid address: ${address}>`;
+	if (!val) return `<invalid address: ${val}>`;
 	if (typeof val == "string" && val.length == 42){
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
-			? colors.yellow(`'${addrToName[val]}'`)
+			? colors.underline(`${addrToName[val]}`)
 			: shortened;
 	}
 	if (val.constructor.name == "TruffleContract") {
 		var shortened = val.address.substr(0, 6) + "...";
 		return addrToName[val.address]
-			? colors.yellow(`'${addrToName[val.address]}'`)
-			: `'${val.constructor._json.contract_name}[${shortened}]'`;
+			? colors.underline(`${addrToName[val.address]}`)
+			: `${val.constructor._json.contract_name}[${shortened}]`;
 	}
 	return `${val}`;
 }

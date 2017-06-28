@@ -2,65 +2,97 @@ var Registry = artifacts.require("Registry");
 var PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
 var PennyAuction = artifacts.require("PennyAuction");
 
-var TestUtil = require("../js/test-util.js").make(web3, assert);
-var EXPECT_ONE_LOG = TestUtil.expectOneLog;
-var BigNumber = require("bignumber.js");
+const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
+    .createDefaultTxTester.bind(null, web3, assert, it);
+const BigNumber = web3.toBigNumber(0).constructor;
 
-var initialPrize = new BigNumber(.5e18);       // half an eth
-var bidPrice     = new BigNumber(.01e18);      // tenth of eth
-var bidTimeS     = new BigNumber(600);         // 10 minutes
-var bidFeePct    = new BigNumber(60);
-var auctionTimeS = new BigNumber(60*60*12);    // 12 hours
+const INITIAL_PRIZE  = new BigNumber(.05e18);
+const BID_PRICE      = new BigNumber(.001e18);
+const BID_TIME_S     = new BigNumber(600);
+const BID_FEE_PCT    = new BigNumber(60);
+const AUCTION_TIME_S = new BigNumber(60*60*12);
 
-contract('PennyAuctionFactory', function(accounts){
+const accounts = web3.eth.accounts;
+
+describe('PennyAuctionFactory', async function(){
+    const registry = await Registry.new();
+    const dummyTreasury = accounts[1];
+    const dummyPac = accounts[2];
+    await registry.register("TREASURY", dummyTreasury);
+    await registry.register("PENNY_AUCTION_CONTROLLER", dummyPac);
     var paf;
-    var dummyTreasury;
-    var dummyPac;
-    var registry;
-
-    before("Set up registry and create PAF", async function(){
-        dummyTreasury = accounts[1];
-        dummyPac = accounts[2];
-        registry = await Registry.new();
-        await registry.register("TREASURY", accounts[1]);
-        await registry.register("PENNY_AUCTION_CONTROLLER", accounts[2]);
+    
+    before("Can be created", async function(){
         paf = await PennyAuctionFactory.new(registry.address);
+        const addresses = {
+            registry: registry.address,
+            dummyTreasury: dummyTreasury,
+            dummyPac: dummyPac,
+            paf: paf.address
+        };
+        createDefaultTxTester().plugins.nameAddresses(addresses);
+        console.log("addresses", addresses);
     });
 
     it("should point to the dummyPac and dummyTreasury", async function(){
-        assert.equal(await paf.getPennyAuctionController(), dummyPac, "PAF points to correct PAC");
-        assert.equal(await paf.getTreasury(), dummyTreasury, "PAF points to correct Treasury");
+        createDefaultTxTester()
+            .assertStateAsString(paf, "getPennyAuctionController", dummyPac)
+            .assertStateAsString(paf, "getTreasury", dummyTreasury);
     });
 
-    it("should correnctly instantiate an auction", async function(){
-        // create a new registry with dummy treasury and pac
-        var res = await paf.createAuction(
-            initialPrize, 
-            bidPrice,
-            bidTimeS,
-            bidFeePct,
-            auctionTimeS,
-            {from: dummyPac, gas: 2000000}
-        );
-
-        await EXPECT_ONE_LOG(res, "AuctionCreated", {
-            addr: null,
-            initialPrize: initialPrize,
-            bidPrice: bidPrice,
-            bidTimeS: bidTimeS,
-            bidFeePct: bidFeePct,
-            auctionTimeS: auctionTimeS
+    describe(".createAuction()", async function(){
+        it("should fail when called by randos", function(){
+            return createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                INITIAL_PRIZE, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: accounts[3], gas: 2000000}
+                            )
+                )
+                .assertInvalidOpCode()
+                .start();
         });
 
-        // ensure the state of the penny auction is correct
-        var auction = PennyAuction.at(res.logs[0].args.addr);
-        var state = await TestUtil.getContractState(auction);
-        assert.equal(state.admin, dummyPac, "Admin is set to dummyPac");
-        assert.equal(state.collector, dummyTreasury, "Treasury is set to dummyTreasury");
-        assert.strEqual(state.initialPrize, initialPrize, "Correct initialPrize");
-        assert.strEqual(state.bidPrice, bidPrice, "Correct bidPrice");
-        assert.strEqual(state.bidTimeS, bidTimeS, "Correct bidTimeS");
-        assert.strEqual(state.bidFeePct, bidFeePct, "Correct bidFeePct");
-        assert.strEqual(state.auctionTimeS, auctionTimeS, "Correct auctionTimeS");
+        it("works when called by PennyAuctionController", async function(){
+            const txRes = await createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                INITIAL_PRIZE, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: dummyPac, gas: 2000000}
+                            )
+                )
+                .assertSuccess()
+                .assertOnlyLog("AuctionCreated", {
+                    addr: null,
+                    initialPrize: INITIAL_PRIZE,
+                    bidPrice: BID_PRICE,
+                    bidTimeS: BID_TIME_S,
+                    bidFeePct: BID_FEE_PCT,
+                    auctionTimeS:AUCTION_TIME_S
+                })
+                .getTxResult()
+                .start();
+
+            const auction = PennyAuction.at(txRes.logs[0].args.addr);
+            createDefaultTxTester().plugins.nameAddresses({auction: auction}, false);
+            console.log(`Created auction @ ${auction.address}`);
+
+            await createDefaultTxTester()
+                .assertStateAsString(auction, "admin", dummyPac)
+                .assertStateAsString(auction, "collector", dummyTreasury)
+                .assertStateAsString(auction, "initialPrize", INITIAL_PRIZE)
+                .assertStateAsString(auction, "bidPrice", BID_PRICE)
+                .assertStateAsString(auction, "bidTimeS", BID_TIME_S)
+                .assertStateAsString(auction, "bidFeePct", BID_FEE_PCT)
+                .assertStateAsString(auction, "auctionTimeS", AUCTION_TIME_S)
+                .assertStateAsString(auction, "state", 0, "is PENDING")
+                .start();
+        });
     });
 });

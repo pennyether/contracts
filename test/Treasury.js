@@ -61,7 +61,7 @@ describe('Treasury', function(){
                     .assertDeltaMinusTxFee(dummyMainController, 12345)
                     .assertDelta(treasury, -12345)
                 .it("logs correctly")
-                    .assertOneLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
+                    .assertOnlyLog("TransferSuccess", {recipient: dummyMainController, value: 12345})
                 .start().swallow();
         });
 
@@ -80,7 +80,7 @@ describe('Treasury', function(){
                     .assertDelta(treasury.address, 0)
                     .assertLostTxFee(dummyMainController)
                 .it("logs 'NotEnoughFunds' with correct values")
-                    .assertOneLog("NotEnoughFunds", {recipient: dummyMainController, value: 1000000})
+                    .assertOnlyLog("NotEnoughFunds", {recipient: dummyMainController, value: 1000000})
                 .start().swallow();
         });
     })
