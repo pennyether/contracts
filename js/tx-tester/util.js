@@ -33,6 +33,28 @@ function createUtil(web3, assert){
 			}
 		},
 
+		expectLog: function expectLog(logs, eventName, args) {
+			if (!args) args = {};
+			try {
+				var found = false;
+				logs.forEach(log => {
+					if (found) return;
+					if (log.event != eventName) return;
+					found = true;
+					Object.keys(args).forEach(key => {
+						const val = args[key];
+						assert(log.args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
+						if (val !== null)
+							assert.strEqual(log.args[key], args[key], `'log.args.${key}' incorrect`);
+					});
+				});
+				if (!found) throw new Error("expectLog did not find event.");
+			} catch (e) {
+				console.log(`expectLog ${eventName} failed, logs are:`, logs)
+				throw e;
+			}
+		},
+
 		expectErrorLog: function expectedErrorLog(logs, msg, address) {
 			_self.expectOneLog(logs, "Error", {msg: msg}, address);
 		},
@@ -54,6 +76,8 @@ function createUtil(web3, assert){
 		},
 
 		fastForward: function fastForward(timeInSeconds){
+			if (timeInSeconds.toNumber)
+				timeInSeconds = timeInSeconds.toNumber();
 			if (!Number.isInteger(timeInSeconds))
 				throw new Error("Passed a non-number: " + timeInSeconds);
 			if (timeInSeconds <= 0)

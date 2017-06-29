@@ -28,7 +28,7 @@ describe('PennyAuctionController', function(){
 
     const bidder1 = accounts[1];
     const bidder2 = accounts[2];
-    const bidderWinner = accounts[3];
+    const auctionWinner = accounts[3];
     const notMainController = accounts[4];
 
     before("Set up registry and treasury", async function(){
@@ -45,7 +45,8 @@ describe('PennyAuctionController', function(){
             treasury: treasury.address,
             pac: pac.address,
             paf: paf.address,
-            dummyMainController: dummyMainController
+            dummyMainController: dummyMainController,
+            auctionWinner: auctionWinner
         };
         createDefaultTxTester().plugins.nameAddresses(addresses);
         console.log("Addresses:", addresses);
@@ -184,7 +185,6 @@ describe('PennyAuctionController', function(){
 
     describe("The open auction works", async function(){
         const openAuction = PennyAuction.at(await pac.openAuctions(0));
-
         before("there is an openAuction", async function(){
             assert.strEqual(await openAuction.state(), 1, "Auction is OPENED");
         });
@@ -218,9 +218,12 @@ describe('PennyAuctionController', function(){
 
     describe("Misc helper functions", async function(){
         const openAuction = PennyAuction.at(await pac.openAuctions(0));
+        before("there is an openAuction", async function(){
+            assert.strEqual(await openAuction.state(), 1, "Auction is OPENED");
+        });
 
         it(".getNumActionableAuctions() returns 0", async function(){
-            const num = await pac.getNumActionableAuctions.call({from: dummyMainController});
+            const num = await pac.getNumActionableAuctions();
             assert.strEqual(num, 0);
         });
         it(".getNumOpenAuctions() returns 1, .getNumClosedAuctions() returns 0", async function(){
@@ -230,14 +233,13 @@ describe('PennyAuctionController', function(){
             assert.strEqual(numClosed, 0);
         });
         it(".getAvailableFees() returns proper amount", async function(){
-            var num = await pac.getAvailableFees({from: dummyMainController});
+            var num = await pac.getAvailableFees();
             assert.strEqual(num, await openAuction.fees());
         });
-    })
+    });
 
     describe(".checkOpenAuctions()", async function(){
         const openAuction = PennyAuction.at(await pac.openAuctions(0));
-
         before("there is an openAuction", async function(){
             assert.equal(await openAuction.state(), 1, "Auction is OPENED");
         });
@@ -274,121 +276,99 @@ describe('PennyAuctionController', function(){
             assert.equal(await pac.openAuctions(0), openAuction.address, "Auction is opened");
         });
         it("getAvailableFees is 0", async function(){
-            assert.strEqual(await pac.getAvailableFees({from: dummyMainController}), 0);
+            assert.strEqual(await pac.getAvailableFees(), 0);
         });
     });
 
-    // describe("Finishing openAuction...", function(){
-    //     var openAuction;
+    describe("Finishing openAuction...", async function(){
+        const openAuction = PennyAuction.at(await pac.openAuctions(0));
+        before("there is an openAuction", async function(){
+            assert.equal(await openAuction.state(), 1, "Auction is opened");
+        });
 
-    //     before("there is an openAuction", async function(){
-    //         openAuction = PennyAuction.at(await pac.openAuctions(0));
-    //         assert.equal(await openAuction.state(), 1, "Auction is opened");
-    //     });
+        it("openAuction accepts more bids, fast forwards, and is now closeable", async function(){
+            const testUtil = createDefaultTxTester().plugins.testUtil;
+            await openAuction.sendTransaction({value: BID_PRICE, from: auctionWinner});
 
-    //     it("openAuction accepts more bids, fast forwards, and is now closeable", async function(){
-    //         await openAuction.sendTransaction({value: bidPrice, from: bidderWinner});
-    //         var numBids = await openAuction.numBids();
-    //         TestUtil.fastForward(auctionTimeS.add(bidTimeS.mul(numBids)).add(1).toNumber());
-    //         assert.equal(await openAuction.isCloseable(), true, "No time left.");
-    //     });
+            const numBids = await openAuction.numBids();
+            const getTimeRemaining = await openAuction.getTimeRemaining();
+            testUtil.fastForward((await openAuction.getTimeRemaining()).plus(1));
+            assert.equal(await openAuction.isCloseable(), true, "should be closeable");
+        });
+    });
 
-    //     it("getNumActionableAuctions returns 1", async function(){
-    //         var num = await pac.getNumActionableAuctions({from: dummyMainController});
-    //         assert.strEqual(num, 1);
-    //     });
-    // })
+    describe("Misc helper functions", async function(){
+        const openAuction = PennyAuction.at(await pac.openAuctions(0));
+        before("openAuction has no time left", async function(){
+            assert.strEqual((await openAuction.getTimeRemaining()), 0, "should have no time left");    
+        });
+        
+        it(".getNumActionableAuctions() returns 1", async function(){
+            const num = await pac.getNumActionableAuctions.call();
+            assert.strEqual(num, 1);
+        });
+        it(".getNumOpenAuctions() returns 1, .getNumClosedAuctions() returns 0", async function(){
+            var numOpened = await pac.getNumOpenAuctions();
+            var numClosed = await pac.getNumClosedAuctions();
+            assert.strEqual(numOpened, 1);
+            assert.strEqual(numClosed, 0);
+        });
+        it(".getAvailableFees() returns proper amount", async function(){
+            var num = await pac.getAvailableFees();
+            assert.strEqual(num, await openAuction.fees());
+        });
+    });
 
-    // describe("checkOpenAuctions when auction is done", function(){
-    //     var result;
-    //     var callResult;
-    //     var openAuction;
-    //     var prevState;
-    //     var ledger;
-    //     var fees;
-    //     var pacWatcher;
-    //     var paWatcher;
-
-    //     before("get open auction, call checkOpenAuctions", async function(){
-    //         prevState = await TestUtil.getContractState(pac);
-    //         openAuction = PennyAuction.at(await pac.openAuctions(0));
-    //         assert.equal(await openAuction.state(), 1, "Auction is opened");
-
-    //         callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-    //         ledger = new Ledger([treasury, openAuction, dummyMainController, bidderWinner]);    
-    //         fees = await openAuction.fees();
-    //         pacWatcher = pac.allEvents();
-    //         paWatcher = openAuction.allEvents();
-
-    //         ledger.start();
-    //         result = await pac.checkOpenAuctions({from: dummyMainController});
-    //         ledger.stop();
-    //     });
-
-    //     it("Got correct return values (1 closed, X fees redeemed)", function(){
-    //         assert.strEqual(callResult[0], 1, "one is closed"); 
-    //         assert.strEqual(callResult[1], fees, "fees received");
-    //     });
-
-    //     it("Logged that the auction was closed", async function(){
-    //         var logs = pacWatcher.get();
-    //         assert.equal(logs.length, 1, "Exactly one log");
-    //         assert.equal(logs[0].args.addr, openAuction.address, "Correct address");
-    //         assert.equal(logs[0].args.winner, await openAuction.currentWinner(), "Correct winner");
-    //         assert.strEqual(logs[0].args.prize, await openAuction.prize(), "Correct prize");
-    //         assert.strEqual(logs[0].args.numBids, await openAuction.numBids(), "Correct numBids");
-    //     });
-
-    //     it("It transferred fees to Treasury", async function(){
-    //         var txFee = TestUtil.getTxFee(result.tx);
-    //         assert.strEqual(ledger.getDelta(treasury), fees, "Treasury got transferred fees");
-    //         assert.strEqual(ledger.getDelta(dummyMainController), txFee.mul(-1), "dummyMainController lost only gas");
-    //     });
-
-    //     it("Incremented total fees", async function(){
-    //         var expectedTotalFees = prevState.totalFees.plus(fees);
-    //         assert.strEqual(await pac.totalFees(), expectedTotalFees);
-    //     });
-
-    //     it("Closed and redeemed the openAuction", async function(){
-    //         assert.strEqual(await openAuction.state(), 3, "Auction state is redeemed");
-    //         var logs = paWatcher.get();
-    //         assert(logs.length, 2, "Two logs (closed, redeemed)");
-    //         var closedLog = logs[0];
-    //         var redeemedLog = logs[1];
-    //         assert.equal(closedLog.event, "Closed");
-    //         assert.equal(redeemedLog.event, "Redeemed");
-    //         assert.equal(redeemedLog.args.redeemer, pac.address, "Redeemer was PAC");
-    //     });
-
-    //     it("Redeemed prize for winner", async function(){
-    //         var prize = await openAuction.prize();
-    //         assert.strEqual(ledger.getDelta(bidderWinner), prize, "Winner got the prize");
-    //     });
-
-    //     it("getNumOpenAuctions returns 0, getNumClosedAuctions returns 1", async function(){
-    //         var numOpened = await pac.getNumOpenAuctions();
-    //         var numClosed = await pac.getNumClosedAuctions();
-    //         assert.strEqual(numOpened, 0);
-    //         assert.strEqual(numClosed, 1);
-    //     });
-
-    //     it("Removed openAuction from openAuctions", async function(){
-    //         await EXPECT_INVALID_OPCODE(pac.openAuctions(0));
-    //     });
-
-    //     it("Added openAuction to closedAuctions", async function(){
-    //         var closedAddr = await pac.closedAuctions(0);
-    //         assert.equal(closedAddr, openAuction.address);
-    //     });
-
-    //     it("Incremented totalBids and totalPrizes", async function(){
-    //         var expectedTotalBids = prevState.totalBids.plus(await openAuction.numBids());
-    //         var expectedTotalPrizes = prevState.totalPrizes.plus(await openAuction.prize());
-    //         assert.strEqual(await pac.totalBids(), expectedTotalBids, "Correct totalBids");
-    //         assert.strEqual(await pac.totalPrizes(), expectedTotalPrizes, "Correct totalBids");
-    //     });
-    // });
+    describe(".checkOpenAuctions() when auction is done", async function(){
+        const openAuction = PennyAuction.at(await pac.openAuctions(0));
+        before("openAuction has no time left", async function(){
+            assert.strEqual((await openAuction.getTimeRemaining()), 0, "should have no time left");    
+        });
+        
+        it(".checkOpenAuctions call returns (1 completed, X fees redeemed)", async function(){
+            const fees = await openAuction.fees();
+            const res = await pac.checkOpenAuctions.call({from: dummyMainController});
+            console.log("result is:", res);
+            assert.strEqual(res[0], 1, "one redeemed");
+            assert.strEqual(res[1], fees, "fees redeemed");
+        });
+        it("works correctly", async function(){
+            const prize = await openAuction.prize();
+            const numBids = await openAuction.numBids();
+            const fees = await openAuction.fees();
+            const prevFees = await pac.totalFees();
+            const prevPrizes = await pac.totalPrizes();
+            await createDefaultTxTester()
+                .startLedger([treasury, openAuction, dummyMainController, auctionWinner])
+                .startWatching([openAuction])
+                .doTx(() => pac.checkOpenAuctions({from: dummyMainController}))
+                .stopLedger()
+                .stopWatching()
+                .assertSuccess()
+                .assertDelta(treasury, fees, "got fees")
+                .assertLostTxFee(dummyMainController)
+                .assertDelta(auctionWinner, prize, "got prize")
+                .assertOnlyLog("AuctionCompleted", {
+                    addr: openAuction.address,
+                    winner: auctionWinner,
+                    prize: prize,
+                    numBids, numBids
+                })
+                .assertEvent(openAuction, "Closed")
+                .assertEvent(openAuction, "Redeemed", {
+                    time: null,
+                    redeemer: pac.address,
+                    recipient: auctionWinner,
+                    amount: prize
+                })
+                .assertStateAsString(pac, "totalFees", prevFees.plus(fees))
+                .assertStateAsString(pac, "totalPrizes", prevPrizes.plus(prize))
+                .assertStateAsString(pac, "getNumOpenAuctions", 0)
+                .assertStateAsString(pac, "getNumClosedAuctions", 1)
+                .assertStateAsString(pac, "getNumActionableAuctions", 0)
+                .start();
+        });
+    })
 
     // describe("more checkOpenAuctions tests", async function(){
     //     var pac;

@@ -210,7 +210,7 @@ describe('PennyAuction', function() {
         before("fastforward to make timeRemaining() 0", async function(){
             assert.equal((await auction.state()).toNumber(), 1, "Is currently opened");
             assert.isAbove((await auction.getTimeRemaining()).toNumber(), 0, "More than 0 timeRemaining");
-            await testUtil.fastForward((await auction.getTimeRemaining()).toNumber() + 1);
+            await testUtil.fastForward((await auction.getTimeRemaining()).plus(1));
             assert.strEqual(await auction.getTimeRemaining(), 0, "Should be no time left");
         });
         it("should now be closeable", async function(){

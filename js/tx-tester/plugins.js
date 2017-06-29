@@ -261,6 +261,7 @@ function createPlugins(testUtil, ledger) {
 			});
 			ctx.afterDone(async () => {
 				if (!ctx.contractWatchers) return;
+				console.log("calling .stopWatching");
 				await plugins.stopWatching.call(ctx);
 				console.log(`WARNING: .startWatching() was called, but .stopWatching() wasn't.`);
 			});
@@ -286,17 +287,32 @@ function createPlugins(testUtil, ledger) {
 			return Promise.all(promises).then(()=>{ delete ctx.contractWatchers; });
 		},
 		assertOnlyEvent: async function(address, eventName, args) {
+			if (address.address) address = address.address;
+			if (!args) args = {};
+
 			const ctx = this;
-			address = address.address ? address.address : address;
 			if (!ctx.contractEvents)
 				throw new Error("'startWatching' and 'stopWatching' weren't called.");
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
-			const logs = ctx.contractEvents[address];
-			testUtil.expectOneLog(logs, eventName, args, address);
-			const keysStr = Object.keys(args || {}).join(", ");
+			testUtil.expectOneLog(ctx.contractEvents[address], eventName, args, address);
+			const keysStr = Object.keys(args).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' was the only event for ${at(address)}`);
+		},
+		assertEvent: async function(address, eventName, args) {
+			if (address.address) address = address.address;
+			if (!args) args = {};
+
+			const ctx = this;
+			if (!ctx.contractEvents)
+				throw new Error("'startWatching' and 'stopWatching' weren't called.");
+			if (!ctx.contractEvents[address])
+				throw new Error(`'startWatching' was never called for ${at(address)}.`);
+
+			testUtil.expectLog(ctx.contractEvents[address], eventName, args);
+			const keysStr = Object.keys(args).join(", ");
+			console.log(`✓ '${eventName}(${keysStr})' event was found for ${at(address)}`);
 		},
 		printEvents: function() {
 			const ctx = this;
@@ -402,7 +418,6 @@ function nameAddresses(obj, reset) {
 	});
 }
 function at(val) {
-	if (!val) return `<invalid address: ${val}>`;
 	if (typeof val == "string" && val.length == 42){
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
