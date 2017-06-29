@@ -46,6 +46,7 @@ describe('PennyAuctionController', function(){
             pac: pac.address,
             paf: paf.address,
             dummyMainController: dummyMainController,
+            bidder1: bidder1,
             auctionWinner: auctionWinner
         };
         createDefaultTxTester().plugins.nameAddresses(addresses);
@@ -54,9 +55,9 @@ describe('PennyAuctionController', function(){
 
     it("should be instantiated with proper settings", async function(){
         return createDefaultTxTester()
-            .assertStateAsString(pac, "maxOpenAuctions", MAX_OPEN_AUCTIONS)
-            .assertStateAsString(pac, "maxInitialPrize", MAX_INITIAL_PRIZE)
-            .assertStateAsString(pac, "getMainController", dummyMainController)
+            .assertCallResult([pac, "maxOpenAuctions"], MAX_OPEN_AUCTIONS)
+            .assertCallResult([pac, "maxInitialPrize"], MAX_INITIAL_PRIZE)
+            .assertCallResult([pac, "getMainController"], dummyMainController)
             .start();
     });
     
@@ -72,8 +73,8 @@ describe('PennyAuctionController', function(){
             const newMip = new BigNumber(10e18);
             await createDefaultTxTester()
                 .doTx(() => pac.setSettings(newMoa, newMip, {from: dummyMainController}))
-                .assertStateAsString(pac, "maxOpenAuctions", newMoa)
-                .assertStateAsString(pac, "maxInitialPrize", newMip)
+                .assertCallResult([pac, "maxOpenAuctions"], newMoa)
+                .assertCallResult([pac, "maxInitialPrize"], newMip)
                 .start();
             await pac.setSettings(MAX_OPEN_AUCTIONS, MAX_INITIAL_PRIZE, {from: dummyMainController});
         });
@@ -92,7 +93,7 @@ describe('PennyAuctionController', function(){
         it("it should return false and refund if wrong amount sent", async function(){
             // do call, have ledger watch
             await createDefaultTxTester()
-                .startLedger([dummyMainController, treasury])
+                .startLedger([dummyMainController, pac])
                 .doTx(() => pac.startNewAuction(
                     INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S,
                     {from: dummyMainController, value: INITIAL_PRIZE.plus(1)}
@@ -100,7 +101,7 @@ describe('PennyAuctionController', function(){
                 .stopLedger()
                 .assertOnlyErrorLog("Value must equal initialPrize")
                 .assertLostTxFee(dummyMainController)
-                .assertNoDelta(treasury.address)
+                .assertNoDelta(pac.address)
                 .start();
 
             // make sure call returns correctly as well
@@ -116,7 +117,7 @@ describe('PennyAuctionController', function(){
             await pac.setSettings(0, MAX_INITIAL_PRIZE, {from: dummyMainController});
             
             await createDefaultTxTester()
-                .startLedger([dummyMainController, treasury])
+                .startLedger([dummyMainController, pac])
                 .doTx(() => pac.startNewAuction(
                     INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S, 
                     {from: dummyMainController, value: INITIAL_PRIZE}
@@ -124,7 +125,7 @@ describe('PennyAuctionController', function(){
                 .stopLedger()
                 .assertOnlyErrorLog("Too many auctions open")
                 .assertLostTxFee(dummyMainController)
-                .assertNoDelta(treasury)
+                .assertNoDelta(pac)
                 .start();
             
             // make sure call returns correctly as well
@@ -179,7 +180,7 @@ describe('PennyAuctionController', function(){
             console.log(`Created auction @ ${openAuction.address}`);
 
             assert.strEqual(await pac.openAuctions(0), openAuction.address);
-            console.log("✓ correct address in .openAuctions array");
+            console.log(`✓ .openAuctions(0) is 'openAuction'`);
         });
     });
 
@@ -192,14 +193,14 @@ describe('PennyAuctionController', function(){
         it("openAuction is set up correctly", async function(){
             const openAuction = PennyAuction.at(await pac.openAuctions(0));
             await createDefaultTxTester()
-                .assertStateAsString(openAuction, "admin", pac.address)
-                .assertStateAsString(openAuction, "collector", treasury.address)
-                .assertStateAsString(openAuction, "state", 1, "is OPENED")
-                .assertStateAsString(openAuction, "prize", INITIAL_PRIZE)
-                .assertStateAsString(openAuction, "bidPrice", BID_PRICE)
-                .assertStateAsString(openAuction, "bidTimeS", BID_TIME_S)
-                .assertStateAsString(openAuction, "bidFeePct", BID_FEE_PCT)
-                .assertStateAsString(openAuction, "auctionTimeS", AUCTION_TIME_S)
+                .assertCallResult([openAuction, "admin"], pac.address)
+                .assertCallResult([openAuction, "collector"], treasury.address)
+                .assertCallResult([openAuction, "state"], 1, "is OPENED")
+                .assertCallResult([openAuction, "prize"], INITIAL_PRIZE)
+                .assertCallResult([openAuction, "bidPrice"], BID_PRICE)
+                .assertCallResult([openAuction, "bidTimeS"], BID_TIME_S)
+                .assertCallResult([openAuction, "bidFeePct"], BID_FEE_PCT)
+                .assertCallResult([openAuction, "auctionTimeS"], AUCTION_TIME_S)
                 .assertBalance(openAuction, INITIAL_PRIZE)
                 .start();
         });
@@ -209,9 +210,9 @@ describe('PennyAuctionController', function(){
             await openAuction.sendTransaction({value: BID_PRICE, from: bidder1});
             const fees = BID_PRICE.mul(BID_FEE_PCT.div(100)).mul(3);
             await createDefaultTxTester()
-                .assertStateAsString(openAuction, "numBids", 3)
-                .assertStateAsString(openAuction, "fees", fees)
-                .assertStateAsString(openAuction, "currentWinner", bidder1)
+                .assertCallResult([openAuction, "numBids"], 3)
+                .assertCallResult([openAuction, "fees"], fees)
+                .assertCallResult([openAuction, "currentWinner"], bidder1)
                 .start()
         });
     });
@@ -222,19 +223,13 @@ describe('PennyAuctionController', function(){
             assert.strEqual(await openAuction.state(), 1, "Auction is OPENED");
         });
 
-        it(".getNumActionableAuctions() returns 0", async function(){
-            const num = await pac.getNumActionableAuctions();
-            assert.strEqual(num, 0);
-        });
-        it(".getNumOpenAuctions() returns 1, .getNumClosedAuctions() returns 0", async function(){
-            var numOpened = await pac.getNumOpenAuctions();
-            var numClosed = await pac.getNumClosedAuctions();
-            assert.strEqual(numOpened, 1);
-            assert.strEqual(numClosed, 0);
-        });
-        it(".getAvailableFees() returns proper amount", async function(){
-            var num = await pac.getAvailableFees();
-            assert.strEqual(num, await openAuction.fees());
+        it("helper functions work", async function(){
+            await createDefaultTxTester()
+                .assertCallResult([pac, "getNumActionableAuctions"], 0)
+                .assertCallResult([pac, "getNumOpenAuctions"], 1)
+                .assertCallResult([pac, "getNumClosedAuctions"], 0)
+                .assertCallResult([pac, "getAvailableFees"], await openAuction.fees())
+                .start();
         });
     });
 
@@ -252,9 +247,9 @@ describe('PennyAuctionController', function(){
         });
         it("Gets the correct return value (0 closed, X fees redeemed)", async function(){
             const fees = await openAuction.fees();
-            const callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-            assert.strEqual(callResult[0], 0);
-            assert.strEqual(callResult[1], fees);
+            await createDefaultTxTester()
+                .assertCallResult([pac, "checkOpenAuctions", {from: dummyMainController}], [0, fees])
+                .start();
         });
         it("works correctly", async function(){
             const fees = await openAuction.fees();
@@ -267,16 +262,12 @@ describe('PennyAuctionController', function(){
                 .assertDelta(treasury, fees, "gained fees")
                 .assertDelta(openAuction, fees.mul(-1), "lost fees")
                 .assertLostTxFee(dummyMainController, "lost txFee")
-                .assertStateAsString(pac, "totalFees", fees, "incremented totalFees")
-                .assertStateAsString(openAuction, "fees", 0, "no fees left to redeem")
+                .assertCallResult([pac, "totalFees"], fees, "incremented totalFees")
+                .assertCallResult([openAuction, "fees"], 0, "no fees left to redeem")
                 .assertBalance(openAuction, prize, "equal to prize")
+                .assertCallResult([pac, "openAuctions", 0], openAuction.address)
+                .assertCallResult([pac, "getAvailableFees"], 0)
                 .start()
-        })           
-        it("Open Auction is still in openAuctions array", async function(){
-            assert.equal(await pac.openAuctions(0), openAuction.address, "Auction is opened");
-        });
-        it("getAvailableFees is 0", async function(){
-            assert.strEqual(await pac.getAvailableFees(), 0);
         });
     });
 
@@ -302,20 +293,14 @@ describe('PennyAuctionController', function(){
         before("openAuction has no time left", async function(){
             assert.strEqual((await openAuction.getTimeRemaining()), 0, "should have no time left");    
         });
-        
-        it(".getNumActionableAuctions() returns 1", async function(){
-            const num = await pac.getNumActionableAuctions.call();
-            assert.strEqual(num, 1);
-        });
-        it(".getNumOpenAuctions() returns 1, .getNumClosedAuctions() returns 0", async function(){
-            var numOpened = await pac.getNumOpenAuctions();
-            var numClosed = await pac.getNumClosedAuctions();
-            assert.strEqual(numOpened, 1);
-            assert.strEqual(numClosed, 0);
-        });
-        it(".getAvailableFees() returns proper amount", async function(){
-            var num = await pac.getAvailableFees();
-            assert.strEqual(num, await openAuction.fees());
+
+        it("helper functions work", async function(){
+            await createDefaultTxTester()
+                .assertCallResult([pac, "getNumActionableAuctions"], 1)
+                .assertCallResult([pac, "getNumOpenAuctions"], 1)
+                .assertCallResult([pac, "getNumClosedAuctions"], 0)
+                .assertCallResult([pac, "getAvailableFees"], await openAuction.fees())
+                .start();
         });
     });
 
@@ -328,7 +313,6 @@ describe('PennyAuctionController', function(){
         it(".checkOpenAuctions call returns (1 completed, X fees redeemed)", async function(){
             const fees = await openAuction.fees();
             const res = await pac.checkOpenAuctions.call({from: dummyMainController});
-            console.log("result is:", res);
             assert.strEqual(res[0], 1, "one redeemed");
             assert.strEqual(res[1], fees, "fees redeemed");
         });
@@ -361,147 +345,186 @@ describe('PennyAuctionController', function(){
                     recipient: auctionWinner,
                     amount: prize
                 })
-                .assertStateAsString(pac, "totalFees", prevFees.plus(fees))
-                .assertStateAsString(pac, "totalPrizes", prevPrizes.plus(prize))
-                .assertStateAsString(pac, "getNumOpenAuctions", 0)
-                .assertStateAsString(pac, "getNumClosedAuctions", 1)
-                .assertStateAsString(pac, "getNumActionableAuctions", 0)
+                .assertCallResult([pac, "totalFees"], prevFees.plus(fees))
+                .assertCallResult([pac, "totalPrizes"], prevPrizes.plus(prize))
+                .assertCallResult([pac, "getNumOpenAuctions"], 0)
+                .assertCallResult([pac, "getNumClosedAuctions"], 1)
+                .assertCallResult([pac, "getNumActionableAuctions"], 0)
                 .start();
         });
     })
 
-    // describe("more checkOpenAuctions tests", async function(){
-    //     var pac;
-    //     var maxOpenAuctions = new BigNumber(5);
-    //     var auction1;
-    //     var auction2;
-    //     var auction3;
-    //     var auction4;
-    //     var auction5;
+
+    describe("more checkOpenAuctions tests", async function(){
+        var pac;
+        var MAX_OPEN_AUCTIONS = new BigNumber(5);
+        var auction1;
+        var auction2;
+        var auction3;
+        var auction4;
+        var auction5;
         
-    //     before("create new pac", async function(){
-    //         pac = await PennyAuctionController.new(registry.address, maxOpenAuctions, maxInitialPrize);
-    //         registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
-    //     });
-    //     it("Honors maxOpenAuctions", async function(){
-    //         // note the auctionTimeS order... 1, 4, 2, 3, 5
-    //         await pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-    //             {from: dummyMainController, value: initialPrize}
-    //         );
-    //         await pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS.plus(120000), 
-    //             {from: dummyMainController, value: initialPrize}
-    //         );
-    //         await pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS.plus(180000), 
-    //             {from: dummyMainController, value: initialPrize}
-    //         );
-    //         await pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS.plus(60000), 
-    //             {from: dummyMainController, value: initialPrize}
-    //         );
-    //         await pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS.plus(240000), 
-    //             {from: dummyMainController, value: initialPrize}
-    //         );
-    //         await EXPECT_ERROR_LOG(pac.startNewAuction(
-    //             initialPrize, bidPrice, bidTimeS, bidFeePct, auctionTimeS, 
-    //             {from: dummyMainController, value: initialPrize}
-    //         ), "Too many auctions open");
+        before("create new pac and 5 auctions", async function(){
+            pac = await PennyAuctionController.new(registry.address, MAX_OPEN_AUCTIONS, MAX_INITIAL_PRIZE);
+            registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
+            
+            // not the auction_time_s values: 1, 4, 2, 3, 5
+            await pac.startNewAuction(
+                INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S, 
+                {from: dummyMainController, value: INITIAL_PRIZE}
+            );
+            await pac.startNewAuction(
+                INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S.plus(12000), 
+                {from: dummyMainController, value: INITIAL_PRIZE}
+            );
+            await pac.startNewAuction(
+                INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S.plus(18000), 
+                {from: dummyMainController, value: INITIAL_PRIZE}
+            );
+            await pac.startNewAuction(
+                INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S.plus(6000), 
+                {from: dummyMainController, value: INITIAL_PRIZE}
+            );
+            await pac.startNewAuction(
+                INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S.plus(24000), 
+                {from: dummyMainController, value: INITIAL_PRIZE}
+            );
+            auction1 = PennyAuction.at(await pac.openAuctions(0));
+            auction2 = PennyAuction.at(await pac.openAuctions(1));
+            auction3 = PennyAuction.at(await pac.openAuctions(2));
+            auction4 = PennyAuction.at(await pac.openAuctions(3));
+            auction5 = PennyAuction.at(await pac.openAuctions(4));
+            createDefaultTxTester().plugins.nameAddresses({
+                pac: pac,
+                dummyMainController: dummyMainController,
+                auction1: auction1,
+                auction2: auction2,
+                auction3: auction3,
+                auction4: auction4,
+                auction5: auction5
+            });
+        });
+        it(".startNewAuction() refunds and errors when too many open", async function(){
+            await createDefaultTxTester()
+                .startLedger([pac, dummyMainController])
+                .doTx(() => pac.startNewAuction(
+                    INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S, 
+                    {from: dummyMainController, value: INITIAL_PRIZE}
+                ))
+                .stopLedger()
+                .assertSuccess()
+                .assertOnlyErrorLog("Too many auctions open")
+                .assertLostTxFee(dummyMainController)
+                .assertNoDelta(pac)
+                .assertCallResult([pac, "getNumOpenAuctions"], 5, "still only 5")
+                .start();
+        });
 
-    //         assert.strEqual(await pac.getNumOpenAuctions(), 5, "5 open auctions");
-    //         auction1 = PennyAuction.at(await pac.openAuctions(0));
-    //         auction2 = PennyAuction.at(await pac.openAuctions(1));
-    //         auction3 = PennyAuction.at(await pac.openAuctions(2));
-    //         auction4 = PennyAuction.at(await pac.openAuctions(3));
-    //         auction5 = PennyAuction.at(await pac.openAuctions(4));
-    //     });
-    //     it("has correct array values", async function(){
-    //         assert.equal(auction1.address, await pac.openAuctions(0), "auction1 is open[0]");
-    //         assert.equal(auction2.address, await pac.openAuctions(1), "auction2 is open[1]");
-    //         assert.equal(auction3.address, await pac.openAuctions(2), "auction3 is open[2]");
-    //         assert.equal(auction4.address, await pac.openAuctions(3), "auction4 is open[3]");
-    //         assert.equal(auction5.address, await pac.openAuctions(4), "auction5 is open[4]");
-    //     });
+        describe("After closing the first auction", function(){
+            before("bid and close first auction", async function(){
+                const testUtil = createDefaultTxTester().plugins.testUtil;
+                await auction1.sendTransaction({from: bidder1, value: BID_PRICE});
+                await auction1.sendTransaction({from: bidder2, value: BID_PRICE});
+                await auction1.sendTransaction({from: auctionWinner, value: BID_PRICE});
+                await testUtil.fastForward((await auction1.getTimeRemaining()).plus(1));
+                await auction1.close();
+            });
 
-    //     describe("After closing the first auction", function(){
-    //         before("bid and close first auction", async function(){
-    //             await auction1.sendTransaction({from: bidder1, value: bidPrice});
-    //             await auction1.sendTransaction({from: bidder2, value: bidPrice});
-    //             await auction1.sendTransaction({from: bidder1, value: bidPrice});
-    //             await TestUtil.fastForward((await auction1.getTimeRemaining()).plus(1).toNumber());
-    //             await auction1.close();
-    //         });
+            it(".checkOpenAuctions() works", async function(){
+                const fees = await auction1.fees();
+                const expectedTotalPrizes = (await pac.totalPrizes()).plus(await auction1.prize());
+                const expectedTotalBids = (await pac.totalBids()).plus(await auction1.numBids());
+                await createDefaultTxTester()
+                    .assertCallResult([pac, "checkOpenAuctions", {from: dummyMainController}],
+                        [1, fees])
+                    .doTx(() => pac.checkOpenAuctions({from: dummyMainController}))
+                    .assertSuccess()
+                    .assertCallResult([auction1, "state"], 3)
+                    .assertCallResult([pac, "getNumOpenAuctions"], 4)
+                    .assertCallResult([pac, "getNumClosedAuctions"], 1)
+                    .assertCallResult([pac, "totalPrizes"], expectedTotalPrizes)
+                    .assertCallResult([pac, "totalBids"], expectedTotalBids)
+                    .assertCallResult([auction1, "state"], 3, "REDEEMED")
+                    .start();
+            });
 
-    //         it("redeems prize and fees for an auction that is already closed.", async function(){
-    //             var expectedFees = await auction1.fees();
-    //             var callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-    //             var numClosed = callResult[0];
-    //             var numFees = callResult[1];
-    //             assert.strEqual(numClosed, 1, "Expected 1 auction to be closed");
-    //             assert.strEqual(numFees, expectedFees, "Expected fees to be redeemed for 3 bids")
+            it("has correct values in the arrays", async function(){
+                await createDefaultTxTester()
+                    .assertCallResult([pac, "closedAuctions", 0], auction1.address)
+                    .assertCallResult([pac, "openAuctions", 0], auction2.address)
+                    .assertCallResult([pac, "openAuctions", 1], auction3.address)
+                    .assertCallResult([pac, "openAuctions", 2], auction4.address)
+                    .assertCallResult([pac, "openAuctions", 3], auction5.address)
+                    .start();
+            });
+        });
 
-    //             await pac.checkOpenAuctions({from: dummyMainController});
-    //         });
+        describe("After closing and redeeming the fourth auction", async function(){
+            before("bid, close, redeem auction4", async function(){
+                assert.strEqual(await pac.getNumOpenAuctions(), 4);
+                const testUtil = createDefaultTxTester().plugins.testUtil;
+                await auction4.sendTransaction({from: bidder1, value: BID_PRICE});
+                await auction4.sendTransaction({from: bidder2, value: BID_PRICE});
+                await auction4.sendTransaction({from: auctionWinner, value: BID_PRICE});
+                await testUtil.fastForward((await auction4.getTimeRemaining()).plus(1));
+                await auction4.close();
+                await auction4.redeem({from: auctionWinner});
+                assert.strEqual(await auction4.state(), 3, "auction4 is redeemed");
+            });
 
-    //         it("redeemed the auction", async function(){
-    //             assert.strEqual(await auction1.state(), 3, "Auction is redeemed");
-    //         });
+            it(".checkOpenAuctions() works", async function(){
+                const fees = await auction4.fees();
+                const expectedTotalPrizes = (await pac.totalPrizes()).plus(await auction4.prize());
+                const expectedTotalBids = (await pac.totalBids()).plus(await auction4.numBids());
+                await createDefaultTxTester()
+                    .assertCallResult([pac, "checkOpenAuctions", {from: dummyMainController}],
+                        [1, fees])
+                    .startLedger([treasury])
+                    .doTx(() => pac.checkOpenAuctions({from: dummyMainController}))
+                    .stopLedger()
+                    .assertSuccess()
+                    .assertDelta(treasury, fees, "got fees")
+                    .assertCallResult([pac, "getNumOpenAuctions"], 3)
+                    .assertCallResult([pac, "getNumClosedAuctions"], 2)
+                    .assertCallResult([pac, "totalPrizes"], expectedTotalPrizes)
+                    .assertCallResult([pac, "totalBids"], expectedTotalBids)
+                    .start();
+            });
+            it("shifted array of active auctions", async function(){
+                await createDefaultTxTester()
+                    .assertCallResult([pac, "closedAuctions", 0], auction1.address)
+                    .assertCallResult([pac, "closedAuctions", 1], auction4.address)
+                    .assertCallResult([pac, "openAuctions", 0], auction2.address)
+                    .assertCallResult([pac, "openAuctions", 1], auction3.address)
+                    .assertCallResult([pac, "openAuctions", 2], auction5.address)
+                    .start();
+            });
+        });
 
-    //         it("has proper number of activeAuctions and closedAuctions", async function(){
-    //             assert.strEqual(await pac.getNumOpenAuctions(), 4);
-    //             assert.strEqual(await pac.getNumClosedAuctions(), 1);
-    //         });
+        describe("After closing all auctions", async function(){
+            before("close all auctions", async function(){
+                const testUtil = createDefaultTxTester().plugins.testUtil;
+                assert.strEqual(await pac.getNumOpenAuctions(), 3);
+                await testUtil.fastForward((await auction5.getTimeRemaining()).plus(1));
+            });
 
-    //         it("has correct values in the arrays", async function(){
-    //             assert.equal(auction1.address, await pac.closedAuctions(0), "auction1 is closed[0]");
+            it(".checkOpenAuctions() works", async function(){
+                const fees = 0;
+                await createDefaultTxTester()
+                    .assertCallResult([pac, "checkOpenAuctions", {from: dummyMainController}],
+                        [3, fees])
+                    .doTx(() => pac.checkOpenAuctions({from: dummyMainController}))
+                    .assertSuccess()
+                    .assertCallResult([auction1, "state"], 3)
+                    .assertCallResult([pac, "getNumOpenAuctions"], 0)
+                    .assertCallResult([pac, "getNumClosedAuctions"], 5)
+                    .assertCallResult([auction2, "state"], 3, "REDEEMED")
+                    .assertCallResult([auction3, "state"], 3, "REDEEMED")
+                    .assertCallResult([auction5, "state"], 3, "REDEEMED")
+                    .start();
+            })
+        })
 
-    //             assert.equal(auction2.address, await pac.openAuctions(0), "auction2 is open[0]");
-    //             assert.equal(auction3.address, await pac.openAuctions(1), "auction3 is open[1]");
-    //             assert.equal(auction4.address, await pac.openAuctions(2), "auction4 is open[2]");
-    //             assert.equal(auction5.address, await pac.openAuctions(3), "auction5 is open[3]");
-    //         });
-    //     });
-
-    //     describe("After closing and redeeming the fourth auction", async function(){
-    //         before("bid, close, redeem auction4", async function(){
-    //             assert.strEqual(await pac.getNumOpenAuctions(), 4);
-    //             await auction4.sendTransaction({from: bidder1, value: bidPrice});
-    //             await auction4.sendTransaction({from: bidder2, value: bidPrice});
-    //             await auction4.sendTransaction({from: bidder1, value: bidPrice});
-    //             await TestUtil.fastForward((await auction4.getTimeRemaining()).plus(1).toNumber());
-    //             await auction4.close();
-    //             await auction4.redeem({from: bidder1});
-    //             assert.strEqual(await auction4.state(), 3, "auction4 is redeemed");
-    //         });
-
-    //         it("Redeems fees for fourth auction", async function(){
-    //             var expectedFees = await auction4.fees();
-    //             var callResult = await pac.checkOpenAuctions.call({from: dummyMainController});
-    //             var numClosed = callResult[0];
-    //             var numFees = callResult[1];
-
-    //             assert.strEqual(numClosed, 1, "Expected one auction to be closed");
-    //             assert.strEqual(numFees, expectedFees, "Expected fees to be redeemed for 3 bids");
-    //             await pac.checkOpenAuctions({from: dummyMainController});
-    //         });
-
-    //         it("has proper number of activeAuctions and closedAuctions", async function(){
-    //             assert.strEqual(await pac.getNumOpenAuctions(), 3, "3 auctions open");
-    //             assert.strEqual(await pac.getNumClosedAuctions(), 2, "2 auctions closed");
-    //         });
-
-    //         it("shifted array of active auctions", async function(){
-    //             assert.equal(auction1.address, await pac.closedAuctions(0), "auction1 is closed[0]");
-    //             assert.equal(auction4.address, await pac.closedAuctions(1), "auction4 is closed[1]");
-
-    //             assert.equal(auction2.address, await pac.openAuctions(0), "auction2 is open[0]");
-    //             assert.equal(auction3.address, await pac.openAuctions(1), "auction3 is open[1]");
-    //             assert.equal(auction5.address, await pac.openAuctions(2), "auction5 is open[2]");
-    //         });
-    //     });
-
-    // });
+    });
 
 });

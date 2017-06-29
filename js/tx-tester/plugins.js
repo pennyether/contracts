@@ -338,9 +338,30 @@ function createPlugins(testUtil, ledger) {
 		// assert $contract[$name]() returns $expectedValue
 		assertStateAsString: async function(contract, name, expectedValue, msg) {
 			// todo: check that its a constant
-			msg = msg || `should equal '${at(expectedValue)}'`;
+			msg = msg || `should equal '${str(expectedValue)}'`;
 			msg = `${at(contract)}.${name}() ${msg}`;
 			assert.strEqual(await contract[name](), expectedValue, msg);
+			console.log(`✓ ${msg}`);
+		},
+		assertCallResult: async function(callParams, expected, msg) {
+			const contract = callParams[0];
+			const name = callParams[1];
+			const args = callParams.slice(2);
+			const result = await contract[name].call.apply(contract, args);
+
+			const argsStr = args ? str(args) : "";
+			const expectedStr = str(expected, true);
+			const resultStr = str(result, true);
+			msg = msg || `should equal '${expectedStr}'`;
+			msg = `${str(contract)}.${name}(${argsStr}) ${msg}`;
+
+			if (Array.isArray(result)){
+				if (!Array.isArray(expected) || expected.length !== expected.length)
+					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
+				result.forEach((r, i) => assert.strEqual(r, expected[i], msg));
+			} else {
+				assert.strEqual(result, expected, msg);
+			}
 			console.log(`✓ ${msg}`);
 		},
 		assertStateCloseTo: async function(contract, name, expectedValue, tolerance, msg) {
@@ -431,6 +452,26 @@ function at(val) {
 			: `${val.constructor._json.contract_name}[${shortened}]`;
 	}
 	return `${val}`;
+}
+function str(val, showBrackets) {
+	if (val === undefined) {
+		return "undefined";
+	} else if (val === null) {
+		return "null";
+	} else if (Array.isArray(val)) {
+		const lBracket = showBrackets ? "[" : "";
+		const rBracket = showBrackets ? "]" : "";
+		return `${lBracket}${val.map(v => str(v, true)).join(", ")}${rBracket}`;
+	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
+		return at(val);
+	} else if (typeof val == "object") {
+		const keys = Object.keys(val);
+		const extra = keys.length - 3;
+		const ellipsis = extra > 0 ? `, +${extra}...` : "";
+		return `{${keys.join(", ") + ellipsis}}`;
+	} else {
+		return val.toString();
+	}
 }
 
 module.exports = createPlugins;

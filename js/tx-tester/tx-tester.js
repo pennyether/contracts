@@ -209,15 +209,15 @@ function createTxTester(plugins, it) {
 
 function argsToString(args) {
     return args.map(a => {
-            if (typeof a == "string") {
-                    return `"${a.substr(0, 9) + (a.length > 10 ? "..." : "")}"`;
-            } else if (typeof a == "object") {
-                    return Object.prototype.toString.call(a);
-            } else if (a == undefined) {
-                    return "undefined"
-            } else {
-                    return a.toString();
-            }
+        if (typeof a == "string") {
+            return `"${a.substr(0, 9) + (a.length > 10 ? "..." : "")}"`;
+        } else if (typeof a == "object") {
+            return Object.prototype.toString.call(a);
+        } else if (a == undefined) {
+            return "undefined"
+        } else {
+            return a.toString();
+        }
     }).join(", ");
 }
 
