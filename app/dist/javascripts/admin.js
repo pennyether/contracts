@@ -6,7 +6,6 @@ window.addEventListener('load', function() {
     	window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   	}
   	startApp();
-  	// wowowoow
 });
 
 function startApp() {
@@ -15,9 +14,6 @@ function startApp() {
 	}
 	if (!window.Artifacts){
 		throw new Error("Could not find artifacts!");
-	}
-	if (!window.PennyAuctionUI){
-		throw new Error("Could not find PennyAuctionUI!");
 	}
 
 	var Artifacts = window.Artifacts;
@@ -82,55 +78,10 @@ function startApp() {
 			playground.addInstance("MainController", mainController);
 			playground.addInstance("PennyAuctionController", pac);
 			playground.addInstance("PennyAuctionFactory", paf);
-
-			return Promise.all([
-				pac.maxOpenAuctions(),
-				pac.getNumOpenAuctions(),
-				pac.maxInitialPrize()
-			]);
-		}).then(function(arr) {
-			const numOpen = arr[1].toNumber();
-			const promises = (new Array(numOpen).fill()).map(function(a, i){
-				return pac.openAuctions(i);
-			});
-			return Promise.all(promises);
-		}).then(function(addresses){
-			addresses.forEach(function(address){
-				const paInst = PennyAuction.at(address);
-				const pa = new PennyAuctionUI(paInst);
-				pa.get$().appendTo("body");
-			});
-		});
-
-		$("#newAuction").click(function(){
-			var initialPrize = new BigNumber(.005e18);
-			var bidPrice     = new BigNumber(.001e18);
-			var bidTimeS     = new BigNumber(600);          // 10 minutes
-			var bidFeePct    = new BigNumber(60);
-			var auctionTimeS = new BigNumber(60*60*12);     // 12 hours
-
-			mainController.createPennyAuction(
-				initialPrize,
-				bidPrice,
-				bidTimeS,
-				bidFeePct,
-				auctionTimeS,
-				{from: admin, gas: 4000000}
-			).then(function(res){
-				console.log("created?", res);
-				logEvent("Created it!"); 
-			});
-		});
-
-		$("<button>mine</button>").click(function(){
-			web3.currentProvider.send({
-	            jsonrpc: "2.0",
-	            method: "evm_mine",
-	            params: null,
-	            id: new Date().getTime()
-	        });
-		}).appendTo("body");
-
+		}).catch(function(e){
+			alert("Error!  See console.");
+			console.log(e);
+		})
 	});
 };
 

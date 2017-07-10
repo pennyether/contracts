@@ -3,8 +3,14 @@
 	$(`
 		<style type='text/css'>
 			.Playground {
+				position: absolute;
+				top: 5px;
+				right: 5px;
+				width: 400px;
+				height: 90%;
 				border: 1px solid black;
 				padding: 5px;
+				overflow-y: auto;
 			}
 			.Playground .Instance {
 				border-radius: 5px;
@@ -21,6 +27,10 @@
 					font-weight: bold;
 					display: inline-block;
 				}
+				.Playground .title .address {
+					display: inline-block;
+					font-size: 50%;
+				}
 				.Playground .title .balance {
 					display: inline-block;
 					padding: 1px 5px;
@@ -28,34 +38,37 @@
 					border: 1px inset #DDD;
 					background: #DDD;
 				}
-				.Playground .title .address {
-					display: inline-block;
-				}
 				.Playground .title .remove {
-					display: inline-block;
-					right: 10px;
 					position: absolute;
-					color: maroon;
+					right: 2px;
+					top: 2px;
+					display: inline-block;
+					position: absolute;
 					cursor: pointer;
+					padding: 0px 4px;
+					background: red;
+					border: 1px solid gray;
+					color: white;
+					border-radius: 4px;
 				}
 			.Playground .info {
 				background: #FAFAFA;
 			}
 			.Playground .tabber {
-				padding-top: 5px;
-				padding-left: 10px;
-				border-bottom: 1px solid gray;
+				display: inline-block;
+				position: absolute;
+				right: 0px;
 			}
 				.Playground .tabber .tab {
 					display: inline-block;
-					margin: 0px 4px;
+					margin: 0px 2px;
 					padding: 2px 5px;
 					border: 1px solid #AAA;
-					border-bottom: none;
 					cursor: pointer;
+					background: white;
 				}
 				.Playground .tabber .tab.on {
-					background: #CCC;
+					background: navy;
 					color: white;
 				}
 				.Playground .tabber-contents {
@@ -65,6 +78,10 @@
 				border: 1px solid blue;
 				padding: 3px;
 				margin: 4px;
+			}
+			.Playground .ctnr-events .clear-events {
+				color: maroon;
+				cursor: pointer;
 			}
 		</style>
 	`);
@@ -76,9 +93,9 @@
 	function Playground(web3){
 		__injectStyle();
 		var _self = this;
-		var _blockWatcher = web3.eth.filter("latest", (err, res)=>{
-			_self.onBlockChange(res);
-		});
+		// var _blockWatcher = web3.eth.filter("latest", (err, res)=>{
+		// 	_self.onBlockChange(res);
+		// });
 
 		var _$ = $(`
 			<div class='Playground'></div>
@@ -114,15 +131,16 @@
 			<div class='Instance'>
 				<div class='title'>
 					<div class='name'>name</div>
-					<div class='balance'>balance</div>
 					<div class='address'>address</div>
-					<div class='remove'>remove</div>
-				</div>
-				<div class='info'>
+					<br>
+					<div class='balance'>balance</div>
 					<div class='tabber'>
 						<div class='tab-funcs tab'>Funcs</div>
 						<div class='tab-events tab'>Events</div>
 					</div>
+					<div class='remove'>x</div>
+				</div>
+				<div class='info'>
 					<div class='tabber-contents'>
 						<div class='ctnr-funcs'></div>
 						<div class='ctnr-events'>
@@ -150,22 +168,48 @@
 		var _$events = _$.find(".events");
 		var _$clear_events = _$.find(".clear-events");
 
-		var _watcher = inst.allEvents(function(err, event){
-			if (!err) _self.addEvent(event);
-		});
+		// var _watcher = inst.allEvents(function(err, event){
+		// 	if (!err && event.address==_inst.address) _self.addEvent(event);
+		// });
 
 		function _init(name, inst){
 			_$remove.click(function(){ _self.kill(); });
-			_$clear_events.click(function(){ _$events.remove(); });
+			_$clear_events.click(function(){ _$events.empty(); });
 			_$tabFuncs.click(function(){ _self.toggleTab("funcs"); });
 			_$tabEvents.click(function(){ _self.toggleTab("events"); });
 
-			_$ctnrFuncs.text("todo, add funcs...");
+			_createFuncs();
 
 			_self.toggleTab("events");
 			_self.setName(name);
 			_self.setAddress(inst.address);
 			_self.updateBalance();
+		}
+
+		function _createFuncs() {
+			// _inst.abi:
+			/**
+			[{
+				constant: true || false
+				name: "method name"
+				payable: true || false
+				type: "function" || "constructor" || "event"
+				inputs: [{
+					name: "whatever"
+					type: "uint256"
+				}]
+				outputs: [{
+					name: ""
+					type: "uint256"
+				}]
+			}]
+			*/
+			_inst.abi.map((entry) => {
+				return {
+					abiEntry: entry,
+					$: $("<div class='function'></div>")
+				}
+			});
 		}
 
 		// public methods
@@ -191,7 +235,6 @@
 			});
 		};
 		this.addEvent = function(event){
-			console.log(event);
 			var $event = $(`
 				<div class='event'>
 					<div class='name'></div>

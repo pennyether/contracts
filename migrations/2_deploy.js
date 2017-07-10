@@ -27,8 +27,8 @@ module.exports = function(deployer, network, accounts) {
 		await registry.register("MAIN_CONTROLLER", mainController.address);
 		await registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
 		await registry.register("PENNY_AUCTION_FACTORY", paf.address);
-		web3.eth.sendTransaction({from: accounts[0], to: treasury.address, value: 0.1e18});
-		console.log("Funded treasury with .1 ETH.");
+		web3.eth.sendTransaction({from: accounts[0], to: treasury.address, value: 0.5e18});
+		console.log("Funded treasury with .5 ETH.");
 		console.log("OWNER:", accounts[0]);
 		console.log("ADMIN:", accounts[1]);
 		console.log("REGISTRY:", registry.address);

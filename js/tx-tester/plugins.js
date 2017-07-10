@@ -464,6 +464,8 @@ function str(val, showBrackets) {
 		return `${lBracket}${val.map(v => str(v, true)).join(", ")}${rBracket}`;
 	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
 		return at(val);
+	} else if (val.constructor.name == "BigNumber") {
+		return val.toString();
 	} else if (typeof val == "object") {
 		const keys = Object.keys(val);
 		const extra = keys.length - 3;
