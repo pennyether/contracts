@@ -137,24 +137,24 @@ contract PennyAuction {
 	Upon failure, will Error and refund sender.
 	*/
 	function() payable {
-		// note: for all other states, time check is sufficient
+		// can only bid when auction is OPENED
 		if (state == State.PENDING) {
-			errorAndRefund("Cannot bid when auction is pending");
+			errorAndRefund("Cannot bid: Auction has not started.");
 			return;
 		}
 		// check that there is still time to bid
 		if (now >= timeClosed) {
-			errorAndRefund("Cannot bid after timeClosed");
+			errorAndRefund("Cannot bid: Auction is already closed.");
 			return;
 		}
 		// check sender
 		if (msg.sender == currentWinner) {
-			errorAndRefund("You are already the current winner");
+			errorAndRefund("Cannot bid: You are already the current winner.");
 			return;
 		}
 		// check that bid amount is correct
 		if (msg.value != bidPrice) {
-			errorAndRefund("Value must match bidPrice");
+			errorAndRefund("Cannot bid: Value sent must match bidPrice.");
 			return;
 		}
 

@@ -1,4 +1,4 @@
-function PennyAuctionUi(inst) {
+function PennyAuctionUI(inst) {
 	var _inst = inst;
 	var _state = {};
 

@@ -54,7 +54,7 @@ describe('PennyAuction', function() {
                 .start();
         });
         it("should not allow bidding", function(){
-            return ensureNotBiddableBy(nonBidder, "Cannot bid when auction is pending");
+            return ensureNotBiddableBy(nonBidder, "Cannot bid: Auction has not started.");
         });
         it("should not allow prize to be redeemed", async function(){
             await ensureNotRedeemableBy(admin, "Not callable in current state");
@@ -145,7 +145,7 @@ describe('PennyAuction', function() {
                 .startLedger([bidder1, auction])
                 .doTx(() => auction.sendTransaction({from: bidder1, value: BID_PRICE.add(1)}))
                 .stopLedger()
-                .assertOnlyErrorLog("Value must match bidPrice")
+                .assertOnlyErrorLog("Cannot bid: Value sent must match bidPrice.")
                 .assertLostTxFee(bidder1)
                 .assertDelta(auction, 0)
                 .start();
@@ -156,7 +156,7 @@ describe('PennyAuction', function() {
                 .startLedger([bidder1, auction])
                 .doTx(() => auction.sendTransaction({from: bidder1, value: BID_PRICE.minus(1)}))
                 .stopLedger()
-                .assertOnlyErrorLog("Value must match bidPrice")
+                .assertOnlyErrorLog("Cannot bid: Value sent must match bidPrice.")
                 .assertLostTxFee(bidder1)
                 .assertDelta(auction, 0)
                 .start(); 
@@ -165,7 +165,7 @@ describe('PennyAuction', function() {
             await ensureBiddableBy(bidder1);    
         });
         it("currentWinner cannot bid", async function(){
-            await ensureNotBiddableBy(bidder1, "You are already the current winner");
+            await ensureNotBiddableBy(bidder1, "Cannot bid: You are already the current winner.");
         })
     });
 
@@ -221,7 +221,7 @@ describe('PennyAuction', function() {
             await ensureNotOpenable();
         });
         it("should not accept bids", async function(){
-            await ensureNotBiddableBy(nonBidder, "Cannot bid after timeClosed");
+            await ensureNotBiddableBy(nonBidder, "Cannot bid: Auction is already closed.");
         });
         it("should not be redeemable by currentWinner", async function(){
             await ensureNotRedeemableBy(await auction.currentWinner(), "Not callable in current state");
@@ -261,7 +261,7 @@ describe('PennyAuction', function() {
             await ensureNotCloseable("Not callable in current state");
         });
         it("should not accept bids", async function(){
-            await ensureNotBiddableBy(nonBidder, "Cannot bid after timeClosed");
+            await ensureNotBiddableBy(nonBidder, "Cannot bid: Auction is already closed.");
         });
     });
 
@@ -310,7 +310,7 @@ describe('PennyAuction', function() {
             await ensureNotOpenable();
         });
         it("should not accept bids", async function(){
-            await ensureNotBiddableBy(nonBidder, "Cannot bid after timeClosed");
+            await ensureNotBiddableBy(nonBidder, "Cannot bid: Auction is already closed.");
         });
         it("should not be abled to be closed again", async function(){
             await ensureNotCloseable("Not callable in current state");
