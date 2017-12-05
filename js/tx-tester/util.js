@@ -14,9 +14,10 @@ function createUtil(web3, assert){
 		// note the extra address argument -- this is due to
 		// a bug in web3 where it will include logs of other addresses.
 		// https://github.com/ethereum/web3.js/issues/895
-		expectOneLog: function expectOneLog(logs, eventName, args, address) {
+		expectOneLog: function(logs, eventName, args, address) {
 			address = (address && address.address) ? address.address : address;
 			logs = logs.filter(l => !address || l.address == address);
+			if (!args) args = {};
 
 			try {
 				assert.equal(logs.length, 1, "Expected exactly 1 log");
@@ -33,8 +34,11 @@ function createUtil(web3, assert){
 			}
 		},
 
-		expectLog: function expectLog(logs, eventName, args) {
+		expectLog: function(logs, eventName, args, address) {
+			address = (address && address.address) ? address.address : address;
+			logs = logs.filter(l => !address || l.address == address);
 			if (!args) args = {};
+
 			try {
 				var found = false;
 				logs.forEach(log => {
@@ -48,18 +52,18 @@ function createUtil(web3, assert){
 							assert.strEqual(log.args[key], args[key], `'log.args.${key}' incorrect`);
 					});
 				});
-				if (!found) throw new Error("expectLog did not find event.");
+				if (!found) throw new Error(`expectLog did not find event: ${eventName} with args ${args}`);
 			} catch (e) {
 				console.log(`expectLog ${eventName} failed, logs are:`, logs)
 				throw e;
 			}
 		},
 
-		expectErrorLog: function expectedErrorLog(logs, msg, address) {
+		expectErrorLog: function(logs, msg, address) {
 			_self.expectOneLog(logs, "Error", {msg: msg}, address);
 		},
 
-		expectInvalidOpcode: async function expectInvalidOpcode(txPromise){
+		expectInvalidOpcode: async function(txPromise){
 		    try {
 		        await txPromise;
 		    } catch (txError) {
@@ -75,7 +79,7 @@ function createUtil(web3, assert){
 		    throw new Error("This transaction call was expected to fail.");
 		},
 
-		fastForward: function fastForward(timeInSeconds){
+		fastForward: function (timeInSeconds){
 			if (timeInSeconds.toNumber)
 				timeInSeconds = timeInSeconds.toNumber();
 			if (!Number.isInteger(timeInSeconds))
@@ -99,29 +103,74 @@ function createUtil(web3, assert){
 	        });
 		},
 
+		stopMining: function(){
+			web3.currentProvider.send({
+	            jsonrpc: "2.0",
+	            method: "miner_stop",
+	            params: null,
+	            id: new Date().getTime()
+	        });
+		},
+		startMining: function(){
+			web3.currentProvider.send({
+	            jsonrpc: "2.0",
+	            method: "miner_start",
+	            params: null,
+	            id: new Date().getTime()
+	        });
+		},
+		mineBlock: function(){
+			web3.currentProvider.send({
+	            jsonrpc: "2.0",
+	            method: "evm_mine",
+	            params: null,
+	            id: new Date().getTime()
+	        });
+		},
+
 		getBlockNumber: function() {
 			return web3.eth.blockNumber;
 		},
-		getBalance: function getBalance(address){
+		getBalance: function (address){
 			if (address.address) address = address.address;
 		    return web3.eth.getBalance(address);
 		},
-		getBlock: function getBlock(blockHash){
+		getBlock: function (blockHash){
 		    return web3.eth.getBlock(blockHash)
 		},
-		getBlockTime: function getBlockTime(blockHash){
+		getBlockTime: function (blockHash){
 			return _self.getBlock(blockHash).timestamp;
 		},
-		getTx: function getTx(txHash){
+		getTx: function (txHash){
 		    return web3.eth.getTransaction(txHash)
 		},
-		getTxReceipt: function getTxReceipt(txHash){
+		getTxReceipt: function (txHash){
 		    return web3.eth.getTransactionReceipt(txHash)   
 		},
-		getTxFee: function getTxFee(txHash){
+		getTxFee: function (txHash){
 		    const tx = _self.getTx(txHash);
 		    const txReceipt = _self.getTxReceipt(txHash);
 		    return tx.gasPrice.mul(txReceipt.gasUsed);
+		},
+		getTruffleResultFromNew: function(res){
+			if (!res.contract || !res.contract.transactionHash)
+				throw new Error("Expected '.new()' result to have .contract and .contract.transactionHash")
+			
+			const contract = res;
+			const txHash = res.contract.transactionHash;
+			const receipt = _self.getTxReceipt(txHash);
+			const blockNum = receipt.blockNumber;
+			const events = res.contract.allEvents({fromBlock: blockNum, toBlock: blockNum})
+			return new Promise(function(resolve, reject){
+				events.get(function(err, logs){
+					resolve({
+						tx: txHash,
+						receipt: receipt,
+						logs: logs,
+						contract: contract
+					});
+				})
+			});
 		},
 
 		transfer: function(from, to, amt, txParams){
@@ -130,6 +179,17 @@ function createUtil(web3, assert){
 			txParams.to = to;
 			txParams.value = amt;
 			return Promise.resolve().then(() => web3.eth.sendTransaction(txParams));
+		},
+
+		toPromise: function(fnOrPromise) {
+			const type = Object.prototype.toString.call(fnOrPromise);
+			if (type !== '[object Promise]' && type !== '[object Function]')
+				throw new Error(`expected a fn or promise, instead got: '${type}'`);
+
+			// convert fnOrPromise to a promise
+			return type === '[object Promise]'
+				? fnOrPromise
+				: Promise.resolve().then(fnOrPromise);
 		}
 	}
 	return _self;

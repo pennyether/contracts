@@ -13,7 +13,8 @@ usage:
 		.do( () => <tx promise> )
 		.assertLostTxFee(address1)
         .assertDelta(address2, 123)
-        .assertOneLog("SomeEvent", "Lost only txFee", {arg1: "arg1val", arg2: "arg2val"});
+        .assertOneLog("SomeEvent", "Lost only txFee", {arg1: "arg1val", arg2: "arg2val"})
+        .start();
 
 returns:
 	A promise that is fulfilled with the result of the last task,
@@ -42,7 +43,7 @@ function createTxTester(plugins, it) {
 	// and if it fails will have a nice error message.
 	function _addPluginTask(name, args) {
 		if (!_obj.plugins[name])
-			throw new Error(`TxTester.${name} does not exists!`)
+			throw new Error(`TxTester.${name} does not exist!`)
 
 		const pluginFn = _obj.plugins[name];
 		const promisifiedPluginFn = function() {
@@ -141,7 +142,7 @@ function createTxTester(plugins, it) {
 	// If the queue failed:
 	//		- perform _afterDoneFns, log afterDonesError, throw queue error
 	// If the queue was successful:
-	//		- perform _afterDoneFns, throw any errors therein, or resolve with lastResult
+	//		- perform _afterDoneFns, throw any errors therein - resolves with lastResult
 	_obj.start = function() {
 		// end any 'it' that is opened (so we're back on the main queue)
 		if (_obj.endIt) _obj.endIt();

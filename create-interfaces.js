@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+
+/**
+Looks for any file that has "//@createinterface" in it.
+If present:
+    - creates a file "I<contract-name>.sol" in "/contracts/interfaces"
+    - file contains method signatures
+*/
 const generateInterface = require('generate-contract-interface');
 const fs = require('fs');
 const path = require('path');
@@ -96,7 +103,3 @@ findInDirectory(contractsDir, ".sol", solFile => {
 
 	// find "// @createInterface", find the pragma, then generate the interface
 });
-
-// go through each .sol file, search for // @createInterface
-
-// when found, generate the interface and save it in the corresponding /interfaces/ directory

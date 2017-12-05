@@ -1,150 +1,109 @@
 pragma solidity ^0.4.0;
 
 /**
-An auction for $_initialPrize.
+An unstoppable auction for $_initialPrize.
 
 An address may bid exactly $_bidPrice, in which case they
 are entitled to the prize if nobody else bids within $_bidTimeS.
 
 For each bid, a fee is taken, and the rest added to the prize.
 
-The winning bidder can obtain their payout once the auction is
-closed.  First .close() must be called to officially end the
-auction, then .redeem() may be called.
+A bid is refunded if:
+	- The incorrect amount is sent.
+	- Another bid came in after, but on the same block
+	- The bid is too late (auction has already ended)
+	- The bidder is already the current winner
 
-The admin can redeem fees to the collector at any time.
+Fees can be sent to the collector at any time, by anyone.  We thought
+of having fees be sent during each bid, but this would increase
+the gas cost of bidding, and also make the contract susceptible to
+a gas attack where if an attacker gained control of the collector
+they could make the collector consume so much gas as to dissuade
+people from bidding.
 
-------------------------
-
-The auction will transition through four states, in order:
-
-	PENDING:  	  	The auction has been set up, but not yet started.
-					No bids may be accepted.  Only .open() may be 
-					called by the admin.
-
-	OPENED:  	  	Funds have been transferred to the auction and it is
-					open for bidding.  If no one bids, the auction will
-					expire in $auctionTimeS, and the admin can redeem.
-					If someone bids, they become the current winner,
-					the prize is increased, and the auction time extended.
-
-	[CLOSEABLE]:    Not really a state, but can be read via .isCloseable().
-				    When true, the auction is OPENED but time has expired.
-				    No more bidding may occur during this phase.
-				    It is waiting to have .close() called (by anyone).
-
-	CLOSED:			The auction is officially closed, and the prize can
-					be redeemed by the winner.
-
-	REDEEMED:		The winner was sent the prize.
-
+Once the blocktime has passed $timeEnded, nobody can bid, and
+the auction can be paid to the winner.
 
 */
 //@createInterface
 contract PennyAuction {
-    enum State {PENDING, OPENED, CLOSED, REDEEMED}
-
-	address public admin;			// can start auction, can send prize, can send fees
 	address public collector;		// address that fees get sent to
 
 	uint public initialPrize;		// amt initially staked
 	uint public bidPrice;			// cost to become the current winner
 	uint public bidFeePct;			// amt of bid that gets kept as fees
 	uint public bidTimeS;	        // amt of time auction is extended
-    uint public auctionTimeS;       // amt of time auction starts with
-    uint public timeOpened;		    // time auction was opened
+    uint public timeStarted;		// time auction started
 
-	State public state;			    // current state
 	uint public prize;				// current prize
-	address public currentWinner;	// current winner
-	uint public timeClosed;		    // the time at which no further bids can occur
+	address public currentWinner;	// address of last bidder
+	uint public currentBlock;		// block of the last bid
+	uint public timeEnded;		    // the time at which no further bids can occur
 
 	uint public numBids;			// total number of bids
-	uint public fees;				// total fees able to be collect
-	
-    // modifiers
-    // note: they only error, and should not be used on payable functions
-	modifier fromAdmin() { 
-		if (msg.sender == admin) _;
-	    else Error("Only callable by admin");
-	}
-	modifier fromAdminOrWinner() {
-		if (msg.sender == admin || msg.sender == currentWinner) _;
-	    else Error("Only callable by admin or winner");
-	}
-	modifier onlyDuring(State _s) {
-		if (state == _s) _;
-		else Error("Not callable in current state");
-	}
+	uint public fees;				// current fees collectable
 
-	// only allow one "reRentry" call on the stack at a time
+	bool public isPaid;				// whether or not the winner has been paid
+
+	// only allow ONE "reRentry" call on the stack at a time
 	bool private locked;
 	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
 
-	event Error(string msg);
-	event Started(uint time);
+	event Error(uint time, string msg);
+	event Started(uint time, uint auctionTimeS);
 	event BidOccurred(uint time, address bidder);
-	event Closed(uint time, address winner, uint prize, uint numBids);
-	event Redeemed(uint time, address redeemer, address recipient, uint amount);
-	event RedeemFailed(uint time, address redeemer, address recipient, uint amount);
+	event BidRefunded(uint time, address bidder);
+	event Paid(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
+	event PaymentFailed(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 
 	function PennyAuction(
-		address _admin,
-        address _collector,
-	    uint _initialPrize,
-	    uint _bidPrice,
-	    uint _bidTimeS,
-	    uint _bidFeePct,
-        uint _auctionTimeS
-	) {
-        require(_initialPrize > 0);     // there is an initial prize
-        require(_bidPrice > 0);			// bid price must be positive
-        require(_bidTimeS >= 60);	    // minimum of 1 minute
-        require(_bidFeePct <= 100);	    // bid fee cannot be more than 100%.
-        require(_auctionTimeS >= 600);  // minimum of 5 minutes
+	        address _collector,
+		    uint _initialPrize,
+		    uint _bidPrice,
+		    uint _bidTimeS,
+		    uint _bidFeePct,
+	        uint _auctionTimeS
+		)
+		payable
+	{
+        require(_initialPrize > 0);     	// there is an initial prize
+        require(_bidPrice > 0);				// bid price must be positive
+        require(_bidTimeS >= 60);	    	// minimum of 1 minute
+        require(_bidFeePct <= 100);	    	// bid fee cannot be more than 100%.
+        require(_auctionTimeS >= 600);  	// minimum of 5 minutes
+        require(msg.value == _initialPrize); // must've sent the prize amount
 
-		admin = _admin;
+        // set instance variables
 		collector = _collector;
         initialPrize = _initialPrize;
 		bidPrice = _bidPrice;
 		bidTimeS = _bidTimeS;
 		bidFeePct = _bidFeePct;
-		auctionTimeS = _auctionTimeS;
-		state = State.PENDING;
-	}
 
-	/**
-	Called by the admin to start the auction.  Can only be called once.
-	This does not error, it only throws, so refund is ensured.
-	*/
-	function open() payable {
-    	require(state == State.PENDING);
-    	require(msg.sender == admin);
-		require(msg.value == initialPrize);
-
-		state = State.OPENED;
+		// start the auction
 		prize = initialPrize;
+		timeStarted = now;
+		timeEnded = now + _auctionTimeS;
 		currentWinner = collector;
-		timeOpened = now;
-		timeClosed = now + auctionTimeS;
+		currentBlock = block.number;
 
-		Started(now);
+		Started(now, _auctionTimeS);
 	}
 
 	/**
-	Checks for proper state, time, currentWinner, and bidPrice.
-	If all is good, will set current sender to winner and update time.
-	Upon failure, will Error and refund sender.
+	Upon new bid, adds fees and increments time and prize.
+	- Refunds if bid is too late, already winner, or incorrect bid value.
+	- Upon a bid-in-same-block, refends previous bidder.
+	- Sending refund to external address may cause another bid, so we
+	  mark this as noRentry.
 	*/
-	function() payable {
-		// can only bid when auction is OPENED
-		if (state == State.PENDING) {
-			errorAndRefund("Cannot bid: Auction has not started.");
-			return;
-		}
+	function()
+		noRentry
+		payable
+	{
 		// check that there is still time to bid
-		if (now >= timeClosed) {
-			errorAndRefund("Cannot bid: Auction is already closed.");
+		if (isEnded()) {
+			errorAndRefund("Cannot bid: Auction has already ended.");
 			return;
 		}
 		// check sender
@@ -158,142 +117,125 @@ contract PennyAuction {
 			return;
 		}
 
-		// increment prize by the msg value (minus the fee)
-		uint _fee = (msg.value * bidFeePct)/100;
-		fees += _fee;
-		prize += msg.value - _fee;
-		numBids++;
+		// calculate the fee amount
+		uint _feeIncr = (bidPrice * bidFeePct)/100;
+		uint _prizeIncr = bidPrice - _feeIncr;
 
-		// set the current winner and the time.
+		if (block.number != currentBlock) {
+			// this is a new bid
+			numBids++;
+			fees += _feeIncr;
+			prize += _prizeIncr;
+			timeEnded += bidTimeS;
+			currentBlock = block.number;
+		} else {
+			// this bid is in the same block as the previous bid.
+			// - try to refund the previous bidder
+			// - on refund failure, count this bid as a new bid.
+			if (currentWinner.send(bidPrice)) {
+				BidRefunded({time: now, bidder: currentWinner});
+			} else {
+				numBids++;
+				fees += _feeIncr;
+				prize += _prizeIncr;
+			}
+		}
+
+		// always update current winner and emit event
 		currentWinner = msg.sender;
-		timeClosed += bidTimeS;
-		
 		BidOccurred({time: now, bidder: msg.sender});
 	}
 
-
 	/**
-	If the auction is open and the time is past timeClosed, the auction will close.
-	To ensure the auction can always be completed, this is callable by anyone.
+	Sends prize to the current winner using _gasLimit (0 is unlimited)
 	*/
-	function close()
-		onlyDuring(State.OPENED)
-		returns (bool _success)
-	{
-		if (now < timeClosed) {
-		    Error("Time not yet expired");
-		    return false;
-		}
-		
-		// setting this allows redeem() to be called by the winner.
-        state = State.CLOSED;
-
-		Closed({
-			time: now,
-            winner: currentWinner,
-            prize: prize,
-            numBids: numBids
-        });
-
-        return true;
-	}
-
-	/**
-	Run by the winner or admin (if they are nice enough to pay gas)
-	Sends the prize to the currentWinner and sets auction to REDEEMED.
-	*/
-	function redeem()
+	function payWinner(uint _gasLimit)
 	    noRentry
-	    onlyDuring(State.CLOSED)
-	    fromAdminOrWinner
 	    returns (bool _success, uint _prizeSent)
 	{
-		state = State.REDEEMED;
-
-		// send prize with gasLimit as admin, otherwise without
-		bool _didRedeem = false;
-		if (msg.sender == admin) {
-			_didRedeem = currentWinner.send(prize);
-		} else if (msg.sender == currentWinner) {
-			_didRedeem = currentWinner.call.value(prize)();
+		// make sure auction has indeed ended
+		if (!isEnded()) {
+		    Error(now, "The auction has not ended.");
+		    return (false, 0);
+		}
+		// make sure auction wasnt already paid
+		// (doesnt really matter as balance would be 0 anyway)
+		if (isPaid) {
+			Error(now, "The prize has already been paid.");
+			return (false, 0);
 		}
 
-		// rollback on failure
-        if (!_didRedeem) {
-        	RedeemFailed({
+		bool _paySuccessful = false;
+		if (_gasLimit == 0) {
+			_paySuccessful = currentWinner.call.value(prize)();
+		} else {
+			_paySuccessful = currentWinner.call.value(prize).gas(_gasLimit)();
+		}
+
+        if (_paySuccessful) {
+        	// mark as paid
+        	isPaid = true;
+        	Paid({
+				time: now,
+	            redeemer: msg.sender,
+	            recipient: currentWinner,
+	            amount: prize,
+	            gasLimit: _gasLimit
+	        });
+			return (true, prize);
+        } else {
+        	// log payment failed
+        	PaymentFailed({
         		time: now,
         		redeemer: msg.sender,
         		recipient: currentWinner,
-        		amount: prize
+        		amount: prize,
+        		gasLimit: _gasLimit
         	});
-            state = State.CLOSED;
-            return (false, 0);
+            return (false, 0);        	
         }
-		
-		// log the attempt for good record keeping
-		Redeemed({
-			time: now,
-            redeemer: msg.sender,
-            recipient: currentWinner,
-            amount: prize
-        });
-		return (true, prize);
 	}
 	
 	/**
-	run by the admin to send current fees to collector
+	Sends the fees to the collector
 	*/
-	function redeemFees()
+	function collectFees()
 	    noRentry
-	    fromAdmin
 	    returns (bool _success, uint _feesSent)
     {
 		if (fees == 0) {
-			Error("No fees to redeem");
+			Error(now, "No fees to redeem");
 			return (false, 0);
 		}
-		
-		// copy _fees so we can return it or rollback
-		_feesSent = fees;
-		fees = 0;
 
 		// attempt to send, rollback if unsuccessful
-		if (!collector.call.value(_feesSent)()) {
-			Error("Failed to send to collector");
-			fees = _feesSent;
-			return (false, 0);
-		} else {
+		if (collector.call.value(fees)()) {
+			_feesSent = fees;
+			fees = 0;
 			return (true, _feesSent);
+		} else {
+			Error(now, "Failed to send to collector");
+			return (false, 0);
 		}
 	}
 
 	// called from payable functions to refund the sender
 	// if we cannot refund, throw so that the tx reverts
 	function errorAndRefund(string _errMsg) private {
-		Error(_errMsg);
+		Error(now, _errMsg);
 		if (!msg.sender.call.value(msg.value)()){
 		 	throw;
 		}
 	}
 
-	// Whether or not you can call close() on the auction
-	function isCloseable() constant returns (bool _bool) {
-		return (state == State.OPENED && now >= timeClosed);
-	}
-
-	// Returns true if the auction is closed
-	function isClosed() constant returns (bool _bool) {
-		return (state == State.CLOSED);
-	}
-
-	// Returns true if the auction is redeemed
-	function isRedeemed() constant returns (bool _bool) {
-		return (state == State.REDEEMED);
+	// Returns true if the auction has ended
+	function isEnded() constant returns (bool _bool) {
+		return now >= timeEnded;
 	}
 	
 	// returns the time remaining, or 0.
 	function getTimeRemaining() constant returns (uint _timeRemaining) {
-	    if (now >= timeClosed) return 0;
-	    return timeClosed - now;
+	    if (isEnded()) return 0;
+	    return timeEnded - now;
 	}
 }

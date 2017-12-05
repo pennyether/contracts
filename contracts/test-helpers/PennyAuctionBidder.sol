@@ -2,25 +2,22 @@ pragma solidity ^0.4.0;
 
 contract IPennyAuction {
 	function bidPrice() returns (uint _bidPrice);
-	function redeem() returns (bool _success, uint _prizeSent);
+	function payWinner(uint _gasLimit) returns (bool _success, uint _prizeSent);
 }
 
 contract PennyAuctionBidder {
-	IPennyAuction public auction;
-
-	function PennyAuctionBidder(address _auctionAddress){
-		auction = IPennyAuction(_auctionAddress);
-	}
-	function doBid(){
+	function doBid(address addr){
+		IPennyAuction auction = IPennyAuction(addr);
 		uint _bidPrice = auction.bidPrice();
 		if (!auction.call.value(_bidPrice)()){
 		  	throw;
 		}
 	}
-	function doRedemption()
+	function doRedemption(address addr)
 		returns (bool _success, uint _prizeSent)
 	{
-		return auction.redeem(); 
+		IPennyAuction auction = IPennyAuction(addr);
+		return auction.payWinner(0); 
 	}
 	function fund() payable {}
 	function () payable {
