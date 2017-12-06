@@ -85,41 +85,44 @@ function createPlugins(testUtil, ledger) {
 			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
 			console.log("✓ doTx failed with invalid opcode");
 		},
-		// assert there is one log, with name $eventName and optional $args from optional $address
-		assertOnlyLog: async function(eventName, args, address) {
+		// asserts exact number of logs retrieved
+		assertLogCount: async function(num) {
+			const ctx = this;
+			if (ctx.txRes===undefined && ctx.txErr===undefined)
+				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
+			assert.equal(num, ctx.txRes.logs.length, `expected exactly ${num} logs`);
+			console.log(`✓ exactly ${num} logs found`);	
+		},
+		// assert there is one log, with name $eventName and optional $args
+		assertOnlyLog: async function(eventName, args) {
 			const ctx = this;
 			if (ctx.txRes===undefined && ctx.txErr===undefined)
 				throw new Error("'doTx' was never called.");
 			if (!ctx.txRes)
 				throw new Error("Expected 'doTx' to succeed.");
 
-			testUtil.expectOneLog(ctx.txRes.logs, eventName, args, address);
+			testUtil.expectOneLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
-			const from = address ? `from ${at(address)}` : String.fromCharCode(8);
-			console.log(`✓ '${eventName}(${keysStr})' log ${from} was the only log`);
+			console.log(`✓ '${eventName}(${keysStr})' log was the only log`);
 		},
-		// assert there is a log with $eventName and optional $args from optoinal $address
-		assertLog: async function(eventName, args, address) {
+		// assert there is a log with $eventName and optional $args
+		assertLog: async function(eventName, args) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
-			
-			testUtil.expectLog(ctx.txRes.logs, eventName, args, address);
+			testUtil.expectLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
-			const from = address ? `from ${at(address)}` : String.fromCharCode(8);
-			console.log(`✓ '${eventName}(${keysStr})' log ${from} was found`);
+			console.log(`✓ '${eventName}(${keysStr})' log was found`);
 		},
-		// assert there is a log named "Error" with an arg msg that is $msg from optional $address
-		assertOnlyErrorLog: async function(msg, address) {
+		// assert there is a log named "Error" with an arg msg that is $msg
+		assertOnlyErrorLog: async function(msg) {
 			const ctx = this;
 			if (ctx.txRes===undefined && ctx.txErr===undefined)
 				throw new Error("'doTx' was never called.");
 			if (!ctx.txRes)
 				throw new Error("Expected 'doTx' to succeed.");
 
-			testUtil.expectErrorLog(ctx.txRes.logs, msg, address);
+			testUtil.expectErrorLog(ctx.txRes.logs, msg);
 			console.log(`✓ 'Error(msg: ${msg})' event was the only log`);
 		},
 		assertGasUsedLt: function(val) {
@@ -307,6 +310,9 @@ function createPlugins(testUtil, ledger) {
 				});
 			});
 			return Promise.all(promises).then(()=>{ delete ctx.contractWatchers; });
+		},
+		assertEventCount: async function(address, num) {
+
 		},
 		assertOnlyEvent: async function(address, eventName, args) {
 			if (address.address) address = address.address;

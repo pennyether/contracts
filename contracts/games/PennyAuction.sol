@@ -53,6 +53,7 @@ contract PennyAuction {
 	event Started(uint time, uint auctionTimeS);
 	event BidOccurred(uint time, address bidder);
 	event BidRefunded(uint time, address bidder);
+	event BidRefundFailed(uint time, address bidder);
 	event Paid(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 	event PaymentFailed(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 
@@ -135,6 +136,7 @@ contract PennyAuction {
 			if (currentWinner.send(bidPrice)) {
 				BidRefunded({time: now, bidder: currentWinner});
 			} else {
+				BidRefundFailed({time: now, bidder: currentWinner});
 				numBids++;
 				fees += _feeIncr;
 				prize += _prizeIncr;
