@@ -9,6 +9,7 @@ contract PennyAuctionFactory is
     UsingTreasury
 {
     event AuctionCreated(
+        uint time,
         address addr,
         uint initialPrize,
         uint bidPrice,
@@ -28,11 +29,13 @@ contract PennyAuctionFactory is
 	                       uint _bidFeePct,
                            uint _auctionTimeS)
         fromPennyAuctionController
+        payable
         returns (PennyAuction _addr)
     {
+        require(msg.value == _initialPrize);
+
         // create an auction
-		PennyAuction _auction = new PennyAuction({
-            _admin: address(getPennyAuctionController()),
+		PennyAuction _auction = (new PennyAuction).value(_initialPrize)({
             _collector: address(getTreasury()),
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,
@@ -47,6 +50,7 @@ contract PennyAuctionFactory is
         // The only reason this exists is so unit tests can actually
         // test this contract.
         AuctionCreated({
+            time: now,
             addr: _auction,
             initialPrize: _initialPrize,
             bidPrice: _bidPrice,

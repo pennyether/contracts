@@ -18,6 +18,7 @@ describe('PennyAuctionFactory', async function(){
     const registry = await Registry.new();
     const dummyTreasury = accounts[1];
     const dummyPac = accounts[2];
+    const notPac = accounts[3];
     await registry.register("TREASURY", dummyTreasury);
     await registry.register("PENNY_AUCTION_CONTROLLER", dummyPac);
     var paf;
@@ -28,6 +29,7 @@ describe('PennyAuctionFactory', async function(){
             registry: registry.address,
             dummyTreasury: dummyTreasury,
             dummyPac: dummyPac,
+            notPac: notPac,
             paf: paf.address
         };
         createDefaultTxTester().plugins.nameAddresses(addresses);
@@ -49,12 +51,68 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: accounts[3], gas: 2000000}
+                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE}
                             )
                 )
                 .assertInvalidOpCode()
                 .start();
         });
+
+        it("should fail when not passed any values", function(){
+            return createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                INITIAL_PRIZE, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: notPac, gas: 2000000}
+                            ))
+                .assertInvalidOpCode()
+                .start();
+        });
+
+        it("should fail when passed too little", function(){
+            return createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                INITIAL_PRIZE, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE.minus(1)}
+                            ))
+                .assertInvalidOpCode()
+                .start();
+        });
+
+        it("should fail when passed too much", function(){
+            return createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                INITIAL_PRIZE, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)}
+                            ))
+                .assertInvalidOpCode()
+                .start();
+        });
+
+        it("should fail when passed invalid auction param", function(){
+           return createDefaultTxTester()
+                .doTx(() => paf.createAuction(
+                                -1, 
+                                BID_PRICE,
+                                BID_TIME_S,
+                                BID_FEE_PCT,
+                                AUCTION_TIME_S,
+                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE}
+                            ))
+                .assertInvalidOpCode()
+                .start(); 
+        })
 
         it("works when called by PennyAuctionController", async function(){
             const txRes = await createDefaultTxTester()
@@ -64,11 +122,12 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: dummyPac, gas: 2000000}
+                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
                             )
                 )
                 .assertSuccess()
                 .assertOnlyLog("AuctionCreated", {
+                    time: null,
                     addr: null,
                     initialPrize: INITIAL_PRIZE,
                     bidPrice: BID_PRICE,
@@ -80,18 +139,17 @@ describe('PennyAuctionFactory', async function(){
                 .start();
 
             const auction = PennyAuction.at(txRes.logs[0].args.addr);
+            const time = txRes.logs[0].args.time;
             createDefaultTxTester().plugins.nameAddresses({auction: auction}, false);
             console.log(`Created auction @ ${auction.address}`);
 
             await createDefaultTxTester()
-                .assertStateAsString(auction, "admin", dummyPac)
                 .assertStateAsString(auction, "collector", dummyTreasury)
                 .assertStateAsString(auction, "initialPrize", INITIAL_PRIZE)
                 .assertStateAsString(auction, "bidPrice", BID_PRICE)
                 .assertStateAsString(auction, "bidTimeS", BID_TIME_S)
                 .assertStateAsString(auction, "bidFeePct", BID_FEE_PCT)
-                .assertStateAsString(auction, "auctionTimeS", AUCTION_TIME_S)
-                .assertStateAsString(auction, "state", 0, "is PENDING")
+                .assertStateAsString(auction, "timeEnded", time.plus(AUCTION_TIME_S))
                 .start();
         });
     });
