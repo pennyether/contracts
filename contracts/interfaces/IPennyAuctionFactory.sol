@@ -3,7 +3,7 @@ pragma solidity ^0.4.0;
 contract IPennyAuctionFactory {
   function createAuction(uint _initialPrize,
 	                       uint _bidPrice,
-	                       uint _bidTimeS,
+	                       uint _bidAddBlocks,
 	                       uint _bidFeePct,
-                           uint _auctionTimeS) payable returns (address _addr);
+                           uint _initialBlocks) payable returns (address _addr);
 }

@@ -90,6 +90,7 @@ describe('PennyAuction', function() {
                     .assertStateAsString(auction, 'bidAddBlocks', BID_ADD_BLOCKS)
                     .assertStateAsString(auction, 'bidFeePct', BID_FEE_PCT)
                     .assertStateAsString(auction, 'blockEnded', INITIAL_BLOCKS.plus(blockStarted))
+                    .assertStateAsString(auction, 'isEnded', false)
                     .assertBalance(auction, INITIAL_PRIZE)
                     .start();
             });
@@ -295,37 +296,45 @@ describe('PennyAuction', function() {
         });
 
         describe("After all bidding:", function(){
+            before("Is not yet ended", async function(){
+                assert.isAbove((await auction.getBlocksRemaining()).toNumber(), 0, "More than 0 blocks left");
+                assert.strEqual((await auction.isEnded()), false, "Is not ended");
+            })
             it("Should not allow prize to be paid", async function(){
                 await ensureNotPayable("The auction has not ended.");
             });
             it("fastforward to make blocksRemaining() 0", async function(){
-                assert.isAbove((await auction.getBlocksRemaining()).toNumber(), 0, "More than 0 blocks left");
                 const numBlocks = (await auction.getBlocksRemaining()).plus(1);
                 console.log(`Mining ${numBlocks} blocks...`);
                 await testUtil.mineBlocks(numBlocks);
-                assert.strEqual(await auction.getBlocksRemaining(), 0, "Should be no blocks left");
+                
             });
             it("should not accept bids", async function(){
                 await ensureNotBiddable(nonBidder, BID_PRICE, "Cannot bid: Auction has already ended.");
             });
+            it("should have correct state", async function(){
+                await createDefaultTxTester()
+                    .assertStateAsString(auction, "isEnded", true)
+                    .assertStateAsString(auction, "getBlocksRemaining", 0)
+                    .assertStateAsString(auction, "currentWinner", bidderContract.address)
+                    .start()
+            })
         });
 
         describe(".payWinner()", function(){
             before("auction should be ended, and won by bidderContract", async function(){
-               assert.strEqual(await auction.getBlocksRemaining(), 0, "Should be no blocks left"); 
-               assert.strEqual(await auction.currentWinner(), bidderContract.address, "bidderContract is winner"); 
+                await createDefaultTxTester()
+                    .assertStateAsString(auction, "isEnded", true)
+                    .assertStateAsString(auction, "getBlocksRemaining", 0)
+                    .assertStateAsString(auction, "currentWinner", bidderContract.address)
+                    .start();
             });
             describe("With limited gas", function(){
-                it("call should return (false, 0)", async function(){
-                    const prize = await auction.prize();
-                    const res = await auction.payWinner.call(1, {from: nonBidder})
-                    assert.equal(res[0], false);
-                    assert.strEqual(res[1], 0);
-                });
                 it("tx should error", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
                     await createDefaultTxTester()
+                        .assertCallReturns([auction, "payWinner", 1, {from: nonBidder}], [false, 0])
                         .startLedger([currentWinner, auction, collector, nonBidder])
                         .doTx(() => auction.payWinner(1, {from: nonBidder}))
                         .assertSuccess()
@@ -344,17 +353,11 @@ describe('PennyAuction', function() {
                 })
             });
             describe("With unlimited gas", function(){
-                it("call should return (true, prize)", async function(){
-                    const prize = await auction.prize();
-                    const currentWinner = await auction.currentWinner();
-                    const res = await auction.payWinner.call(0, {from: nonBidder, gas: "1000000"})
-                    assert.equal(res[0], true);
-                    assert.strEqual(res[1], prize);
-                });
                 it("should pay to winner (callable by anyone)", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
                     await createDefaultTxTester()
+                        .assertCallReturns([auction, "payWinner", 0, {from: nonBidder}], [true, prize])
                         .startLedger([nonBidder, currentWinner, auction, collector])
                         .doTx(() => auction.payWinner(0, {from: nonBidder, gas: "1000000"}))
                             .assertSuccess()

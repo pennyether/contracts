@@ -385,6 +385,7 @@ function createPlugins(testUtil, ledger) {
 				if (!Array.isArray(expected) || expected.length !== expected.length)
 					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
 				result.forEach((r, i) => assert.strEqual(r, expected[i], msg));
+				console.log(`✓ ${msg}`);
 			} else {
 				assert.strEqual(result, expected, msg);
 				console.log(`✓ ${msg}`);
