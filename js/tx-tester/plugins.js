@@ -18,12 +18,24 @@ function createPlugins(testUtil, ledger) {
 		///////////////////////////////////////////////////////////////////
 
 		// Passed a function that returns a truffle-contract res object (or a promise of one)
+		// Can also be passed [contract, strFn, params]
 		// Add to ctx:
 		// 		.txRes - The returning result of execution (or undefined)
 		//      .txErr - The error, if any, from execution (or undefined)
 		//		.txPromise - Promise of the tx
 		doTx: function(fnOrPromise) {
 			const ctx = this;
+			if (Array.isArray(fnOrPromise)) {
+				const contract = fnOrPromise[0];
+				const name = fnOrPromise[1];
+				const args = fnOrPromise.slice(2);
+				const argsStr = args ? str(args) : "";
+				const msg = `${str(contract)}.${name}(${argsStr})`;
+				fnOrPromise = () => {
+					console.log(`Doing tx: ${msg}`);
+					return contract[name].apply(contract, args);
+				}
+			}
 			ctx.txPromise = testUtil.toPromise(fnOrPromise)
 				.then(res => {
 					if (res === undefined)

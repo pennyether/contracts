@@ -84,24 +84,27 @@ describe('PennyAuctionController', function(){
 
         describe(".editDefinedAuction()", async function(){
             it("Cannot edit from non-admin", async function(){
+                const callParams = [pac, "editDefinedAuction", 0].concat(DEF_0, {from: nonAdmin})
                 return createDefaultTxTester()
-                    .assertCallThrows([pac, "editDefinedAuction", 0].concat(DEF_0, {from: nonAdmin}))
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [0].concat(DEF_0, {from: nonAdmin})))
+                    .assertCallThrows(callParams)
+                    .doTx(callParams)
                     .assertInvalidOpCode()
                     .start()
             })
             it("Cannot edit with too high of an index", async function(){
+                const callParams = [pac, "editDefinedAuction", 1].concat(DEF_0, {from: admin});
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction", 1].concat(DEF_0, {from: admin}), false)
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [1].concat(DEF_0, {from: admin})))
+                    .assertCallReturns(callParams, false)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyErrorLog("Index out of bounds.")
                     .start()
             });
             it("Adds definedAuction correctly", async function(){
+                const callParams = [pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin});
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin}), true)
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [0].concat(DEF_0, {from: admin})))
+                    .assertCallReturns(callParams, true)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
                     .assertStateAsString(pac, "numDefinedAuctions", 1)
@@ -111,17 +114,19 @@ describe('PennyAuctionController', function(){
                     .start()
             });
             it("Cannot edit with too high an index", async function(){
+                const callParams = [pac, "editDefinedAuction", 2].concat(DEF_1, {from: admin});
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction", 2].concat(DEF_1, {from: admin}), false)
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [2].concat(DEF_1, {from: admin})))
+                    .assertCallReturns(callParams, false)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyErrorLog("Index out of bounds.")
                     .start()
             });
             it("Adds another definedAuction correctly", async function(){
+                const callParams = [pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin});
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin}), true)
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [1].concat(DEF_1, {from: admin})))
+                    .assertCallReturns(callParams, true)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 1})
                     .assertStateAsString(pac, "numDefinedAuctions", 2)
@@ -131,9 +136,10 @@ describe('PennyAuctionController', function(){
                     .start()
             });
             it("Adds another definedAuction correctly", async function(){
+                const callParams = [pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin});
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin}), true)
-                    .doTx(() => pac.editDefinedAuction.apply(pac, [2].concat(DEF_2, {from: admin})))
+                    .assertCallReturns(callParams, true)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 2})
                     .assertStateAsString(pac, "numDefinedAuctions", 3)
@@ -182,24 +188,27 @@ describe('PennyAuctionController', function(){
                 assert.strEqual(await pac.getIsEnabled(0), true);
             });
             it("is only callable by admin", function(){
+                const callParams = [pac, "disableDefinedAuction", 0, {from: nonAdmin}];
                 return createDefaultTxTester()
-                    .assertCallThrows([pac, "disableDefinedAuction", 0, {from: nonAdmin}])
-                    .doTx(()=> pac.disableDefinedAuction(0))
+                    .assertCallThrows(callParams)
+                    .doTx(callParams)
                     .assertInvalidOpCode()
                     .start();
             });
             it("Fails if index too high", function(){
+                const callParams = [pac, "disableDefinedAuction", 3, {from: admin}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "disableDefinedAuction", 3, {from: admin}], false)
-                    .doTx(()=> pac.disableDefinedAuction(3, {from: admin}))
+                    .assertCallReturns(callParams, false)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyErrorLog("Index out of bounds.")
                     .start();
             });
             it("Works", function(){
+                const callParams = [pac, "disableDefinedAuction", 0, {from: admin}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "disableDefinedAuction", 0, {from: admin}], true)
-                    .doTx(()=> pac.disableDefinedAuction(0, {from: admin}))
+                    .assertCallReturns(callParams, true)
+                    .doTx(callParams)
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
                     .assertAsString(() => pac.getIsEnabled(0), false,
@@ -219,10 +228,11 @@ describe('PennyAuctionController', function(){
                 assert.strEqual(await pac.getIsEnabled(2), true);
             });
             it("refunds when index out of bounds", function(){
+                const callParams = [pac, "startDefinedAuction", 3, {from: nonAdmin}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "startDefinedAuction", 3, {from: nonAdmin}], [false, NO_ADDRESS])
+                    .assertCallReturns(callParams, [false, NO_ADDRESS])
                     .startLedger([nonAdmin, pac])
-                    .doTx(() => pac.startDefinedAuction(3, {from: nonAdmin}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyErrorLog("Index out of bounds.")
                     .stopLedger()
@@ -231,10 +241,11 @@ describe('PennyAuctionController', function(){
                     .start();
             });
             it("refunds when not enabled", function(){
+                const callParams = [pac, "startDefinedAuction", 1, {from: nonAdmin}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "startDefinedAuction", 1, {from: nonAdmin}], [false, NO_ADDRESS])
+                    .assertCallReturns(callParams, [false, NO_ADDRESS])
                     .startLedger([nonAdmin, pac])
-                    .doTx(() => pac.startDefinedAuction(1, {from: nonAdmin}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyErrorLog("DefinedAuction is not enabled.")
                     .stopLedger()
@@ -243,12 +254,11 @@ describe('PennyAuctionController', function(){
                     .start();
             });
             it("refunds when incorrect value", function(){
+                const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: 1}]
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "startDefinedAuction", 0,
-                        {from: nonAdmin, value: INITIAL_PRIZE_0.plus(1)}],
-                        [false, NO_ADDRESS])
+                    .assertCallReturns(callParams, [false, NO_ADDRESS])
                     .startLedger([nonAdmin, pac])
-                    .doTx(() => pac.startDefinedAuction(0, {from: nonAdmin, value: INITIAL_PRIZE_1.plus(1)}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyErrorLog("Value sent does not match initialPrize.")
                     .stopLedger()
@@ -258,13 +268,12 @@ describe('PennyAuctionController', function(){
             });
             it("works", function(){
                 var auction;
+                const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: INITIAL_PRIZE_0}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "startDefinedAuction", 0,
-                        {from: nonAdmin, value: INITIAL_PRIZE_0}],
-                        [true, null])
+                    .assertCallReturns(callParams, [true, null])
                     .startLedger([nonAdmin, pac])
                     .startWatching([paf])
-                    .doTx(() => pac.startDefinedAuction(0, {from: nonAdmin, value: INITIAL_PRIZE_0}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyLog("AuctionStarted", {time: null, addr: null})
                     .stopLedger()
@@ -295,9 +304,11 @@ describe('PennyAuctionController', function(){
                     .start();
             });
             it("refunds when already started", function(){
+                const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: INITIAL_PRIZE_1}];
                 return createDefaultTxTester()
+                    .assertCallReturns(callParams, [false, NO_ADDRESS])
                     .startLedger([nonAdmin, pac])
-                    .doTx(() => pac.startDefinedAuction(0, {from: nonAdmin, value: INITIAL_PRIZE_1}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyErrorLog("Auction is already started.")
                     .stopLedger()
@@ -307,13 +318,12 @@ describe('PennyAuctionController', function(){
             });
             it("Starts another", function(){
                 var auction;
+                const callParams = [pac, "startDefinedAuction", 2, {from: nonAdmin, value: INITIAL_PRIZE_2}];
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "startDefinedAuction", 2,
-                        {from: nonAdmin, value: INITIAL_PRIZE_2}],
-                        [true, null])
+                    .assertCallReturns(callParams, [true, null])
                     .startLedger([nonAdmin, pac])
                     .startWatching([paf])
-                    .doTx(() => pac.startDefinedAuction(2, {from: nonAdmin, value: INITIAL_PRIZE_2}))
+                    .doTx(callParams)
                     .assertSuccess()
                         .assertOnlyLog("AuctionStarted", {time: null, addr: null})
                     .stopLedger()
