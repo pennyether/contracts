@@ -181,15 +181,11 @@ function createUtil(web3, assert){
 			return Promise.resolve().then(() => web3.eth.sendTransaction(txParams));
 		},
 
-		toPromise: function(fnOrPromise) {
-			const type = Object.prototype.toString.call(fnOrPromise);
-			if (type !== '[object Promise]' && type !== '[object Function]')
-				throw new Error(`expected a fn or promise, instead got: '${type}'`);
-
-			// convert fnOrPromise to a promise
-			return type === '[object Promise]'
-				? fnOrPromise
-				: Promise.resolve().then(fnOrPromise);
+		toPromise: function(val) {
+			const type = Object.prototype.toString.call(val);
+			return type === '[object Function]' || type === '[object AsyncFunction]'
+				? Promise.resolve(val())
+				: Promise.resolve(val);
 		}
 	}
 	return _self;

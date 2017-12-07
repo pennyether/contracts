@@ -66,7 +66,7 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: notPac, gas: 2000000}
+                                {from: dummyPac, gas: 2000000}
                             ))
                 .assertInvalidOpCode()
                 .start();
@@ -80,7 +80,7 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE.minus(1)}
+                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.minus(1)}
                             ))
                 .assertInvalidOpCode()
                 .start();
@@ -94,7 +94,7 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)}
+                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)}
                             ))
                 .assertInvalidOpCode()
                 .start();
@@ -108,7 +108,7 @@ describe('PennyAuctionFactory', async function(){
                                 BID_TIME_S,
                                 BID_FEE_PCT,
                                 AUCTION_TIME_S,
-                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE}
+                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
                             ))
                 .assertInvalidOpCode()
                 .start(); 

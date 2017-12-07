@@ -14,7 +14,7 @@ contract Registry {
 
     modifier fromOwner(){
         if (msg.sender == addresses["OWNER"]) _;
-        else RegistryError("Only callable by Treasury");
+        else RegistryError("Only callable by Owner");
     }
     
     function Registry(){

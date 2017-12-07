@@ -56,6 +56,8 @@ contract PennyAuction {
 	event BidRefundFailed(uint time, address bidder);
 	event Paid(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 	event PaymentFailed(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
+	event FeesCollected(uint time, uint amount);
+	event FeeCollectionFailed(uint time);
 
 	function PennyAuction(
 	        address _collector,
@@ -199,24 +201,22 @@ contract PennyAuction {
 	}
 	
 	/**
-	Sends the fees to the collector
+	Sends the fees to the collector, or throws
 	*/
 	function collectFees()
 	    noRentry
 	    returns (bool _success, uint _feesSent)
     {
-		if (fees == 0) {
-			Error(now, "No fees to redeem");
-			return (false, 0);
-		}
+		if (fees == 0) return(true, 0);
 
 		// attempt to send, rollback if unsuccessful
 		if (collector.call.value(fees)()) {
 			_feesSent = fees;
 			fees = 0;
+			FeesCollected(now, _feesSent);
 			return (true, _feesSent);
 		} else {
-			Error(now, "Failed to send to collector");
+			FeeCollectionFailed(now);
 			return (false, 0);
 		}
 	}

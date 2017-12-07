@@ -110,17 +110,17 @@ describe('PennyAuction', function() {
             });
             it("currentWinner cannot bid", async function(){
                 await ensureNotBiddable(bidder1, BID_PRICE, "Cannot bid: You are already the current winner.");
-            })
+            });
         });
 
         describe(".collectFees()", async function(){
             before("should have fees to redeem", async function(){
                 // fee amount was already tested in ensureBiddable()
                 assert((await auction.fees()).gt(0));
-            })
+            });
             it("fees should be redeemable", async function(){
                 await ensureFeesRedeemable();
-            })
+            });
         });
 
         describe("More Bidding...", async function(){
@@ -129,7 +129,7 @@ describe('PennyAuction', function() {
             });
             it("should allow bid by bidder3", async function(){
                 await ensureBiddable(bidder3);
-            })
+            });
         });
 
         // This is a case where three bidders enter into the same block.

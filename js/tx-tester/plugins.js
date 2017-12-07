@@ -362,10 +362,50 @@ function createPlugins(testUtil, ledger) {
 		///////////////////////////////////////////////////////////////////////
 		//////////////// MISC UTILS ///////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////
+		// does callParams[0].callParams[1].call(...callParams)
+		// and expects [expected] -- if array compares each value.
+		assertCallReturns: async function(callParams, expected, msg) {
+			const contract = callParams[0];
+			const name = callParams[1];
+			const args = callParams.slice(2);
+			const argsStr = args ? str(args) : "";
+			const expectedStr = str(expected, true);
+			msg = msg || `should equal '${expectedStr}'`;
+			msg = `${str(contract)}.${name}.call(${argsStr}) ${msg}`;
+			var result;
+			try {
+				result = await contract[name].call.apply(contract, args);
+			} catch (e) {
+				throw new Error(`Call Threw: ${msg}`);
+			}
 
+			if (Array.isArray(result)){
+				const resultStr = str(result, true);
+				if (!Array.isArray(expected) || expected.length !== expected.length)
+					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
+				result.forEach((r, i) => assert.strEqual(r, expected[i], msg));
+			} else {
+				assert.strEqual(result, expected, msg);
+				console.log(`✓ ${msg}`);
+			}
+		},
+		assertCallThrows: async function(callParams) {
+			const contract = callParams[0];
+			const name = callParams[1];
+			const args = callParams.slice(2);
+			const argsStr = args ? str(args) : "";
+			msg = `${str(contract)}.${name}.call(${argsStr}) should throw`;
+			var result;
+			try {
+				result = await contract[name].call.apply(contract, args);
+				const resultStr = str(result, true);
+				throw new Error(`${msg} -- got: ${resultStr}`)
+			} catch (e) {
+				console.log(`✓ ${msg}`);
+			}
+		},
 		// assert $contract[$name]() returns $expectedValue
 		assertStateAsString: async function(contract, name, expectedValue, msg) {
-			// todo: check that its a constant
 			msg = msg || `should equal '${str(expectedValue)}'`;
 			msg = `${at(contract)}.${name}() ${msg}`;
 			if (!contract[name])
@@ -373,25 +413,12 @@ function createPlugins(testUtil, ledger) {
 			assert.strEqual(await contract[name](), expectedValue, msg);
 			console.log(`✓ ${msg}`);
 		},
-		assertCallResult: async function(callParams, expected, msg) {
-			const contract = callParams[0];
-			const name = callParams[1];
-			const args = callParams.slice(2);
-			const result = await contract[name].call.apply(contract, args);
-
-			const argsStr = args ? str(args) : "";
-			const expectedStr = str(expected, true);
-			const resultStr = str(result, true);
-			msg = msg || `should equal '${expectedStr}'`;
-			msg = `${str(contract)}.${name}(${argsStr}) ${msg}`;
-
-			if (Array.isArray(result)){
-				if (!Array.isArray(expected) || expected.length !== expected.length)
-					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
-				result.forEach((r, i) => assert.strEqual(r, expected[i], msg));
-			} else {
-				assert.strEqual(result, expected, msg);
-			}
+		// waits for fnOrPromise, then ensures it equals expectedValue
+		assertAsString: async function(fnOrPromise, expectedValue, msg) {
+			fnOrPromise = testUtil.toPromise(fnOrPromise);
+			expectedValue = testUtil.toPromise(expectedValue);
+			msg = msg || `should equal '${str(expectedValue)}'`;
+			assert.strEqual(await fnOrPromise, await expectedValue, msg);
 			console.log(`✓ ${msg}`);
 		},
 		assertStateCloseTo: async function(contract, name, expectedValue, tolerance, msg) {
