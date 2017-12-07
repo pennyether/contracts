@@ -25,6 +25,7 @@ describe('PennyAuction', function() {
     const bidderSecond = accounts[6];
     const bidderThird = accounts[7];
     const nonBidder = accounts[8];
+    const nonAdmin = accounts[9];
 
     before("Create BidderContract", async function(){
         bidderContract = await PennyAuctionBidder.new();
@@ -333,10 +334,11 @@ describe('PennyAuction', function() {
                 it("tx should error", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
+                    const callParams = [auction, "payWinner", 1, {from: nonBidder}];
                     await createDefaultTxTester()
-                        .assertCallReturns([auction, "payWinner", 1, {from: nonBidder}], [false, 0])
+                        .assertCallReturns(callParams, [false, 0])
                         .startLedger([currentWinner, auction, collector, nonBidder])
-                        .doTx(() => auction.payWinner(1, {from: nonBidder}))
+                        .doTx(callParams)
                         .assertSuccess()
                         .assertOnlyLog("PaymentFailure", {
                             time: null,
@@ -356,10 +358,11 @@ describe('PennyAuction', function() {
                 it("should pay to winner (callable by anyone)", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
+                    const callParams = [auction, "payWinner", 0, {from: nonBidder}];
                     await createDefaultTxTester()
-                        .assertCallReturns([auction, "payWinner", 0, {from: nonBidder}], [true, prize])
+                        .assertCallReturns(callParams, [true, prize])
                         .startLedger([nonBidder, currentWinner, auction, collector])
-                        .doTx(() => auction.payWinner(0, {from: nonBidder, gas: "1000000"}))
+                        .doTx(callParams)
                             .assertSuccess()
                             .assertOnlyLog("PaymentSuccess", {
                                 time: null,
@@ -449,18 +452,19 @@ describe('PennyAuction', function() {
         const prize = await auction.isPaid()
             ? 0
             : await auction.prize();
+        const callParams = [auction, 'collectFees', {from: nonAdmin}];
         
         return createDefaultTxTester()
-            .assertCallReturns([auction, 'collectFees'], [true, expectedFees])
-            .startLedger([collector, auction, admin])
-            .doTx(() => auction.collectFees({from: admin}))
+            .assertCallReturns(callParams, [true, expectedFees])
+            .startLedger([collector, auction, nonAdmin])
+            .doTx(callParams)
             .assertSuccess()
                 .assertStateAsString(auction, 'fees', 0, 'should be zero')
                 .assertOnlyLog("FeeCollectionSuccess", {time: null, amount: null})
             .stopLedger()
                 .assertDelta(collector, expectedFees, 'got fees')
                 .assertDelta(auction, expectedFees.mul(-1), 'lost fees')
-                .assertLostTxFee(admin)
+                .assertLostTxFee(nonAdmin)
                 .assertBalance(auction, prize, `should be the prize (${prize})`)
             .start();
     }
@@ -468,14 +472,11 @@ describe('PennyAuction', function() {
     async function ensureNotPayable(errorMsg) {
         // test that call returns (false, 0)
         const caller = admin;
-        const res = await auction.payWinner.call(false);
-        assert.equal(res[0], false);
-        assert.strEqual(res[1], 0);
-        console.log("✓ auction.payWinner.call() returns (false, 0)");
-
+        const callParams = [auction, "payWinner", false, {from: admin}];
         return createDefaultTxTester()
+            .assertCallReturns(callParams, [false, 0])
             .startLedger([auction, caller])
-            .doTx(() => auction.payWinner(false))
+            .doTx(callParams)
             .assertSuccess()
                 .assertOnlyErrorLog(errorMsg)
             .stopLedger()
