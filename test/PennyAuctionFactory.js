@@ -8,9 +8,9 @@ const BigNumber = web3.toBigNumber(0).constructor;
 
 const INITIAL_PRIZE  = new BigNumber(.05e18);
 const BID_PRICE      = new BigNumber(.001e18);
-const BID_TIME_S     = new BigNumber(600);
+const BID_ADD_BLOCKS = new BigNumber(2);
 const BID_FEE_PCT    = new BigNumber(60);
-const AUCTION_TIME_S = new BigNumber(60*60*12);
+const INITIAL_BLOCKS = new BigNumber(5);
 
 const accounts = web3.eth.accounts;
 
@@ -48,9 +48,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 INITIAL_PRIZE, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: notPac, gas: 2000000, value: INITIAL_PRIZE}
                             )
                 )
@@ -63,9 +63,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 INITIAL_PRIZE, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: dummyPac, gas: 2000000}
                             ))
                 .assertInvalidOpCode()
@@ -77,9 +77,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 INITIAL_PRIZE, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.minus(1)}
                             ))
                 .assertInvalidOpCode()
@@ -91,9 +91,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 INITIAL_PRIZE, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)}
                             ))
                 .assertInvalidOpCode()
@@ -105,9 +105,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 -1, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
                             ))
                 .assertInvalidOpCode()
@@ -119,9 +119,9 @@ describe('PennyAuctionFactory', async function(){
                 .doTx(() => paf.createAuction(
                                 INITIAL_PRIZE, 
                                 BID_PRICE,
-                                BID_TIME_S,
+                                BID_ADD_BLOCKS,
                                 BID_FEE_PCT,
-                                AUCTION_TIME_S,
+                                INITIAL_BLOCKS,
                                 {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
                             )
                 )
@@ -131,15 +131,15 @@ describe('PennyAuctionFactory', async function(){
                     addr: null,
                     initialPrize: INITIAL_PRIZE,
                     bidPrice: BID_PRICE,
-                    bidTimeS: BID_TIME_S,
+                    bidAddBlocks: BID_ADD_BLOCKS,
                     bidFeePct: BID_FEE_PCT,
-                    auctionTimeS:AUCTION_TIME_S
+                    initialBlocks: INITIAL_BLOCKS
                 })
                 .getTxResult()
                 .start();
 
             const auction = PennyAuction.at(txRes.logs[0].args.addr);
-            const time = txRes.logs[0].args.time;
+            const block = txRes.receipt.blockNumber;
             createDefaultTxTester().plugins.nameAddresses({auction: auction}, false);
             console.log(`Created auction @ ${auction.address}`);
 
@@ -147,9 +147,9 @@ describe('PennyAuctionFactory', async function(){
                 .assertStateAsString(auction, "collector", dummyTreasury)
                 .assertStateAsString(auction, "initialPrize", INITIAL_PRIZE)
                 .assertStateAsString(auction, "bidPrice", BID_PRICE)
-                .assertStateAsString(auction, "bidTimeS", BID_TIME_S)
+                .assertStateAsString(auction, "bidAddBlocks", BID_ADD_BLOCKS)
                 .assertStateAsString(auction, "bidFeePct", BID_FEE_PCT)
-                .assertStateAsString(auction, "timeEnded", time.plus(AUCTION_TIME_S))
+                .assertStateAsString(auction, "blockEnded", INITIAL_BLOCKS.plus(block))
                 .start();
         });
     });
