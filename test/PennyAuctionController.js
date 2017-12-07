@@ -14,6 +14,7 @@ const BID_PRICE_0      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_0 = new BigNumber(4);
 const BID_FEE_PCT_0    = new BigNumber(60);
 const INITIAL_BLOCKS_0 = new BigNumber(10);
+const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_ADD_BLOCKS_0, BID_FEE_PCT_0, INITIAL_BLOCKS_0];
 
 const SUMMARY_1        = "Second Auction";
 const INITIAL_PRIZE_1  = new BigNumber(.04e18);
@@ -21,6 +22,7 @@ const BID_PRICE_1      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_1 = new BigNumber(3);
 const BID_FEE_PCT_1    = new BigNumber(30);
 const INITIAL_BLOCKS_1 = new BigNumber(5);
+const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_ADD_BLOCKS_1, BID_FEE_PCT_1, INITIAL_BLOCKS_1];
 
 const SUMMARY_2        = "Third Auction";
 const INITIAL_PRIZE_2  = new BigNumber(.03e18);
@@ -28,6 +30,7 @@ const BID_PRICE_2      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_2 = new BigNumber(5);
 const BID_FEE_PCT_2    = new BigNumber(30);
 const INITIAL_BLOCKS_2 = new BigNumber(7);
+const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_ADD_BLOCKS_2, BID_FEE_PCT_2, INITIAL_BLOCKS_2];
 
 const accounts = web3.eth.accounts;
 const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -82,190 +85,61 @@ describe('PennyAuctionController', function(){
         describe(".editDefinedAuction()", async function(){
             it("Cannot edit from non-admin", async function(){
                 return createDefaultTxTester()
-                    .assertCallThrows([pac, "editDefinedAuction",
-                        0,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: nonAdmin}
-                    ])
-                    .doTx(() => pac.editDefinedAuction(
-                        0,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: nonAdmin}
-                    ))
+                    .assertCallThrows([pac, "editDefinedAuction", 0].concat(DEF_0, {from: nonAdmin}))
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [0].concat(DEF_0, {from: nonAdmin})))
                     .assertInvalidOpCode()
                     .start()
             })
             it("Cannot edit with too high of an index", async function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction",
-                        1,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: admin}
-                    ], false)
-                    .doTx(() => pac.editDefinedAuction(
-                        1,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: admin}
-                    ))
+                    .assertCallReturns([pac, "editDefinedAuction", 1].concat(DEF_0, {from: admin}), false)
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [1].concat(DEF_0, {from: admin})))
                     .assertSuccess()
                     .assertOnlyErrorLog("Index out of bounds.")
                     .start()
             });
             it("Adds definedAuction correctly", async function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction",
-                        0,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: admin}
-                    ], true)
-                    .doTx(() => pac.editDefinedAuction(
-                        0,
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                        {from: admin}
-                    ))
+                    .assertCallReturns([pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin}), true)
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [0].concat(DEF_0, {from: admin})))
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
                     .assertStateAsString(pac, "numDefinedAuctions", 1)
                     .assertCallReturns([pac, "definedAuctions", 0], [
                         false,
-                        "0x0000000000000000000000000000000000000000",
-                        SUMMARY_0,
-                        INITIAL_PRIZE_0,
-                        BID_PRICE_0,
-                        BID_ADD_BLOCKS_0,
-                        BID_FEE_PCT_0,
-                        INITIAL_BLOCKS_0,
-                    ])
+                        "0x0000000000000000000000000000000000000000"].concat(DEF_0))
                     .start()
             });
             it("Cannot edit with too high an index", async function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction",
-                        2,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_ADD_BLOCKS_1,
-                        BID_FEE_PCT_1,
-                        INITIAL_BLOCKS_1, 
-                        {from: admin}
-                    ], false)
-                    .doTx(() => pac.editDefinedAuction(
-                        2,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_ADD_BLOCKS_1,
-                        BID_FEE_PCT_1,
-                        INITIAL_BLOCKS_1, 
-                        {from: admin}
-                    ))
+                    .assertCallReturns([pac, "editDefinedAuction", 2].concat(DEF_1, {from: admin}), false)
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [2].concat(DEF_1, {from: admin})))
                     .assertSuccess()
                     .assertOnlyErrorLog("Index out of bounds.")
                     .start()
             });
             it("Adds another definedAuction correctly", async function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction",
-                        1,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_ADD_BLOCKS_1,
-                        BID_FEE_PCT_1,
-                        INITIAL_BLOCKS_1, 
-                        {from: admin}
-                    ], true)
-                    .doTx(() => pac.editDefinedAuction(
-                        1,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_ADD_BLOCKS_1,
-                        BID_FEE_PCT_1,
-                        INITIAL_BLOCKS_1, 
-                        {from: admin}
-                    ))
+                    .assertCallReturns([pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin}), true)
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [1].concat(DEF_1, {from: admin})))
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 1})
                     .assertStateAsString(pac, "numDefinedAuctions", 2)
                     .assertCallReturns([pac, "definedAuctions", 1], [
                         false,
-                        "0x0000000000000000000000000000000000000000",
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_ADD_BLOCKS_1,
-                        BID_FEE_PCT_1,
-                        INITIAL_BLOCKS_1, 
-                    ])
+                        "0x0000000000000000000000000000000000000000"].concat(DEF_1))
                     .start()
             });
             it("Adds another definedAuction correctly", async function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([pac, "editDefinedAuction",
-                        2,
-                        SUMMARY_2,
-                        INITIAL_PRIZE_2,
-                        BID_PRICE_2,
-                        BID_ADD_BLOCKS_2,
-                        BID_FEE_PCT_2,
-                        INITIAL_BLOCKS_2, 
-                        {from: admin}
-                    ], true)
-                    .doTx(() => pac.editDefinedAuction(
-                        2,
-                        SUMMARY_2,
-                        INITIAL_PRIZE_2,
-                        BID_PRICE_2,
-                        BID_ADD_BLOCKS_2,
-                        BID_FEE_PCT_2,
-                        INITIAL_BLOCKS_2, 
-                        {from: admin}
-                    ))
+                    .assertCallReturns([pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin}), true)
+                    .doTx(() => pac.editDefinedAuction.apply(pac, [2].concat(DEF_2, {from: admin})))
                     .assertSuccess()
                     .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 2})
                     .assertStateAsString(pac, "numDefinedAuctions", 3)
                     .assertCallReturns([pac, "definedAuctions", 2], [
                         false,
-                        "0x0000000000000000000000000000000000000000",
-                        SUMMARY_2,
-                        INITIAL_PRIZE_2,
-                        BID_PRICE_2,
-                        BID_ADD_BLOCKS_2,
-                        BID_FEE_PCT_2,
-                        INITIAL_BLOCKS_2, 
-                    ])
+                        "0x0000000000000000000000000000000000000000"].concat(DEF_2))
                     .start()
             });
         });
