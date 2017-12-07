@@ -11,16 +11,16 @@ const BigNumber = web3.toBigNumber(0).constructor;
 const SUMMARY_0        = "First Auction";
 const INITIAL_PRIZE_0  = new BigNumber(.05e18);
 const BID_PRICE_0      = new BigNumber(.001e18);
-const BID_TIME_S_0     = new BigNumber(600);
+const BID_ADD_BLOCKS_0 = new BigNumber(4);
 const BID_FEE_PCT_0    = new BigNumber(60);
-const AUCTION_TIME_S_0 = new BigNumber(60*60*12);
+const INITIAL_BLOCKS_0 = new BigNumber(10);
 
 const SUMMARY_1        = "Second Auction";
 const INITIAL_PRIZE_1  = new BigNumber(.04e18);
 const BID_PRICE_1      = new BigNumber(.001e18);
-const BID_TIME_S_1     = new BigNumber(500);
-const BID_FEE_PCT_1    = new BigNumber(50);
-const AUCTION_TIME_S_1 = new BigNumber(60*60*10);
+const BID_ADD_BLOCKS_1 = new BigNumber(3);
+const BID_FEE_PCT_1    = new BigNumber(30);
+const INITIAL_BLOCKS_1 = new BigNumber(5);
 
 const accounts = web3.eth.accounts;
 
@@ -79,9 +79,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_0,
                         INITIAL_PRIZE_0,
                         BID_PRICE_0,
-                        BID_TIME_S_0,
+                        BID_ADD_BLOCKS_0,
                         BID_FEE_PCT_0,
-                        AUCTION_TIME_S_0,
+                        INITIAL_BLOCKS_0,
                         {from: nonAdmin}
                     ])
                     .doTx(() => pac.editDefinedAuction(
@@ -89,9 +89,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_0,
                         INITIAL_PRIZE_0,
                         BID_PRICE_0,
-                        BID_TIME_S_0,
+                        BID_ADD_BLOCKS_0,
                         BID_FEE_PCT_0,
-                        AUCTION_TIME_S_0,
+                        INITIAL_BLOCKS_0,
                         {from: nonAdmin}
                     ))
                     .assertInvalidOpCode()
@@ -101,22 +101,22 @@ describe('PennyAuctionController', function(){
                 return createDefaultTxTester()
                     .assertCallReturns([pac, "editDefinedAuction",
                         1,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_TIME_S_1,
-                        BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1,
+                        SUMMARY_0,
+                        INITIAL_PRIZE_0,
+                        BID_PRICE_0,
+                        BID_ADD_BLOCKS_0,
+                        BID_FEE_PCT_0,
+                        INITIAL_BLOCKS_0,
                         {from: admin}
                     ], false)
                     .doTx(() => pac.editDefinedAuction(
                         1,
-                        SUMMARY_1,
-                        INITIAL_PRIZE_1,
-                        BID_PRICE_1,
-                        BID_TIME_S_1,
-                        BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1,
+                        SUMMARY_0,
+                        INITIAL_PRIZE_0,
+                        BID_PRICE_0,
+                        BID_ADD_BLOCKS_0,
+                        BID_FEE_PCT_0,
+                        INITIAL_BLOCKS_0,
                         {from: admin}
                     ))
                     .assertSuccess()
@@ -130,9 +130,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_0,
                         INITIAL_PRIZE_0,
                         BID_PRICE_0,
-                        BID_TIME_S_0,
+                        BID_ADD_BLOCKS_0,
                         BID_FEE_PCT_0,
-                        AUCTION_TIME_S_0,
+                        INITIAL_BLOCKS_0,
                         {from: admin}
                     ], true)
                     .doTx(() => pac.editDefinedAuction(
@@ -140,9 +140,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_0,
                         INITIAL_PRIZE_0,
                         BID_PRICE_0,
-                        BID_TIME_S_0,
+                        BID_ADD_BLOCKS_0,
                         BID_FEE_PCT_0,
-                        AUCTION_TIME_S_0,
+                        INITIAL_BLOCKS_0,
                         {from: admin}
                     ))
                     .assertSuccess()
@@ -154,9 +154,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_0,
                         INITIAL_PRIZE_0,
                         BID_PRICE_0,
-                        BID_TIME_S_0,
+                        BID_ADD_BLOCKS_0,
                         BID_FEE_PCT_0,
-                        AUCTION_TIME_S_0
+                        INITIAL_BLOCKS_0,
                     ])
                     .start()
             });
@@ -167,9 +167,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_1,
                         INITIAL_PRIZE_1,
                         BID_PRICE_1,
-                        BID_TIME_S_1,
+                        BID_ADD_BLOCKS_1,
                         BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1, 
+                        INITIAL_BLOCKS_1, 
                         {from: admin}
                     ], false)
                     .doTx(() => pac.editDefinedAuction(
@@ -177,9 +177,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_1,
                         INITIAL_PRIZE_1,
                         BID_PRICE_1,
-                        BID_TIME_S_1,
+                        BID_ADD_BLOCKS_1,
                         BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1, 
+                        INITIAL_BLOCKS_1, 
                         {from: admin}
                     ))
                     .assertSuccess()
@@ -193,9 +193,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_1,
                         INITIAL_PRIZE_1,
                         BID_PRICE_1,
-                        BID_TIME_S_1,
+                        BID_ADD_BLOCKS_1,
                         BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1,
+                        INITIAL_BLOCKS_1, 
                         {from: admin}
                     ], true)
                     .doTx(() => pac.editDefinedAuction(
@@ -203,9 +203,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_1,
                         INITIAL_PRIZE_1,
                         BID_PRICE_1,
-                        BID_TIME_S_1,
+                        BID_ADD_BLOCKS_1,
                         BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1,
+                        INITIAL_BLOCKS_1, 
                         {from: admin}
                     ))
                     .assertSuccess()
@@ -217,9 +217,9 @@ describe('PennyAuctionController', function(){
                         SUMMARY_1,
                         INITIAL_PRIZE_1,
                         BID_PRICE_1,
-                        BID_TIME_S_1,
+                        BID_ADD_BLOCKS_1,
                         BID_FEE_PCT_1,
-                        AUCTION_TIME_S_1
+                        INITIAL_BLOCKS_1, 
                     ])
                     .start()
             });
@@ -346,9 +346,9 @@ describe('PennyAuctionController', function(){
                             addr: null,
                             initialPrize: INITIAL_PRIZE_1,
                             bidPrice: BID_PRICE_1,
-                            bidTimeS: BID_TIME_S_1,
+                            bidAddBlocks: BID_ADD_BLOCKS_1,
                             bidFeePct: BID_FEE_PCT_1,
-                            auctionTimeS: AUCTION_TIME_S_1
+                            initialBlocks: INITIAL_BLOCKS_1
                         })
                     .doFn(() => pac.getAuction(1).then(addr => { auction = PennyAuction.at(addr); }))
                         .assertAsString(() => pac.getAuction(1), () => auction.address,
@@ -357,8 +357,8 @@ describe('PennyAuctionController', function(){
                             "created auction has correct initialPrize")
                         .assertAsString(() => auction.bidPrice(), BID_PRICE_1,
                             "created auction has correct bidPrice")
-                        .assertAsString(() => auction.bidTimeS(), BID_TIME_S_1,
-                            "created auction has correct bidTimeS")
+                        .assertAsString(() => auction.bidAddBlocks(), BID_ADD_BLOCKS_1,
+                            "created auction has correct biddAddBlocks")
                         .assertAsString(() => auction.bidFeePct(), BID_FEE_PCT_1,
                             "created auction has correct bidFeePct")
                         .assertAsString(() => auction.currentWinner(), treasury.address,
