@@ -8,14 +8,14 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 
 const INITIAL_PRIZE  = new BigNumber(.05e18);
 const BID_PRICE      = new BigNumber(.001e18);
-const BID_TIME_S     = new BigNumber(600);
+const BID_ADD_BLOCKS = new BigNumber(5);
 const BID_FEE_PCT    = new BigNumber(60);
-const AUCTION_TIME_S = new BigNumber(60*60*12);
+const INITIAL_BLOCKS = new BigNumber(5);
 
 const accounts = web3.eth.accounts;
 
 describe('PennyAuction', function() {
-    var auction, bidderContract, timeStarted;
+    var auction, bidderContract, blockStarted;
     const admin = accounts[0];
     const collector = accounts[1];
     const bidder1 = accounts[2];
@@ -36,7 +36,7 @@ describe('PennyAuction', function() {
         it("Fails when too little funds are sent", function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S,
+                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE.minus(1)}))
                 .assertInvalidOpCode()
                 .start();
@@ -44,7 +44,7 @@ describe('PennyAuction', function() {
         it("Fails when too much funds are sent", function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S,
+                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE.plus(1)}))
                 .assertInvalidOpCode()
                 .start();
@@ -55,13 +55,13 @@ describe('PennyAuction', function() {
         before("Can be created", async function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_TIME_S, BID_FEE_PCT, AUCTION_TIME_S,
+                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE}))
                 .assertSuccess("Created auction")
-                    .assertOnlyLog("Started", {time: null, auctionTimeS: null})
+                    .assertOnlyLog("Started", {time: null, initialBlocks: null})
                 .doFn(ctx => {
                     auction = ctx.txRes.contract;
-                    timeStarted = ctx.txRes.logs[0].args.time;
+                    blockStarted = ctx.txRes.receipt.blockNumber;
                     const addresses = {
                         admin: admin,
                         collector: collector,
@@ -87,9 +87,9 @@ describe('PennyAuction', function() {
                     .assertStateAsString(auction, 'collector', collector)
                     .assertStateAsString(auction, 'initialPrize', INITIAL_PRIZE)
                     .assertStateAsString(auction, 'bidPrice', BID_PRICE)
-                    .assertStateAsString(auction, 'bidTimeS', BID_TIME_S)
+                    .assertStateAsString(auction, 'bidAddBlocks', BID_ADD_BLOCKS)
                     .assertStateAsString(auction, 'bidFeePct', BID_FEE_PCT)
-                    .assertStateAsString(auction, 'timeEnded', AUCTION_TIME_S.plus(timeStarted))
+                    .assertStateAsString(auction, 'blockEnded', INITIAL_BLOCKS.plus(blockStarted))
                     .assertBalance(auction, INITIAL_PRIZE)
                     .start();
             });
@@ -140,7 +140,7 @@ describe('PennyAuction', function() {
             const newPrize = (await auction.prize()).add(prizeIncr);
             const newFees = (await auction.fees()).add(fee);
             const newNumBids = (await auction.numBids()).add(1);
-            const newTimeEnded = (await auction.timeEnded()).add(BID_TIME_S);
+            const newBlockEnded = (await auction.blockEnded()).add(BID_ADD_BLOCKS);
 
             var tx1, tx2, tx3;
             var tx1fee, tx2fee, tx3fee;
@@ -155,7 +155,7 @@ describe('PennyAuction', function() {
                 .wait(100, "Stopped mining, queued both tx1, tx2, and tx3")
                 .doFn(() => {
                     console.log("Mining block now...");
-                    testUtil.mineBlock();
+                    testUtil.mineBlocks(1);
                     testUtil.startMining();
                     return Promise.all([tx1, tx2, tx3]).then((arr)=>{
                         const tx1res = arr[0];
@@ -184,17 +184,17 @@ describe('PennyAuction', function() {
                 .doTx(() => tx2)
                     .assertSuccess("Second Bidder")
                     .assertLogCount(2)
-                    .assertLog('BidRefunded', {bidder: bidderFirst, time: null})
+                    .assertLog('BidRefundSuccess', {bidder: bidderFirst, time: null})
                     .assertLog('BidOccurred', {bidder: bidderSecond, time: null})
                 .doTx(() => tx3)
                     .assertSuccess("Third Bidder")
                     .assertLogCount(2)
-                    .assertLog('BidRefunded', {bidder: bidderSecond, time: null})
+                    .assertLog('BidRefundSuccess', {bidder: bidderSecond, time: null})
                     .assertLog('BidOccurred', {bidder: bidderThird, time: null})
                     .assertStateAsString(auction, 'prize', newPrize, "is incremented only once")
                     .assertStateAsString(auction, 'fees', newFees, "is incremented only once")
                     .assertStateAsString(auction, 'numBids', newNumBids, "is incremented only once")
-                    .assertStateAsString(auction, 'timeEnded', newTimeEnded, "is incremented only once")
+                    .assertStateAsString(auction, 'blockEnded', newBlockEnded, "is incremented only once")
                 .stopLedger()
                     .assertDelta(bidderFirst, ()=>tx1fee.mul(-1), "lost txFee (but got refunded)")
                     .assertDelta(bidderSecond, ()=>tx2fee.mul(-1), "lost txFee (but got refunded)")
@@ -211,7 +211,7 @@ describe('PennyAuction', function() {
             const newPrize = (await auction.prize()).add(prizeIncr.mul(2));
             const newFees = (await auction.fees()).add(fee.mul(2));
             const newNumBids = (await auction.numBids()).add(2);
-            const newTimeEnded = (await auction.timeEnded()).add(BID_TIME_S);
+            const newBlockEnded = (await auction.blockEnded()).add(BID_ADD_BLOCKS);
 
             var tx1, tx2;
             var tx1fee, tx2fee;
@@ -225,7 +225,7 @@ describe('PennyAuction', function() {
                 .wait(100, "Stopped mining, queued both tx1 and tx2.")
                 .doFn(() => {
                     console.log("Mining block now...");
-                    testUtil.mineBlock();
+                    testUtil.mineBlocks(1);
                     testUtil.startMining();
                     return Promise.all([tx1, tx2]).then((arr)=>{
                         const tx1res = arr[0];
@@ -251,12 +251,12 @@ describe('PennyAuction', function() {
                 .doTx(() => tx2)
                     .assertSuccess("Second Bidder")
                     .assertLogCount(2)
-                    .assertLog('BidRefundFailed', {time: null, bidder: bidderContract.address})
+                    .assertLog('BidRefundFailure', {time: null, bidder: bidderContract.address})
                     .assertLog('BidOccurred', {time: null, bidder: bidderSecond})
                     .assertStateAsString(auction, 'prize', newPrize, "is incremented twice")
                     .assertStateAsString(auction, 'fees', newFees, "is incremented twice")
                     .assertStateAsString(auction, 'numBids', newNumBids, "is incremented twice")
-                    .assertStateAsString(auction, 'timeEnded', newTimeEnded, "is incremented only once")
+                    .assertStateAsString(auction, 'blockEnded', newBlockEnded, "is incremented only once")
                 .stopLedger()
                     .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
                     .assertDelta(bidderSecond, ()=>BID_PRICE.plus(tx2fee).mul(-1), "lost bid+txFee")
@@ -273,7 +273,7 @@ describe('PennyAuction', function() {
                 const newPrize = (await auction.prize()).add(prizeIncr);
                 const newFees = (await auction.fees()).add(fee);
                 const newNumBids = (await auction.numBids()).add(1);
-                const newTimeEnded = (await auction.timeEnded()).add(BID_TIME_S);
+                const newBlockEnded = (await auction.blockEnded()).add(BID_ADD_BLOCKS);
 
                 await createDefaultTxTester()
                     .startLedger([bidderContract, auction])
@@ -284,7 +284,7 @@ describe('PennyAuction', function() {
                         .assertStateAsString(auction, 'fees', newFees, "increased by feeIncr")
                         .assertStateAsString(auction, 'currentWinner', bidderContract.address, "is new currentWinner")
                         .assertStateAsString(auction, 'numBids', newNumBids, "increased by 1")
-                        .assertStateAsString(auction, 'timeEnded', newTimeEnded, "increased by bidTimeS")
+                        .assertStateAsString(auction, 'blockEnded', newBlockEnded, "increased by bidAddBlocks")
                     .stopLedger()
                         .assertDelta(auction, BID_PRICE, "increased by BID_PRICE")
                         .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
@@ -298,10 +298,12 @@ describe('PennyAuction', function() {
             it("Should not allow prize to be paid", async function(){
                 await ensureNotPayable("The auction has not ended.");
             });
-            it("fastforward to make timeRemaining() 0", async function(){
-                assert.isAbove((await auction.getTimeRemaining()).toNumber(), 0, "More than 0 timeRemaining");
-                await testUtil.fastForward((await auction.getTimeRemaining()).plus(1));
-                assert.strEqual(await auction.getTimeRemaining(), 0, "Should be no time left");
+            it("fastforward to make blocksRemaining() 0", async function(){
+                assert.isAbove((await auction.getBlocksRemaining()).toNumber(), 0, "More than 0 blocks left");
+                const numBlocks = (await auction.getBlocksRemaining()).plus(1);
+                console.log(`Mining ${numBlocks} blocks...`);
+                await testUtil.mineBlocks(numBlocks);
+                assert.strEqual(await auction.getBlocksRemaining(), 0, "Should be no blocks left");
             });
             it("should not accept bids", async function(){
                 await ensureNotBiddable(nonBidder, BID_PRICE, "Cannot bid: Auction has already ended.");
@@ -310,7 +312,7 @@ describe('PennyAuction', function() {
 
         describe(".payWinner()", function(){
             before("auction should be ended, and won by bidderContract", async function(){
-               assert.strEqual(await auction.getTimeRemaining(), 0, "Should be no time left"); 
+               assert.strEqual(await auction.getBlocksRemaining(), 0, "Should be no blocks left"); 
                assert.strEqual(await auction.currentWinner(), bidderContract.address, "bidderContract is winner"); 
             });
             describe("With limited gas", function(){
@@ -327,7 +329,7 @@ describe('PennyAuction', function() {
                         .startLedger([currentWinner, auction, collector, nonBidder])
                         .doTx(() => auction.payWinner(1, {from: nonBidder}))
                         .assertSuccess()
-                        .assertOnlyLog("PaymentFailed", {
+                        .assertOnlyLog("PaymentFailure", {
                             time: null,
                             redeemer: nonBidder,
                             recipient: currentWinner,
@@ -356,7 +358,7 @@ describe('PennyAuction', function() {
                         .startLedger([nonBidder, currentWinner, auction, collector])
                         .doTx(() => auction.payWinner(0, {from: nonBidder, gas: "1000000"}))
                             .assertSuccess()
-                            .assertOnlyLog("Paid", {
+                            .assertOnlyLog("PaymentSuccess", {
                                 time: null,
                                 redeemer: nonBidder,
                                 recipient: currentWinner,
@@ -400,7 +402,7 @@ describe('PennyAuction', function() {
         const newPrize = (await auction.prize()).add(prizeIncr);
         const newFees = (await auction.fees()).add(fee);
         const newNumBids = (await auction.numBids()).add(1);
-        const newTimeEnded = (await auction.timeEnded()).add(BID_TIME_S);
+        const newBlockEnded = (await auction.blockEnded()).add(BID_ADD_BLOCKS);
 
         await createDefaultTxTester()
             .startLedger([bidder, auction])
@@ -411,7 +413,7 @@ describe('PennyAuction', function() {
                 .assertStateAsString(auction, 'fees', newFees, "increased by feeIncr")
                 .assertStateAsString(auction, 'currentWinner', bidder, "is new currentWinner")
                 .assertStateAsString(auction, 'numBids', newNumBids, "increased by 1")
-                .assertStateAsString(auction, 'timeEnded', newTimeEnded, "increased by bidTimeS")
+                .assertStateAsString(auction, 'blockEnded', newBlockEnded, "increased by bidAddBlocks")
             .stopLedger()
                 .assertDelta(auction, BID_PRICE, "increased by bidPrice")
                 .assertDeltaMinusTxFee(bidder, BID_PRICE.mul(-1), "decreased by BID_PRICE and txFee")
@@ -423,7 +425,7 @@ describe('PennyAuction', function() {
         const prevPrize = await auction.prize();
         const prevFees = await auction.fees();
         const prevNumBids = await auction.numBids();
-        const prevTimeEnded = await auction.timeEnded();
+        const prevBlockEnded = await auction.blockEnded();
         return createDefaultTxTester()
             .startLedger([bidder, auction])
             .doTx(() => auction.sendTransaction({from: bidder, value: bidAmt}))
@@ -432,7 +434,7 @@ describe('PennyAuction', function() {
                 .assertStateAsString(auction, 'prize', prevPrize, 'not incremented')
                 .assertStateAsString(auction, 'fees', prevFees, 'not incremented')
                 .assertStateAsString(auction, 'numBids', prevNumBids, 'not incremented')
-                .assertStateAsString(auction, 'timeEnded', prevTimeEnded, 'not incremented')
+                .assertStateAsString(auction, 'blockEnded', prevBlockEnded, 'not incremented')
             .stopLedger()
                 .assertLostTxFee(bidder)
                 .assertNoDelta(auction)
@@ -444,18 +446,14 @@ describe('PennyAuction', function() {
         const prize = await auction.isPaid()
             ? 0
             : await auction.prize();
-
-        // test that call returns (true, fees)
-        const res = await auction.collectFees.call({from: admin});
-        assert.equal(res[0], true);
-        assert.strEqual(res[1], await auction.fees())
-        console.log("auction.redeemFees.call() returns (true, fees)");
         
         return createDefaultTxTester()
+            .assertCallReturns([auction, 'collectFees'], [true, expectedFees])
             .startLedger([collector, auction, admin])
             .doTx(() => auction.collectFees({from: admin}))
             .assertSuccess()
                 .assertStateAsString(auction, 'fees', 0, 'should be zero')
+                .assertOnlyLog("FeeCollectionSuccess", {time: null, amount: null})
             .stopLedger()
                 .assertDelta(collector, expectedFees, 'got fees')
                 .assertDelta(auction, expectedFees.mul(-1), 'lost fees')

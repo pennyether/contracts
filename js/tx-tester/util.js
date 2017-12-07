@@ -119,13 +119,20 @@ function createUtil(web3, assert){
 	            id: new Date().getTime()
 	        });
 		},
-		mineBlock: function(){
-			web3.currentProvider.send({
-	            jsonrpc: "2.0",
-	            method: "evm_mine",
-	            params: null,
-	            id: new Date().getTime()
-	        });
+		mineBlocks: function(numBlocks){
+			if (numBlocks===undefined) numBlocks = 1;
+			if (numBlocks.toNumber) numBlocks = numBlocks.toNumber();
+			if (!Number.isInteger(numBlocks))
+				throw new Error("Passed a non-number: " + numBlocks);
+
+			for (var i=0; i<numBlocks; i++){
+				web3.currentProvider.send({
+		            jsonrpc: "2.0",
+		            method: "evm_mine",
+		            params: null,
+		            id: new Date().getTime()
+		        });
+			}
 		},
 
 		getBlockNumber: function() {

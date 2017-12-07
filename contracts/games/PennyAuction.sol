@@ -32,13 +32,12 @@ contract PennyAuction {
 	uint public initialPrize;		// amt initially staked
 	uint public bidPrice;			// cost to become the current winner
 	uint public bidFeePct;			// amt of bid that gets kept as fees
-	uint public bidTimeS;	        // amt of time auction is extended
-    uint public timeStarted;		// time auction started
+	uint public bidAddBlocks;	    // number of blocks auction is extended
 
 	uint public prize;				// current prize
 	address public currentWinner;	// address of last bidder
-	uint public currentBlock;		// block of the last bid
-	uint public timeEnded;		    // the time at which no further bids can occur
+	uint public lastBidBlock;		// block of the last bid
+	uint public blockEnded;		    // the time at which no further bids can occur
 
 	uint public numBids;			// total number of bids
 	uint public fees;				// current fees collectable
@@ -50,47 +49,46 @@ contract PennyAuction {
 	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
 
 	event Error(uint time, string msg);
-	event Started(uint time, uint auctionTimeS);
+	event Started(uint time, uint initialBlocks);
 	event BidOccurred(uint time, address bidder);
-	event BidRefunded(uint time, address bidder);
-	event BidRefundFailed(uint time, address bidder);
-	event Paid(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
-	event PaymentFailed(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
-	event FeesCollected(uint time, uint amount);
-	event FeeCollectionFailed(uint time);
+	event BidRefundSuccess(uint time, address bidder);
+	event BidRefundFailure(uint time, address bidder);
+	event PaymentSuccess(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
+	event PaymentFailure(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
+	event FeeCollectionSuccess(uint time, uint amount);
+	event FeeCollectionFailure(uint time);
 
 	function PennyAuction(
 	        address _collector,
 		    uint _initialPrize,
 		    uint _bidPrice,
-		    uint _bidTimeS,
+		    uint _bidAddBlocks,
 		    uint _bidFeePct,
-	        uint _auctionTimeS
+	        uint _initialBlocks
 		)
 		payable
 	{
-        require(_initialPrize > 0);     	// there is an initial prize
-        require(_bidPrice > 0);				// bid price must be positive
-        require(_bidTimeS >= 60);	    	// minimum of 1 minute
-        require(_bidFeePct <= 100);	    	// bid fee cannot be more than 100%.
-        require(_auctionTimeS >= 600);  	// minimum of 5 minutes
+        require(_initialPrize > 0);     	 // there is an initial prize
+        require(_bidPrice > 0);				 // bid price must be positive
+        require(_bidAddBlocks >= 1);	     // minimum of 1 block
+        require(_bidFeePct <= 100);	    	 // bid fee cannot be more than 100%.
+        require(_initialBlocks >= 1);  	 	 // minimum of 1 block
         require(msg.value == _initialPrize); // must've sent the prize amount
 
         // set instance variables
 		collector = _collector;
         initialPrize = _initialPrize;
 		bidPrice = _bidPrice;
-		bidTimeS = _bidTimeS;
+		bidAddBlocks = _bidAddBlocks;
 		bidFeePct = _bidFeePct;
 
 		// start the auction
 		prize = initialPrize;
-		timeStarted = now;
-		timeEnded = now + _auctionTimeS;
 		currentWinner = collector;
-		currentBlock = block.number;
+		lastBidBlock = block.number;
+		blockEnded = block.number + _initialBlocks;
 
-		Started(now, _auctionTimeS);
+		Started(now, _initialBlocks);
 	}
 
 	/**
@@ -124,21 +122,21 @@ contract PennyAuction {
 		uint _feeIncr = (bidPrice * bidFeePct)/100;
 		uint _prizeIncr = bidPrice - _feeIncr;
 
-		if (block.number != currentBlock) {
+		if (block.number != lastBidBlock) {
 			// this is a new bid
 			numBids++;
 			fees += _feeIncr;
 			prize += _prizeIncr;
-			timeEnded += bidTimeS;
-			currentBlock = block.number;
+			blockEnded += bidAddBlocks;
+			lastBidBlock = block.number;
 		} else {
 			// this bid is in the same block as the previous bid.
 			// - try to refund the previous bidder
 			// - on refund failure, count this bid as a new bid.
 			if (currentWinner.send(bidPrice)) {
-				BidRefunded({time: now, bidder: currentWinner});
+				BidRefundSuccess({time: now, bidder: currentWinner});
 			} else {
-				BidRefundFailed({time: now, bidder: currentWinner});
+				BidRefundFailure({time: now, bidder: currentWinner});
 				numBids++;
 				fees += _feeIncr;
 				prize += _prizeIncr;
@@ -179,7 +177,7 @@ contract PennyAuction {
         if (_paySuccessful) {
         	// mark as paid
         	isPaid = true;
-        	Paid({
+        	PaymentSuccess({
 				time: now,
 	            redeemer: msg.sender,
 	            recipient: currentWinner,
@@ -189,7 +187,7 @@ contract PennyAuction {
 			return (true, prize);
         } else {
         	// log payment failed
-        	PaymentFailed({
+        	PaymentFailure({
         		time: now,
         		redeemer: msg.sender,
         		recipient: currentWinner,
@@ -213,10 +211,10 @@ contract PennyAuction {
 		if (collector.call.value(fees)()) {
 			_feesSent = fees;
 			fees = 0;
-			FeesCollected(now, _feesSent);
+			FeeCollectionSuccess(now, _feesSent);
 			return (true, _feesSent);
 		} else {
-			FeeCollectionFailed(now);
+			FeeCollectionFailure(now);
 			return (false, 0);
 		}
 	}
@@ -232,12 +230,12 @@ contract PennyAuction {
 
 	// Returns true if the auction has ended
 	function isEnded() constant returns (bool _bool) {
-		return now >= timeEnded;
+		return block.number >= blockEnded;
 	}
 	
-	// returns the time remaining, or 0.
-	function getTimeRemaining() constant returns (uint _timeRemaining) {
+	// returns the number of blocks remaining
+	function getBlocksRemaining() constant returns (uint _timeRemaining) {
 	    if (isEnded()) return 0;
-	    return timeEnded - now;
+	    return blockEnded - block.number;
 	}
 }

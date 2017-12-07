@@ -13,9 +13,9 @@ contract PennyAuctionFactory is
         address addr,
         uint initialPrize,
         uint bidPrice,
-        uint bidTimeS,
+        uint bidAddBlocks,
         uint bidFeePct,
-        uint auctionTimeS
+        uint initialBlocks
     );
 
     function PennyAuctionFactory(address _registry)
@@ -25,9 +25,9 @@ contract PennyAuctionFactory is
 
     function createAuction(uint _initialPrize,
 	                       uint _bidPrice,
-	                       uint _bidTimeS,
+	                       uint _bidAddBlocks,
 	                       uint _bidFeePct,
-                           uint _auctionTimeS)
+                           uint _initialBlocks)
         fromPennyAuctionController
         payable
         returns (PennyAuction _addr)
@@ -39,9 +39,9 @@ contract PennyAuctionFactory is
             _collector: address(getTreasury()),
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,
-            _bidTimeS: _bidTimeS,
+            _bidAddBlocks: _bidAddBlocks,
             _bidFeePct: _bidFeePct,
-            _auctionTimeS: _auctionTimeS
+            _initialBlocks: _initialBlocks
         });
 
         // Hi. I'm Ethereum.  I'm a fucking retard that can't actually
@@ -54,9 +54,9 @@ contract PennyAuctionFactory is
             addr: _auction,
             initialPrize: _initialPrize,
             bidPrice: _bidPrice,
-            bidTimeS: _bidTimeS,
+            bidAddBlocks: _bidAddBlocks,
             bidFeePct: _bidFeePct,
-            auctionTimeS: _auctionTimeS
+            initialBlocks: _initialBlocks
         });
 
         return _auction;

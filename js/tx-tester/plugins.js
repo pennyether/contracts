@@ -69,9 +69,10 @@ function createPlugins(testUtil, ledger) {
 			}
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
+			const blockNum = ctx.txRes.receipt.blockNumber;
 			name = name ? `doTx('${name}')` : "doTx";
 			assert(!!ctx.txRes, `txResult was not truthy: ${util.format(ctx.txRes)}`);
-			console.log(`✓ ${name} was successful (${gasUsed} gas used)`);
+			console.log(`✓ ${name} was successful (block ${blockNum}, ${gasUsed} gas used)`);
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
