@@ -377,14 +377,16 @@ function createPlugins(testUtil, ledger) {
 			try {
 				result = await contract[name].call.apply(contract, args);
 			} catch (e) {
-				throw new Error(`Call Threw: ${msg}`);
+				throw new Error(`Call Threw: ${msg} -- ${e}`);
 			}
 
-			if (Array.isArray(result)){
+			if (Array.isArray(expected)){
 				const resultStr = str(result, true);
-				if (!Array.isArray(expected) || expected.length !== expected.length)
+				if (!Array.isArray(result) || result.length !== result.length)
 					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
-				result.forEach((r, i) => assert.strEqual(r, expected[i], msg));
+				expected.forEach((e, i) => {
+					if (e !== null){ assert.strEqual(result[i], e, msg) }
+				});
 				console.log(`✓ ${msg}`);
 			} else {
 				assert.strEqual(result, expected, msg);
