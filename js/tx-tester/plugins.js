@@ -30,7 +30,7 @@ function createPlugins(testUtil, ledger) {
 				const name = fnOrPromise[1];
 				const args = fnOrPromise.slice(2);
 				const argsStr = args ? str(args) : "";
-				const msg = `${str(contract)}.${name}(${argsStr})`;
+				const msg = `${str(contract)}.${name}.call(${argsStr})`;
 				fnOrPromise = () => {
 					console.log(`Doing tx: ${msg}`);
 					return contract[name].apply(contract, args);

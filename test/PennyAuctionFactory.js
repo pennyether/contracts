@@ -11,6 +11,7 @@ const BID_PRICE      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS = new BigNumber(2);
 const BID_FEE_PCT    = new BigNumber(60);
 const INITIAL_BLOCKS = new BigNumber(5);
+const AUCTION_DEF = [INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS];
 
 const accounts = web3.eth.accounts;
 
@@ -44,58 +45,37 @@ describe('PennyAuctionFactory', async function(){
 
     describe(".createAuction()", async function(){
         it("should fail when called by randos", function(){
+            const settings = {from: notPac, gas: 2000000, value: INITIAL_PRIZE};
+            const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                INITIAL_PRIZE, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: notPac, gas: 2000000, value: INITIAL_PRIZE}
-                            )
-                )
+                .doTx(callParams)
                 .assertInvalidOpCode()
                 .start();
         });
 
-        it("should fail when not passed any values", function(){
+        it("should fail when not passed any ETH", function(){
+            const settings = {from: dummyPac, gas: 2000000}; 
+            const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                INITIAL_PRIZE, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: dummyPac, gas: 2000000}
-                            ))
+                .doTx(callParams)
                 .assertInvalidOpCode()
                 .start();
         });
 
         it("should fail when passed too little", function(){
+            const settings = {from: dummyPac, gas: 2000000, value: 1}; 
+            const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                INITIAL_PRIZE, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.minus(1)}
-                            ))
+                .doTx(callParams)
                 .assertInvalidOpCode()
                 .start();
         });
 
         it("should fail when passed too much", function(){
+            const settings = {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)};
+            const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                INITIAL_PRIZE, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)}
-                            ))
+                .doTx(callParams)
                 .assertInvalidOpCode()
                 .start();
         });
@@ -115,16 +95,10 @@ describe('PennyAuctionFactory', async function(){
         })
 
         it("works when called by PennyAuctionController", async function(){
+            const settings = {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE};
+            const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             const txRes = await createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                INITIAL_PRIZE, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
-                            )
-                )
+                .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("AuctionCreated", {
                     time: null,
