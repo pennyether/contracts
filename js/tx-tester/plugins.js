@@ -25,8 +25,9 @@ function createPlugins(testUtil, ledger) {
 		//		.txPromise - Promise of the tx
 		doTx: function(fnOrPromise) {
 			const ctx = this;
+			var contract;
 			if (Array.isArray(fnOrPromise)) {
-				const contract = fnOrPromise[0];
+				contract = fnOrPromise[0];
 				const name = fnOrPromise[1];
 				const args = fnOrPromise.slice(2);
 				const argsStr = args ? str(args) : "";
@@ -42,8 +43,13 @@ function createPlugins(testUtil, ledger) {
 						throw new Error(`'.doTx' function returned undefined -- expected a result.`);
 					return res;
 				}).then(
-					(res) => { ctx.txRes = res;  ctx.txErr = undefined; },
-					(err) => { ctx.txRes = undefined; ctx.txErr = err; }
+					(res) => {
+						ctx.txRes = res; ctx.txErr = undefined;
+						// fix web3 bug where it returns events of non-to addresses
+						if (contract)
+							ctx.txRes.logs = ctx.txRes.logs.filter((l) => l.address == contract.address)
+					},
+					(err) => {ctx.txRes = undefined; ctx.txErr = err; }
 				);
 			return ctx.txPromise;
 		},
@@ -91,8 +97,10 @@ function createPlugins(testUtil, ledger) {
 			const ctx = this;
 			if (ctx.txRes===undefined && ctx.txErr===undefined)
 				throw new Error("'doTx' was never called.")
-			if (!ctx.txErr)
-				throw new Error(`Expected 'doTx' to fail, but got result: ${ctx.txRes}`);
+			if (!ctx.txErr) {
+				console.log("Result:", ctx.txRes);
+				throw new Error(`Expected 'doTx' to fail, but got result above.`);
+			}
 
 			const errMsg = ctx.txErr.message;
 			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
@@ -109,7 +117,7 @@ function createPlugins(testUtil, ledger) {
 			console.log(`✓ exactly ${num} logs found`);	
 		},
 		// assert there is one log, with name $eventName and optional $args
-		assertOnlyLog: async function(eventName, args) {
+		assertOnlyLog: async function(eventName, args, address) {
 			const ctx = this;
 			if (ctx.txRes===undefined && ctx.txErr===undefined)
 				throw new Error("'doTx' was never called.");

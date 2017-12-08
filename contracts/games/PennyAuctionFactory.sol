@@ -34,7 +34,8 @@ contract PennyAuctionFactory is
     {
         require(msg.value == _initialPrize);
 
-        // create an auction
+        // create an auction, event, and return
+        // otherwise this will throw
 		PennyAuction _auction = (new PennyAuction).value(_initialPrize)({
             _collector: address(getTreasury()),
             _initialPrize: _initialPrize,
@@ -44,11 +45,6 @@ contract PennyAuctionFactory is
             _initialBlocks: _initialBlocks
         });
 
-        // Hi. I'm Ethereum.  I'm a fucking retard that can't actually
-        // return values in transaction calls.  Instead I make you log
-        // an event.
-        // The only reason this exists is so unit tests can actually
-        // test this contract.
         AuctionCreated({
             time: now,
             addr: _auction,

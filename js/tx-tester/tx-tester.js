@@ -181,6 +181,7 @@ function createTxTester(plugins, it) {
 	};
 
 	// make all plugins callable on obj, and chainable
+	_obj.plugins = {};
 	_obj.addPlugins = function(plugins) {
 		Object.keys(plugins).forEach( name => {
 			if (_obj[name])
@@ -190,8 +191,8 @@ function createTxTester(plugins, it) {
 				_addPluginTask(name, args);
 				return _obj;
 			}
+			_obj.plugins[name] = plugins[name];
 		});
-		_obj.plugins = plugins;
 	};
 
 	// remove some or all plugins

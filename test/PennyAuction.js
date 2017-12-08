@@ -1,5 +1,5 @@
 const PennyAuction = artifacts.require("./PennyAuction.sol");
-const PennyAuctionBidder = artifacts.require("./test-helpers/PennyAuctionBidder.sol");
+const ExpensivePayableBidder = artifacts.require("./test-helpers/ExpensivePayableBidder.sol");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
@@ -28,7 +28,7 @@ describe('PennyAuction', function() {
     const nonAdmin = accounts[9];
 
     before("Create BidderContract", async function(){
-        bidderContract = await PennyAuctionBidder.new();
+        bidderContract = await ExpensivePayableBidder.new();
         await bidderContract.fund({value: BID_PRICE.mul(2)});
         assert.strEqual(await testUtil.getBalance(bidderContract), BID_PRICE.mul(2));
     });

@@ -5,7 +5,7 @@ contract IPennyAuction {
 	function payWinner(uint _gasLimit) returns (bool _success, uint _prizeSent);
 }
 
-contract PennyAuctionBidder {
+contract UnpayableBidder {
 	function doBid(address addr){
 		IPennyAuction auction = IPennyAuction(addr);
 		uint _bidPrice = auction.bidPrice();
@@ -21,10 +21,6 @@ contract PennyAuctionBidder {
 	}
 	function fund() payable {}
 	function () payable {
-		// burn some gas.
-		uint bla;
-		for (uint i=0; i<2000; i++){
-			bla += i;
-		}
+		throw;
 	}
 }
