@@ -309,7 +309,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                     .assertLogCount(2)
-                    .assertLog("DefinedAuctionInvalid", {time: null, index: 1});
+                    .assertLog("DefinedAuctionInvalid", {time: null, index: 1})
                     .assertLog("Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
                 .stopLedger()
                     .assertLostTxFee(nonAdmin)

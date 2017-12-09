@@ -66,7 +66,7 @@ function createUtil(web3, assert){
 		},
 
 		expectOnlyErrorLog: async function(logs, msg, address) {
-			_self.expectOneLog(logs, "Error", {msg: msg}, address);
+			await _self.expectOneLog(logs, "Error", {msg: msg}, address);
 		},
 
 		expectInvalidOpcode: async function(txPromise){
