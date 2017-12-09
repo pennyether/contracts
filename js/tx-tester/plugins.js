@@ -23,6 +23,7 @@ function createPlugins(testUtil, ledger) {
 		// 		.txRes - The returning result of execution (or undefined)
 		//      .txErr - The error, if any, from execution (or undefined)
 		//		.txPromise - Promise of the tx
+		//		.txName - A name of the TX
 		doTx: function(fnOrPromise) {
 			const ctx = this;
 			var contract;
@@ -30,12 +31,11 @@ function createPlugins(testUtil, ledger) {
 				contract = fnOrPromise[0];
 				const name = fnOrPromise[1];
 				const args = fnOrPromise.slice(2);
-				const argsStr = args ? str(args) : "";
-				const msg = `${str(contract)}.${name}.call(${argsStr})`;
-				fnOrPromise = () => {
-					console.log(`Doing tx: ${msg}`);
-					return contract[name].apply(contract, args);
-				}
+				const argsStr = args ? str(args, true) : "";
+				fnOrPromise = () => contract[name].apply(contract, args);
+				ctx.txName = `doTx: ${str(contract)}.${name}(${argsStr})`;
+			} else {
+				ctx.txName = `${fnOrPromise.toString()}`;
 			}
 			ctx.txPromise = testUtil.toPromise(fnOrPromise)
 				.then(res => {
@@ -49,7 +49,7 @@ function createPlugins(testUtil, ledger) {
 						if (contract)
 							ctx.txRes.logs = ctx.txRes.logs.filter((l) => l.address == contract.address)
 					},
-					(err) => {ctx.txRes = undefined; ctx.txErr = err; }
+					(err) => { ctx.txRes = undefined; ctx.txErr = err; }
 				);
 			return ctx.txPromise;
 		},
@@ -63,40 +63,35 @@ function createPlugins(testUtil, ledger) {
 		// returns the result of `do`
 		getTxResult: function() {
 			const ctx = this;
-			if (ctx.txRes===undefined)
-				throw new Error("'doTx' was never called, or failed");
+			if (ctx.txRes===undefined) throw new Error("'doTx' was never called, or failed");
 			return ctx.txRes;
 		},
 		getBlock: async function() {
 			const ctx = this;
-			if (ctx.txRes===undefined)
-				throw new Error("'doTx' was never called, or failed");
-
+			if (ctx.txRes===undefined) throw new Error("'doTx' was never called, or failed");
 			return await testUtil.getBlock(ctx.txRes.receipt.blockHash);
 		},
 		// assert .res and .res.receipt are set
 		assertSuccess: function(name) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txErr) {
 				var e = new Error(`doTx did not succeed, got this error: ${util.format(ctx.txErr)}`);
 				e.stack = ctx.txErr.stack;
 				throw e;
 			}
-
 			const gasUsed = ctx.txRes.receipt.gasUsed;
 			const blockNum = ctx.txRes.receipt.blockNumber;
-			name = name ? `doTx('${name}')` : "doTx";
+			const meta = `(block ${blockNum}, ${gasUsed} gas used)`;
+			name = name ? `doTx: '${name}'` : ctx.txName;
 			assert(!!ctx.txRes, `txResult was not truthy: ${util.format(ctx.txRes)}`);
-			console.log(`✓ ${name} was successful (block ${blockNum}, ${gasUsed} gas used)`);
+			console.log(`✓ ${name} was successful ${meta}`);
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.")
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.")
 			if (!ctx.txErr) {
 				console.log("Result:", ctx.txRes);
 				throw new Error(`Expected 'doTx' to fail, but got result above.`);
@@ -109,10 +104,8 @@ function createPlugins(testUtil, ledger) {
 		// asserts exact number of logs retrieved
 		assertLogCount: async function(num) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 			
 			await testUtil.expectLogCount(ctx.txRes.logs, num);
 			console.log(`✓ exactly ${num} logs found`);
@@ -120,10 +113,8 @@ function createPlugins(testUtil, ledger) {
 		// assert there is a log with $eventName and optional $args
 		assertLog: async function(eventName, args) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			await testUtil.expectLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
@@ -132,10 +123,8 @@ function createPlugins(testUtil, ledger) {
 		// assert there is one log, with name $eventName and optional $args
 		assertOnlyLog: async function(eventName, args, address) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			await testUtil.expectOneLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
@@ -144,20 +133,16 @@ function createPlugins(testUtil, ledger) {
 		// assert there is a log named "Error" with an arg msg that is $msg
 		assertOnlyErrorLog: async function(msg) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			await testUtil.expectOnlyErrorLog(ctx.txRes.logs, msg);
 			console.log(`✓ 'Error(msg: ${msg})' event was the only log`);
 		},
 		assertGasUsedLt: function(val) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
 			assert.isAtMost(gasUsed, val);
@@ -165,10 +150,8 @@ function createPlugins(testUtil, ledger) {
 		},
 		assertGasUsedGt: function(val) {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
-			if (!ctx.txRes)
-				throw new Error("Expected 'doTx' to succeed.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
+			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
 			assert.isAtLeast(gasUsed, val);
@@ -176,8 +159,7 @@ function createPlugins(testUtil, ledger) {
 		},
 		printTxResult: function(){
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			console.log("printing tx results...");
 			console.log(ctx.txRes, ctx.txErr);
@@ -185,12 +167,13 @@ function createPlugins(testUtil, ledger) {
 		// prints the logs of the last `do`, otherwise nothing
 		printTxLogs: function() {
 			const ctx = this;
-			if (ctx.txRes===undefined && ctx.txErr===undefined)
-				throw new Error("'doTx' was never called.");
+			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txRes) {
-				console.log(".printTxLogs called:");
+				console.log("printing tx logs...");
 				console.log(ctx.txRes.logs);
+			} else {
+				console.log("no logs to print");
 			}
 		},
 
@@ -408,8 +391,8 @@ function createPlugins(testUtil, ledger) {
 			const contract = callParams[0];
 			const name = callParams[1];
 			const args = callParams.slice(2);
-			const argsStr = args ? str(args) : "";
-			const expectedStr = str(expected, true);
+			const argsStr = args ? str(args, true) : "";
+			const expectedStr = str(expected);
 			msg = msg || `should equal '${expectedStr}'`;
 			msg = `${str(contract)}.${name}.call(${argsStr}) ${msg}`;
 			var result;
@@ -420,7 +403,7 @@ function createPlugins(testUtil, ledger) {
 			}
 
 			if (Array.isArray(expected)){
-				const resultStr = str(result, true);
+				const resultStr = str(result);
 				if (!Array.isArray(result) || result.length !== result.length)
 					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
 				expected.forEach((e, i) => {
@@ -436,12 +419,12 @@ function createPlugins(testUtil, ledger) {
 			const contract = callParams[0];
 			const name = callParams[1];
 			const args = callParams.slice(2);
-			const argsStr = args ? str(args) : "";
+			const argsStr = args ? str(args, true) : "";
 			msg = `${str(contract)}.${name}.call(${argsStr}) should throw`;
 			var result;
 			try {
 				result = await contract[name].call.apply(contract, args);
-				const resultStr = str(result, true);
+				const resultStr = str(result);
 				throw new Error(`${msg} -- got: ${resultStr}`)
 			} catch (e) {
 				console.log(`✓ ${msg}`);
@@ -554,16 +537,19 @@ function at(val) {
 			? colors.underline(`${addrToName[val.address]}`)
 			: `${val.constructor._json.contract_name}[${shortened}]`;
 	}
+	if (typeof val == "string"){
+		return `"${val}"`;
+	}
 	return `${val}`;
 }
-function str(val, showBrackets) {
+function str(val, hideBrackets) {
 	if (val === undefined) {
 		return "undefined";
 	} else if (val === null) {
 		return "null";
 	} else if (Array.isArray(val)) {
-		const lBracket = showBrackets ? "[" : "";
-		const rBracket = showBrackets ? "]" : "";
+		const lBracket = hideBrackets ? "" : "[";
+		const rBracket = hideBrackets ? "" : "]";
 		return `${lBracket}${val.map(v => str(v, true)).join(", ")}${rBracket}`;
 	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
 		return at(val);

@@ -20,8 +20,6 @@ describe('PennyAuctionFactory', async function(){
     const dummyTreasury = accounts[1];
     const dummyPac = accounts[2];
     const notPac = accounts[3];
-    await registry.register("TREASURY", dummyTreasury);
-    await registry.register("PENNY_AUCTION_CONTROLLER", dummyPac);
     var paf;
     
     before("Can be created", async function(){
@@ -33,14 +31,16 @@ describe('PennyAuctionFactory', async function(){
             notPac: notPac,
             paf: paf.address
         };
-        createDefaultTxTester().plugins.nameAddresses(addresses);
         console.log("addresses", addresses);
-    });
-
-    it("should point to the dummyPac and dummyTreasury", async function(){
-        createDefaultTxTester()
-            .assertStateAsString(paf, "getPennyAuctionController", dummyPac)
-            .assertStateAsString(paf, "getTreasury", dummyTreasury);
+        await createDefaultTxTester()
+            .nameAddresses(addresses)
+            .doTx([registry, "register", "TREASURY", dummyTreasury])
+                .assertSuccess()
+            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", dummyPac])
+                .assertSuccess()
+            .assertCallReturns([paf, "getPennyAuctionController"], dummyPac)
+            .assertCallReturns([paf, "getTreasury"], dummyTreasury)
+            .start();
     });
 
     describe(".createAuction()", async function(){
@@ -82,14 +82,14 @@ describe('PennyAuctionFactory', async function(){
 
         it("should fail when passed invalid auction param", function(){
            return createDefaultTxTester()
-                .doTx(() => paf.createAuction(
-                                -1, 
-                                BID_PRICE,
-                                BID_ADD_BLOCKS,
-                                BID_FEE_PCT,
-                                INITIAL_BLOCKS,
-                                {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
-                            ))
+                .doTx([paf, "createAuction",
+                            -1, 
+                            BID_PRICE,
+                            BID_ADD_BLOCKS,
+                            BID_FEE_PCT,
+                            INITIAL_BLOCKS,
+                            {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
+                ])
                 .assertInvalidOpCode()
                 .start(); 
         })
@@ -119,12 +119,12 @@ describe('PennyAuctionFactory', async function(){
             console.log(`Created auction @ ${auction.address}`);
 
             await createDefaultTxTester()
-                .assertStateAsString(auction, "collector", dummyTreasury)
-                .assertStateAsString(auction, "initialPrize", INITIAL_PRIZE)
-                .assertStateAsString(auction, "bidPrice", BID_PRICE)
-                .assertStateAsString(auction, "bidAddBlocks", BID_ADD_BLOCKS)
-                .assertStateAsString(auction, "bidFeePct", BID_FEE_PCT)
-                .assertStateAsString(auction, "blockEnded", INITIAL_BLOCKS.plus(block))
+                .assertCallReturns([auction, "collector"], dummyTreasury)
+                .assertCallReturns([auction, "initialPrize"], INITIAL_PRIZE)
+                .assertCallReturns([auction, "bidPrice"], BID_PRICE)
+                .assertCallReturns([auction, "bidAddBlocks"], BID_ADD_BLOCKS)
+                .assertCallReturns([auction, "bidFeePct"], BID_FEE_PCT)
+                .assertCallReturns([auction, "blockEnded"], INITIAL_BLOCKS.plus(block))
                 .start();
         });
     });

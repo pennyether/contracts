@@ -2,12 +2,12 @@ pragma solidity ^0.4.0;
 //@dontregenerate
 contract IPennyAuctionController {
   function editDefinedAuction(uint _index,
-                                string _summary,
-                                uint _initialPrize,
-                                uint _bidPrice,
-                                uint _bidAddBlocks,
-                                uint _bidFeePct,
-                                uint _initialBlocks) returns (bool _success);
+                              string _summary,
+                              uint _initialPrize,
+                              uint _bidPrice,
+                              uint _bidAddBlocks,
+                              uint _bidFeePct,
+                              uint _initialBlocks) returns (bool _success);
   function disableDefinedAuction(uint _index) returns (bool _success);
   function enableDefinedAuction(uint _index) returns (bool _success);
   function startDefinedAuction(uint _index) payable returns (bool _success, address _auction);

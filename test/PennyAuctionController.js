@@ -61,24 +61,21 @@ describe('PennyAuctionController', function(){
     var pac;
     var paf;
     
-    const admin = accounts[1];
-    const dummyMainController = accounts[2];
-    const bidder1 = accounts[3];
-    const bidder2 = accounts[4];
-    const auctionWinner = accounts[5];
-    const notMainController = accounts[6];
-    const nonAdmin = accounts[7];
+    const owner = accounts[1]
+    const admin = accounts[2];
+    const dummyMainController = accounts[3];
+    const bidder1 = accounts[4];
+    const bidder2 = accounts[5];
+    const auctionWinner = accounts[6];
+    const notMainController = accounts[7];
+    const nonAdmin = accounts[8];
 
     before("Set up registry and treasury", async function(){
-        registry = await Registry.new();
+        registry = await Registry.new({from: owner});
         treasury = await Treasury.new(registry.address);
         pac = await PennyAuctionController.new(registry.address);
         paf = await PennyAuctionFactory.new(registry.address);
-        await registry.register("ADMIN", admin);
-        await registry.register("TREASURY", treasury.address);
-        await registry.register("MAIN_CONTROLLER", dummyMainController);
-        await registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
-        await registry.register("PENNY_AUCTION_FACTORY", paf.address);
+
         const addresses = {
             registry: registry.address,
             treasury: treasury.address,
@@ -90,15 +87,24 @@ describe('PennyAuctionController', function(){
             auctionWinner: auctionWinner,
             NO_ADDRESS: NO_ADDRESS
         };
-        createDefaultTxTester().nameAddresses(addresses).start();
         console.log("Addresses:", addresses);
-    });
 
-    it("should be instantiated with proper settings", async function(){
-        return createDefaultTxTester()
-            .assertStateAsString(pac, "getAdmin", admin, "sees correct admin")
-            .assertStateAsString(pac, "getPennyAuctionFactory", paf.address, "sees correct PAF")
+        await createDefaultTxTester()
+            .nameAddresses(addresses)
+            .doTx([registry, "register", "ADMIN", admin, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "PENNY_AUCTION_FACTORY", paf.address, {from: owner}])
+                .assertSuccess()
+            .assertCallReturns([pac, "getAdmin"], admin)
+            .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
             .start();
+        
     });
 
     describe(".editDefinedAuction()", async function(){
@@ -126,7 +132,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertStateAsString(pac, "numDefinedAuctions", 1)
+                .assertCallReturns([pac, "numDefinedAuctions"], 1)
                 .assertCallReturns([pac, "definedAuctions", 0], [
                     false,
                     "0x0000000000000000000000000000000000000000"].concat(DEF_0))
@@ -148,7 +154,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 1})
-                .assertStateAsString(pac, "numDefinedAuctions", 2)
+                .assertCallReturns([pac, "numDefinedAuctions"], 2)
                 .assertCallReturns([pac, "definedAuctions", 1], [
                     false,
                     "0x0000000000000000000000000000000000000000"].concat(DEF_1))
@@ -161,7 +167,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 2})
-                .assertStateAsString(pac, "numDefinedAuctions", 3)
+                .assertCallReturns([pac, "numDefinedAuctions"], 3)
                 .assertCallReturns([pac, "definedAuctions", 2], [
                     false,
                     "0x0000000000000000000000000000000000000000"].concat(DEF_2))
@@ -174,7 +180,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 3})
-                .assertStateAsString(pac, "numDefinedAuctions", 4)
+                .assertCallReturns([pac, "numDefinedAuctions"], 4)
                 .assertCallReturns([pac, "definedAuctions", 3], [
                     false,
                     "0x0000000000000000000000000000000000000000"].concat(DEF_3))
@@ -212,7 +218,7 @@ describe('PennyAuctionController', function(){
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
                 .assertAsString(() => pac.getIsEnabled(0), true, "isEnabled is true")
-                .assertStateAsString(pac, "numDefinedAuctions", 4)
+                .assertCallReturns([pac, "numDefinedAuctions"], 4)
                 .start();
         });
     });
@@ -248,7 +254,7 @@ describe('PennyAuctionController', function(){
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
                 .assertAsString(() => pac.getIsEnabled(0), false,
                     "isEnabled is now false")
-                .assertStateAsString(pac, "numDefinedAuctions", 4)
+                .assertCallReturns([pac, "numDefinedAuctions"], 4)
                 .start();
         }); 
     });
@@ -351,7 +357,6 @@ describe('PennyAuctionController', function(){
                     .assertCallReturns(()=>[auction, "bidFeePct"], BID_FEE_PCT_0)
                     .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
                 .start();
-            await createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
         });
         it("refunds when already started", function(){
             const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: INITIAL_PRIZE_1}];
@@ -487,11 +492,11 @@ describe('PennyAuctionController', function(){
                         time: null,
                         amount: fees2
                     })
-                .assertStateAsString(pac, "totalFees", totalFees)
-                .assertStateAsString(auction0, "fees", 0)
-                .assertStateAsString(auction2, "fees", 0)
-                .assertStateAsString(auction0, "isPaid", false)
-                .assertStateAsString(auction2, "isPaid", false)
+                .assertCallReturns([pac, "totalFees"], totalFees)
+                .assertCallReturns([auction0, "fees"], 0)
+                .assertCallReturns([auction2, "fees"], 0)
+                .assertCallReturns([auction0, "isPaid"], false)
+                .assertCallReturns([auction2, "isPaid"], false)
                 .start();
         });
         it(".refreshAuctions() collects no fees, ends no games", async function(){
@@ -505,7 +510,7 @@ describe('PennyAuctionController', function(){
                     .assertLogCount(0)
                 .stopLedger()
                     .assertNoDelta(treasury)
-                .assertStateAsString(pac, "totalFees", expectedFees)
+                .assertCallReturns([pac, "totalFees"], expectedFees)
                 .start(); 
         });
     });
@@ -566,11 +571,11 @@ describe('PennyAuctionController', function(){
                     })
                 .assertCallReturns([pac, "getAuction", 0], NO_ADDRESS)
                 .assertCallReturns([pac, "endedAuctions", 0], auction0.address)
-                .assertStateAsString(pac, "numEndedAuctions", 1)
-                .assertStateAsString(pac, "totalFees", expectedFees)
-                .assertStateAsString(pac, "totalBids", expectedBids)
-                .assertStateAsString(pac, "totalPrizes", expectedPrizes)
-                .assertStateAsString(auction0, "isPaid", true)
+                .assertCallReturns([pac, "numEndedAuctions"], 1)
+                .assertCallReturns([pac, "totalFees"], expectedFees)
+                .assertCallReturns([pac, "totalBids"], expectedBids)
+                .assertCallReturns([pac, "totalPrizes"], expectedPrizes)
+                .assertCallReturns([auction0, "isPaid"], true)
                 .start()
         });
         it(".refreshAuctions() returns 0 auctions ended, and 0 fees collected", async function(){
@@ -583,9 +588,9 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                     .assertLogCount(0)
-                .assertStateAsString(pac, "totalFees", expectedFees)
-                .assertStateAsString(pac, "totalBids", expectedBids)
-                .assertStateAsString(pac, "totalPrizes", expectedPrizes)
+                .assertCallReturns([pac, "totalFees"], expectedFees)
+                .assertCallReturns([pac, "totalBids"], expectedBids)
+                .assertCallReturns([pac, "totalPrizes"], expectedPrizes)
                 .start()
         });
     });
@@ -655,12 +660,12 @@ describe('PennyAuctionController', function(){
                     })
                 .assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)
                 .assertCallReturns([pac, "endedAuctions", 1], auction2.address)
-                .assertStateAsString(pac, "numEndedAuctions", 2)
-                .assertStateAsString(pac, "totalFees", expectedFees)
-                .assertStateAsString(pac, "totalBids", expectedBids)
-                .assertStateAsString(pac, "totalPrizes", expectedPrizes)
-                .assertStateAsString(auction2, "isPaid", false)
-                .assertStateAsString(auction2, "fees", 0)
+                .assertCallReturns([pac, "numEndedAuctions"], 2)
+                .assertCallReturns([pac, "totalFees"], expectedFees)
+                .assertCallReturns([pac, "totalBids"], expectedBids)
+                .assertCallReturns([pac, "totalPrizes"], expectedPrizes)
+                .assertCallReturns([auction2, "isPaid"], false)
+                .assertCallReturns([auction2, "fees"], 0)
                 .start()
         });
     });

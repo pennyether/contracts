@@ -2,6 +2,7 @@ pragma solidity ^0.4.0;
 
 import "./roles/UsingPennyAuctionController.sol";
 import "./roles/UsingTreasury.sol";
+import "./roles/UsingAdmin.sol";
 
 /**
 The MainController interfaces with all GameControllers.
@@ -16,30 +17,54 @@ so that swapping in another MainController is trivial.
 //@createInterface
 contract MainController is 
 	UsingPennyAuctionController,
-	UsingTreasury
+	UsingTreasury,
+	UsingAdmin
 {
 	/* these are incentives for people to call our functions. */
+	// most we are willing to refund for gas for any incentivized calls
+	uint public rewardGasPriceLimit = 20000000000;
 	// how much is paid to a user that starts a pennyAuction
-	uint public pennyAuctionStartBonus = .001 ether;
+	uint public paStartReward;
+	// how much is paid when a user ends an auction via .refreshPennyAuctions()
+	uint public paEndReward;
 	// % of collected fees that are paid to user that calls .refreshPennyAuctions()
 	// 100 = 1%, 1000 = .1%, etc
-	uint public pennyAuctionFeeCollectBonus = 1000;
-	// how much is paid when a user ends an auction via .refreshPennyAuctions()
-	uint public pennyAuctionEndBonus = .001 ether;
-	// most we are willing to refund for gas for any incentivized calls
-	uint public gasPriceLimit = 20000000000;
+	uint public paFeeCollectRewardDenom;
 
 	/* events */
 	event Error(uint time, string msg);
+	event RewardGasPriceLimitChanged(uint time);
+	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address addr);
 	event RewardPaid(uint time, address recipient, string msg, uint gasUsed, uint amount);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)
 		UsingTreasury(_registry)
+		UsingAdmin(_registry)
 	{}
 
 	function() payable {}
+
+	function setPennyAuctionRewards(
+		uint _paStartReward,
+		uint _paEndReward,
+		uint _paFeeCollectRewardDenom
+	)
+		fromAdmin
+	{
+		paStartReward = _paStartReward;
+		paEndReward = _paEndReward;
+		paFeeCollectRewardDenom = _paFeeCollectRewardDenom;
+		PennyAuctionRewardsChanged(now);
+	}
+
+	function setRewardGasPriceLimit(uint _rewardGasPriceLimit)
+		fromAdmin
+	{
+		rewardGasPriceLimit = _rewardGasPriceLimit;
+		RewardGasPriceLimitChanged(now);
+	}
 
 	// Starts a pennyAuction
 	// Upon success, caller gets their gas back plus a bonus
@@ -47,8 +72,8 @@ contract MainController is
 		returns (bool _success, address _auction)
 	{
 		uint _startGas = msg.gas;
-		if (tx.gasprice > gasPriceLimit) {
-			Error(now, "gasPrice exceeds gasPriceLimit.");
+		if (tx.gasprice > rewardGasPriceLimit) {
+			Error(now, "gasPrice exceeds rewardGasPriceLimit.");
 			return;
 		}
 
@@ -80,11 +105,11 @@ contract MainController is
 
 		// calculate _reward: (~1000000 gas) + bonus
 		uint _gasUsed = (_startGas - msg.gas) + 42600;
-		uint _reward = (_gasUsed * tx.gasprice);
-		if (getTreasury().fundMainController(_reward)) {
+		uint _totalReward = (_gasUsed * tx.gasprice) + paStartReward;
+		if (getTreasury().fundMainController(_totalReward)) {
 			// send reward.  if it fails, it's the user's fault for having a weird fallback fn.
-			if (msg.sender.call.value(_reward)()){
-				RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _reward);
+			if (msg.sender.call.value(_totalReward)()){
+				RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _totalReward);
 			}	
 		}
 
@@ -98,8 +123,8 @@ contract MainController is
 		returns (uint _numAuctionsEnded, uint _feesCollected)
 	{
 		uint _startGas = msg.gas;
-		if (tx.gasprice > gasPriceLimit) {
-			Error(now, "gasPrice exceeds gasPriceLimit.");
+		if (tx.gasprice > rewardGasPriceLimit) {
+			Error(now, "gasPrice exceeds rewardGasPriceLimit.");
 			return;
 		}
 
@@ -109,12 +134,12 @@ contract MainController is
 
 		// calculate _reward: gas + whatever bonus
 		uint _gasUsed = (_startGas - msg.gas);
-		uint _bonus = (_numAuctionsEnded * pennyAuctionEndBonus)
-					   + (_feesCollected / pennyAuctionFeeCollectBonus);
-		uint _reward = (_gasUsed * tx.gasprice) + _bonus;
+		uint _bonus = (_numAuctionsEnded * paEndReward)
+					   + (_feesCollected / paFeeCollectRewardDenom);
+		uint _totalReward = (_gasUsed * tx.gasprice) + _bonus;
 		// send reward.  if it fails, it's the user's fault for having a weird fallback fn.
-		if (msg.sender.call.value(_reward)()){
-			RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _reward);
+		if (msg.sender.call.value(_totalReward)()){
+			RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _gasUsed, _totalReward);
 		}
 
 		return (_numAuctionsEnded, _feesCollected);
@@ -127,6 +152,18 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
 		uint _numEnded = _pac.getNumEndedAuctions();
-		return (_fees * pennyAuctionFeeCollectBonus) + (_numEnded * pennyAuctionEndBonus);
+		return (_fees * paFeeCollectRewardDenom) + (_numEnded * paEndReward);
+	}
+
+	// Gets the bonus and index for starting a penny auction
+	function getStartPennyAuctionBonus()
+		constant returns (uint _amount, uint _index)
+	{
+		IPennyAuctionController _pac = getPennyAuctionController();
+		uint _numIndexes = _pac.numDefinedAuctions();
+		for (_index = 0; _index < _numIndexes; _index++) {
+			if (!_pac.getIsStartable(_index)) return;
+			return (paStartReward, _index);
+		}
 	}
 }

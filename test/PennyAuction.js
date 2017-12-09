@@ -16,7 +16,6 @@ const accounts = web3.eth.accounts;
 
 describe('PennyAuction', function() {
     var auction, bidderContract, blockStarted;
-    const admin = accounts[0];
     const collector = accounts[1];
     const bidder1 = accounts[2];
     const bidder2 = accounts[3];
@@ -64,7 +63,6 @@ describe('PennyAuction', function() {
                     auction = ctx.txRes.contract;
                     blockStarted = ctx.txRes.receipt.blockNumber;
                     const addresses = {
-                        admin: admin,
                         collector: collector,
                         bidder1: bidder1,
                         bidder2: bidder2,
@@ -85,13 +83,13 @@ describe('PennyAuction', function() {
         describe("When Started", async function(){
             it("Should have proper state and balance", function(){
                 return createDefaultTxTester()
-                    .assertStateAsString(auction, 'collector', collector)
-                    .assertStateAsString(auction, 'initialPrize', INITIAL_PRIZE)
-                    .assertStateAsString(auction, 'bidPrice', BID_PRICE)
-                    .assertStateAsString(auction, 'bidAddBlocks', BID_ADD_BLOCKS)
-                    .assertStateAsString(auction, 'bidFeePct', BID_FEE_PCT)
-                    .assertStateAsString(auction, 'blockEnded', INITIAL_BLOCKS.plus(blockStarted))
-                    .assertStateAsString(auction, 'isEnded', false)
+                    .assertCallReturns([auction, 'collector'], collector)
+                    .assertCallReturns([auction, 'initialPrize'], INITIAL_PRIZE)
+                    .assertCallReturns([auction, 'bidPrice'], BID_PRICE)
+                    .assertCallReturns([auction, 'bidAddBlocks'], BID_ADD_BLOCKS)
+                    .assertCallReturns([auction, 'bidFeePct'], BID_FEE_PCT)
+                    .assertCallReturns([auction, 'blockEnded'], INITIAL_BLOCKS.plus(blockStarted))
+                    .assertCallReturns([auction, 'isEnded'], false)
                     .assertBalance(auction, INITIAL_PRIZE)
                     .start();
             });
@@ -193,10 +191,10 @@ describe('PennyAuction', function() {
                     .assertLogCount(2)
                     .assertLog('BidRefundSuccess', {bidder: bidderSecond, time: null})
                     .assertLog('BidOccurred', {bidder: bidderThird, time: null})
-                    .assertStateAsString(auction, 'prize', newPrize, "is incremented only once")
-                    .assertStateAsString(auction, 'fees', newFees, "is incremented only once")
-                    .assertStateAsString(auction, 'numBids', newNumBids, "is incremented only once")
-                    .assertStateAsString(auction, 'blockEnded', newBlockEnded, "is incremented only once")
+                    .assertCallReturns([auction, 'prize'], newPrize, "is incremented only once")
+                    .assertCallReturns([auction, 'fees'], newFees, "is incremented only once")
+                    .assertCallReturns([auction, 'numBids'], newNumBids, "is incremented only once")
+                    .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "is incremented only once")
                 .stopLedger()
                     .assertDelta(bidderFirst, ()=>tx1fee.mul(-1), "lost txFee (but got refunded)")
                     .assertDelta(bidderSecond, ()=>tx2fee.mul(-1), "lost txFee (but got refunded)")
@@ -255,10 +253,10 @@ describe('PennyAuction', function() {
                     .assertLogCount(2)
                     .assertLog('BidRefundFailure', {time: null, bidder: bidderContract.address})
                     .assertLog('BidOccurred', {time: null, bidder: bidderSecond})
-                    .assertStateAsString(auction, 'prize', newPrize, "is incremented twice")
-                    .assertStateAsString(auction, 'fees', newFees, "is incremented twice")
-                    .assertStateAsString(auction, 'numBids', newNumBids, "is incremented twice")
-                    .assertStateAsString(auction, 'blockEnded', newBlockEnded, "is incremented only once")
+                    .assertCallReturns([auction, 'prize'], newPrize, "is incremented twice")
+                    .assertCallReturns([auction, 'fees'], newFees, "is incremented twice")
+                    .assertCallReturns([auction, 'numBids'], newNumBids, "is incremented twice")
+                    .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "is incremented only once")
                 .stopLedger()
                     .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
                     .assertDelta(bidderSecond, ()=>BID_PRICE.plus(tx2fee).mul(-1), "lost bid+txFee")
@@ -282,11 +280,11 @@ describe('PennyAuction', function() {
                     .startWatching([auction])
                     .doTx(() => bidderContract.doBid(auction.address))
                         .assertSuccess()
-                        .assertStateAsString(auction, 'prize', newPrize, "increased by prizeIncr")
-                        .assertStateAsString(auction, 'fees', newFees, "increased by feeIncr")
-                        .assertStateAsString(auction, 'currentWinner', bidderContract.address, "is new currentWinner")
-                        .assertStateAsString(auction, 'numBids', newNumBids, "increased by 1")
-                        .assertStateAsString(auction, 'blockEnded', newBlockEnded, "increased by bidAddBlocks")
+                        .assertCallReturns([auction, 'prize'], newPrize, "increased by prizeIncr")
+                        .assertCallReturns([auction, 'fees'], newFees, "increased by feeIncr")
+                        .assertCallReturns([auction, 'currentWinner'], bidderContract.address, "is new currentWinner")
+                        .assertCallReturns([auction, 'numBids'], newNumBids, "increased by 1")
+                        .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "increased by bidAddBlocks")
                     .stopLedger()
                         .assertDelta(auction, BID_PRICE, "increased by BID_PRICE")
                         .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
@@ -315,9 +313,9 @@ describe('PennyAuction', function() {
             });
             it("should have correct state", async function(){
                 await createDefaultTxTester()
-                    .assertStateAsString(auction, "isEnded", true)
-                    .assertStateAsString(auction, "getBlocksRemaining", 0)
-                    .assertStateAsString(auction, "currentWinner", bidderContract.address)
+                    .assertCallReturns([auction, "isEnded"], true)
+                    .assertCallReturns([auction, "getBlocksRemaining"], 0)
+                    .assertCallReturns([auction, "currentWinner"], bidderContract.address)
                     .start()
             })
         });
@@ -325,9 +323,9 @@ describe('PennyAuction', function() {
         describe(".payWinner()", function(){
             before("auction should be ended, and won by bidderContract", async function(){
                 await createDefaultTxTester()
-                    .assertStateAsString(auction, "isEnded", true)
-                    .assertStateAsString(auction, "getBlocksRemaining", 0)
-                    .assertStateAsString(auction, "currentWinner", bidderContract.address)
+                    .assertCallReturns([auction, "isEnded"], true)
+                    .assertCallReturns([auction, "getBlocksRemaining"], 0)
+                    .assertCallReturns([auction, "currentWinner"], bidderContract.address)
                     .start();
             });
             describe("With limited gas", function(){
@@ -415,11 +413,11 @@ describe('PennyAuction', function() {
             .doTx(() => auction.sendTransaction({from: bidder, value: BID_PRICE}))
             .assertSuccess()
                 .assertOnlyLog('BidOccurred', {bidder: bidder, time: null})
-                .assertStateAsString(auction, 'prize', newPrize, "increased by prizeIncr")
-                .assertStateAsString(auction, 'fees', newFees, "increased by feeIncr")
-                .assertStateAsString(auction, 'currentWinner', bidder, "is new currentWinner")
-                .assertStateAsString(auction, 'numBids', newNumBids, "increased by 1")
-                .assertStateAsString(auction, 'blockEnded', newBlockEnded, "increased by bidAddBlocks")
+                .assertCallReturns([auction, 'prize'], newPrize, "increased by prizeIncr")
+                .assertCallReturns([auction, 'fees'], newFees, "increased by feeIncr")
+                .assertCallReturns([auction, 'currentWinner'], bidder, "is new currentWinner")
+                .assertCallReturns([auction, 'numBids'], newNumBids, "increased by 1")
+                .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "increased by bidAddBlocks")
             .stopLedger()
                 .assertDelta(auction, BID_PRICE, "increased by bidPrice")
                 .assertDeltaMinusTxFee(bidder, BID_PRICE.mul(-1), "decreased by BID_PRICE and txFee")
@@ -437,10 +435,10 @@ describe('PennyAuction', function() {
             .doTx(() => auction.sendTransaction({from: bidder, value: bidAmt}))
             .assertSuccess()
                 .assertOnlyLog("BidRefundSuccess", {msg: errorMsg, bidder: bidder})
-                .assertStateAsString(auction, 'prize', prevPrize, 'not incremented')
-                .assertStateAsString(auction, 'fees', prevFees, 'not incremented')
-                .assertStateAsString(auction, 'numBids', prevNumBids, 'not incremented')
-                .assertStateAsString(auction, 'blockEnded', prevBlockEnded, 'not incremented')
+                .assertCallReturns([auction, 'prize'], prevPrize, 'not incremented')
+                .assertCallReturns([auction, 'fees'], prevFees, 'not incremented')
+                .assertCallReturns([auction, 'numBids'], prevNumBids, 'not incremented')
+                .assertCallReturns([auction, 'blockEnded'], prevBlockEnded, 'not incremented')
             .stopLedger()
                 .assertLostTxFee(bidder)
                 .assertNoDelta(auction)
@@ -459,7 +457,7 @@ describe('PennyAuction', function() {
             .startLedger([collector, auction, nonAdmin])
             .doTx(callParams)
             .assertSuccess()
-                .assertStateAsString(auction, 'fees', 0, 'should be zero')
+                .assertCallReturns([auction, 'fees'], 0, 'should be zero')
                 .assertOnlyLog("FeeCollectionSuccess", {time: null, amount: null})
             .stopLedger()
                 .assertDelta(collector, expectedFees, 'got fees')
@@ -471,16 +469,15 @@ describe('PennyAuction', function() {
     // auction should not be able to be paid to winner
     async function ensureNotPayable(errorMsg) {
         // test that call returns (false, 0)
-        const caller = admin;
-        const callParams = [auction, "payWinner", false, {from: admin}];
+        const callParams = [auction, "payWinner", false, {from: nonAdmin}];
         return createDefaultTxTester()
             .assertCallReturns(callParams, [false, 0])
-            .startLedger([auction, caller])
+            .startLedger([auction, nonAdmin])
             .doTx(callParams)
             .assertSuccess()
                 .assertOnlyErrorLog(errorMsg)
             .stopLedger()
-                .assertLostTxFee(caller)
+                .assertLostTxFee(nonAdmin)
                 .assertNoDelta(auction)
             .start();
     }

@@ -40,12 +40,17 @@ const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_ADD_BLOCKS_2, BID_FE
 const FEE_INCR_2 = BID_PRICE_2.mul(BID_FEE_PCT_2.div(100));
 const BID_INCR_2 = BID_PRICE_2.minus(FEE_INCR_2);
 
+const REWARD_GAS_PRICE_LIMIT = new BigNumber(40000000000); 	// 40 GWei
+const PA_START_REWARD = new BigNumber(.001e18);				// .001 ETH
+const PA_END_REWARD = new BigNumber(.001e18);				// .001 ETH
+const PA_FEE_COLLECT_REWARD_DENOM = new BigNumber(1000);	// .1%
+
 const accounts = web3.eth.accounts;
 
 describe("MainController", function(){
-	var owner = accounts[0];
-	var admin = accounts[1];
-	var nonAdmin = accounts[2];
+	const owner = accounts[1];
+	const admin = accounts[2];
+	const nonAdmin = accounts[3];
 	const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 	var registry;
@@ -61,11 +66,6 @@ describe("MainController", function(){
         pac = await PennyAuctionController.new(registry.address);
         paf = await PennyAuctionFactory.new(registry.address);
         
-        await registry.register("ADMIN", admin);
-        await registry.register("TREASURY", treasury.address);
-        await registry.register("MAIN_CONTROLLER", mainController.address);
-        await registry.register("PENNY_AUCTION_CONTROLLER", pac.address);
-        await registry.register("PENNY_AUCTION_FACTORY", paf.address);
         await testUtil.transfer(owner, treasury.address, INITIAL_PRIZE_0.mul(2));
 
         const addresses = {
@@ -83,25 +83,108 @@ describe("MainController", function(){
 
         await createDefaultTxTester()
 	        .nameAddresses(addresses)
+	        .doTx([registry, "register", "ADMIN", admin, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "MAIN_CONTROLLER", mainController.address, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
+                .assertSuccess()
+            .doTx([registry, "register", "PENNY_AUCTION_FACTORY", paf.address, {from: owner}])
+                .assertSuccess()
+	        .assertCallReturns([mainController, "getAdmin"], admin)
+	        .assertCallReturns([mainController, "getTreasury"], treasury.address)
+	        .assertCallReturns([mainController, "getPennyAuctionController"], pac.address)
         	.doTx([pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin}))
         	.doTx([pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin}))
         	.doTx([pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin}))
         	.doTx([pac, "enableDefinedAuction", 0, {from: admin}])
         	.doTx([pac, "enableDefinedAuction", 2, {from: admin}])
-        	.assertStateAsString(pac, "numDefinedAuctions", 3)
+        	.assertCallReturns([pac, "numDefinedAuctions"], 3)
         	.start();
 	});
 
+	describe(".setRewardGasPriceLimit()", async function() {
+		before("Initialized to 20Gwei", function(){
+			return createDefaultTxTester()
+				.assertCallThrows([mainController, "rewardGasPriceLimit"], 20000000000)
+				.start();
+		})
+		it("Not callable by nonAdmin", function(){
+			const callParams = [mainController, "setRewardGasPriceLimit", REWARD_GAS_PRICE_LIMIT,
+				{from: nonAdmin}];
+			return createDefaultTxTester()
+				.assertCallThrows(callParams)
+				.doTx(callParams)
+				.assertInvalidOpCode()
+				.start();
+		});
+		it("Works", function(){
+			const callParams = [mainController, "setRewardGasPriceLimit", REWARD_GAS_PRICE_LIMIT,
+				{from: admin}];
+			return createDefaultTxTester()
+				.assertCallThrows(callParams)
+				.doTx(callParams)
+				.assertSuccess()
+					.assertOnlyLog("RewardGasPriceLimitChanged", {time: null})
+				.assertCallReturns([mainController, "rewardGasPriceLimit"], REWARD_GAS_PRICE_LIMIT)
+				.start();
+		})
+	});
+
+	describe(".setPennyAuctionRewards()", function(){
+		before("Initialized to 0", function(){
+			return createDefaultTxTester()
+				.assertCallReturns([mainController, "paStartReward"], 0)
+				.assertCallReturns([mainController, "paEndReward"], 0)
+				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], 0)
+				.start();
+		});
+		it("Not callable by nonAdmin", function(){
+			const callParams = [mainController, "setPennyAuctionRewards",
+				PA_START_REWARD, PA_END_REWARD, PA_FEE_COLLECT_REWARD_DENOM,
+				{from: nonAdmin}]
+			return createDefaultTxTester()
+				.assertCallThrows(callParams)
+				.doTx(callParams)
+				.assertInvalidOpCode()
+				.start();
+		});
+		it("Works.", function(){
+			const callParams = [mainController, "setPennyAuctionRewards",
+				PA_START_REWARD, PA_END_REWARD, PA_FEE_COLLECT_REWARD_DENOM,
+				{from: admin}]
+			return createDefaultTxTester()
+				.doTx(callParams)
+				.assertSuccess()
+				.assertOnlyLog("PennyAuctionRewardsChanged", {time: null})
+				.assertCallReturns([mainController, "paStartReward"], PA_START_REWARD)
+				.assertCallReturns([mainController, "paEndReward"], PA_END_REWARD)
+				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], PA_FEE_COLLECT_REWARD_DENOM)
+				.start();
+		});
+	});
+
 	describe(".startPennyAuction()", async function(){
+		before("Rewards are set up correctly", function(){
+			return createDefaultTxTester()
+				.assertCallReturns([mainController, "rewardGasPriceLimit"], REWARD_GAS_PRICE_LIMIT)
+				.assertCallReturns([mainController, "paStartReward"], PA_START_REWARD)
+				.assertCallReturns([mainController, "paEndReward"], PA_END_REWARD)
+				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], PA_FEE_COLLECT_REWARD_DENOM)
+				.start();
+		})
 		it("Returns false when gasPrice is too high", async function(){
-			const callParams = [mainController, "startPennyAuction", 1, {gasPrice: 50000000000}];
+			const callParams = [mainController, "startPennyAuction", 1,
+				{gasPrice: REWARD_GAS_PRICE_LIMIT.plus(1)}];
 			return createDefaultTxTester()
 				.startLedger([treasury])
 				.startWatching([treasury, pac])
 				.assertCallReturns(callParams, [false, NO_ADDRESS])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertOnlyErrorLog("gasPrice exceeds gasPriceLimit.")
+					.assertOnlyErrorLog("gasPrice exceeds rewardGasPriceLimit.")
 				.stopLedger()
 					.assertNoDelta(treasury)
 				.stopWatching()
@@ -166,37 +249,38 @@ describe("MainController", function(){
 		});
 		it("Works", async function(){
 			var auction;
-			var reward;
+			var expectedReward;
+			const GAS_PRICE = 20000000000;
 			const callParams = [mainController, "startPennyAuction", 0,
-				{from: nonAdmin, gasPrice: 20000000000}];
+				{from: nonAdmin, gasPrice: GAS_PRICE}];
 			return createDefaultTxTester()
 				.assertCallReturns(callParams, [true, null])
 				.startLedger([treasury, pac, nonAdmin, paf])
 				.startWatching([treasury, pac, paf])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertLogCount(2)
+				.assertLogCount(2)
+				.doFn((ctx) => {
+					const gasUsed = ctx.txRes.logs[1].args.gasUsed;
+					expectedReward = gasUsed.mul(GAS_PRICE).plus(PA_START_REWARD);
+					console.log(`Expected reward: ${expectedReward}`);
+					auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
+                    return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
+				})
 					.assertLog("PennyAuctionStarted", {time: null, addr: null})
 					.assertLog("RewardPaid", {
 						time: null,
 						recipient: nonAdmin,
 						msg: "Started a PennyAuction",
 						gasUsed: null,
-						amount: null
+						amount: ()=>expectedReward
 					})
-				.doFn((ctx)=>{
-					auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-					reward = ctx.txRes.logs[1].args.amount;
-					const gasUsed = ctx.txRes.logs[1].args.gasUsed;
-					console.log(`Reward amount: ${reward} (${gasUsed} gas)`);
-                    return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
-				})
 				.stopLedger()
 					.assertNoDelta(pac)
 					.assertNoDelta(paf)
-					.assertDelta(treasury, ()=>reward.plus(INITIAL_PRIZE_0).mul(-1),
+					.assertDelta(treasury, ()=>expectedReward.plus(INITIAL_PRIZE_0).mul(-1),
 						"lost prize and reward")
-					.assertDeltaMinusTxFee(nonAdmin, ()=>reward,
+					.assertDeltaMinusTxFee(nonAdmin, ()=>expectedReward,
 						"lost txFee, got back reward")
 				.stopWatching()
 					.assertOnlyEvent(pac, "AuctionStarted", {
@@ -223,7 +307,7 @@ describe("MainController", function(){
 					.assertEvent(treasury, "TransferSuccess", {
 						time: null,
 						recipient: mainController.address,
-						value: ()=>reward
+						value: ()=>expectedReward
 					})
 				.start();
 		})

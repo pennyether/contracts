@@ -10,11 +10,9 @@ contract Registry {
     // for each name, holds the current address
     mapping (bytes32 => address) addresses;
 
-    event RegistryError(string msg);
-
     modifier fromOwner(){
-        if (msg.sender == addresses["OWNER"]) _;
-        else RegistryError("Only callable by Owner");
+        require(msg.sender == addresses["OWNER"]);
+        _;
     }
     
     function Registry(){
