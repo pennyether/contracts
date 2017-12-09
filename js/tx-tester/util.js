@@ -14,52 +14,58 @@ function createUtil(web3, assert){
 		// note the extra address argument -- this is due to
 		// a bug in web3 where it will include logs of other addresses.
 		// https://github.com/ethereum/web3.js/issues/895
-		expectOneLog: function(logs, eventName, args, address) {
+		expectOneLog: async function(logs, eventName, args, address) {
+			try {
+				await _self.expectLogCount(logs, 1);
+				await _self.expectLog(logs, eventName, args, address);
+			} catch (e) {
+				console.log(`Showing logs:`, logs);
+				throw e;
+			}
+		},
+
+		expectLog: async function(logs, eventName, args, address) {
 			address = (address && address.address) ? address.address : address;
 			logs = logs.filter(l => !address || l.address == address);
 			if (!args) args = {};
 
-			try {
-				assert.equal(logs.length, 1, "Expected exactly 1 log");
-				assert.equal(logs[0].event, eventName, `no '${eventName}' log`);
-				Object.keys(args).forEach(key => {
-					const val = args[key];
-					assert(logs[0].args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
+			function validateArgs(log){
+				return Promise.all(Object.keys(args).map(async function(key){
+					const val = await _self.toPromise(args[key]);
+					assert(log.args.hasOwnProperty(key), `arg '${key}' not in '${eventName}' log`);	
 					if (val !== null)
-						assert.strEqual(logs[0].args[key], args[key], `'log.args.${key}' incorrect`);
-				});
-			} catch (e) {
-				console.log("expectOneLog failed, showing logs:", logs);
-				throw e;
+						assert.strEqual(log.args[key], val, `${eventName}.args.${key}' incorrect`);
+				}))
 			}
-		},
-
-		expectLog: function(logs, eventName, args, address) {
-			address = (address && address.address) ? address.address : address;
-			logs = logs.filter(l => !address || l.address == address);
-			if (!args) args = {};
 
 			try {
-				var found = false;
-				logs.forEach(log => {
-					if (found) return;
-					if (log.event != eventName) return;
-					found = true;
-					Object.keys(args).forEach(key => {
-						const val = args[key];
-						assert(log.args.hasOwnProperty(key), `'${key}' not in '${eventName}' log`);	
-						if (val !== null)
-							assert.strEqual(log.args[key], args[key], `'log.args.${key}' incorrect`);
-					});
-				});
-				if (!found) throw new Error(`expectLog did not find event: ${eventName} with args ${args}`);
+				logs = logs.filter(l => l.event === eventName);
+				if (logs.length == 0) throw new Error(`did not find any '${eventName}' event.`);
+				if (logs.length == 1) await validateArgs(logs[0]);
+				if (logs.length > 1) {
+					for (var i=0; i<logs.length; i++){
+						try { await validateArgs(logs[i]); return; }
+						catch (e) {}
+					}
+					throw new Error(`Found '${eventName}' events, but none with matching args.`)
+				}
 			} catch (e) {
-				console.log(`expectLog ${eventName} failed, logs are:`, logs)
+				console.log(`Showing logs:`, logs)
 				throw e;
 			}
 		},
 
-		expectErrorLog: function(logs, msg, address) {
+		expectLogCount: async function(logs, num, msg) {
+			try {
+				msg = msg || `expected exactly ${num} logs`;
+				assert.equal(num, logs.length, msg);
+			} catch (e) {
+				console.log("Showing logs:", logs);
+				throw e;
+			}
+		},
+
+		expectOnlyErrorLog: async function(logs, msg, address) {
 			_self.expectOneLog(logs, "Error", {msg: msg}, address);
 		},
 

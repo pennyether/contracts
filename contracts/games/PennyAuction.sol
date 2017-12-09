@@ -51,8 +51,8 @@ contract PennyAuction {
 	event Error(uint time, string msg);
 	event Started(uint time, uint initialBlocks);
 	event BidOccurred(uint time, address bidder);
-	event BidRefundSuccess(uint time, address bidder);
-	event BidRefundFailure(uint time, address bidder);
+	event BidRefundSuccess(uint time, string msg, address bidder);
+	event BidRefundFailure(uint time, string msg, address bidder);
 	event PaymentSuccess(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 	event PaymentFailure(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
 	event FeeCollectionSuccess(uint time, uint amount);
@@ -104,17 +104,17 @@ contract PennyAuction {
 	{
 		// check that there is still time to bid
 		if (isEnded()) {
-			errorAndRefund("Cannot bid: Auction has already ended.");
+			errorAndRefund("Could not bid: Auction has already ended.");
 			return;
 		}
 		// check sender
 		if (msg.sender == currentWinner) {
-			errorAndRefund("Cannot bid: You are already the current winner.");
+			errorAndRefund("Could not bid: You are already the current winner.");
 			return;
 		}
 		// check that bid amount is correct
 		if (msg.value != bidPrice) {
-			errorAndRefund("Cannot bid: Value sent must match bidPrice.");
+			errorAndRefund("Could not bid: Value sent must match bidPrice.");
 			return;
 		}
 
@@ -134,9 +134,9 @@ contract PennyAuction {
 			// - try to refund the previous bidder
 			// - on refund failure, count this bid as a new bid.
 			if (currentWinner.send(bidPrice)) {
-				BidRefundSuccess({time: now, bidder: currentWinner});
+				BidRefundSuccess(now, "Another bid occurred on the same block.", currentWinner);
 			} else {
-				BidRefundFailure({time: now, bidder: currentWinner});
+				BidRefundFailure(now, ".send() failed.", currentWinner);
 				numBids++;
 				fees += _feeIncr;
 				prize += _prizeIncr;
@@ -146,6 +146,15 @@ contract PennyAuction {
 		// always update current winner and emit event
 		currentWinner = msg.sender;
 		BidOccurred({time: now, bidder: msg.sender});
+	}
+
+	// called from payable functions to refund the sender
+	// if we cannot refund, throw so that the tx reverts
+	function errorAndRefund(string _msg) private {
+		if (!msg.sender.call.value(msg.value)()){
+		 	throw;
+		}
+		BidRefundSuccess({time: now, msg: _msg, bidder: msg.sender});
 	}
 
 	/**
@@ -216,15 +225,6 @@ contract PennyAuction {
 		} else {
 			FeeCollectionFailure(now);
 			return (false, 0);
-		}
-	}
-
-	// called from payable functions to refund the sender
-	// if we cannot refund, throw so that the tx reverts
-	function errorAndRefund(string _errMsg) private {
-		Error(now, _errMsg);
-		if (!msg.sender.call.value(msg.value)()){
-		 	throw;
 		}
 	}
 

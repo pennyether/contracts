@@ -113,13 +113,19 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("'doTx' was never called.");
 			if (!ctx.txRes)
 				throw new Error("Expected 'doTx' to succeed.");
-			assert.equal(num, ctx.txRes.logs.length, `expected exactly ${num} logs`);
-			console.log(`✓ exactly ${num} logs found`);	
+			
+			await testUtil.expectLogCount(ctx.txRes.logs, num);
+			console.log(`✓ exactly ${num} logs found`);
 		},
 		// assert there is a log with $eventName and optional $args
 		assertLog: async function(eventName, args) {
 			const ctx = this;
-			testUtil.expectLog(ctx.txRes.logs, eventName, args);
+			if (ctx.txRes===undefined && ctx.txErr===undefined)
+				throw new Error("'doTx' was never called.");
+			if (!ctx.txRes)
+				throw new Error("Expected 'doTx' to succeed.");
+
+			await testUtil.expectLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' log was found`);
 		},
@@ -131,7 +137,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.txRes)
 				throw new Error("Expected 'doTx' to succeed.");
 
-			testUtil.expectOneLog(ctx.txRes.logs, eventName, args);
+			await testUtil.expectOneLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' log was the only log`);
 		},
@@ -143,7 +149,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.txRes)
 				throw new Error("Expected 'doTx' to succeed.");
 
-			testUtil.expectErrorLog(ctx.txRes.logs, msg);
+			await testUtil.expectOnlyErrorLog(ctx.txRes.logs, msg);
 			console.log(`✓ 'Error(msg: ${msg})' event was the only log`);
 		},
 		assertGasUsedLt: function(val) {
@@ -342,8 +348,8 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
-			const msg =`${at(address)} expected to have ${num} events`;
-			assert.equal(ctx.contractEvents[address].length, num, msg);
+			await testUtil.expectLogCount(ctx.contractEvents[address], num,
+				`${at(address)} expected to have ${num} events`);
 			console.log(`✓ ${num} events from ${at(address)}`)			
 		},
 		assertEvent: async function(address, eventName, args) {
@@ -356,7 +362,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
-			testUtil.expectLog(ctx.contractEvents[address], eventName, args);
+			await testUtil.expectLog(ctx.contractEvents[address], eventName, args);
 			const keysStr = Object.keys(args).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' event was found from ${at(address)}`);
 		},

@@ -308,7 +308,9 @@ describe('PennyAuctionController', function(){
                 .startLedger([nonAdmin, pac])
                 .doTx(callParams)
                 .assertSuccess()
-                    .assertOnlyErrorLog("PennyAuctionFactory could not create auction (invalid params?)")
+                    .assertLogCount(2)
+                    .assertLog("DefinedAuctionInvalid", {time: null, index: 1});
+                    .assertLog("Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
                 .stopLedger()
                     .assertLostTxFee(nonAdmin)
                     .assertNoDelta(pac)
@@ -417,11 +419,11 @@ describe('PennyAuctionController', function(){
         });
         it("Returns correct values", function(){
             return createDefaultTxTester()
-                .assertCallReturns([pac, "getIsStartable", 0], [false,0])
-                .assertCallReturns([pac, "getIsStartable", 1], [false,0])
-                .assertCallReturns([pac, "getIsStartable", 2], [false,0])
-                .assertCallReturns([pac, "getIsStartable", 3], [true,INITIAL_PRIZE_3])
-                .assertCallReturns([pac, "getIsStartable", 4], [false,0])
+                .assertCallReturns([pac, "getIsStartable", 0], false)
+                .assertCallReturns([pac, "getIsStartable", 1], false)
+                .assertCallReturns([pac, "getIsStartable", 2], false)
+                .assertCallReturns([pac, "getIsStartable", 3], true)
+                .assertCallReturns([pac, "getIsStartable", 4], false)
                 .start();
         })
     });

@@ -30,8 +30,19 @@ contract Treasury is
 		fromMainController
 		returns (bool _success)
 	{
-		// use unlimited gas in this transfer, in case MainController does stuff
-		return doTransfer(address(getMainController()), _value);
+		address _mainController = address(getMainController());
+
+		if (_value > this.balance) {
+			NotEnoughFunds(now, _mainController, _value);
+			return false;
+		}
+		if (_mainController.call.value(_value)()){
+			TransferSuccess(now, _mainController, _value);
+			return true;
+		} else {
+			TransferError(now, _mainController, _value);
+			return false;
+		}
 	}
 
 	function refund()
@@ -39,24 +50,6 @@ contract Treasury is
 		payable
 	{
 		RefundReceived(now, msg.value);
-	}
-
-	function doTransfer(address _address, uint _value)
-		private
-		returns (bool _success)
-	{
-
-		if (_value > this.balance) {
-			NotEnoughFunds(now, _address, _value);
-			return false;
-		}
-		if (_address.call.value(_value)()){
-			TransferSuccess(now, _address, _value);
-			return true;
-		} else {
-			TransferError(now, _address, _value);
-			return false;
-		}
 	}
 
 }

@@ -19,11 +19,15 @@ contract IPennyAuctionController {
   function numEndedAuctions() public constant returns(uint);
   function endedAuctions(uint _index) public constant returns(address);
   function numDefinedAuctions() public constant returns(uint);
-  function definedAuctions(uint _index) public constant returns(bool, address, string, uint, uint, uint, uint, uint);
+  
   function getNumEndedAuctions() constant returns (uint _numEndedAuctions);
   function getActiveAuctions() constant returns (address[] _addresses);
+  function getStartableAuctions() constant returns (uint[] _indexes);
   function getAvailableFees() constant returns (uint _feesAvailable);
+
+  function definedAuctions(uint _index) public constant returns(bool, address, string, uint, uint, uint, uint, uint);
   function getAuction(uint _index) constant returns (address);
+  function getInitialPrize(uint _index) constant returns (uint);
   function getIsEnabled(uint _index) constant returns (bool);
-  function getIsStartable(uint _index) constant returns (bool _isStartable, uint _initialPrize);
+  function getIsStartable(uint _index) constant returns (bool);
 }

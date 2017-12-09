@@ -101,7 +101,7 @@ describe("MainController", function(){
 				.assertCallReturns(callParams, [false, NO_ADDRESS])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertOnlyErrorLog("GasPrice limit is 40GWei.")
+					.assertOnlyErrorLog("gasPrice exceeds gasPriceLimit.")
 				.stopLedger()
 					.assertNoDelta(treasury)
 				.stopWatching()
@@ -158,13 +158,15 @@ describe("MainController", function(){
 					.assertEventCount(treasury, 2)
 					.assertEvent(treasury, "TransferSuccess")
 					.assertEvent(treasury, "RefundReceived")
-					.assertOnlyEvent(pac, "Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
+					.assertEventCount(pac, 2)
+					.assertEvent(pac, "Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
+					.assertEvent(pac, "DefinedAuctionInvalid", {time: null, index: 1})
 				.assertCallReturns([pac, "getAuction", 1], NO_ADDRESS)
 				.start();
 		});
 		it("Works", async function(){
 			var auction;
-			var refund;
+			var reward;
 			const callParams = [mainController, "startPennyAuction", 0,
 				{from: nonAdmin, gasPrice: 20000000000}];
 			return createDefaultTxTester()
@@ -175,35 +177,36 @@ describe("MainController", function(){
 				.assertSuccess()
 					.assertLogCount(2)
 					.assertLog("PennyAuctionStarted", {time: null, addr: null})
-					.assertLog("RefundGasSuccess", {
+					.assertLog("RewardPaid", {
 						time: null,
 						recipient: nonAdmin,
+						msg: "Started a PennyAuction",
 						gasUsed: null,
 						amount: null
 					})
 				.doFn((ctx)=>{
 					auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-					refund = ctx.txRes.logs[1].args.amount;
+					reward = ctx.txRes.logs[1].args.amount;
 					const gasUsed = ctx.txRes.logs[1].args.gasUsed;
-					console.log(`Refund amount: ${refund} (${gasUsed} gas)`);
+					console.log(`Reward amount: ${reward} (${gasUsed} gas)`);
                     return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
 				})
 				.stopLedger()
 					.assertNoDelta(pac)
 					.assertNoDelta(paf)
-					.assertDelta(treasury, ()=>refund.plus(INITIAL_PRIZE_0).mul(-1),
-						"lost prize and tx refund")
-					.assertDeltaMinusTxFee(nonAdmin, ()=>refund,
-						"lost txFee, got back refund")
+					.assertDelta(treasury, ()=>reward.plus(INITIAL_PRIZE_0).mul(-1),
+						"lost prize and reward")
+					.assertDeltaMinusTxFee(nonAdmin, ()=>reward,
+						"lost txFee, got back reward")
 				.stopWatching()
 					.assertOnlyEvent(pac, "AuctionStarted", {
 						time: null,
 						index: 0,
-						addr: null
+						addr: ()=>auction.address
 					})
 					.assertOnlyEvent(paf, "AuctionCreated", {
 						time: null,
-				        addr: null,
+				        addr: ()=>auction.address,
 				        collector: treasury.address,
 				        initialPrize: INITIAL_PRIZE_0,
 				        bidPrice: BID_PRICE_0,
@@ -211,10 +214,16 @@ describe("MainController", function(){
 				        bidFeePct: BID_FEE_PCT_0,
 				        initialBlocks: INITIAL_BLOCKS_0
 					})
-					.assertOnlyEvent(treasury, "TransferSuccess", {
+					.assertEventCount(treasury, 2)
+					.assertEvent(treasury, "TransferSuccess", {
 						time: null,
-						recipient: pac.address,
+						recipient: mainController.address,
 						value: INITIAL_PRIZE_0
+					})
+					.assertEvent(treasury, "TransferSuccess", {
+						time: null,
+						recipient: mainController.address,
+						value: ()=>reward
 					})
 				.start();
 		})

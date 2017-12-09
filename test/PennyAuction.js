@@ -102,16 +102,16 @@ describe('PennyAuction', function() {
 
         describe("Bidding", async function(){
             it("fails when passing too little", async function() {
-                await ensureNotBiddable(bidder1, BID_PRICE.plus(1), "Cannot bid: Value sent must match bidPrice.");
+                await ensureNotBiddable(bidder1, BID_PRICE.plus(1), "Could not bid: Value sent must match bidPrice.");
             });
             it("fails when passing too much", async function(){
-                await ensureNotBiddable(bidder1, BID_PRICE.minus(1), "Cannot bid: Value sent must match bidPrice.");
+                await ensureNotBiddable(bidder1, BID_PRICE.minus(1), "Could not bid: Value sent must match bidPrice.");
             });
             it("works correctly", async function(){
                 await ensureBiddable(bidder1);    
             });
             it("currentWinner cannot bid", async function(){
-                await ensureNotBiddable(bidder1, BID_PRICE, "Cannot bid: You are already the current winner.");
+                await ensureNotBiddable(bidder1, BID_PRICE, "Could not bid: You are already the current winner.");
             });
         });
 
@@ -311,7 +311,7 @@ describe('PennyAuction', function() {
                 
             });
             it("should not accept bids", async function(){
-                await ensureNotBiddable(nonBidder, BID_PRICE, "Cannot bid: Auction has already ended.");
+                await ensureNotBiddable(nonBidder, BID_PRICE, "Could not bid: Auction has already ended.");
             });
             it("should have correct state", async function(){
                 await createDefaultTxTester()
@@ -390,7 +390,7 @@ describe('PennyAuction', function() {
                 await ensureNotPayable("The prize has already been paid.");
             });
             it("should not accept bids", async function(){
-                await ensureNotBiddable(nonBidder, BID_PRICE, "Cannot bid: Auction has already ended.");
+                await ensureNotBiddable(nonBidder, BID_PRICE, "Could not bid: Auction has already ended.");
             });
             it("should allow remaining fees to be redeemed", async function(){
                 await ensureFeesRedeemable();
@@ -436,7 +436,7 @@ describe('PennyAuction', function() {
             .startLedger([bidder, auction])
             .doTx(() => auction.sendTransaction({from: bidder, value: bidAmt}))
             .assertSuccess()
-                .assertOnlyErrorLog(errorMsg)
+                .assertOnlyLog("BidRefundSuccess", {msg: errorMsg, bidder: bidder})
                 .assertStateAsString(auction, 'prize', prevPrize, 'not incremented')
                 .assertStateAsString(auction, 'fees', prevFees, 'not incremented')
                 .assertStateAsString(auction, 'numBids', prevNumBids, 'not incremented')
