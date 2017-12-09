@@ -229,11 +229,11 @@ function createPlugins(testUtil, ledger) {
 			await ctx.ledger.stop();
 		},
 		// asserts a delta of $amt in the balance of $address
-		assertDelta: function(address, amt, msg) {
+		assertDelta: async function(address, amt, msg) {
 			const ctx = this;
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
-			if (typeof amt === 'function') amt = amt();
+			amt = await testUtil.toPromise(amt);
 
 			msg = msg || `changed correctly`;
 			msg = `balance of ${at(address)} ${msg}`;
@@ -265,6 +265,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("You never called .startLedger()");
 			if (ctx.txRes===null)
 				throw new Error("'doTx' was never called, or failed");
+			amt = await testUtil.toPromise(amt);
 
 			msg = msg || "gained an amount but lost txFee";
 			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
@@ -396,6 +397,8 @@ function createPlugins(testUtil, ledger) {
 		// does callParams[0].callParams[1].call(...callParams)
 		// and expects [expected] -- if array compares each value.
 		assertCallReturns: async function(callParams, expected, msg) {
+			callParams = await testUtil.toPromise(callParams);
+			expected = await testUtil.toPromise(expected);
 			const contract = callParams[0];
 			const name = callParams[1];
 			const args = callParams.slice(2);

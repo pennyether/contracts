@@ -45,7 +45,7 @@ const accounts = web3.eth.accounts;
 describe("MainController", function(){
 	var owner = accounts[0];
 	var admin = accounts[1];
-	var rando = accounts[2];
+	var nonAdmin = accounts[2];
 	const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 	var registry;
@@ -76,7 +76,8 @@ describe("MainController", function(){
         	mainController: mainController.address,
         	pac: pac.address,
         	paf: paf.address,
-        	NO_ADDRESS: NO_ADDRESS
+        	NO_ADDRESS: NO_ADDRESS,
+        	nonAdmin: nonAdmin
         };
         console.log("Addresses:", addresses);
 
@@ -92,6 +93,22 @@ describe("MainController", function(){
 	});
 
 	describe(".startPennyAuction()", async function(){
+		it("Returns false when gasPrice is too high", async function(){
+			const callParams = [mainController, "startPennyAuction", 1, {gasPrice: 50000000000}];
+			return createDefaultTxTester()
+				.startLedger([treasury])
+				.startWatching([treasury, pac])
+				.assertCallReturns(callParams, [false, NO_ADDRESS])
+				.doTx(callParams)
+				.assertSuccess()
+					.assertOnlyErrorLog("GasPrice limit is 40GWei.")
+				.stopLedger()
+					.assertNoDelta(treasury)
+				.stopWatching()
+					.assertEventCount(treasury, 0)
+				.assertCallReturns([pac, "getAuction", 1], NO_ADDRESS)
+				.start();
+		});
 		it("Returns false when called on nonEnabled index", async function(){
 			const callParams = [mainController, "startPennyAuction", 1, {gasPrice: 20000000000}];
 			return createDefaultTxTester()
@@ -146,9 +163,59 @@ describe("MainController", function(){
 				.start();
 		});
 		it("Works", async function(){
-			const callParams = [mainController, "startPennyAuction", 0, {gasPrice: 20000000000}];
+			var auction;
+			var refund;
+			const callParams = [mainController, "startPennyAuction", 0,
+				{from: nonAdmin, gasPrice: 20000000000}];
 			return createDefaultTxTester()
 				.assertCallReturns(callParams, [true, null])
+				.startLedger([treasury, pac, nonAdmin, paf])
+				.startWatching([treasury, pac, paf])
+				.doTx(callParams)
+				.assertSuccess()
+					.assertLogCount(2)
+					.assertLog("PennyAuctionStarted", {time: null, addr: null})
+					.assertLog("RefundGasSuccess", {
+						time: null,
+						recipient: nonAdmin,
+						gasUsed: null,
+						amount: null
+					})
+				.doFn((ctx)=>{
+					auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
+					refund = ctx.txRes.logs[1].args.amount;
+					const gasUsed = ctx.txRes.logs[1].args.gasUsed;
+					console.log(`Refund amount: ${refund} (${gasUsed} gas)`);
+                    return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
+				})
+				.stopLedger()
+					.assertNoDelta(pac)
+					.assertNoDelta(paf)
+					.assertDelta(treasury, ()=>refund.plus(INITIAL_PRIZE_0).mul(-1),
+						"lost prize and tx refund")
+					.assertDeltaMinusTxFee(nonAdmin, ()=>refund,
+						"lost txFee, got back refund")
+				.stopWatching()
+					.assertOnlyEvent(pac, "AuctionStarted", {
+						time: null,
+						index: 0,
+						addr: null
+					})
+					.assertOnlyEvent(paf, "AuctionCreated", {
+						time: null,
+				        addr: null,
+				        collector: treasury.address,
+				        initialPrize: INITIAL_PRIZE_0,
+				        bidPrice: BID_PRICE_0,
+				        bidAddBlocks: BID_ADD_BLOCKS_0,
+				        bidFeePct: BID_FEE_PCT_0,
+				        initialBlocks: INITIAL_BLOCKS_0
+					})
+					.assertOnlyEvent(treasury, "TransferSuccess", {
+						time: null,
+						recipient: pac.address,
+						value: INITIAL_PRIZE_0
+					})
 				.start();
 		})
 	});

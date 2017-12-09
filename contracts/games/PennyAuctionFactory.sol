@@ -13,6 +13,7 @@ contract PennyAuctionFactory is
     event AuctionCreated(
         uint time,
         address addr,
+        address collector,
         uint initialPrize,
         uint bidPrice,
         uint bidAddBlocks,
@@ -38,8 +39,9 @@ contract PennyAuctionFactory is
 
         // create an auction, event, and return.
         // throws if invalid params are passed.
+        address _collector = address(getTreasury());
 		_auction = (new PennyAuction).value(_initialPrize)({
-            _collector: address(getTreasury()),
+            _collector: _collector,
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,
             _bidAddBlocks: _bidAddBlocks,
@@ -51,6 +53,7 @@ contract PennyAuctionFactory is
         AuctionCreated({
             time: now,
             addr: _auction,
+            collector: _collector,
             initialPrize: _initialPrize,
             bidPrice: _bidPrice,
             bidAddBlocks: _bidAddBlocks,

@@ -331,25 +331,23 @@ describe('PennyAuctionController', function(){
                     .assertEvent(paf, "AuctionCreated", {
                         time: null,
                         addr: null,
+                        collector: treasury.address,
                         initialPrize: INITIAL_PRIZE_0,
                         bidPrice: BID_PRICE_0,
                         bidAddBlocks: BID_ADD_BLOCKS_0,
                         bidFeePct: BID_FEE_PCT_0,
                         initialBlocks: INITIAL_BLOCKS_0
                     })
-                .doFn((ctx) => { auction = PennyAuction.at(ctx.txRes.logs[0].args.addr) })
-                    .assertAsString(() => pac.getAuction(0), () => auction.address,
-                        "definedAuctions.auction is set correctly")
-                    .assertAsString(() => auction.prize(), INITIAL_PRIZE_0,
-                        "created auction has correct initialPrize")
-                    .assertAsString(() => auction.bidPrice(), BID_PRICE_0,
-                        "created auction has correct bidPrice")
-                    .assertAsString(() => auction.bidAddBlocks(), BID_ADD_BLOCKS_0,
-                        "created auction has correct biddAddBlocks")
-                    .assertAsString(() => auction.bidFeePct(), BID_FEE_PCT_0,
-                        "created auction has correct bidFeePct")
-                    .assertAsString(() => auction.currentWinner(), treasury.address,
-                        "created auction currentWinner is treasury")
+                .doFn((ctx) => {
+                    auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
+                    return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
+                })
+                    .assertCallReturns([pac, "getAuction", 0], ()=>auction.address)
+                    .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_0)
+                    .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_0)
+                    .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_0)
+                    .assertCallReturns(()=>[auction, "bidFeePct"], BID_FEE_PCT_0)
+                    .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
                 .start();
             await createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
         });
@@ -382,28 +380,25 @@ describe('PennyAuctionController', function(){
                     .assertEvent(paf, "AuctionCreated", {
                         time: null,
                         addr: null,
+                        collector: treasury.address,
                         initialPrize: INITIAL_PRIZE_2,
                         bidPrice: BID_PRICE_2,
                         bidAddBlocks: BID_ADD_BLOCKS_2,
                         bidFeePct: BID_FEE_PCT_2,
                         initialBlocks: INITIAL_BLOCKS_2
                     })
-                .doFn((ctx) => { auction = PennyAuction.at(ctx.txRes.logs[0].args.addr) })
-                    .assertAsString(() => pac.getAuction(2), () => auction.address,
-                        "definedAuctions.auction is set correctly")
-                    .assertAsString(() => auction.prize(), INITIAL_PRIZE_2,
-                        "created auction has correct initialPrize")
-                    .assertAsString(() => auction.bidPrice(), BID_PRICE_2,
-                        "created auction has correct bidPrice")
-                    .assertAsString(() => auction.bidAddBlocks(), BID_ADD_BLOCKS_2,
-                        "created auction has correct biddAddBlocks")
-                    .assertAsString(() => auction.bidFeePct(), BID_FEE_PCT_2,
-                        "created auction has correct bidFeePct")
-                    .assertAsString(() => auction.currentWinner(), treasury.address,
-                        "created auction currentWinner is treasury")
+                .doFn((ctx) => {
+                    auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
+                    return createDefaultTxTester().nameAddresses({auction2: auction}, false).start();
+                })
+                    .assertCallReturns([pac, "getAuction", 2], ()=>auction.address)
+                    .assertCallReturns(()=>[auction, "collector"], treasury.address)
+                    .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_2)
+                    .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_2)
+                    .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_2)
+                    .assertCallReturns(()=>[auction, "bidFeePct"], BID_FEE_PCT_2)
+                    .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
                 .start();
-
-            await createDefaultTxTester().nameAddresses({auction2: auction}, false).start();
         });
     });
 

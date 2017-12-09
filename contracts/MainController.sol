@@ -18,7 +18,7 @@ contract MainController is
 	UsingTreasury
 {
 	event Error(uint time, string msg);
-	event PennyAuctionStarted(uint time, address auction);
+	event PennyAuctionStarted(uint time, address addr);
 	event PennyAuctionNotStarted(uint time, uint index);
 	event RefundGasSuccess(uint time, address recipient, uint gasUsed, uint amount);
 	event RefundGasFailure(uint time, address recipient, uint gasUsed, uint amount);
@@ -35,11 +35,11 @@ contract MainController is
 	function startPennyAuction(uint _index) 
 		returns (bool _success, address _auction)
 	{
+		uint _startGas = msg.gas;
 		if (tx.gasprice > 40000000000) {
 			Error(now, "GasPrice limit is 40GWei.");
 			return;
 		}
-		uint _startGas = msg.gas;
 
 		// ensure it is startable
 		IPennyAuctionController pac = getPennyAuctionController();
@@ -57,15 +57,15 @@ contract MainController is
 		// try to start the auction
 		(_success, _auction) = pac.startDefinedAuction.value(_initialPrize)(_index);
 		if (_success) {
-			PennyAuctionStarted({time: now, auction: address(_auction)});
+			PennyAuctionStarted({time: now, addr: address(_auction)});
 		} else {
 			getTreasury().refund.value(_initialPrize)();
 			Error(now, "PennyAuctionFactory.startDefinedAuction() failed.");
 			return;
 		}
 
-		// try to refund the user
-		uint _gasUsed = _startGas - msg.gas + 21000;
+		// try to refund the user (~900000 gas) 
+		uint _gasUsed = _startGas - msg.gas + 42600;
 		uint _refund = _gasUsed * tx.gasprice;
 		_gotFunds = getTreasury().fundMainController(_refund);
 		if (_gotFunds){

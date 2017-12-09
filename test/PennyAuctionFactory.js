@@ -103,6 +103,7 @@ describe('PennyAuctionFactory', async function(){
                 .assertOnlyLog("AuctionCreated", {
                     time: null,
                     addr: null,
+                    collector: dummyTreasury,
                     initialPrize: INITIAL_PRIZE,
                     bidPrice: BID_PRICE,
                     bidAddBlocks: BID_ADD_BLOCKS,
