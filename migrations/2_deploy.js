@@ -47,7 +47,6 @@ module.exports = function(deployer, network, accounts) {
 		assertEquals(await treasury.getMainController(), mainController.address, "Treasury sees correct mainController.");
 
 		assertEquals(await mainController.getOwner(), owner, "MainController sees correct owner");
-		assertEquals(await mainController.getAdmin(), admin, "MainController sees correct admin");
 		assertEquals(await mainController.getPennyAuctionController(), pac.address, "MainController sees correct PAC");
 		
 		assertEquals(await pac.getOwner(), owner, "PAC sees correct owner.");

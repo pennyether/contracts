@@ -253,7 +253,7 @@ describe('PennyAuctionController', function(){
         }); 
     });
 
-    describe(".startDefinedAuction", function(){
+    describe(".startDefinedAuction()", function(){
         before("enable some auctions", async function(){
             assert.strEqual(await pac.numDefinedAuctions(), 4);
             await pac.enableDefinedAuction(0, {from: admin});
@@ -300,16 +300,19 @@ describe('PennyAuctionController', function(){
                     .assertNoDelta(pac)
                 .start();
         });
-        it("Invalid Op when starting auction with bad params", function(){
+        it("refunds when starting auction with bad params", function(){
             const callParams = [pac, "startDefinedAuction", 1, {from: nonAdmin, value: INITIAL_PRIZE_1}];
             return createDefaultTxTester()
                 .doTx([pac, "enableDefinedAuction", 1, {from: admin}])
                 .assertCallThrows(callParams)
                 .startLedger([nonAdmin, pac])
                 .doTx(callParams)
-                    .assertInvalidOpCode()
+                .assertSuccess()
+                    .assertOnlyErrorLog("PennyAuctionFactory could not create auction (invalid params?)")
                 .stopLedger()
+                    .assertLostTxFee(nonAdmin)
                     .assertNoDelta(pac)
+                .doTx([pac, "disableDefinedAuction", 1, {from: admin}])
                 .start();
         });
         it("works", async function(){
@@ -402,6 +405,30 @@ describe('PennyAuctionController', function(){
 
             await createDefaultTxTester().nameAddresses({auction2: auction}, false).start();
         });
+    });
+
+    describe(".getIsStartable()", function(){
+        before("Ensure state", async function(){
+            // auction0 is started
+            assert.notEqual(await pac.getAuction(0), NO_ADDRESS);
+            // auction1 is disabled
+            assert.equal(await pac.getAuction(1), NO_ADDRESS);
+            assert.equal(await pac.getIsEnabled(1), false);
+            // auction2 is started
+            assert.notEqual(await pac.getAuction(2), NO_ADDRESS);
+            // auction3 is enabled and not started
+            assert.equal(await pac.getAuction(3), NO_ADDRESS);
+            assert.equal(await pac.getIsEnabled(3), true);
+        });
+        it("Returns correct values", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([pac, "getIsStartable", 0], [false,0])
+                .assertCallReturns([pac, "getIsStartable", 1], [false,0])
+                .assertCallReturns([pac, "getIsStartable", 2], [false,0])
+                .assertCallReturns([pac, "getIsStartable", 3], [true,INITIAL_PRIZE_3])
+                .assertCallReturns([pac, "getIsStartable", 4], [false,0])
+                .start();
+        })
     });
 
     // At this point, definedAuctions[1] is started
@@ -584,10 +611,10 @@ describe('PennyAuctionController', function(){
             const blocksRemaining = await auction2.getBlocksRemaining();
             testUtil.mineBlocks(blocksRemaining);
             // add addresses
-            createDefaultTxTester().nameAddresses({
+            await createDefaultTxTester().nameAddresses({
                 auction2: auction2.address,
                 unpayableBidder: unpayableBidder.address
-            }, false);
+            }, false).start();
             console.log(`Started auction2, bid with unpayableBidder, fast forwarded ${blocksRemaining}`);
         });
         it(".refreshAuctions() ends auction, collects fees, but doesnt pay unpayableBidder", async function(){

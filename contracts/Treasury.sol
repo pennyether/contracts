@@ -12,9 +12,10 @@ whoever the registry says is the PennyAuctionController can receive funds.
 contract Treasury is 
 	UsingMainController
 {
-	event NotEnoughFunds(address recipient, uint value);
-	event TransferSuccess(address recipient, uint value);
-	event TransferError(address recipient, uint value);
+	event NotEnoughFunds(uint time, address recipient, uint value);
+	event TransferSuccess(uint time, address recipient, uint value);
+	event TransferError(uint time, address recipient, uint value);
+	event RefundReceived(uint time, uint value);
 
 	function Treasury(address _registry)
 		UsingMainController(_registry)
@@ -33,29 +34,29 @@ contract Treasury is
 		return doTransfer(address(getMainController()), _value);
 	}
 
+	function refund()
+		fromMainController
+		payable
+	{
+		RefundReceived(now, msg.value);
+	}
+
 	function doTransfer(address _address, uint _value)
 		private
 		returns (bool _success)
 	{
 
 		if (_value > this.balance) {
-			NotEnoughFunds(_address, _value);
+			NotEnoughFunds(now, _address, _value);
 			return false;
 		}
 		if (_address.call.value(_value)()){
-			TransferSuccess(_address, _value);
+			TransferSuccess(now, _address, _value);
 			return true;
 		} else {
-			TransferError(_address, _value);
+			TransferError(now, _address, _value);
 			return false;
 		}
-	}
-
-	// gives funds to owner
-	function withdraw(uint _value)
-		fromOwner
-	{
-		_value * 2;
 	}
 
 }

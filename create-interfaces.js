@@ -17,8 +17,6 @@ if (!fs.lstatSync(contractsDir).isDirectory()){
 }
 
 function findInDirectory(dir, extension, callback){
-	
-   
     if (!fs.existsSync(dir)){
         throw new Error(`No such path: ${dir}`);
     }

@@ -1,98 +1,82 @@
-// pragma solidity ^0.4.0;
+pragma solidity ^0.4.0;
 
-// import "./roles/UsingPennyAuctionController.sol";
-// import "./roles/UsingTreasury.sol";
-// import "./roles/UsingAdmin.sol";
+import "./roles/UsingPennyAuctionController.sol";
+import "./roles/UsingTreasury.sol";
 
-// /**
-// The MainController is aware of all game controllers and tells them what to do.
-// 	It:
-// 		- holds references to all game controllers, so that
-// 		  a frontend can be displayed
+/**
+The MainController interfaces with all GameControllers.
+	- It is the only contract capable of receiving funds from Treasury
+	- It is the starting point for the UI
 
-// 		Admin only:
-// 		- starts games, first by getting funds from treasury
-// 		- tells controllers to update game statuses (eg, finish games)
+For now, there is only one type of game controller, but there may be more
+added in the future.  As such, it's best if the MainController contains zero state
+so that swapping in another MainController is trivial.
+*/
+//@createInterface
+contract MainController is 
+	UsingPennyAuctionController,
+	UsingTreasury
+{
+	event Error(uint time, string msg);
+	event PennyAuctionStarted(uint time, address auction);
+	event PennyAuctionNotStarted(uint time, uint index);
+	event RefundGasSuccess(uint time, address recipient, uint gasUsed, uint amount);
+	event RefundGasFailure(uint time, address recipient, uint gasUsed, uint amount);
 
-// 		Owner only:
-// 		- change PAC settings
+	function MainController(address _registry)
+		UsingPennyAuctionController(_registry)
+		UsingTreasury(_registry)
+	{}
 
-// For now, there is only one type of game controller, but there may be more
-// added in the future.  As such, it's best if the MainController contains zero state
-// so that migrating to another MainController is easy.
-// */
-// //@createInterface
-// contract MainController is 
-// 	UsingPennyAuctionController,
-// 	UsingTreasury,
-// 	UsingAdmin
-// {
-// 	event Error(string msg);
-// 	event PennyAuctionStarted(uint time, address addr);
-// 	event UpdatedPennyAuctions(uint numAuctionsClosed, uint time);
-	
-// 	function MainController(address _registry)
-// 		UsingPennyAuctionController(_registry)
-// 		UsingTreasury(_registry)
-// 		UsingAdmin(_registry) {}
+	function() payable {}
 
-// 	function() payable {}
+	// Starts a pennyAuction
+	// If successful, refunds the sender the gas it costed
+	function startPennyAuction(uint _index) 
+		returns (bool _success, address _auction)
+	{
+		if (tx.gasprice > 40000000000) {
+			Error(now, "GasPrice limit is 40GWei.");
+			return;
+		}
+		uint _startGas = msg.gas;
 
-// 	function createPennyAuction(uint _initialPrize,
-// 	    					 	uint _bidPrice,
-// 	    					 	uint _bidTimeS,
-// 	    					 	uint _bidFeePct,
-//         					 	uint _auctionTimeS)
-// 		fromAdmin
-// 		returns (bool _success, address _pennyAuction)
-// 	{
-// 		// get wei from treasury, so we can pass to PAC
-// 		var (_gotFunds,) = getTreasury().fundMainController(_initialPrize);
-// 		if (!_gotFunds) {
-// 			Error("Unable to receive funds");
-// 			return;
-// 		}
+		// ensure it is startable
+		IPennyAuctionController pac = getPennyAuctionController();
+		var (_isStartable, _initialPrize) = pac.getIsStartable(_index);
+		if (!_isStartable){
+			Error(now, "DefinedAuction is not currently startable.");
+			return;
+		}
+		// get funds required to start it
+		bool _gotFunds = getTreasury().fundMainController(_initialPrize);
+		if (!_gotFunds) {
+			Error(now, "Unable to receive funds.");
+			return;
+		}
+		// try to start the auction
+		(_success, _auction) = pac.startDefinedAuction.value(_initialPrize)(_index);
+		if (_success) {
+			PennyAuctionStarted({time: now, auction: address(_auction)});
+		} else {
+			getTreasury().refund.value(_initialPrize)();
+			Error(now, "PennyAuctionFactory.startDefinedAuction() failed.");
+			return;
+		}
 
-// 		// attempt to start a new auction, passing it _initialPrize
-// 		var (_startedAuction, _pa) =
-// 			getPennyAuctionController().startNewAuction.value(_initialPrize)(
-// 				_initialPrize,
-// 				_bidPrice,
-// 				_bidTimeS,
-// 				_bidFeePct,
-// 				_auctionTimeS
-// 			);
+		// try to refund the user
+		uint _gasUsed = _startGas - msg.gas + 21000;
+		uint _refund = _gasUsed * tx.gasprice;
+		_gotFunds = getTreasury().fundMainController(_refund);
+		if (_gotFunds){
+			if (msg.sender.call.value(_refund)()){
+				RefundGasSuccess({time: now, recipient: msg.sender, gasUsed: _gasUsed, amount: _refund});
+			} else {
+				RefundGasFailure({time: now, recipient: msg.sender, gasUsed: _gasUsed, amount: _refund});
+			}
+		}
 
-// 		if (!_startedAuction) {
-// 			Error("Unable to start a new auction");
-// 			getTreasury().transfer(_initialPrize);
-// 			return;
-// 		}
-
-// 		PennyAuctionStarted(now, _pa);
-
-// 		return (true, _pa);
-// 	}
-
-// 	function updatePennyAuctions(uint _minFeeThreshold)
-// 		fromAdmin
-// 		returns (bool _didUpdate)
-// 	{
-// 		IPennyAuctionController _pac = getPennyAuctionController();
-// 		var ( ,_naa) = _pac.getNumActionableAuctions();
-// 		var ( ,_af) = _pac.getAvailableFees();
-// 		if (_naa > 0 || _af > _minFeeThreshold) {
-// 			getPennyAuctionController().checkOpenAuctions();
-// 			return true;
-// 		}
-// 		return false;
-// 	}
-
-// 	function changePennyAuctionSettings()
-// 		fromOwner
-// 	{
-
-// 	}
-
-
-// }
+		// return successul either way
+		return (_success, _auction);
+	}
+}

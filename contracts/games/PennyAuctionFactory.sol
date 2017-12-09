@@ -8,6 +8,8 @@ contract PennyAuctionFactory is
     UsingPennyAuctionController,
     UsingTreasury
 {
+    PennyAuction public lastCreatedAuction;
+
     event AuctionCreated(
         uint time,
         address addr,
@@ -30,13 +32,13 @@ contract PennyAuctionFactory is
                            uint _initialBlocks)
         fromPennyAuctionController
         payable
-        returns (PennyAuction _addr)
+        returns (PennyAuction _auction)
     {
         require(msg.value == _initialPrize);
 
-        // create an auction, event, and return
-        // otherwise this will throw
-		PennyAuction _auction = (new PennyAuction).value(_initialPrize)({
+        // create an auction, event, and return.
+        // throws if invalid params are passed.
+		_auction = (new PennyAuction).value(_initialPrize)({
             _collector: address(getTreasury()),
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,
@@ -44,6 +46,7 @@ contract PennyAuctionFactory is
             _bidFeePct: _bidFeePct,
             _initialBlocks: _initialBlocks
         });
+        lastCreatedAuction = _auction;
 
         AuctionCreated({
             time: now,

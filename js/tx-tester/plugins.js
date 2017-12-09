@@ -116,6 +116,13 @@ function createPlugins(testUtil, ledger) {
 			assert.equal(num, ctx.txRes.logs.length, `expected exactly ${num} logs`);
 			console.log(`✓ exactly ${num} logs found`);	
 		},
+		// assert there is a log with $eventName and optional $args
+		assertLog: async function(eventName, args) {
+			const ctx = this;
+			testUtil.expectLog(ctx.txRes.logs, eventName, args);
+			const keysStr = Object.keys(args || {}).join(", ");
+			console.log(`✓ '${eventName}(${keysStr})' log was found`);
+		},
 		// assert there is one log, with name $eventName and optional $args
 		assertOnlyLog: async function(eventName, args, address) {
 			const ctx = this;
@@ -127,13 +134,6 @@ function createPlugins(testUtil, ledger) {
 			testUtil.expectOneLog(ctx.txRes.logs, eventName, args);
 			const keysStr = Object.keys(args || {}).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' log was the only log`);
-		},
-		// assert there is a log with $eventName and optional $args
-		assertLog: async function(eventName, args) {
-			const ctx = this;
-			testUtil.expectLog(ctx.txRes.logs, eventName, args);
-			const keysStr = Object.keys(args || {}).join(", ");
-			console.log(`✓ '${eventName}(${keysStr})' log was found`);
 		},
 		// assert there is a log named "Error" with an arg msg that is $msg
 		assertOnlyErrorLog: async function(msg) {
@@ -333,21 +333,17 @@ function createPlugins(testUtil, ledger) {
 			return Promise.all(promises).then(()=>{ delete ctx.contractWatchers; });
 		},
 		assertEventCount: async function(address, num) {
-
-		},
-		assertOnlyEvent: async function(address, eventName, args) {
 			if (address.address) address = address.address;
-			if (!args) args = {};
-
+			
 			const ctx = this;
 			if (!ctx.contractEvents)
 				throw new Error("'startWatching' and 'stopWatching' weren't called.");
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
-			testUtil.expectOneLog(ctx.contractEvents[address], eventName, args, address);
-			const keysStr = Object.keys(args).join(", ");
-			console.log(`✓ '${eventName}(${keysStr})' was the only event for ${at(address)}`);
+			const msg =`${at(address)} expected to have ${num} events`;
+			assert.equal(ctx.contractEvents[address].length, num, msg);
+			console.log(`✓ ${num} events from ${at(address)}`)			
 		},
 		assertEvent: async function(address, eventName, args) {
 			if (address.address) address = address.address;
@@ -361,7 +357,21 @@ function createPlugins(testUtil, ledger) {
 
 			testUtil.expectLog(ctx.contractEvents[address], eventName, args);
 			const keysStr = Object.keys(args).join(", ");
-			console.log(`✓ '${eventName}(${keysStr})' event was found for ${at(address)}`);
+			console.log(`✓ '${eventName}(${keysStr})' event was found from ${at(address)}`);
+		},
+		assertOnlyEvent: async function(address, eventName, args) {
+			if (address.address) address = address.address;
+			if (!args) args = {};
+
+			const ctx = this;
+			if (!ctx.contractEvents)
+				throw new Error("'startWatching' and 'stopWatching' weren't called.");
+			if (!ctx.contractEvents[address])
+				throw new Error(`'startWatching' was never called for ${at(address)}.`);
+
+			testUtil.expectOneLog(ctx.contractEvents[address], eventName, args, address);
+			const keysStr = Object.keys(args).join(", ");
+			console.log(`✓ '${eventName}(${keysStr})' was the only event from ${at(address)}`);
 		},
 		printEvents: function() {
 			const ctx = this;

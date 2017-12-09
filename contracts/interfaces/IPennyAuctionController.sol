@@ -1,23 +1,29 @@
 pragma solidity ^0.4.0;
 //@dontregenerate
 contract IPennyAuctionController {
+  function editDefinedAuction(uint _index,
+                                string _summary,
+                                uint _initialPrize,
+                                uint _bidPrice,
+                                uint _bidAddBlocks,
+                                uint _bidFeePct,
+                                uint _initialBlocks) returns (bool _success);
+  function disableDefinedAuction(uint _index) returns (bool _success);
+  function enableDefinedAuction(uint _index) returns (bool _success);
+  function startDefinedAuction(uint _index) payable returns (bool _success, address _auction);
+  function refreshAuctions() returns (uint _numAuctionsEnded, uint _feesRedeemed);
+
   function totalFees() public constant returns(uint);
   function totalPrizes() public constant returns(uint);
   function totalBids() public constant returns(uint);
-  function endedAuctions(uint _i) public constant returns(address);
-  //cannot return internal structs.
-  //function definedAuctions(uint _i) public constant returns(DefinedAuction);
-  function editDefinedAuction(uint _index,
-                              string _summary,
-                              uint _initialPrize,
-                              uint _bidPrice,
-                              uint _bidTimeS,
-                              uint _bidFeePct,
-                              uint _auctionTimeS);
-  function disableDefinedAuction(uint _index);
-  function enableDefinedAuction(uint _index);
-  function startDefinedAuction(uint _index) payable returns (bool _success, address _auction);
-  function refreshAuctions() returns (uint _numAuctionsEnded, uint _feesRedeemed);
+  function numEndedAuctions() public constant returns(uint);
+  function endedAuctions(uint _index) public constant returns(address);
+  function numDefinedAuctions() public constant returns(uint);
+  function definedAuctions(uint _index) public constant returns(bool, address, string, uint, uint, uint, uint, uint);
   function getNumEndedAuctions() constant returns (uint _numEndedAuctions);
+  function getActiveAuctions() constant returns (address[] _addresses);
   function getAvailableFees() constant returns (uint _feesAvailable);
+  function getAuction(uint _index) constant returns (address);
+  function getIsEnabled(uint _index) constant returns (bool);
+  function getIsStartable(uint _index) constant returns (bool _isStartable, uint _initialPrize);
 }
