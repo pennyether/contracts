@@ -233,7 +233,7 @@ function createPlugins(testUtil, ledger) {
 			const ctx = this;
 			if (!ctx.ledger)
 				throw new Error("You never called .startLedger()");
-			plugins.assertDelta.call(ctx, address, 0, "did not change");
+			return plugins.assertDelta.call(ctx, address, 0, "did not change");
 		},
 		// asserts $address has a delta equal to the txFee of the last result
 		assertLostTxFee: async function(address, msg) {
@@ -245,7 +245,7 @@ function createPlugins(testUtil, ledger) {
 
 			msg = msg || "lost txFee";
 			const txFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1);
-			plugins.assertDelta.call(ctx, address, txFee, msg);
+			return plugins.assertDelta.call(ctx, address, txFee, msg);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
 		assertDeltaMinusTxFee: async function(address, amt, msg) {
@@ -258,7 +258,7 @@ function createPlugins(testUtil, ledger) {
 
 			msg = msg || "gained an amount but lost txFee";
 			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
-			plugins.assertDelta.call(ctx, address, expectedFee, msg);
+			return plugins.assertDelta.call(ctx, address, expectedFee, msg);
 		},
 		printDelta: function(address){
 			const ctx = this;
@@ -434,7 +434,7 @@ function createPlugins(testUtil, ledger) {
 			try {
 				result = await contract[name].call.apply(contract, args);
 				const resultStr = str(result);
-				throw new Error(`${msg} -- got: ${resultStr}`)
+				throw new Error(`${msg} -- got result: ${resultStr}`)
 			} catch (e) {
 				console.log(`✓ ${msg}`);
 			}

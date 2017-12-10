@@ -30,6 +30,8 @@ contract MainController is
 	// % of collected fees that are paid to user that calls .refreshPennyAuctions()
 	// 100 = 1%, 1000 = .1%, etc
 	uint public paFeeCollectRewardDenom;
+	// minimum amount of fees to collect
+	uint public paMinFeeCollect = .01 ether;
 
 	/* events */
 	event Error(uint time, string msg);
@@ -46,6 +48,13 @@ contract MainController is
 
 	function() payable {}
 
+	function setRewardGasPriceLimit(uint _rewardGasPriceLimit)
+		fromAdmin
+	{
+		rewardGasPriceLimit = _rewardGasPriceLimit;
+		RewardGasPriceLimitChanged(now);
+	}
+
 	function setPennyAuctionRewards(
 		uint _paStartReward,
 		uint _paEndReward,
@@ -57,13 +66,6 @@ contract MainController is
 		paEndReward = _paEndReward;
 		paFeeCollectRewardDenom = _paFeeCollectRewardDenom;
 		PennyAuctionRewardsChanged(now);
-	}
-
-	function setRewardGasPriceLimit(uint _rewardGasPriceLimit)
-		fromAdmin
-	{
-		rewardGasPriceLimit = _rewardGasPriceLimit;
-		RewardGasPriceLimitChanged(now);
 	}
 
 	// Starts a pennyAuction
@@ -90,31 +92,30 @@ contract MainController is
 			Error(now, "Unable to receive funds.");
 			return;
 		}
-		// try to start the auction
+		// try to start the auction, refund treasury on failure
 		(_success, _auction) = _pac.startDefinedAuction.value(_initialPrize)(_index);
 		if (_success) {
 			PennyAuctionStarted({time: now, index: _index, addr: address(_auction)});
 		} else {
 			// this only happens if a definedAuction is invalid.
 			// this should not realistically happen, but if it does
-			// we can't refund the user or we could go bankrupt.
+			// we can't reward the user or we could go bankrupt.
 			getTreasury().refund.value(_initialPrize)();
 			Error(now, "PennyAuctionFactory.startDefinedAuction() failed.");
 			return;
 		}
 
 		// calculate _reward: (~1000000 gas) + bonus
-		uint _gasUsed = (_startGas - msg.gas) + 42600;
+		uint _gasUsed = (_startGas - msg.gas) + 40000;
 		uint _totalReward = (_gasUsed * tx.gasprice) + paStartReward;
+		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
+		// we ignore both of these cases since they shouldn't realistically happen.
 		if (getTreasury().fundMainController(_totalReward)) {
-			// send reward.  if it fails, it's the user's fault for having a weird fallback fn.
 			if (msg.sender.call.value(_totalReward)()){
 				RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _totalReward);
 			}	
 		}
-
-		// return successul either way
-		return (_success, _auction);
+		return;
 	}
 
 	// calls .refreshPennyAuctions() (ends auctions, collects fees)
@@ -127,22 +128,29 @@ contract MainController is
 			Error(now, "gasPrice exceeds rewardGasPriceLimit.");
 			return;
 		}
+		// ensure an auction was ended, or enough feesCollected
+		if (getRefreshPennyAuctionsBonus()==0) {
+			Error(now, "No reward would be paid.");
+			return;
+		}
 
 		// do the call
 		IPennyAuctionController _pac = getPennyAuctionController();
 		(_numAuctionsEnded, _feesCollected) = _pac.refreshAuctions();
 
 		// calculate _reward: gas + whatever bonus
-		uint _gasUsed = (_startGas - msg.gas);
+		uint _gasUsed = (_startGas - msg.gas) + 40000;
 		uint _bonus = (_numAuctionsEnded * paEndReward)
 					   + (_feesCollected / paFeeCollectRewardDenom);
 		uint _totalReward = (_gasUsed * tx.gasprice) + _bonus;
-		// send reward.  if it fails, it's the user's fault for having a weird fallback fn.
-		if (msg.sender.call.value(_totalReward)()){
-			RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _gasUsed, _totalReward);
+		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
+		// we ignore both of these cases since they shouldn't realistically happen.
+		if (getTreasury().fundMainController(_totalReward)) {
+			if (msg.sender.call.value(_totalReward)()){
+				RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _gasUsed, _totalReward);
+			}
 		}
-
-		return (_numAuctionsEnded, _feesCollected);
+		return;
 	}
 
 	// Gets the total bonus amount if one were to call .refreshPennyAuctions()
@@ -152,7 +160,8 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
 		uint _numEnded = _pac.getNumEndedAuctions();
-		return (_fees * paFeeCollectRewardDenom) + (_numEnded * paEndReward);
+		if (_numEnded==0 && _fees<paMinFeeCollect) return;
+		return (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
 	}
 
 	// Gets the bonus and index for starting a penny auction
