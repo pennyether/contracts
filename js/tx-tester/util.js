@@ -3,10 +3,14 @@ var path = require('path');
 function createUtil(web3, assert){
 	// add .strEqual to assert.
 	assert.strEqual = function(val1, val2, msg){
-	    const additionalArgs = Array.prototype.slice.call(arguments, 2);
 	    const val1str = val1.toString();
 	    const val2str = val2.toString();
 	    assert.equal(val1str, val2str, msg);
+	}
+	assert.strNotEqual = function(val1, val2, msg){
+		const val1str = val1.toString();
+	    const val2str = val2.toString();
+	    assert.notEqual(val1str, val2str, msg);
 	}
 
 	var _self = {
@@ -19,7 +23,7 @@ function createUtil(web3, assert){
 				await _self.expectLogCount(logs, 1);
 				await _self.expectLog(logs, eventName, args, address);
 			} catch (e) {
-				console.log(`Showing logs:`, logs);
+				console.log(`Showing logs 3:`, logs);
 				throw e;
 			}
 		},
@@ -41,16 +45,18 @@ function createUtil(web3, assert){
 			try {
 				logs = logs.filter(l => l.event === eventName);
 				if (logs.length == 0) throw new Error(`did not find any '${eventName}' event.`);
-				if (logs.length == 1) await validateArgs(logs[0]);
+				if (logs.length == 1) return validateArgs(logs[0]);
 				if (logs.length > 1) {
 					for (var i=0; i<logs.length; i++){
-						try { await validateArgs(logs[i]); return; }
-						catch (e) {}
+						try {
+							await validateArgs(logs[i]);
+							return;
+						} catch (e) {}
 					}
 					throw new Error(`Found '${eventName}' events, but none with matching args.`)
 				}
 			} catch (e) {
-				console.log(`Showing logs:`, logs)
+				console.log(`Showing logs 1:`, logs)
 				throw e;
 			}
 		},
@@ -60,7 +66,7 @@ function createUtil(web3, assert){
 				msg = msg || `expected exactly ${num} logs`;
 				assert.equal(num, logs.length, msg);
 			} catch (e) {
-				console.log("Showing logs:", logs);
+				console.log("Showing logs 2:", logs);
 				throw e;
 			}
 		},

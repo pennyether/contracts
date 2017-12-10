@@ -162,8 +162,9 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _numIndexes = _pac.numDefinedAuctions();
 		for (_index = 0; _index < _numIndexes; _index++) {
-			if (!_pac.getIsStartable(_index)) return;
+			if (!_pac.getIsStartable(_index)) continue;
 			return (paStartReward, _index);
 		}
+		return (0, 0);
 	}
 }

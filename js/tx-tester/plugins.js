@@ -359,7 +359,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.contractEvents[address])
 				throw new Error(`'startWatching' was never called for ${at(address)}.`);
 
-			testUtil.expectOneLog(ctx.contractEvents[address], eventName, args, address);
+			await testUtil.expectOneLog(ctx.contractEvents[address], eventName, args, address);
 			const keysStr = Object.keys(args).join(", ");
 			console.log(`✓ '${eventName}(${keysStr})' was the only event from ${at(address)}`);
 		},
@@ -393,7 +393,7 @@ function createPlugins(testUtil, ledger) {
 			const args = callParams.slice(2);
 			const argsStr = args ? str(args, true) : "";
 			const expectedStr = str(expected);
-			msg = msg || `should equal '${expectedStr}'`;
+			msg = msg || `should equal ${expectedStr}`;
 			msg = `${str(contract)}.${name}.call(${argsStr}) ${msg}`;
 			var result;
 			try {
@@ -404,14 +404,23 @@ function createPlugins(testUtil, ledger) {
 
 			if (Array.isArray(expected)){
 				const resultStr = str(result);
-				if (!Array.isArray(result) || result.length !== result.length)
-					throw new Error(`call returned '${resultStr}', but expected '${expectedStr}'`);
-				expected.forEach((e, i) => {
-					if (e !== null){ assert.strEqual(result[i], e, msg) }
-				});
-				console.log(`✓ ${msg}`);
+				try {
+					if (!Array.isArray(result) || result.length !== result.length)
+						throw new Error("Expected an array, but did not get one.");
+					expected.forEach((e, i) => {
+						if (e === null || e === undefined) return;
+						if (e.hasOwnProperty("not")){ assert.strNotEqual(result[i], e.not, msg); }
+						else { assert.strEqual(result[i], e, msg); }
+					});
+					console.log(`✓ ${msg}`);
+				} catch (e) {
+					throw new Error(`${msg}, but got back '${resultStr}'`);
+				}
 			} else {
-				assert.strEqual(result, expected, msg);
+				if (expected.hasOwnProperty("not"))
+					assert.strNotEqual(result, expected, msg);
+				else
+					assert.strEqual(result, expected, msg);
 				console.log(`✓ ${msg}`);
 			}
 		},
@@ -458,12 +467,19 @@ function createPlugins(testUtil, ledger) {
 			assert.closeTo(val.toNumber(), expectedValue, tolerance, msg);
 			console.log(`✓ ${msg}`);
 		},
+		assertEquals: async function(val1, val2, msg) {
+			val1 = await testUtil.toPromise(val1);
+			val2 = await testUtil.toPromise(val2);
+			msg = msg || `${val1} equals ${val2}`;
+			assert.strEqual(val1, val2, msg);
+			console.log(`✓ ${msg}`);
+		},
 		assertCloseTo: function(val1, val2, tolerance, msg) {
 			val1 = val1.toNumber ? val1.toNumber() : val1;
 			val2 = val2.toNumber ? val2.toNumber() : val2;
 			msg = msg || `two values should be within ${tolerance}`;
 			assert.closeTo(val1, val2, tolerance, msg);
-			console.log(`✓ ${msg}`);	
+			console.log(`✓ ${msg}`);
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance, msg) {
@@ -556,7 +572,7 @@ function str(val, hideBrackets) {
 	} else if (val.constructor.name == "BigNumber") {
 		return val.toString();
 	} else if (typeof val == "object") {
-		const keys = Object.keys(val);
+		const keys = Object.keys(val).map((k) => `${k}: ${str(val[k])}`);
 		const extra = keys.length - 3;
 		const ellipsis = extra > 0 ? `, +${extra}...` : "";
 		return `{${keys.join(", ") + ellipsis}}`;
