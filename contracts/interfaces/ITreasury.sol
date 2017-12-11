@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 contract ITreasury {
   function fundMainController(uint _value, string _note) returns (bool _success);
-  function withdraw(uint _value);
+  function canFund(uint _amount) constant returns (bool);
   function refund(string _note) payable;
 }

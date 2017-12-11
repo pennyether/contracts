@@ -524,6 +524,7 @@ function createPlugins(testUtil, ledger) {
 var addrToName = {};
 function nameAddresses(obj, reset) {
 	if (reset === undefined || !!reset) addrToName = {};
+	console.log("Named addresses", obj);
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);

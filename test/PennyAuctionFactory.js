@@ -31,7 +31,6 @@ describe('PennyAuctionFactory', async function(){
             notPac: notPac,
             paf: paf.address
         };
-        console.log("addresses", addresses);
         await createDefaultTxTester()
             .nameAddresses(addresses)
             .doTx([registry, "register", "TREASURY", dummyTreasury])
@@ -115,7 +114,7 @@ describe('PennyAuctionFactory', async function(){
 
             const auction = PennyAuction.at(txRes.logs[0].args.addr);
             const block = txRes.receipt.blockNumber;
-            createDefaultTxTester().plugins.nameAddresses({auction: auction}, false);
+            createDefaultTxTester().nameAddresses({auction: auction.address}, false).start();
             console.log(`Created auction @ ${auction.address}`);
 
             await createDefaultTxTester()

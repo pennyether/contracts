@@ -205,7 +205,7 @@ describe("MainController", function(){
 					.assertNoDelta(treasury)
 				.stopWatching()
 					.assertOnlyEvent(treasury, "FundFailure", {
-						reason: "Transfer would exceed dailyFundLimit.",
+						reason: "Not enough funds.",
 						note: ".startPennyAuction()"
 					})
 				.assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)
@@ -417,7 +417,7 @@ describe("MainController", function(){
 				.assertLogCount(2)
 				.doFn((ctx) => {
 					auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-					const obj = {}; obj[`auction${index}`] = auction;
+					const obj = {}; obj[`auction${index}`] = auction.address;
 	                return createDefaultTxTester().nameAddresses(obj, false).start();
 				})
 				.assertLog("PennyAuctionStarted", {
@@ -428,7 +428,7 @@ describe("MainController", function(){
 				.assertLog("RewardPaid", {
 					time: null,
 					recipient: nonAdmin,
-					note: "Started a PennyAuction",
+					note: "Called .startPennyAuction()",
 					amount: expectedReward
 				})
 			.stopLedger()
@@ -475,7 +475,7 @@ describe("MainController", function(){
 				.assertLog("RewardPaid", {
 					time: null,
 					recipient: nonAdmin,
-					note: "Refreshed PennyAuctions",
+					note: "Called .refreshPennyAuctions()",
 					amount: expectedReward
 				})
 			.stopLedger()

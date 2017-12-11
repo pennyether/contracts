@@ -89,11 +89,11 @@ contract MainController is
 			Error(now, "PennyAuctionController.startDefinedAuction() failed.");
 			return;
 		}
-		PennyAuctionStarted({time: now, index: _index, addr: address(_auction)});
+		PennyAuctionStarted(now, _index, address(_auction));
 
 		// try to send reward, refund treasury on failure
 		if (msg.sender.call.value(_reward)()){
-			RewardPaid(now, msg.sender, "Started a PennyAuction", _reward);
+			RewardPaid(now, msg.sender, "Called .startPennyAuction()", _reward);
 		} else {
 			_t.refund.value(_reward)("Could not pay reward for .startPennyAuction()");
 			RewardNotPaid(now, msg.sender, "Started a PennyAuction", _reward);
@@ -126,7 +126,7 @@ contract MainController is
 
 		// try to send reward, refund treasury on failure
 		if (msg.sender.call.value(_reward)()){
-			RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
+			RewardPaid(now, msg.sender, "Called .refreshPennyAuctions()", _reward);
 		} else {
 			_t.refund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
 			RewardNotPaid(now, msg.sender, ".refreshPennyAuctions() couldnt send reward.", _reward);
@@ -144,7 +144,8 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
 		uint _numEnded = _pac.getNumEndedAuctions();
-		return (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
+		uint _reward = (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
+		return getTreasury().canFund(_reward) ? _reward : 0;
 	}
 
 	// Finds a definedAuction() that can be started, and returns the reward and index.
@@ -152,6 +153,7 @@ contract MainController is
 	function getStartPennyAuctionBonus()
 		constant returns (uint _amount, uint _index)
 	{
+		if (!getTreasury().canFund(paStartReward)) return (0,0);
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _numIndexes = _pac.numDefinedAuctions();
 		for (_index = 0; _index < _numIndexes; _index++) {

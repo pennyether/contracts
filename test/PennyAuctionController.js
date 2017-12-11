@@ -87,7 +87,6 @@ describe('PennyAuctionController', function(){
             auctionWinner: auctionWinner,
             NO_ADDRESS: NO_ADDRESS
         };
-        console.log("Addresses:", addresses);
 
         await createDefaultTxTester()
             .nameAddresses(addresses)
@@ -396,7 +395,7 @@ describe('PennyAuctionController', function(){
                     })
                 .doFn((ctx) => {
                     auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-                    return createDefaultTxTester().nameAddresses({auction2: auction}, false).start();
+                    return createDefaultTxTester().nameAddresses({auction2: auction.address}, false).start();
                 })
                     .assertCallReturns([pac, "getAuction", 2], ()=>auction.address)
                     .assertCallReturns(()=>[auction, "collector"], treasury.address)

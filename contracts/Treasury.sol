@@ -19,109 +19,174 @@ contract Treasury is
 	uint public dayLastFunded;
 	uint public amtFundedToday;
 
+	uint public amtIn;
+	uint public amtOut;
+	uint public minBankroll;
+
+	// Address that can:
+	// 		- set minBankroll
+	//		- receive distributions
+	//		- call .dissolve(), causing all funds to be sent to itself
+	//
+	// Token can only be set once, to ensure nobody can steal funds.
+	address public token;
+
+	// when someone calls distribute, they get a small reward
+	// 100 = 1%, 1000 = .1%, etc
+	uint public distributeRewardDenom = 1000;
+
+	// prevents a function from being called again before it has completed
 	bool private locked;
 	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
+	modifier fromToken() { require(msg.sender == token); _; }
 
+	// EVENTS
+	event Error(uint time, string msg);
+	event TokenSet(uint time, address token);
+	event BankrollReceived(uint time, address sender, uint amount);
+	event Dissolved(uint time, address sender, uint amount);
+	event DailyLimitChanged(uint time, int pct);
+	event DistributeSuccess(uint time, address token, uint amount);
+	event DistributeFailure(uint time, address token, uint amount);
+	event RewardPaid(uint time, address recipient, string note, uint amount);
+	event RewardNotPaid(uint time, address recipient, string note, uint amount);
 	event FundSuccess(uint time, address recipient, string note, uint value);
 	event FundFailure(uint time, string reason, address recipient, string note, uint value);
 	event RefundReceived(uint time, string note, address sender, uint value);
-	event DailyLimitIncreased(uint time, uint pct);
-	event DailyLimitDecreased(uint time, uint pct);
-	event Error(uint time, string msg);
+	event DepositReceived(uint time, address sender, uint amount);
 
 	function Treasury(address _registry)
 		UsingMainController(_registry)
 		UsingAdmin(_registry)
 	{}
 
-	function () payable {}
+	// Callable once by admin to set the Token address
+	function setToken(address _token)
+		fromAdmin
+	{
+		require(token == address(0));
+		token = _token;
+		TokenSet(now, _token);
+	}
 
-	// can increase at most 5% per day
-	function increaseDailyFundLimit(uint _pct)
+	// Can change the dailyFundLimit +/-5%, callable once per day.
+	function changeDailyFundLimit(int _pct)
 		fromAdmin
 		returns (bool _success)
 	{
-		uint _today = today();
-		if (_today <= dayDailyFundLimitChanged) {
-			Error(now, "dailyFundLimit already changed today.");
-			return;
-		}
-		if (_pct > 5) {
-			Error(now, "Cannot increase more than 5%.");
-			return;
-		}
-		dailyFundLimit = (dailyFundLimit * (100 + _pct))/100;
+		require(today() > dayDailyFundLimitChanged);
+		require(_pct < 5 && _pct > -5);
+		dailyFundLimit = (dailyFundLimit * uint(100 + _pct))/100;
 		dayDailyFundLimitChanged = today();
-		DailyLimitIncreased(now, _pct);
+		DailyLimitChanged(now, _pct);
 		return true;
 	}
-	// can decrease at most 5% per day.
-	// note: this is not an exact calculation, but it's close enough.
-	function decreaseDailyFundLimit(uint _pct)
-		fromAdmin
-		returns (bool _success)
+
+	// Callable once by Token to set the minBankroll
+	function setMinBankroll()
+		payable
+		fromToken
 	{
-		uint _today = today();
-		if (_today <= dayDailyFundLimitChanged) {
-			Error(now, "dailyFundLimit already changed today.");
+		require(msg.sender == token);
+		require(minBankroll == 0);
+		minBankroll = msg.value;
+		BankrollReceived(now, msg.sender, msg.value);
+	}
+
+	// Callable only by token -- sends all funds to the token.
+	function dissolve()
+		fromToken
+	{
+		uint _amount = this.balance;
+		if (!token.call.value(_amount)()){ throw; }
+		Dissolved(now, msg.sender, _amount);
+	}
+
+	// Sends any surplus over minBankroll to token.
+	// Pays a small reward to whoever calls this.
+	function distribute()
+		returns (bool _success, uint _amount)
+	{
+		if (this.balance <= minBankroll) {
+			Error(now, "No funds to distribute.");
 			return;
 		}
-		if (_pct > 5) {
-			Error(now, "Cannot decrease more than 5%.");
+		if (token == address(0)) {
+			Error(now, "No address to distribute to.");
 			return;
 		}
-		dailyFundLimit = (dailyFundLimit * 100)/(100 + _pct);
-		dayDailyFundLimitChanged = today();
-		DailyLimitDecreased(now, _pct);
-		return true;	
+
+		// calculate _reward and _amount, and send _amount
+		uint _surplus = this.balance - minBankroll;
+		uint _reward = _surplus / distributeRewardDenom;
+		_amount = _surplus - _reward;
+		if (!token.call.value(_amount)()) {
+			DistributeFailure(now, token, _amount);
+			return (false, 0);
+		}
+		DistributeSuccess(now, token, _amount);
+
+		// try to pay the reward
+		if (!msg.sender.call.value(_reward)()) {
+			RewardPaid(now, msg.sender, "Called .distrubute()", _reward);
+		} else {
+			RewardNotPaid(now, msg.sender, ".distribute() couldnt send reward.", _reward);
+		}
+		return (true, _amount);
 	}
 
 	// gives the MainController funds so it can start auctions
 	// Will fund at most dailyFundLimit per day.
 	// noRentry ensures this is only called once.
-	// 
-	function fundMainController(uint _value, string _note)
+	function fundMainController(uint _amount, string _note)
 		noRentry
 		fromMainController
 		returns (bool _success)
 	{
 		address _mainController = address(getMainController());
 		
-		// if _value is too large, or would exceed our limit for today, then fail.
-		// note: we don't need overflow protection since we will never have more than 2^256 wei
-		uint _today = today();
-		if ((_value > dailyFundLimit)
-			|| (_today <= dayLastFunded && amtFundedToday + _value > dailyFundLimit))
-		{
-			FundFailure(now, "Transfer would exceed dailyFundLimit.", _mainController, _note, _value);
-			return false;
-		}
-		// ensure we have enough wei to transfer
-		if (_value > this.balance) {
-			FundFailure(now, "Not enough funds.", _mainController, _note, _value);
+		// ensure we can fund
+		if (!canFund(_amount)) {
+			FundFailure(now, "Not enough funds.", _mainController, _note, _amount);
 			return false;
 		}
 		// ensure mainController accepts our wei
-		if (!_mainController.call.value(_value)()){
-			FundFailure(now, "MainController rejected funds.", _mainController, _note, _value);
+		if (!_mainController.call.value(_amount)()){
+			FundFailure(now, "MainController rejected funds.", _mainController, _note, _amount);
 			return false;
 		}
 		// increase amtFundedToday and set dayLastFunded to today.
-		amtFundedToday += _value;
-		dayLastFunded = _today;
-		FundSuccess(now, _mainController, _note, _value);
+		amtOut += _amount;
+		amtFundedToday += _amount;
+		dayLastFunded = today();
+		FundSuccess(now, _mainController, _note, _amount);
 		return true;
 	}
 
+	// Can receive funds back from mainController.  Subtracts from daily limit.
 	function refund(string _note)
-		fromMainController
 		payable
+		fromMainController
 	{
-		if (msg.value <= amtFundedToday) amtFundedToday -= msg.value;
+		if (msg.value <= amtFundedToday){ amtFundedToday -= msg.value; }
+		amtIn += msg.value;
 		RefundReceived(now, _note, msg.sender, msg.value);
 	}
 
-	function today() private constant returns (uint) {
+	// Can receive deposits from anyone (eg: PennyAuctions)
+	function () payable {
+		amtIn += msg.value;
+		DepositReceived(now, msg.sender, msg.value);
+	}
+
+  	// if _amount is too large, or would exceed our limit for today, then return false.
+  	function canFund(uint _amount) constant returns (bool) {
+		if (_amount > this.balance || _amount > dailyFundLimit) return false;
+		if (today() <= dayLastFunded && amtFundedToday + _amount > dailyFundLimit) return false;
+		return true;
+  	}
+
+  	function today() private constant returns (uint) {
     	return now / 1 days;
   	}
 

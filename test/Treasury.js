@@ -7,7 +7,7 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 
 describe('Treasury', function(){
     const accounts = web3.eth.accounts;
-    const dummyMainController = accounts[0];
+    const dummyMainController = accounts[1];
     const addresses = {};
     var registry;
     var treasury;
@@ -16,16 +16,20 @@ describe('Treasury', function(){
         registry = await Registry.new();
         await registry.register("MAIN_CONTROLLER", dummyMainController);
         treasury = await Treasury.new(registry.address);
-        createDefaultTxTester().plugins.nameAddresses({
+
+        const addresses = {
             registry: registry,
             treasury: treasury,
             dummyMainController: dummyMainController,
-        });
+        };
+        await createDefaultTxTester()
+            .nameAddresses(addresses)
+            .start();
     });
 
     it("should point to dummyPac", function(){
         return createDefaultTxTester()
-            .assertStateAsString(treasury, "getMainController", dummyMainController)
+            .assertCallReturns([treasury, "getMainController"], dummyMainController)
             .start();
     });
 

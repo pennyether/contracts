@@ -74,8 +74,7 @@ describe('PennyAuction', function() {
                         bidderContract: bidderContract.address,
                         auction: auction.address
                     };
-                    createDefaultTxTester().plugins.nameAddresses(addresses);
-                    console.log("addresses:", addresses);
+                    createDefaultTxTester().nameAddresses(addresses).start();
                 })
                 .start();
         });
