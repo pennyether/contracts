@@ -21,8 +21,6 @@ contract MainController is
 	UsingAdmin
 {
 	/* these are incentives for people to call our functions. */
-	// most we are willing to refund for gas for any incentivized calls
-	uint public rewardGasPriceLimit = 20000000000;
 	// how much is paid to a user that starts a pennyAuction
 	uint public paStartReward;
 	// how much is paid when a user ends an auction via .refreshPennyAuctions()
@@ -38,7 +36,7 @@ contract MainController is
 	event RewardGasPriceLimitChanged(uint time);
 	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address addr);
-	event RewardPaid(uint time, address recipient, string msg, uint gasUsed, uint amount);
+	event RewardPaid(uint time, address recipient, string msg, uint amount);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)
@@ -47,13 +45,6 @@ contract MainController is
 	{}
 
 	function() payable {}
-
-	function setRewardGasPriceLimit(uint _rewardGasPriceLimit)
-		fromAdmin
-	{
-		rewardGasPriceLimit = _rewardGasPriceLimit;
-		RewardGasPriceLimitChanged(now);
-	}
 
 	function setPennyAuctionRewards(
 		uint _paStartReward,
@@ -73,12 +64,6 @@ contract MainController is
 	function startPennyAuction(uint _index)
 		returns (bool _success, address _auction)
 	{
-		uint _startGas = msg.gas;
-		if (tx.gasprice > rewardGasPriceLimit) {
-			Error(now, "gasPrice exceeds rewardGasPriceLimit.");
-			return;
-		}
-
 		// ensure it is startable
 		IPennyAuctionController _pac = getPennyAuctionController();
 		if (!_pac.getIsStartable(_index)){
@@ -105,14 +90,12 @@ contract MainController is
 			return;
 		}
 
-		// calculate _reward: (~1000000 gas) + bonus
-		uint _gasUsed = (_startGas - msg.gas) + 40000;
-		uint _totalReward = (_gasUsed * tx.gasprice) + paStartReward;
+		uint _reward = paStartReward;
 		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
 		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_totalReward, "Reward user for .startPennyAuction()")) {
-			if (msg.sender.call.value(_totalReward)()){
-				RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _totalReward);
+		if (getTreasury().fundMainController(_reward, "Reward user for .startPennyAuction()")) {
+			if (msg.sender.call.value(_reward)()){
+				RewardPaid(now, msg.sender, "Started a PennyAuction", _reward);
 			}	
 		}
 		return;
@@ -123,11 +106,6 @@ contract MainController is
 	function refreshPennyAuctions()
 		returns (uint _numAuctionsEnded, uint _feesCollected)
 	{
-		uint _startGas = msg.gas;
-		if (tx.gasprice > rewardGasPriceLimit) {
-			Error(now, "gasPrice exceeds rewardGasPriceLimit.");
-			return;
-		}
 		// ensure an auction was ended, or enough feesCollected
 		if (getRefreshPennyAuctionsBonus()==0) {
 			Error(now, "No reward would be paid.");
@@ -139,15 +117,13 @@ contract MainController is
 		(_numAuctionsEnded, _feesCollected) = _pac.refreshAuctions();
 
 		// calculate _reward: gas + whatever bonus
-		uint _gasUsed = (_startGas - msg.gas) + 40000;
-		uint _bonus = (_numAuctionsEnded * paEndReward)
+		uint _reward = (_numAuctionsEnded * paEndReward)
 					   + (_feesCollected / paFeeCollectRewardDenom);
-		uint _totalReward = (_gasUsed * tx.gasprice) + _bonus;
 		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
 		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_totalReward, "Reward user for .refreshPennyAuctions()")) {
-			if (msg.sender.call.value(_totalReward)()){
-				RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _gasUsed, _totalReward);
+		if (getTreasury().fundMainController(_reward, "Reward user for .refreshPennyAuctions()")) {
+			if (msg.sender.call.value(_reward)()){
+				RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
 			}
 		}
 		return;
@@ -160,7 +136,6 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
 		uint _numEnded = _pac.getNumEndedAuctions();
-		if (_numEnded==0 && _fees<paMinFeeCollect) return;
 		return (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
 	}
 

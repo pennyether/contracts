@@ -165,13 +165,14 @@ function createPlugins(testUtil, ledger) {
 			console.log(ctx.txRes, ctx.txErr);
 		},
 		// prints the logs of the last `do`, otherwise nothing
-		printTxLogs: function() {
+		printLogs: function() {
 			const ctx = this;
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txRes) {
+				const util = require("util");
 				console.log("printing tx logs...");
-				console.log(ctx.txRes.logs);
+				console.log(util.inspect(ctx.txRes.logs, false, null))
 			} else {
 				console.log("no logs to print");
 			}
