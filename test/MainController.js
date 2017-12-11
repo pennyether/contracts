@@ -95,7 +95,6 @@ describe("MainController", function(){
         	bidder2: bidder2,
         	NO_ADDRESS: NO_ADDRESS
         };
-        console.log("Addresses:", addresses);
 
         await createDefaultTxTester()
 	        .nameAddresses(addresses)
@@ -157,9 +156,9 @@ describe("MainController", function(){
 		});
 	});
 
-	it(".getStartPennyAuctionBonus() returns index 0", function(){
+	it(".getStartPennyAuctionReward() returns index 0", function(){
 		return createDefaultTxTester()
-			.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [PA_START_REWARD, 0])
+			.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 0])
 			.start();
 	});
 
@@ -266,9 +265,9 @@ describe("MainController", function(){
 				.start();
 		});
 
-		it(".getStartPennyAuctionBonus returns index 3", function(){
+		it(".getStartPennyAuctionReward returns index 3", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [PA_START_REWARD, 3])
+				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 3])
 				.start();
 		})
 
@@ -276,9 +275,9 @@ describe("MainController", function(){
 			return startAuction(3);
 		})
 
-		it(".getStartPennyAuctionBonus() returns nothing", function(){
+		it(".getStartPennyAuctionReward() returns nothing", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [0, 0])
+				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [0, 0])
 				.start();
 		});
 	});
@@ -296,9 +295,9 @@ describe("MainController", function(){
 				})
 				.start()
 		});
-		it(".getRefreshPennyAuctionsBonus() returns 0", function(){
+		it(".getRefreshPennyAuctionsReward() returns 0", function(){
 			return createDefaultTxTester()
-				.assertCallThrows([mainController, "getRefreshPennyAuctionsBonus"], 0)
+				.assertCallThrows([mainController, "getRefreshPennyAuctionsReward"], 0)
 				.start();
 		});
 		it(".refreshPennyAuctions() returns error", function(){
@@ -319,19 +318,19 @@ describe("MainController", function(){
             await auction3.sendTransaction({from: bidder2, value: BID_PRICE_3});
             await auction3.sendTransaction({from: bidder1, value: BID_PRICE_3});
 		});
-		it(".getRefreshPennyAuctionsBonus() returns percentage of fees", async function(){
+		it(".getRefreshPennyAuctionsReward() returns percentage of fees", async function(){
 			const totalFees = (await auction0.fees()).plus(await auction3.fees());
 			const expectedBonus = totalFees.div(PA_FEE_COLLECT_REWARD_DENOM);
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsBonus"], expectedBonus)
+				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], expectedBonus)
 				.start();
 		});
 		it(".refreshPennyAuctions() collects fees", async function(){
 			return refreshAuctions();
 		});
-		it(".getRefreshPennyAuctionBonus() returns 0", function(){
+		it(".getRefreshPennyAuctionsReward() returns 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsBonus"], 0)
+				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], 0)
 				.start();
 		});
 		it(".refreshPennyAuctions() returns error", function(){
@@ -370,22 +369,22 @@ describe("MainController", function(){
 				.assertCallReturns([auction3, "isEnded"], false)
 				.start()
 		});
-		it(".getRefreshPennyAuctionBonus() returns endBonus", function(){
+		it(".getRefreshPennyAuctionsReward() returns endBonus", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsBonus"], PA_END_REWARD)
+				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], PA_END_REWARD)
 				.start();
 		});
 		it(".refreshPennyAuctions() works", function(){
 			return refreshAuctions();
 		});
-		it(".getStartPennyAuctionBonus() returns index 0", function(){
+		it(".getStartPennyAuctionReward() returns index 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [PA_START_REWARD, 0])
+				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 0])
 				.start();
 		});
-		it(".getRefreshPennyAuctionBonus() returns 0", function(){
+		it(".getRefreshPennyAuctionsReward() returns 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsBonus"], 0)
+				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], 0)
 				.start();
 		});
 		it(".refreshPennyAuctions() returns error", function(){
@@ -408,7 +407,7 @@ describe("MainController", function(){
 		const initialPrize = await pac.getInitialPrize(index);
 		const callParams = [mainController, "startPennyAuction", index, {from: nonAdmin}];
 		return createDefaultTxTester()
-			.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [PA_START_REWARD, index])
+			.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, index])
 			.assertCallReturns(callParams, [true, null])
 			.startLedger([treasury, pac, nonAdmin, paf])
 			.startWatching([treasury, pac, paf])
@@ -464,7 +463,7 @@ describe("MainController", function(){
 	async function refreshAuctions(){
 		const expectedFees = await pac.getAvailableFees();
 		const expectedEnded = await pac.getNumEndedAuctions();
-		const expectedReward = await mainController.getRefreshPennyAuctionsBonus();
+		const expectedReward = await mainController.getRefreshPennyAuctionsReward();
 		const callParams = [mainController, "refreshPennyAuctions", {from: nonAdmin}]
 		const tester = createDefaultTxTester()
 			.startLedger([treasury, nonAdmin])

@@ -134,11 +134,11 @@ contract MainController is
 		return;
 	}
 
-	// Gets the total bonus amount if one were to call pac.refreshPennyAuctions()
+	// Gets the total reward amount if one were to call pac.refreshPennyAuctions()
 	// Note: this is an estimate -- it's possible that a call to <auction>.collectFees()
 	//		 can fail to send fees to its collector, in which case those fees wont be
 	//		 actually counted and rewarded upon.
-	function getRefreshPennyAuctionsBonus()
+	function getRefreshPennyAuctionsReward()
 		constant returns (uint _amount)
 	{
 		IPennyAuctionController _pac = getPennyAuctionController();
@@ -150,7 +150,7 @@ contract MainController is
 
 	// Finds a definedAuction() that can be started, and returns the reward and index.
 	// If reward is > 0, you can call .startPennyAuction() to receive a reward.
-	function getStartPennyAuctionBonus()
+	function getStartPennyAuctionReward()
 		constant returns (uint _amount, uint _index)
 	{
 		if (!getTreasury().canFund(paStartReward)) return (0,0);
