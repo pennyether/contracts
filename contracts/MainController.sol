@@ -36,7 +36,8 @@ contract MainController is
 	event RewardGasPriceLimitChanged(uint time);
 	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address addr);
-	event RewardPaid(uint time, address recipient, string msg, uint amount);
+	event RewardPaid(uint time, address recipient, string note, uint amount);
+	event RewardNotPaid(uint time, address recipient, string note, uint amount);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)
@@ -70,33 +71,32 @@ contract MainController is
 			Error(now, "DefinedAuction is not currently startable.");
 			return;
 		}
-		// get funds required to start it
+		// get funds required to start it and pay reward
+		ITreasury _t = getTreasury();
+		uint _reward = paStartReward;
 		uint _initialPrize = _pac.getInitialPrize(_index);
-		bool _gotFunds = getTreasury().fundMainController(_initialPrize, ".startPennyAuction()");
-		if (!_gotFunds) {
+		if (!_t.fundMainController(_initialPrize + _reward, ".startPennyAuction()")) {
 			Error(now, "Unable to receive funds.");
 			return;
 		}
+
 		// try to start the auction, refund treasury on failure
 		(_success, _auction) = _pac.startDefinedAuction.value(_initialPrize)(_index);
-		if (_success) {
-			PennyAuctionStarted({time: now, index: _index, addr: address(_auction)});
-		} else {
+		if (!_success) {
 			// this only happens if a definedAuction is invalid.
-			// this should not realistically happen, but if it does
-			// we can't reward the user or we could go bankrupt.
-			getTreasury().refund.value(_initialPrize)("PennyAuctionController.startDefinedAuction() failed.");
+			// refund the treasury, and dont pay a reward
+			_t.refund.value(_initialPrize + _reward)("PennyAuctionController.startDefinedAuction() failed.");
 			Error(now, "PennyAuctionController.startDefinedAuction() failed.");
 			return;
 		}
+		PennyAuctionStarted({time: now, index: _index, addr: address(_auction)});
 
-		uint _reward = paStartReward;
-		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
-		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_reward, "Reward user for .startPennyAuction()")) {
-			if (msg.sender.call.value(_reward)()){
-				RewardPaid(now, msg.sender, "Started a PennyAuction", _reward);
-			}	
+		// try to send reward, refund treasury on failure
+		if (msg.sender.call.value(_reward)()){
+			RewardPaid(now, msg.sender, "Started a PennyAuction", _reward);
+		} else {
+			_t.refund.value(_reward)("Could not pay reward for .startPennyAuction()");
+			RewardNotPaid(now, msg.sender, "Started a PennyAuction", _reward);
 		}
 		return;
 	}
@@ -107,8 +107,16 @@ contract MainController is
 		returns (uint _numAuctionsEnded, uint _feesCollected)
 	{
 		// ensure an auction was ended, or enough feesCollected
-		if (getRefreshPennyAuctionsBonus()==0) {
+		uint _reward = getRefreshPennyAuctionsBonus();
+		if (_reward == 0) {
 			Error(now, "No reward would be paid.");
+			return;
+		}
+
+		// get funds required to pay reward
+		ITreasury _t = getTreasury();
+		if (!_t.fundMainController(_reward, ".refreshPennyAuctions()")) {
+			Error(now, "Unable to receive funds.");
 			return;
 		}
 
@@ -116,15 +124,12 @@ contract MainController is
 		IPennyAuctionController _pac = getPennyAuctionController();
 		(_numAuctionsEnded, _feesCollected) = _pac.refreshAuctions();
 
-		// calculate _reward: gas + whatever bonus
-		uint _reward = (_numAuctionsEnded * paEndReward)
-					   + (_feesCollected / paFeeCollectRewardDenom);
-		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
-		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_reward, "Reward user for .refreshPennyAuctions()")) {
-			if (msg.sender.call.value(_reward)()){
-				RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
-			}
+		// try to send reward, refund treasury on failure
+		if (msg.sender.call.value(_reward)()){
+			RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
+		} else {
+			_t.refund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
+			RewardNotPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
 		}
 		return;
 	}

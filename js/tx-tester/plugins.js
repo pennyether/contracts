@@ -98,7 +98,7 @@ function createPlugins(testUtil, ledger) {
 			}
 
 			const errMsg = ctx.txErr.message;
-			assert.include(errMsg, "invalid opcode", `Error does not contain 'invalid opcode': ${errMsg}`);
+			assert.include(errMsg, "revert", `Error does not contain 'revert': ${errMsg}`);
 			console.log("✓ doTx failed with invalid opcode");
 		},
 		// asserts exact number of logs retrieved

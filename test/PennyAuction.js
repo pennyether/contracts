@@ -168,6 +168,13 @@ describe('PennyAuction', function() {
                             throw new Error("tx1 did not occur first");
                         if (block.transactions[1] != tx2res.tx)
                             throw new Error("tx2 did not occur second");
+
+                        // fix logs bug (all logs included in all receipts/logs)
+                        arr.forEach((txRes)=>{
+                            const hash = txRes.tx;
+                            txRes.receipt.logs = txRes.receipt.logs.filter((l)=>l.transactionHash == hash);
+                            txRes.logs = txRes.logs.filter((l)=>l.transactionHash == hash);
+                        })
                         // fix gasUsed bug (gasUsed is recorded as gasUsed up until that tx)
                         tx3res.receipt.gasUsed = tx3res.receipt.gasUsed - tx2res.receipt.gasUsed;
                         tx2res.receipt.gasUsed = tx2res.receipt.gasUsed - tx1res.receipt.gasUsed;
@@ -235,6 +242,12 @@ describe('PennyAuction', function() {
                             throw new Error("Expected both transactions to occur on the same block.");
                         if (block.transactions[0] != tx1res.tx)
                             throw new Error("tx1 did not occur first");
+                        // fix logs bug (all logs included in all receipts/logs)
+                        arr.forEach((txRes)=>{
+                            const hash = txRes.tx;
+                            txRes.receipt.logs = txRes.receipt.logs.filter((l)=>l.transactionHash == hash);
+                            txRes.logs = txRes.logs.filter((l)=>l.transactionHash == hash);
+                        })
                         // fix gasUsed bug (gasUsed is recorded as gasUsed up until that tx)
                         tx2res.receipt.gasUsed = tx2res.receipt.gasUsed - tx1res.receipt.gasUsed;
                         // store txFees

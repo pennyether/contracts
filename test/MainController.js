@@ -204,8 +204,8 @@ describe("MainController", function(){
 				.stopLedger()
 					.assertNoDelta(treasury)
 				.stopWatching()
-					.assertOnlyEvent(treasury, "TransferError", {
-						reason: "Not enough funds.",
+					.assertOnlyEvent(treasury, "FundFailure", {
+						reason: "Transfer would exceed dailyFundLimit.",
 						note: ".startPennyAuction()"
 					})
 				.assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)
@@ -215,24 +215,26 @@ describe("MainController", function(){
 			// 1 has invalid BID_ADD_BLOCKS.
 			const refundNote = "PennyAuctionController.startDefinedAuction() failed.";
 			const transferNote = ".startPennyAuction()";
-			const callParams = [mainController, "startPennyAuction", 1, {from: nonAdmin}];
+			const callParams = [mainController, "startPennyAuction", 1, {from: nonAdmin, gas: 2000000}];
 			await createDefaultTxTester()
 				.assertCallThrows(callParams)
-				.startLedger([treasury])
+				.startLedger([treasury, nonAdmin])
 				.startWatching([treasury, pac])
 				.doTx(callParams)
 				.assertSuccess()
 					.assertOnlyErrorLog(refundNote)
 				.stopLedger()
+					.assertLostTxFee(nonAdmin)
 					.assertNoDelta(treasury, "gets refunded")
 				.stopWatching()
 					.assertEventCount(treasury, 2)
-					.assertEvent(treasury, "TransferSuccess", {note: transferNote})
+					.assertEvent(treasury, "FundSuccess", {note: transferNote})
 					.assertEvent(treasury, "RefundReceived", {note: refundNote})
 					.assertEventCount(pac, 2)
 					.assertEvent(pac, "Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
 					.assertEvent(pac, "DefinedAuctionInvalid", {time: null, index: 1})
 				.assertCallReturns([pac, "getAuction", 1], NO_ADDRESS)
+				.assertCallReturns([treasury, "amtFundedToday"], 0)
 				.start();
 			await pac.disableDefinedAuction(1, {from: admin});
 		});
@@ -403,6 +405,7 @@ describe("MainController", function(){
 	async function startAuction(index) {
 		var auction;
 		const expectedReward = PA_START_REWARD;
+		const initialPrize = await pac.getInitialPrize(index);
 		const callParams = [mainController, "startPennyAuction", index, {from: nonAdmin}];
 		return createDefaultTxTester()
 			.assertCallReturns([mainController, "getStartPennyAuctionBonus"], [PA_START_REWARD, index])
@@ -420,19 +423,18 @@ describe("MainController", function(){
 				.assertLog("PennyAuctionStarted", {
 					time: null,
 					index: index,
-					addr: null
+					addr: ()=>auction.address
 				})
 				.assertLog("RewardPaid", {
 					time: null,
 					recipient: nonAdmin,
-					msg: "Started a PennyAuction",
+					note: "Started a PennyAuction",
 					amount: expectedReward
 				})
 			.stopLedger()
 				.assertNoDelta(pac)
 				.assertNoDelta(paf)
-				.assertDelta(treasury, expectedReward.plus(DEFS[index][1]).mul(-1),
-					"lost prize and reward")
+				.assertDelta(treasury, expectedReward.plus(initialPrize).mul(-1), "lost prize and reward")
 				.assertDeltaMinusTxFee(nonAdmin, expectedReward, "lost txFee, got back reward")
 			.stopWatching()
 				.assertOnlyEvent(pac, "AuctionStarted", {
@@ -450,18 +452,11 @@ describe("MainController", function(){
 			        bidFeePct: DEFS[index][4],
 			        initialBlocks: DEFS[index][5]
 				})
-				.assertEventCount(treasury, 2)
-				.assertEvent(treasury, "TransferSuccess", {
+				.assertOnlyEvent(treasury, "FundSuccess", {
 					time: null,
 					recipient: mainController.address,
 					note: ".startPennyAuction()",
-					value: DEFS[index][1]
-				})
-				.assertEvent(treasury, "TransferSuccess", {
-					time: null,
-					recipient: mainController.address,
-					note: "Reward user for .startPennyAuction()",
-					value: expectedReward
+					value: expectedReward.plus(initialPrize)
 				})
 			.start();
 	}
@@ -480,17 +475,17 @@ describe("MainController", function(){
 				.assertLog("RewardPaid", {
 					time: null,
 					recipient: nonAdmin,
-					msg: "Refreshed PennyAuctions",
+					note: "Refreshed PennyAuctions",
 					amount: expectedReward
 				})
 			.stopLedger()
 				.assertDelta(treasury, expectedFees.minus(expectedReward), "Got fees, lost reward.")
 				.assertDeltaMinusTxFee(nonAdmin, expectedReward, "Lost txFee, got reward.")
 			.stopWatching()
-				.assertEvent(treasury, "TransferSuccess", {
+				.assertEvent(treasury, "FundSuccess", {
 					time: null,
 					recipient: mainController.address,
-					note: "Reward user for .refreshPennyAuctions()",
+					note: ".refreshPennyAuctions()",
 					value: expectedReward
 				});
 			if (expectedFees.gt(0)) {

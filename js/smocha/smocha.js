@@ -48,7 +48,9 @@ function Smocha(opts) {
 		var hasOnly = node.children.some(c => c.only);
 		node.children.forEach(child => {
 			if (child.skip || (hasOnly && !child.only)) {
-				child.skipReason = "a sibling is marked as 'only'";
+				child.skipReason = child.skip
+					? "marked as skip"
+					: "a sibling is marked as 'only'";
 				queue.add(() => { _skip(child); return true; });
 				return;
 			}
