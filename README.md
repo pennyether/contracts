@@ -12,29 +12,32 @@ Only the owner can change entries.
 
 TREASURY
 
-Holds all the funds, all the time.  All fees get collected here.  Can be redeemed
-by owner only.
+Holds all the funds, all the time.  All fees get collected here.  Only pays
+out to MainController and Token.
 
 MAIN CONTROLLER
 
 Interfaces with game controllers to:
-	- create / complete games
-	- collect fees
+	- refresh statuses of games
+	- reward users for the above
 
 GAME CONTROLLER (eg: PENNYAUCTIONCONTROLLER)
 
-Can be called by MainController to:
-	- start a new game
-	- update game statuses (includes closing / redeeming collecting fees)
-	- keep record of active and closed games
+	- manages instances of games
+	- allows games to be started, stopped, have feescollected
+	- everything is callable by everyone
 
 GAMES
 	FACTORY
-		Contains code to create a new instance of the game
+		Contains code to create a new instance of the game.
+		Will use getTreasury() to determine where funds go.
 	GAME
-		Code for the game itself
+		Code for the game itself.
 
 To develop:
 
-	- open testrpc
-	- you can do truffle test to see all the beautiful tests
+	- npm install -g ganache-cli
+	- ganache-cli
+	- probably need to install other things... I've polluted my global NPM at this point
+	- truffle test test/PathToTest.js
+	- Front-end development is more complicated... see the readme in "/app"
