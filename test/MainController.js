@@ -252,12 +252,17 @@ describe("MainController", function(){
 				.stopLedger()
 					.assertNoDelta(treasury)
 				.stopWatching()
-					.assertOnlyEvent(treasury, "NotEnoughFunds")
+					.assertOnlyEvent(treasury, "TransferError", {
+						reason: "Not enough funds.",
+						note: ".startPennyAuction()"
+					})
 				.assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)
 				.start();
 			});
 		it("Returns false when PennyAuctionFactory fails. (call throws)", async function(){
 			// 1 has invalid BID_ADD_BLOCKS.
+			const refundNote = "PennyAuctionController.startDefinedAuction() failed.";
+			const transferNote = ".startPennyAuction()";
 			const callParams = [mainController, "startPennyAuction", 1, {gasPrice: 20000000000}];
 			await createDefaultTxTester()
 				.assertCallThrows(callParams)
@@ -265,13 +270,13 @@ describe("MainController", function(){
 				.startWatching([treasury, pac])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertOnlyErrorLog("PennyAuctionFactory.startDefinedAuction() failed.")
+					.assertOnlyErrorLog(refundNote)
 				.stopLedger()
 					.assertNoDelta(treasury, "gets refunded")
 				.stopWatching()
 					.assertEventCount(treasury, 2)
-					.assertEvent(treasury, "TransferSuccess")
-					.assertEvent(treasury, "RefundReceived")
+					.assertEvent(treasury, "TransferSuccess", {note: transferNote})
+					.assertEvent(treasury, "RefundReceived", {note: refundNote})
 					.assertEventCount(pac, 2)
 					.assertEvent(pac, "Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
 					.assertEvent(pac, "DefinedAuctionInvalid", {time: null, index: 1})
@@ -554,11 +559,13 @@ describe("MainController", function(){
 				.assertEvent(treasury, "TransferSuccess", {
 					time: null,
 					recipient: mainController.address,
+					note: ".startPennyAuction()",
 					value: DEFS[index][1]
 				})
 				.assertEvent(treasury, "TransferSuccess", {
 					time: null,
 					recipient: mainController.address,
+					note: "Reward user for .startPennyAuction()",
 					value: ()=>expectedReward
 				})
 			.start();
@@ -600,6 +607,7 @@ describe("MainController", function(){
 				.assertEvent(treasury, "TransferSuccess", {
 					time: null,
 					recipient: mainController.address,
+					note: "Reward user for .refreshPennyAuctions()",
 					value: ()=>expectedReward
 				});
 			if (expectedFees.gt(0)) {

@@ -87,7 +87,7 @@ contract MainController is
 		}
 		// get funds required to start it
 		uint _initialPrize = _pac.getInitialPrize(_index);
-		bool _gotFunds = getTreasury().fundMainController(_initialPrize);
+		bool _gotFunds = getTreasury().fundMainController(_initialPrize, ".startPennyAuction()");
 		if (!_gotFunds) {
 			Error(now, "Unable to receive funds.");
 			return;
@@ -100,8 +100,8 @@ contract MainController is
 			// this only happens if a definedAuction is invalid.
 			// this should not realistically happen, but if it does
 			// we can't reward the user or we could go bankrupt.
-			getTreasury().refund.value(_initialPrize)();
-			Error(now, "PennyAuctionFactory.startDefinedAuction() failed.");
+			getTreasury().refund.value(_initialPrize)("PennyAuctionController.startDefinedAuction() failed.");
+			Error(now, "PennyAuctionController.startDefinedAuction() failed.");
 			return;
 		}
 
@@ -110,7 +110,7 @@ contract MainController is
 		uint _totalReward = (_gasUsed * tx.gasprice) + paStartReward;
 		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
 		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_totalReward)) {
+		if (getTreasury().fundMainController(_totalReward, "Reward user for .startPennyAuction()")) {
 			if (msg.sender.call.value(_totalReward)()){
 				RewardPaid(now, msg.sender, "Started a PennyAuction", _gasUsed, _totalReward);
 			}	
@@ -145,7 +145,7 @@ contract MainController is
 		uint _totalReward = (_gasUsed * tx.gasprice) + _bonus;
 		// send reward.  its possible treasury is out of funds, or msg.sender fallback fn fails
 		// we ignore both of these cases since they shouldn't realistically happen.
-		if (getTreasury().fundMainController(_totalReward)) {
+		if (getTreasury().fundMainController(_totalReward, "Reward user for .refreshPennyAuctions()")) {
 			if (msg.sender.call.value(_totalReward)()){
 				RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _gasUsed, _totalReward);
 			}

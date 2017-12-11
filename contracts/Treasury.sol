@@ -12,10 +12,9 @@ whoever the registry says is the PennyAuctionController can receive funds.
 contract Treasury is 
 	UsingMainController
 {
-	event NotEnoughFunds(uint time, address recipient, uint value);
-	event TransferSuccess(uint time, address recipient, uint value);
-	event TransferError(uint time, address recipient, uint value);
-	event RefundReceived(uint time, uint value);
+	event TransferSuccess(uint time, address recipient, string note, uint value);
+	event TransferError(uint time, string reason, address recipient, string note, uint value);
+	event RefundReceived(uint time, string note, uint value);
 
 	function Treasury(address _registry)
 		UsingMainController(_registry)
@@ -26,30 +25,30 @@ contract Treasury is
 	function () payable { }
 
 	// gives the MainController funds so it can start auctions
-	function fundMainController(uint _value)
+	function fundMainController(uint _value, string _note)
 		fromMainController
 		returns (bool _success)
 	{
 		address _mainController = address(getMainController());
 
 		if (_value > this.balance) {
-			NotEnoughFunds(now, _mainController, _value);
+			TransferError(now, "Not enough funds.", _mainController, _note, _value);
 			return false;
 		}
 		if (_mainController.call.value(_value)()){
-			TransferSuccess(now, _mainController, _value);
+			TransferSuccess(now, _mainController, _note, _value);
 			return true;
 		} else {
-			TransferError(now, _mainController, _value);
+			TransferError(now, "MainController rejected funds.", _mainController, _note, _value);
 			return false;
 		}
 	}
 
-	function refund()
+	function refund(string _note)
 		fromMainController
 		payable
 	{
-		RefundReceived(now, msg.value);
+		RefundReceived(now, _note, msg.value);
 	}
 
 }
