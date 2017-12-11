@@ -106,35 +106,38 @@ contract MainController is
 	function refreshPennyAuctions()
 		returns (uint _numAuctionsEnded, uint _feesCollected)
 	{
-		// ensure an auction was ended, or enough feesCollected
-		uint _reward = getRefreshPennyAuctionsBonus();
+		// do the call
+		(_numAuctionsEnded, _feesCollected) = getPennyAuctionController().refreshAuctions();
+
+		// compute reward
+		uint _reward = (_numAuctionsEnded * paEndReward)
+			+ (_feesCollected / paFeeCollectRewardDenom);
 		if (_reward == 0) {
-			Error(now, "No reward would be paid.");
+			Error(now, "No reward to be paid.");
 			return;
 		}
 
 		// get funds required to pay reward
 		ITreasury _t = getTreasury();
 		if (!_t.fundMainController(_reward, ".refreshPennyAuctions()")) {
-			Error(now, "Unable to receive funds.");
+			RewardNotPaid(now, msg.sender, ".refreshPennyAuctions() was unable to receive funds.", _reward);
 			return;
 		}
-
-		// do the call
-		IPennyAuctionController _pac = getPennyAuctionController();
-		(_numAuctionsEnded, _feesCollected) = _pac.refreshAuctions();
 
 		// try to send reward, refund treasury on failure
 		if (msg.sender.call.value(_reward)()){
 			RewardPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
 		} else {
 			_t.refund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
-			RewardNotPaid(now, msg.sender, "Refreshed PennyAuctions", _reward);
+			RewardNotPaid(now, msg.sender, ".refreshPennyAuctions() couldnt send reward.", _reward);
 		}
 		return;
 	}
 
-	// Gets the total bonus amount if one were to call .refreshPennyAuctions()
+	// Gets the total bonus amount if one were to call pac.refreshPennyAuctions()
+	// Note: this is an estimate -- it's possible that a call to <auction>.collectFees()
+	//		 can fail to send fees to its collector, in which case those fees wont be
+	//		 actually counted and rewarded upon.
 	function getRefreshPennyAuctionsBonus()
 		constant returns (uint _amount)
 	{
@@ -144,7 +147,8 @@ contract MainController is
 		return (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
 	}
 
-	// Gets the bonus and index for starting a penny auction
+	// Finds a definedAuction() that can be started, and returns the reward and index.
+	// If reward is > 0, you can call .startPennyAuction() to receive a reward.
 	function getStartPennyAuctionBonus()
 		constant returns (uint _amount, uint _index)
 	{
