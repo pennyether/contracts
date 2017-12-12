@@ -46,7 +46,7 @@ contract Treasury is
 	address public token;
 
 	// when someone calls distribute, they get a small reward
-	// 100 = 1%, 1000 = .1%, etc
+	// minimu of 10.  10 = 10%, 100 = 1%, 1000 = .1%, etc
 	uint public distributeRewardDenom = 1000;
 
 	// prevents a function from being called again before it has completed
@@ -58,8 +58,9 @@ contract Treasury is
 	event Error(uint time, string msg);
 	event TokenSet(uint time, address sender, address token);
 	event DailyFundLimitChanged(uint time, address sender, uint oldValue, uint newValue);
+	event DistributeRewardChanged(uint time, address sender, uint oldValue, uint newValue);
 	event BankrollSet(uint time, address sender, uint amount);
-	event Dissolved(uint time, address sender, uint amount);
+	event Dissolved(uint time, address sender);
 	event DistributeSuccess(uint time, address token, uint amount);
 	event DistributeFailure(uint time, address token, uint amount);
 	event RewardPaid(uint time, address recipient, string note, uint amount);
@@ -83,10 +84,10 @@ contract Treasury is
 		TokenSet(now, msg.sender, _token);
 	}
 
-	// Can change the dailyFundLimit +/-5%, callable once per day.
+	// Admin can change the dailyFundLimit +/-5%
+	// Callable once per day.
 	function setDailyFundLimit(uint _newValue)
 		fromAdmin
-		returns (bool _success)
 	{
 		require(today() > dayDailyFundLimitChanged);
 
@@ -99,10 +100,21 @@ contract Treasury is
 		dailyFundLimit = _newValue;
 		dayDailyFundLimitChanged = today();
 		DailyFundLimitChanged(now, msg.sender, _oldValue, _newValue);
-		return true;
 	}
 
-	// Callable once by Token to set the bankroll
+	// Admin can change the distribution reward.
+	// Minimum is 10, meaning the maximum reward is 10%.
+	function setDistributeReward(uint _newValue)
+		fromAdmin
+	{
+		require(_newValue >= 10);
+		uint _oldValue = distributeRewardDenom;
+		distributeRewardDenom = _newValue;
+		DistributeRewardChanged(now, msg.sender, _oldValue, _newValue);
+	}
+
+	// Called by the token once to set the baseline bankroll.
+	// Any funds above bankroll can be distributed via distributeToToken()
 	function setBankroll()
 		payable
 		fromToken
@@ -113,20 +125,19 @@ contract Treasury is
 		BankrollSet(now, msg.sender, msg.value);
 	}
 
-	// Callable only by token -- sends all funds to the token.
-	// Sets bankroll to 0 so future funds can be distributed.
+	// Callable only by token
+	// - disallows any funding to mainController
+	// - sets bankroll to 0; balance is forever distributable to Token
 	function dissolve()
 		fromToken
 	{
-		uint _amount = this.balance;
-		if (!token.call.value(_amount)()){ throw; }
 		isDissolved = true;
 		bankroll = 0;
-		Dissolved(now, msg.sender, _amount);
+		Dissolved(now, msg.sender);
 		distributeToToken();
 	}
 
-	// Sends any surplus to token.
+	// Sends any surplus balance to token.
 	// Pays a small reward to whoever calls this.
 	// Not subject to daily limits.
 	function distributeToToken()
@@ -192,7 +203,7 @@ contract Treasury is
 		return true;
 	}
 
-	// Can receive funds back from mainController.
+	// For recieving funds back from mainController.
 	// Subtracts from daily limit so it can be funded again.
 	function refund(string _note)
 		payable

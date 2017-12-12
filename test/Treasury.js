@@ -55,6 +55,32 @@ describe('Treasury', function(){
         itCannotFund(1, "Cannot fund.");
         itCannotDistribute("No address to distribute to.");
     });
+    describe(".setDistributeReward()", function(){
+        it("Not callable from nonAdmin", function(){
+            return createDefaultTxTester()
+                .doTx([treasury, "setDistributeReward", 100, {from: nonAdmin}])
+                .assertInvalidOpCode()
+                .start();
+        });
+        it("Must be >10", function(){
+            return createDefaultTxTester()
+                .doTx([treasury, "setDistributeReward", 9, {from: admin}])
+                .assertInvalidOpCode()
+                .start();
+        });
+        it("Works", function(){
+            return createDefaultTxTester()
+                .doTx([treasury, "setDistributeReward", 100, {from: admin}])
+                .assertSuccess()
+                    .assertOnlyLog("DistributeRewardChanged", {
+                        sender: admin,
+                        oldValue: 1000,
+                        newValue: 100
+                    })
+                .assertCallReturns([treasury, "distributeRewardDenom"], 100)
+                .start();
+        });
+    })
     describe("dailyFundLimit", function(){
         describe(".setDailyFundLimit() initialization", function(){
             it("Not callable by nonAdmin", function(){
@@ -251,6 +277,7 @@ describe('Treasury', function(){
                     .startLedger([dummyToken, treasury])
                     .doTx([treasury, "dissolve", {from: dummyToken}])
                     .assertSuccess()
+                        .assertLog("Dissolved", {sender: dummyToken})
                     .stopLedger()
                         .assertDeltaMinusTxFee(dummyToken, balance)
                         .assertDelta(treasury, balance.mul(-1))
