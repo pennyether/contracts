@@ -66,7 +66,11 @@ contract Token {
 	// crowdSale
 	bool isMinting;
 	address crowdSale;
-	modifier fromCrowdSale() { require(msg.sender == crowdSale); _; }
+	modifier fromCrowdSale() {
+		require(msg.sender == crowdSale);
+		require(isMinting);
+		_;
+	}
 
 	function Token() public {
 		crowdSale = msg.sender;
@@ -93,6 +97,7 @@ contract Token {
 		fromCrowdSale
 		public
 	{
+		require(isMinting);
 		totalSupply += _amount;
 		balances[_to] += _amount;
 	}
