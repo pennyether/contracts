@@ -43,13 +43,13 @@ function createUtil(web3, assert){
 			}
 
 			try {
-				logs = logs.filter(l => l.event === eventName);
-				if (logs.length == 0) throw new Error(`did not find any '${eventName}' event.`);
-				if (logs.length == 1) return validateArgs(logs[0]);
-				if (logs.length > 1) {
-					for (var i=0; i<logs.length; i++){
+				filteredLogs = logs.filter(l => l.event === eventName);
+				if (filteredLogs.length == 0) throw new Error(`did not find any '${eventName}' event.`);
+				if (filteredLogs.length == 1) return validateArgs(filteredLogs[0]);
+				if (filteredLogs.length > 1) {
+					for (var i=0; i<filteredLogs.length; i++){
 						try {
-							await validateArgs(logs[i]);
+							await validateArgs(filteredLogs[i]);
 							return;
 						} catch (e) {}
 					}

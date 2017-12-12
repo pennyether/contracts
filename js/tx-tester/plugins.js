@@ -224,7 +224,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("You never called .startLedger()");
 			amt = await testUtil.toPromise(amt);
 
-			msg = msg || `changed correctly`;
+			msg = msg || ` changed by ${wei(amt)}.`;
 			msg = `balance of ${at(address)} ${msg}`;
 			assert.strEqual(ctx.ledger.getDelta(address), amt, msg);
 			console.log(`✓ ${msg}`);
@@ -243,8 +243,8 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txRes===null)
 				throw new Error("'doTx' was never called, or failed");
 
-			msg = msg || "lost txFee";
 			const txFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1);
+			msg = msg || `lost txFee (${wei(txFee)})`;
 			return plugins.assertDelta.call(ctx, address, txFee, msg);
 		},
 		// assert $address has a delta equal to $amt minus the txFee
@@ -256,9 +256,10 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("'doTx' was never called, or failed");
 			amt = await testUtil.toPromise(amt);
 
-			msg = msg || "gained an amount but lost txFee";
-			const expectedFee = await testUtil.getTxFee(ctx.txRes.tx).mul(-1).plus(amt);
-			return plugins.assertDelta.call(ctx, address, expectedFee, msg);
+			const txFee = await testUtil.getTxFee(ctx.txRes.tx)
+			const expectedDelta = txFee.mul(-1).plus(amt);
+			msg = msg || `gained ${wei(amt)} but lost txFee (${wei(txFee)})`;
+			return plugins.assertDelta.call(ctx, address, expectedDelta, msg);
 		},
 		printDelta: function(address){
 			const ctx = this;
@@ -267,8 +268,8 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txRes===null)
 				throw new Error("'doTx' was never called, or failed");
 
-			const amt = ctx.ledger.getDelta(address).div(1e18);
-			console.log(`Balance of ${at(address)} changed by: ${amt} ETH`);
+			const amt = ctx.ledger.getDelta(address);
+			console.log(`Balance of ${at(address)} changed by: ${wei(amt)}`);
 		},
 
 
@@ -580,6 +581,15 @@ function str(val, hideBrackets) {
 	} else {
 		return val.toString();
 	}
+}
+function wei(val) {
+	if (val.abs().gt(1e15)) {
+		return val.div(1e18).toString() + " ETH";
+	}
+	if (val.abs().gt(1e9)) {
+		return val.div(1e12).toString() + " GWei";
+	}
+	return val.toString() + " Wei";
 }
 
 module.exports = createPlugins;

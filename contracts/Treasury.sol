@@ -56,10 +56,10 @@ contract Treasury is
 
 	// EVENTS
 	event Error(uint time, string msg);
-	event TokenSet(uint time, address token);
-	event DailyFundLimitSet(uint time, uint amount);
-	event DailyFundLimitChanged(uint time, uint oldValue, uint newValue);
-	event BankrollReceived(uint time, address sender, uint amount);
+	event TokenSet(uint time, address sender, address token);
+	event DailyFundLimitSet(uint time, address sender, uint amount);
+	event DailyFundLimitChanged(uint time, address sender, uint oldValue, uint newValue);
+	event BankrollSet(uint time, address sender, uint amount);
 	event Dissolved(uint time, address sender, uint amount);
 	event DistributeSuccess(uint time, address token, uint amount);
 	event DistributeFailure(uint time, address token, uint amount);
@@ -81,7 +81,7 @@ contract Treasury is
 	{
 		require(token == address(0));
 		token = _token;
-		TokenSet(now, _token);
+		TokenSet(now, msg.sender, _token);
 	}
 	// Callable once by admin to set the dailyFundLimit
 	function setDailyFundLimit(uint _amount)
@@ -89,7 +89,7 @@ contract Treasury is
 	{
 		require(dailyFundLimit == 0);
 		dailyFundLimit = _amount;
-		DailyFundLimitSet(now, _amount);
+		DailyFundLimitSet(now, msg.sender, _amount);
 	}
 
 	// Can change the dailyFundLimit +/-5%, callable once per day.
@@ -104,7 +104,7 @@ contract Treasury is
 		require(_newValue >= _minValue && _newValue <= _maxValue);
 		dailyFundLimit = _newValue;
 		dayDailyFundLimitChanged = today();
-		DailyFundLimitChanged(now, _oldValue, _newValue);
+		DailyFundLimitChanged(now, msg.sender, _oldValue, _newValue);
 		return true;
 	}
 
@@ -116,7 +116,7 @@ contract Treasury is
 		require(msg.sender == token);
 		require(bankroll == 0);
 		bankroll = msg.value;
-		BankrollReceived(now, msg.sender, msg.value);
+		BankrollSet(now, msg.sender, msg.value);
 	}
 
 	// Callable only by token -- sends all funds to the token.
@@ -159,7 +159,8 @@ contract Treasury is
 		DistributeSuccess(now, token, _amount);
 
 		// try to pay the reward
-		if (!msg.sender.call.value(_reward)()) {
+		if (msg.sender.call.value(_reward)()) {
+			amtOut += _reward;
 			RewardPaid(now, msg.sender, "Called .distrubuteToToken()", _reward);
 		} else {
 			RewardNotPaid(now, msg.sender, ".distributeToToken() couldnt send reward.", _reward);
@@ -220,13 +221,13 @@ contract Treasury is
 		return true;
   	}
 
-  	function getAmountDistributable() constant returns (uint) {
+  	function getAmountToDistribute() constant returns (uint) {
   		if (token == address(0)) return 0;
   		if (this.balance <= bankroll) return 0;
   		return this.balance - bankroll;
   	}
   	function getDistributeReward() constant returns (uint) {
-  		return getAmountDistributable() / distributeRewardDenom;
+  		return getAmountToDistribute() / distributeRewardDenom;
   	}
 
   	function today() private constant returns (uint) {
