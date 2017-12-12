@@ -108,6 +108,8 @@ describe("MainController", function(){
                 .assertSuccess()
             .doTx([registry, "register", "PENNY_AUCTION_FACTORY", paf.address, {from: owner}])
                 .assertSuccess()
+            .doTx([treasury, "setDailyFundLimit", 1e18, {from: admin}])
+            	.assertSuccess()
 	        .assertCallReturns([mainController, "getAdmin"], admin)
 	        .assertCallReturns([mainController, "getTreasury"], treasury.address)
 	        .assertCallReturns([mainController, "getPennyAuctionController"], pac.address)
@@ -204,7 +206,7 @@ describe("MainController", function(){
 					.assertNoDelta(treasury)
 				.stopWatching()
 					.assertOnlyEvent(treasury, "FundFailure", {
-						reason: "Not enough funds.",
+						reason: "Cannot fund.",
 						note: ".startPennyAuction()"
 					})
 				.assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)

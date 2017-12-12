@@ -77,16 +77,15 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txErr) {
-				var e = new Error(`doTx did not succeed, got this error: ${util.format(ctx.txErr)}`);
+				var e = new Error(`${ctx.txName}, got this error: ${util.format(ctx.txErr)}`);
 				e.stack = ctx.txErr.stack;
 				throw e;
 			}
 			const gasUsed = ctx.txRes.receipt.gasUsed;
 			const blockNum = ctx.txRes.receipt.blockNumber;
 			const meta = `(block ${blockNum}, ${gasUsed} gas used)`;
-			name = name ? `doTx: '${name}'` : ctx.txName;
 			assert(!!ctx.txRes, `txResult was not truthy: ${util.format(ctx.txRes)}`);
-			console.log(`✓ ${name} was successful ${meta}`);
+			console.log(`✓ ${ctx.txName} was successful ${meta}`);
 		},
 		// asserts the last `do` throw an error whose string contains 'invalid opcode'
 		assertInvalidOpCode: function() {
@@ -94,12 +93,12 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.")
 			if (!ctx.txErr) {
 				console.log("Result:", ctx.txRes);
-				throw new Error(`Expected 'doTx' to fail, but got result above.`);
+				throw new Error(`Expected ${ctx.txName} to fail, but got result above.`);
 			}
 
 			const errMsg = ctx.txErr.message;
 			assert.include(errMsg, "revert", `Error does not contain 'revert': ${errMsg}`);
-			console.log("✓ doTx failed with invalid opcode");
+			console.log(`✓ ${ctx.txName} failed with invalid opcode`);
 		},
 		// asserts exact number of logs retrieved
 		assertLogCount: async function(num) {

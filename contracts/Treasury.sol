@@ -4,27 +4,41 @@ import "./roles/UsingMainController.sol";
 import "./roles/UsingAdmin.sol";
 
 /**
-The treasury holds all funds, and only dispenses them to trusted sources
-under certain conditions.  The trust is established via the registry...
-whoever the registry says is the PennyAuctionController can receive funds.
+Treasury holds all funds and will only send:
+	- to token, via .distributeToToken(), if balance > bankroll
+	- to registry.getMainController(), limited by dailyFundLimit
 
+Furthermore to ensure funds are safe:
+	- dailyFundLimit will be quite low, only a few ETH
+	- changeDailyFundLimit() can only change by 5%, once per day
+	- at any time, token can call ".dissolve()" to obtain all funds
+	- token address can only be set once
+
+The worst case scenario is somebody steals the owner account
+and sets registry.getMainController() to be their own wallet.
+In this case they can only steal up to dailyFundLimit per day.
+They can continute to steal each day, until token holders vote
+to dissolve, in which case ALL funds are sent back to the token
+to be distributed as dividends.
 */
 //@createInterface
 contract Treasury is 
 	UsingMainController,
 	UsingAdmin
 {
-	uint public dailyFundLimit = 1 ether;
+	uint public dailyFundLimit;
 	uint public dayDailyFundLimitChanged;
 	uint public dayLastFunded;
 	uint public amtFundedToday;
 
-	uint public amtIn;
-	uint public amtOut;
-	uint public minBankroll;
+	uint public bankroll;		// minimum amount before allow distribution
+	bool public isDissolved;	// if true, cant fund any longer
+	uint public amtIn;			// total funds received (excludes bankroll)
+	uint public amtOut;			// total funds sent
+	uint public amtDistributed;	// total funds sent to token
 
 	// Address that can:
-	// 		- set minBankroll
+	// 		- set bankroll
 	//		- receive distributions
 	//		- call .dissolve(), causing all funds to be sent to itself
 	//
@@ -43,9 +57,10 @@ contract Treasury is
 	// EVENTS
 	event Error(uint time, string msg);
 	event TokenSet(uint time, address token);
+	event DailyFundLimitSet(uint time, uint amount);
+	event DailyFundLimitChanged(uint time, uint oldValue, uint newValue);
 	event BankrollReceived(uint time, address sender, uint amount);
 	event Dissolved(uint time, address sender, uint amount);
-	event DailyLimitChanged(uint time, int pct);
 	event DistributeSuccess(uint time, address token, uint amount);
 	event DistributeFailure(uint time, address token, uint amount);
 	event RewardPaid(uint time, address recipient, string note, uint amount);
@@ -68,46 +83,61 @@ contract Treasury is
 		token = _token;
 		TokenSet(now, _token);
 	}
+	// Callable once by admin to set the dailyFundLimit
+	function setDailyFundLimit(uint _amount)
+		fromAdmin
+	{
+		require(dailyFundLimit == 0);
+		dailyFundLimit = _amount;
+		DailyFundLimitSet(now, _amount);
+	}
 
 	// Can change the dailyFundLimit +/-5%, callable once per day.
-	function changeDailyFundLimit(int _pct)
+	function changeDailyFundLimit(uint _newValue)
 		fromAdmin
 		returns (bool _success)
 	{
 		require(today() > dayDailyFundLimitChanged);
-		require(_pct < 5 && _pct > -5);
-		dailyFundLimit = (dailyFundLimit * uint(100 + _pct))/100;
+		uint _oldValue = dailyFundLimit;
+		uint _maxValue = (_oldValue * 105)/100;
+		uint _minValue = (_oldValue * 95)/100;
+		require(_newValue >= _minValue && _newValue <= _maxValue);
+		dailyFundLimit = _newValue;
 		dayDailyFundLimitChanged = today();
-		DailyLimitChanged(now, _pct);
+		DailyFundLimitChanged(now, _oldValue, _newValue);
 		return true;
 	}
 
-	// Callable once by Token to set the minBankroll
-	function setMinBankroll()
+	// Callable once by Token to set the bankroll
+	function setBankroll()
 		payable
 		fromToken
 	{
 		require(msg.sender == token);
-		require(minBankroll == 0);
-		minBankroll = msg.value;
+		require(bankroll == 0);
+		bankroll = msg.value;
 		BankrollReceived(now, msg.sender, msg.value);
 	}
 
 	// Callable only by token -- sends all funds to the token.
+	// Sets bankroll to 0 so future funds can be distributed.
 	function dissolve()
 		fromToken
 	{
 		uint _amount = this.balance;
 		if (!token.call.value(_amount)()){ throw; }
+		isDissolved = true;
+		bankroll = 0;
 		Dissolved(now, msg.sender, _amount);
+		distributeToToken();
 	}
 
-	// Sends any surplus over minBankroll to token.
+	// Sends any surplus over bankroll to token.
 	// Pays a small reward to whoever calls this.
-	function distribute()
+	function distributeToToken()
 		returns (bool _success, uint _amount)
 	{
-		if (this.balance <= minBankroll) {
+		if (this.balance <= bankroll) {
 			Error(now, "No funds to distribute.");
 			return;
 		}
@@ -117,20 +147,22 @@ contract Treasury is
 		}
 
 		// calculate _reward and _amount, and send _amount
-		uint _surplus = this.balance - minBankroll;
+		uint _surplus = this.balance - bankroll;
 		uint _reward = _surplus / distributeRewardDenom;
 		_amount = _surplus - _reward;
 		if (!token.call.value(_amount)()) {
 			DistributeFailure(now, token, _amount);
 			return (false, 0);
 		}
+		amtOut += _amount;
+		amtDistributed += _amount;
 		DistributeSuccess(now, token, _amount);
 
 		// try to pay the reward
 		if (!msg.sender.call.value(_reward)()) {
-			RewardPaid(now, msg.sender, "Called .distrubute()", _reward);
+			RewardPaid(now, msg.sender, "Called .distrubuteToToken()", _reward);
 		} else {
-			RewardNotPaid(now, msg.sender, ".distribute() couldnt send reward.", _reward);
+			RewardNotPaid(now, msg.sender, ".distributeToToken() couldnt send reward.", _reward);
 		}
 		return (true, _amount);
 	}
@@ -147,7 +179,7 @@ contract Treasury is
 		
 		// ensure we can fund
 		if (!canFund(_amount)) {
-			FundFailure(now, "Not enough funds.", _mainController, _note, _amount);
+			FundFailure(now, "Cannot fund.", _mainController, _note, _amount);
 			return false;
 		}
 		// ensure mainController accepts our wei
@@ -155,10 +187,11 @@ contract Treasury is
 			FundFailure(now, "MainController rejected funds.", _mainController, _note, _amount);
 			return false;
 		}
-		// increase amtFundedToday and set dayLastFunded to today.
-		amtOut += _amount;
+		// increase/reset amtFundedToday and set dayLastFunded to today.
+		if (today() > dayLastFunded) amtFundedToday = 0;
 		amtFundedToday += _amount;
 		dayLastFunded = today();
+		amtOut += _amount;
 		FundSuccess(now, _mainController, _note, _amount);
 		return true;
 	}
@@ -181,9 +214,19 @@ contract Treasury is
 
   	// if _amount is too large, or would exceed our limit for today, then return false.
   	function canFund(uint _amount) constant returns (bool) {
+  		if (isDissolved) return false;
 		if (_amount > this.balance || _amount > dailyFundLimit) return false;
 		if (today() <= dayLastFunded && amtFundedToday + _amount > dailyFundLimit) return false;
 		return true;
+  	}
+
+  	function getAmountDistributable() constant returns (uint) {
+  		if (token == address(0)) return 0;
+  		if (this.balance <= bankroll) return 0;
+  		return this.balance - bankroll;
+  	}
+  	function getDistributeReward() constant returns (uint) {
+  		return getAmountDistributable() / distributeRewardDenom;
   	}
 
   	function today() private constant returns (uint) {

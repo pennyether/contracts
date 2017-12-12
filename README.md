@@ -36,6 +36,9 @@ GAMES
 
 To develop:
 
+	- Set up truffle... good luck with that.  I've been using an old version of truffle.
+		- I've edited some truffle files to work with smocha... you can search truffle
+		  codebase to replease "Mocha" with "Smocha" and you should be fine.
 	- npm install -g ganache-cli
 	- ganache-cli
 	- probably need to install other things... I've polluted my global NPM at this point
