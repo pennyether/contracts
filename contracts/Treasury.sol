@@ -57,7 +57,6 @@ contract Treasury is
 	// EVENTS
 	event Error(uint time, string msg);
 	event TokenSet(uint time, address sender, address token);
-	event DailyFundLimitSet(uint time, address sender, uint amount);
 	event DailyFundLimitChanged(uint time, address sender, uint oldValue, uint newValue);
 	event BankrollSet(uint time, address sender, uint amount);
 	event Dissolved(uint time, address sender, uint amount);
@@ -83,25 +82,20 @@ contract Treasury is
 		token = _token;
 		TokenSet(now, msg.sender, _token);
 	}
-	// Callable once by admin to set the dailyFundLimit
-	function setDailyFundLimit(uint _amount)
-		fromAdmin
-	{
-		require(dailyFundLimit == 0);
-		dailyFundLimit = _amount;
-		DailyFundLimitSet(now, msg.sender, _amount);
-	}
 
 	// Can change the dailyFundLimit +/-5%, callable once per day.
-	function changeDailyFundLimit(uint _newValue)
+	function setDailyFundLimit(uint _newValue)
 		fromAdmin
 		returns (bool _success)
 	{
 		require(today() > dayDailyFundLimitChanged);
+
 		uint _oldValue = dailyFundLimit;
-		uint _maxValue = (_oldValue * 105)/100;
-		uint _minValue = (_oldValue * 95)/100;
-		require(_newValue >= _minValue && _newValue <= _maxValue);
+		if (dailyFundLimit > 0) {
+			uint _maxValue = (_oldValue * 105)/100;
+			uint _minValue = (_oldValue * 95)/100;
+			require(_newValue >= _minValue && _newValue <= _maxValue);
+		}
 		dailyFundLimit = _newValue;
 		dayDailyFundLimitChanged = today();
 		DailyFundLimitChanged(now, msg.sender, _oldValue, _newValue);
@@ -132,8 +126,9 @@ contract Treasury is
 		distributeToToken();
 	}
 
-	// Sends any surplus over bankroll to token.
+	// Sends any surplus to token.
 	// Pays a small reward to whoever calls this.
+	// Not subject to daily limits.
 	function distributeToToken()
 		returns (bool _success, uint _amount)
 	{
@@ -168,9 +163,9 @@ contract Treasury is
 		return (true, _amount);
 	}
 
-	// gives the MainController funds so it can start auctions
+	// Gives the MainController funds so it can start games.
 	// Will fund at most dailyFundLimit per day.
-	// noRentry ensures this is only called once.
+	// noRentry ensures this is only called once at a time.
 	function fundMainController(uint _amount, string _note)
 		noRentry
 		fromMainController
@@ -197,12 +192,13 @@ contract Treasury is
 		return true;
 	}
 
-	// Can receive funds back from mainController.  Subtracts from daily limit.
+	// Can receive funds back from mainController.
+	// Subtracts from daily limit so it can be funded again.
 	function refund(string _note)
 		payable
 		fromMainController
 	{
-		if (msg.value <= amtFundedToday){ amtFundedToday -= msg.value; }
+		if (msg.value <= amtFundedToday) amtFundedToday -= msg.value;
 		amtIn += msg.value;
 		RefundReceived(now, _note, msg.sender, msg.value);
 	}
@@ -226,6 +222,7 @@ contract Treasury is
   		if (this.balance <= bankroll) return 0;
   		return this.balance - bankroll;
   	}
+
   	function getDistributeReward() constant returns (uint) {
   		return getAmountToDistribute() / distributeRewardDenom;
   	}

@@ -55,57 +55,65 @@ describe('Treasury', function(){
         itCannotFund(1, "Cannot fund.");
         itCannotDistribute("No address to distribute to.");
     });
-    describe("dailySpendLimit", function(){
-        describe(".setDailyFundLimit()", function(){
+    describe("dailyFundLimit", function(){
+        describe(".setDailyFundLimit() initialization", function(){
             it("Not callable by nonAdmin", function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: nonAdmin}])
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Works", function(){
+            it("Can be initialized", function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
                     .assertSuccess()
-                        .assertOnlyLog("DailyFundLimitSet", {
+                        .assertOnlyLog("DailyFundLimitChanged", {
                             sender: admin,
-                            amount: DAILY_LIMIT
+                            oldValue: 0,
+                            newValue: DAILY_LIMIT
                         })
                     .assertCallReturns([treasury, "dailyFundLimit"], DAILY_LIMIT)
+                    .assertCallReturns([treasury, "dayDailyFundLimitChanged"], {not: 0})
                     .start();
             });
-            it("Not callable again", function(){
+            it("Not callable in same day.", function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
-            });    
-        })
-        describe(".changeDailySpendLimit()", function(){
+            });
+        });
+        describe(".setDailyFundLimit() to change", function(){
             const newLimit = DAILY_LIMIT.mul(1.03);
+            before("Ensure it is initialized, and fast forward a day.", function(){
+                return createDefaultTxTester()
+                    .assertCallReturns([treasury, "dailyFundLimit"], DAILY_LIMIT)
+                    .doFn(()=>{ testUtil.fastForward(60*60*24); })
+                    .start();
+            });
             it("Cannot change by >5%", function(){
                 const limit = DAILY_LIMIT.mul(1.051);
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", limit, {from: admin}])
+                    .doTx([treasury, "setDailyFundLimit", limit, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Cannot change by <%5", function(){
                 const limit = DAILY_LIMIT.mul(.949);
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", limit, {from: admin}])
+                    .doTx([treasury, "setDailyFundLimit", limit, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Not callable by nonAdmin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", newLimit, {from: nonAdmin}])
+                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: nonAdmin}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Works", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", newLimit, {from: admin}])
+                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: admin}])
                     .assertSuccess()
                         .assertOnlyLog("DailyFundLimitChanged", {
                             sender: admin,
@@ -118,14 +126,14 @@ describe('Treasury', function(){
             });
             it("Not callable in same day.", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", DAILY_LIMIT, {from: admin}])
+                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Works the next day", async function(){
                 await testUtil.fastForward(60*60*24);
                 return createDefaultTxTester()
-                    .doTx([treasury, "changeDailyFundLimit", DAILY_LIMIT, {from: admin}])
+                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
                     .assertSuccess()
                         .assertOnlyLog("DailyFundLimitChanged", {
                             sender: admin,
