@@ -38,13 +38,14 @@ contract Token {
 	string public symbol = "BID";
 	uint8 public decimals = 18;
 	uint public totalSupply;
-	event Transfer(address indexed _from, address indexed _to, uint _value);
-	event Approval(address indexed _owner, address indexed _spender, uint _value);
+	event Transfer(address indexed from, address indexed to, uint amount);
+	event Approval(address indexed owner, address indexed spender, uint amount);
 
 	// non ERC20 fields and events
 	mapping (address => uint) balances;
 	mapping (address => mapping (address => uint)) allowed;
-	event TransferFrom(address indexed _spender, address indexed _from, address indexed _to, uint _value);
+	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
+	event StoppedMinting();
 
 	// Dividends work as follows:
 	// Each time a new deposit is made, totalWeiPerToken is incremented
@@ -59,13 +60,13 @@ contract Token {
 	uint public totalWeiPerToken;
 	mapping (address => uint) creditedDividends;
 	mapping (address => uint) lastWeiPerToken;
-	event CollectDividendsSuccess(address indexed _account, uint _amount);
-	event CollectDividendsFailure(address indexed _account, uint _amount);
-	event DividendReceived(address indexed _from, uint _amount);
+	event CollectDividendsSuccess(address indexed account, uint amount);
+	event CollectDividendsFailure(address indexed account, uint amount);
+	event DividendReceived(address indexed sender, uint amount);
 
 	// crowdSale
-	bool isMinting;
-	address crowdSale;
+	bool public isMinting;
+	address public crowdSale;
 	modifier fromCrowdSale() {
 		require(msg.sender == crowdSale);
 		require(isMinting);
@@ -90,7 +91,9 @@ contract Token {
 		fromCrowdSale
 		public
 	{
+		require(isMinting);
 		isMinting = false;
+		StoppedMinting();
 	}
 
 	function mintTokens(address _to, uint _amount)

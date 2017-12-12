@@ -79,14 +79,15 @@ function createUtil(web3, assert){
 		    try {
 		        await txPromise;
 		    } catch (txError) {
-		        try {
-		            assert.include(txError.message, "invalid opcode");
-		            return;
-		        } catch (assertError) {
-		        	var e = new Error(`Error did not contain 'invalid opcode':\n${txError.message}`);
-		            e.stack = txError.stack;
-		            throw e;
-		        }
+		    	return
+		        // try {
+		        //     assert.include(txError.message, "invalid opcode");
+		        //     return;
+		        // } catch (assertError) {
+		        // 	var e = new Error(`Error did not contain 'invalid opcode':\n${txError.message}`);
+		        //     e.stack = txError.stack;
+		        //     throw e;
+		        // }
 		    }
 		    throw new Error("This transaction call was expected to fail.");
 		},
