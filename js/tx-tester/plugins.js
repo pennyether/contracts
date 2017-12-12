@@ -535,6 +535,8 @@ function nameAddresses(obj, reset) {
 			val.forEach(function(addr, i){
 				addrToName[addr] = `${name}[${i}]`;
 			})
+		} else if (type == "[object Undefined]") {
+			throw new Error(`${name} is undefined.`);
 		} else if (val.constructor.name == "TruffleContract") {
 			addrToName[val.address] = name;
 		} else {
