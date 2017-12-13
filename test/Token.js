@@ -135,44 +135,86 @@ describe('Token', function(){
         })
     });
     describe("Voting works", function(){
-        const expectedNumVotes = 0;
+        var expectedTotalVotes = new BigNumber(0);
         it("account1 can cast some votes", function(){
             return createDefaultTxTester()
                 .doTx([token, "castVotes", 100, {from: account1}])
                 .assertSuccess()
-                .assertCallReturns([token, "totalVotes"], 100)
+                .assertOnlyLog("VotesCast", {
+                    sender: account1,
+                    amount: 100,
+                    oldTotalVotes: 0,
+                    newTotalVotes: 100
+                })
                 .assertCallReturns([token, "numVotes", account1], 100)
+                .assertCallReturns([token, "totalVotes"], 100)
                 .start();
         });
         it("account1 can cast 0 votes", function(){
             return createDefaultTxTester()
                 .doTx([token, "castVotes", 0, {from: account1}])
                 .assertSuccess()
-                .assertCallReturns([token, "totalVotes"], 0)
+                .assertOnlyLog("VotesCast", {
+                    sender: account1,
+                    amount: 0,
+                    oldTotalVotes: 100,
+                    newTotalVotes: 0
+                })
                 .assertCallReturns([token, "numVotes", account1], 0)
+                .assertCallReturns([token, "totalVotes"], 0)
                 .start();
         });
         it("account1 can change their votes to all", async function(){
             const balance = await token.balanceOf(account1);
+            expectedTotalVotes = expectedTotalVotes.plus(balance);
             return createDefaultTxTester()
                 .doTx([token, "castVotes", 1e50, {from: account1}])
                 .assertSuccess()
-                .assertCallReturns([token, "totalVotes"], balance)
+                .assertOnlyLog("VotesCast", {
+                    sender: account1,
+                    amount: expectedTotalVotes,
+                    oldTotalVotes: 0,
+                    newTotalVotes: expectedTotalVotes
+                })
                 .assertCallReturns([token, "numVotes", account1], balance)
+                .assertCallReturns([token, "totalVotes"], expectedTotalVotes)
                 .start();
         });
-        // it("account2 can cast some votes", function(){
-        //     const balance = await token.balanceOf(account1);
-        //     return createDefaultTxTester()
-        //         .doTx([token, "castVotes", 1e50, {from: account2}])
-        //         .assertSuccess()
-        //         .assertCallReturns([token, "totalVotes"], balance)
-        //         .assertCallReturns([token, "numVotes", account1], balance)
-        //         .start();
-        // });
-        // it("Upon transfer, account1 votes is reduced to remaining tokens, account2 unchanged", function(){
+        it("account2 can cast some votes", async function(){
+            const balance = await token.balanceOf(account1);
+            const numVotes = balance.div(2);
+            const expectedOldTotalVotes = expectedTotalVotes;
+            expectedTotalVotes = expectedTotalVotes.plus(numVotes);
+            return createDefaultTxTester()
+                .doTx([token, "castVotes", numVotes, {from: account2}])
+                .assertSuccess()
+                .assertOnlyLog("VotesCast", {
+                    sender: account2,
+                    amount: numVotes,
+                    oldTotalVotes: expectedOldTotalVotes,
+                    newTotalVotes: expectedTotalVotes
+                })
+                .assertCallReturns([token, "numVotes", account2], numVotes)
+                .assertCallReturns([token, "totalVotes"], expectedTotalVotes)
+                .start();
+        });
+        // If account1 sends, and is left with less balance than votes
+        // then its votes should be reduced to match its new balance.
+        it("Transferring from account1 to account2 reduces votes.", async function(){
+            const balance1 = await token.balanceOf(account1);
+            const numVotes1 = await token.numVotes(account1);
+            const numVotes2 = await token.numVotes(account2);
+            assert(balance1.equals(numVotes1), "Account1 should have all their votes cast");
+            const totalVotes = await token.totalVotes();
+            const toTransfer = balance1.div(2);
 
-        // });
+            await assertCanTransfer(account1, account2, toTransfer);
+            return createDefaultTxTester()
+                .assertCallReturns([token, "numVotes", account1], numVotes1.minus(toTransfer))
+                .assertCallReturns([token, "numVotes", account2], numVotes2)
+                .assertCallReturns([token, "totalVotes"], totalVotes.minus(toTransfer))
+                .start();
+        });
     });
 
 
@@ -236,13 +278,20 @@ describe('Token', function(){
         })
     }
 
-    async function assertCanTransfer(from, to) {
-        const amt = await token.balanceOf(from);
+    async function assertCanTransfer(from, to, amt) {
+        if (!amt){ amt = await token.balanceOf(from); }
+        const balanceFrom = await token.balanceOf(from);
+        const balanceTo = await token.balanceOf(to);
         return createDefaultTxTester()
             .doTx([token, "transfer", to, amt, {from: from}])
             .assertSuccess()
-            .assertCallReturns([token, "balanceOf", from], 0)
-            .assertCallReturns([token, "balanceOf", to], amt)
+            .assertOnlyLog("Transfer", {
+                from: from,
+                to: to,
+                amount: amt
+            })
+            .assertCallReturns([token, "balanceOf", from], balanceFrom.minus(amt))
+            .assertCallReturns([token, "balanceOf", to], balanceTo.plus(amt))
             .start();
     }
 

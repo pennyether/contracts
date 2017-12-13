@@ -33,7 +33,7 @@ contract Token {
 	/* VOTING TO DISSOLVE */
 	uint public totalVotes;
 	mapping (address => uint) public numVotes;
-	event VotesCast(address indexed sender, uint amount, uint totalVotes);
+	event VotesCast(address indexed sender, uint amount, uint oldTotalVotes, uint newTotalVotes);
 	event DissolveExecuted();
 
 	/* OWNER STUFF */
@@ -147,10 +147,11 @@ contract Token {
 		uint _balance = balances[msg.sender];
 		if (_amount > _balance) _amount = _balance;
 		// remove all current votes, replace with new _amount
+		uint _oldTotalVotes = totalVotes;
 		totalVotes -= numVotes[msg.sender];
-		totalVotes += _amount;
 		numVotes[msg.sender] = _amount;
-		VotesCast(msg.sender, _amount, totalVotes);
+		totalVotes += _amount;
+		VotesCast(msg.sender, _amount, _oldTotalVotes, totalVotes);
 	}
 
 	// Callable by anyone if .hasEnoughVotes() is true.
