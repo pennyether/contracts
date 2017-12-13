@@ -5,7 +5,7 @@ function SmochaLogger() {
 	colors.setTheme({
 		// misc
 		indent: ['dim', 'gray'],
-		log: ['dim','gray'],
+		log: ['dim', 'gray'],
 		skipText: 'cyan',
 
 		// states
@@ -17,8 +17,8 @@ function SmochaLogger() {
 		file: 'bold',
 		describe: ['bold'],
 		it: [],
-		before: ['dim'],
-		after: ['dim'],
+		before: [],
+		after: [],
 		beforeEach: [],
 		afterEach: [],
 

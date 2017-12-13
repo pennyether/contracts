@@ -1,4 +1,5 @@
 const TokenCrowdSale = artifacts.require("TokenCrowdSale");
+const UnpayableTokenHolder = artifacts.require("UnpayableTokenHolder");
 const Token = artifacts.require("Token");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
@@ -14,17 +15,15 @@ const account3 = accounts[4];
 const account4 = accounts[5];
 const account5 = accounts[6];
 const random = accounts[7];
-const trackedAccounts = [account1, account2, account3, account4];
 
 describe('TokenCrowdSale', function(){
     var token;
     var tokenCrowdSale;
-    var decimals;
 
     before("Initialize TokenCrowdSale", async function(){
         tokenCrowdSale = await TokenCrowdSale.new({from: owner});
         token = Token.at(await tokenCrowdSale.token());
-        decimals = (new BigNumber(10)).pow(await token.decimals());
+        unpayableTokenHolder = await UnpayableTokenHolder.new();
 
         const addresses = {
             owner: accounts[1],
@@ -35,16 +34,22 @@ describe('TokenCrowdSale', function(){
             account5: account5,
             random: random,
             token: token.address,
-            tokenCrowdSale: tokenCrowdSale.address
+            tokenCrowdSale: tokenCrowdSale.address,
+            UnpayableTokenHolder: unpayableTokenHolder.address
         };
         await createDefaultTxTester()
             .nameAddresses(addresses)
             .start();
     });
     describe("Initialization worked", async function(){
-        it("token.isMinting is true", function(){
+        it("tokenCrowdSale.owner() is correct", function(){
             return createDefaultTxTester()
-                .assertCallReturns([token, "isMinting"], true)
+                .assertCallReturns([tokenCrowdSale, "owner"], owner)
+                .start();
+        });
+        it("tokenCrowdSale.token() is correct", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([tokenCrowdSale, "token"], token.address)
                 .start();
         });
         it("token.crowdSale() is correct", function(){
@@ -52,16 +57,18 @@ describe('TokenCrowdSale', function(){
                 .assertCallReturns([token, "crowdSale"], tokenCrowdSale.address)
                 .start();
         });
-        it("tokenCrowdSale.owner() is correct", function(){
+        it("token.isMinting is true", function(){
             return createDefaultTxTester()
-                .assertCallReturns([tokenCrowdSale, "owner"], owner)
+                .assertCallReturns([token, "isMinting"], true)
                 .start();
-        })
+        });
     })
     describe("Minting works as expected", async function(){
+        const tokensPerEth = await tokenCrowdSale.tokensPerEth();
+        const decimals = (new BigNumber(10)).pow(await token.decimals());
         it(".buyTokens() works", function(){
             const value = new BigNumber(.01e18);
-            const expectedTokens = value.mul(2000).mul(decimals).div(1e18);
+            const expectedTokens = value.mul(tokensPerEth).mul(decimals).div(1e18);
             return createDefaultTxTester()
                 .doTx([tokenCrowdSale, "buyTokens", {value: value, from: account1}])
                 .assertSuccess()
@@ -70,7 +77,7 @@ describe('TokenCrowdSale', function(){
         });
         it(".buyTokens() works", function(){
             const value = new BigNumber(.02e18);
-            const expectedTokens = value.mul(2000).mul(decimals).div(1e18);
+            const expectedTokens = value.mul(tokensPerEth).mul(decimals).div(1e18);
             return createDefaultTxTester()
                 .doTx([tokenCrowdSale, "buyTokens", {value: value, from: account2}])
                 .assertSuccess()
@@ -79,7 +86,7 @@ describe('TokenCrowdSale', function(){
         });
         it(".buyTokens() works", function(){
             const value = new BigNumber(.03e18);
-            const expectedTokens = value.mul(2000).mul(decimals).div(1e18);
+            const expectedTokens = value.mul(tokensPerEth).mul(decimals).div(1e18);
             return createDefaultTxTester()
                 .doTx([tokenCrowdSale, "buyTokens", {value: value, from: account3}])
                 .assertSuccess()
@@ -139,21 +146,45 @@ describe('TokenCrowdSale', function(){
     describe("Transfering works", async function(){
         itCanReceiveDeposit(6e14);
         itCanGetCollectableDividends();
-        it("Transfer from account3 to account4.", async function(){
-            const amt = await token.balanceOf(account3);
-            return createDefaultTxTester()
-                .doTx([token, "transfer", account4, amt, {from: account3}])
-                .assertSuccess()
-                .assertCallReturns([token, "balanceOf", account3], 0)
-                .assertCallReturns([token, "balanceOf", account4], amt)
-                .start();
+        it("account3 cannot transfer more than it has.", async function(){
+            return assertCannotTransferTooMuch(account3, account4);
+        })
+        it("account3 can transfer to account4.", async function(){
+            return assertCanTransfer(account3, account4);
         });
         itCanGetCollectableDividends();
         itCanReceiveDeposit(6e15);
         itCanGetCollectableDividends();
     });
+    describe("Dividends fail gracefully if tokenHolder cannot get paid.", async function(){
+        it("Transfer from account4 to unpayableTokenHolder", function(){
+            return assertCanTransfer(account4, unpayableTokenHolder.address);
+        });
+        itCanReceiveDeposit(6e16);
+        it(".collectDividends() fails gracefully", async function(){
+            const unpayableAddress = unpayableTokenHolder.address;
+            const amount = await token.getCollectableDividends(unpayableAddress);
+            assert(amount.gt(0), `${amount} should be > 0`);
+            return createDefaultTxTester()
+                .assertCallReturns([token, "getCollectableDividends", unpayableAddress], amount)
+                .startLedger([token, unpayableAddress])
+                .startWatching([token])
+                .doTx([unpayableTokenHolder, "collectDividends", token.address])
+                .assertSuccess()
+                .stopLedger()
+                    .assertNoDelta(token)
+                    .assertNoDelta(unpayableAddress)
+                .stopWatching()
+                    .assertOnlyEvent(token, "CollectDividendsFailure", {account: unpayableAddress})
+                .assertCallReturns([token, "getCollectableDividends", unpayableAddress], amount)
+                .start();
+        })
+    });
 
+
+    // These functions keep track of expected dividends, and do assertions against them.
     var expectedTotalDividends = new BigNumber(0);
+    const trackedAccounts = [account1, account2, account3, account4];
     var expectedDividends = trackedAccounts.map(()=>new BigNumber(0));
     async function itCanReceiveDeposit(amt) {
         amt = new BigNumber(amt);
@@ -209,5 +240,23 @@ describe('TokenCrowdSale', function(){
                 .doFn(() => expectedDividends[accountNum] = new BigNumber(0))
                 .start();         
         })
+    }
+
+    async function assertCanTransfer(from, to) {
+        const amt = await token.balanceOf(from);
+        return createDefaultTxTester()
+            .doTx([token, "transfer", to, amt, {from: from}])
+            .assertSuccess()
+            .assertCallReturns([token, "balanceOf", from], 0)
+            .assertCallReturns([token, "balanceOf", to], amt)
+            .start();
+    }
+
+    async function assertCannotTransferTooMuch(from, to) {
+        const amt = (await token.balanceOf(from)).plus(1);
+        return createDefaultTxTester()
+            .doTx([token, "transfer", to, amt, {from: from}])
+            .assertInvalidOpCode()
+            .start();
     }
 });

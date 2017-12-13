@@ -34,6 +34,8 @@ function createPlugins(testUtil, ledger) {
 				const argsStr = args ? str(args, true) : "";
 				fnOrPromise = () => contract[name].apply(contract, args);
 				ctx.txName = `doTx: ${str(contract)}.${name}(${argsStr})`;
+				if (!contract[name] || !contract[name].apply)
+					throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 			} else {
 				ctx.txName = `${fnOrPromise.toString()}`;
 			}
@@ -399,6 +401,9 @@ function createPlugins(testUtil, ledger) {
 			const expectedStr = str(expected);
 			msg = msg || `should equal ${expectedStr}`;
 			msg = `${str(contract)}.${name}.call(${argsStr}) ${msg}`;
+			if (!contract[name] || !contract[name].call)
+				throw new Error(`"${name}"" is not a method of ${str(contract)}`);
+
 			var result;
 			try {
 				result = await contract[name].call.apply(contract, args);

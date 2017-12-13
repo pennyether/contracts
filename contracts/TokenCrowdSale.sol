@@ -1,39 +1,38 @@
 pragma solidity ^0.4.11;
 
 contract TokenCrowdSale {
-	Token public token;
-	uint public tokensPerEth = 2000;
-	address public owner;
+	Token public token = new Token();
+	uint public tokensPerEth = 500;
+	address public owner = msg.sender;
 
-	event BoughtTokens(address _account, uint _wei, uint _tokens);
-	modifier fromOwner(){ require(msg.sender==owner); _; }
+	event BuyTokensSuccess(address indexed sender, uint value, uint tokens);
+	event BuyTokensFailure(address indexed sender, uint value, string reason);
 
-	function TokenCrowdSale() public {
-		owner = msg.sender;
-		token = new Token();
-	}
+	function TokenCrowdSale() public {}
 
 	function buyTokens()
 		public
 		payable
 		returns (uint _amount)
 	{
+		// tokensPerEth * 10 ** token.decimals() is: 1e4 + 1e18 = 1e22.
+		// Unless they send 1e55 wei (1e37 ETH), there's no chance of an overflow.
 		_amount = (tokensPerEth * msg.value * (10 ** uint(token.decimals()))) / 1e18;
 		token.mintTokens(msg.sender, _amount);
-		BoughtTokens(msg.sender, msg.value, _amount);
+		BuyTokensSuccess(msg.sender, msg.value, _amount);
 		return;
 	}
 
 	function stopSale()
 		public
-		fromOwner
 	{
+		require(msg.sender == owner);
 		token.stopMinting();
 	}
 }
 
 contract Token {
-	// standard ERC20 fields
+	/* STANDARD ERC20 FIELDS */
 	string public name = "PennyEther";
 	string public symbol = "BID";
 	uint8 public decimals = 18;
@@ -41,20 +40,18 @@ contract Token {
 	event Transfer(address indexed from, address indexed to, uint amount);
 	event Approval(address indexed owner, address indexed spender, uint amount);
 
-	// non ERC20 fields and events
+	/* PRIVATE STORAGE AND EVENTS */
 	mapping (address => uint) balances;
 	mapping (address => mapping (address => uint)) allowed;
 	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
-	event StoppedMinting();
 
-	// Dividends work as follows:
+	/* DIVIDENDS */
 	// Each time a new deposit is made, totalWeiPerToken is incremented
-	// based on the dividendAmount/totalSupply.
-	// A user is credited tokens based on totalWeiPerToken - lastWeiPerToken
-	// times their current balance.
-	// Before any user's balance is changed, they are credited dividends
-	// and their lastWeiPerToken is updated to totalWeiPerToken.
-	uint constant BIG_NUMBER = 10e32;
+	// based on the dividendAmount divided by totalSupply.
+	// A user is credited Wei based on (totalWeiPerToken - user.lastWeiPerToken)
+	// times their current balance, and their lastWeiPerToken is set to totalWeiPerToken.
+	// This happens before they send or receive tokens, and if they call .collectDividends()
+	uint constant BIG_NUMBER = 1e32;
 	uint public totalDividends;
 	uint public collectedDividends;
 	uint public totalWeiPerToken;
@@ -64,42 +61,40 @@ contract Token {
 	event CollectDividendsFailure(address indexed account, uint amount);
 	event DividendReceived(address indexed sender, uint amount);
 
-	// crowdSale
-	bool public isMinting;
-	address public crowdSale;
-	modifier fromCrowdSale() {
-		require(msg.sender == crowdSale);
-		require(isMinting);
-		_;
-	}
+	/* CROWDSALE STUFF */
+	// When true, .mintTokens is callable, and dividends will be rejected.
+	bool public isMinting = true;
+	// The "admin" account.  Can call .stopMinting and .mintTokens
+	address public crowdSale = msg.sender;
+	// events
+	event StoppedMinting();
 
-	function Token() public {
-		crowdSale = msg.sender;
-		isMinting = true;
-	}
+	function Token() public {}
 
 	// Upon receiving payment, increment totalWeiPerToken.
-	// Do not do this during minting.
+	// While minting, reject any dividends.
 	function () payable {
 		require(!isMinting);
-		totalDividends += msg.value;
+		// BIG_NUMBER is 1e32 -- no overflow unless we get 1e45 wei (1e27 ETH)
+		// Also note we divide by totalSupply. (See: getUncreditedDividends)
 		totalWeiPerToken += (msg.value * BIG_NUMBER) / totalSupply;
+		totalDividends += msg.value;
 		DividendReceived(msg.sender, msg.value);
 	}
 
 	function stopMinting()
-		fromCrowdSale
 		public
 	{
+		require(msg.sender == crowdSale);
 		require(isMinting);
 		isMinting = false;
 		StoppedMinting();
 	}
 
 	function mintTokens(address _to, uint _amount)
-		fromCrowdSale
 		public
 	{
+		require(msg.sender == crowdSale);
 		require(isMinting);
 		totalSupply += _amount;
 		balances[_to] += _amount;
@@ -123,10 +118,10 @@ contract Token {
 	}
 
 	// Credits _account with whatever dividends they haven't yet been credited.
-	// This needs to be called before a user's balance changes to ensure the
-	// "totalWeiPerToken - lastWeiPerToken" is accurate.  If this isn't called,
-	// a user could simply transfer a large amount of tokens and receive
-	// a large dividend (or conversely transfer out tokens and receive no dividend).
+	// This needs to be called before a user's balance changes to ensure their
+	// "lastWeiPerToken" is always accurate.  If this isn't called, a user
+	// could simply transfer a large amount of tokens and receive a large dividend
+	// (or conversely transfer out tokens and receive no dividend).
 	function updateCreditedDividends(address _account)
 		private
 	{
@@ -212,6 +207,10 @@ contract Token {
 		constant
 		returns (uint _amount)
 	{
+		// Note: _weiPerToken is at most totalWeiPerToken,
+		// and totalWeiPerToken was calculated by dividing by totalSupply.
+		// totalSupply is always greater than balances[_account],
+		// so _weiPerToken * balances[_account] will never cause an overflow.
 		uint _weiPerToken = totalWeiPerToken - lastWeiPerToken[_account];
 		return (_weiPerToken * balances[_account]) / BIG_NUMBER;
 	}
