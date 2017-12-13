@@ -29,6 +29,7 @@ describe('Token', function(){
             account3: account3,
             account4: account4,
             nonOwner: nonOwner,
+            nonAccount: nonAccount,
             token: token.address,
             unpayableTokenHolder: unpayableTokenHolder.address
         };
