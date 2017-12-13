@@ -30,6 +30,12 @@ contract Token {
 	event CollectDividendsFailure(address indexed account, uint amount);
 	event DividendReceived(address indexed sender, uint amount);
 
+	/* VOTING TO DISSOLVE */
+	uint public totalVotes;
+	mapping (address => uint) public numVotes;
+	event VotesCast(address indexed sender, uint amount, uint totalVotes);
+	event DissolveExecuted();
+
 	/* OWNER STUFF */
 	// When true, .mintTokens is callable, and dividends will be rejected.
 	bool public isMinting = true;
@@ -83,6 +89,7 @@ contract Token {
 		updateCreditedDividends(_from);
 		balances[_from] -= _value;
 		balances[_to] += _value;
+		removeExcessVotes(_from);
 		Transfer(_from, _to, _value);
 	}
 
@@ -96,6 +103,17 @@ contract Token {
 	{
 		creditedDividends[_account] += getUncreditedDividends(_account);
 		lastWeiPerToken[_account] = totalWeiPerToken;
+	}
+
+	// If the user's numVotes exceeds their balance
+	// then remove the surplus amount of votes.
+	function removeExcessVotes(address _account)
+		private
+	{
+		if (balances[_account] >= numVotes[_account]) return;
+		uint excessVotes = numVotes[_account] - balances[_account];
+		numVotes[_account] -= excessVotes;
+		totalVotes -= excessVotes;
 	}
 
 	// Redeems the dividends owed to the sender.
@@ -119,6 +137,29 @@ contract Token {
 			CollectDividendsFailure(msg.sender, _amount);
 			return false;
 		}
+	}
+
+	// Changes the amount of votes a user casts towards dissolving.
+	// If _amount exceeds balance, uses entire balance.
+	function castVotes(uint _amount)
+		public
+	{
+		uint _balance = balances[msg.sender];
+		if (_amount > _balance) _amount = _balance;
+		// remove all current votes, replace with new _amount
+		totalVotes -= numVotes[msg.sender];
+		totalVotes += _amount;
+		numVotes[msg.sender] = _amount;
+		VotesCast(msg.sender, _amount, totalVotes);
+	}
+
+	// Callable by anyone if .hasEnoughVotes() is true.
+	// This causes treasury to send all funds to us.
+	function executeDissolve()
+		public
+	{
+		require(hasEnoughVotes());
+		DissolveExecuted();
 	}
 
 	// ERC20
@@ -191,5 +232,13 @@ contract Token {
 		returns (uint _amount)
 	{
 		return getUncreditedDividends(_account) + creditedDividends[_account];
+	}
+
+	function hasEnoughVotes()
+		public
+		constant
+		returns (bool)
+	{
+		return totalVotes > totalSupply/2;
 	}
 }

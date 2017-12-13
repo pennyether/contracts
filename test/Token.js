@@ -134,6 +134,46 @@ describe('Token', function(){
                 .start();
         })
     });
+    describe("Voting works", function(){
+        const expectedNumVotes = 0;
+        it("account1 can cast some votes", function(){
+            return createDefaultTxTester()
+                .doTx([token, "castVotes", 100, {from: account1}])
+                .assertSuccess()
+                .assertCallReturns([token, "totalVotes"], 100)
+                .assertCallReturns([token, "numVotes", account1], 100)
+                .start();
+        });
+        it("account1 can cast 0 votes", function(){
+            return createDefaultTxTester()
+                .doTx([token, "castVotes", 0, {from: account1}])
+                .assertSuccess()
+                .assertCallReturns([token, "totalVotes"], 0)
+                .assertCallReturns([token, "numVotes", account1], 0)
+                .start();
+        });
+        it("account1 can change their votes to all", async function(){
+            const balance = await token.balanceOf(account1);
+            return createDefaultTxTester()
+                .doTx([token, "castVotes", 1e50, {from: account1}])
+                .assertSuccess()
+                .assertCallReturns([token, "totalVotes"], balance)
+                .assertCallReturns([token, "numVotes", account1], balance)
+                .start();
+        });
+        // it("account2 can cast some votes", function(){
+        //     const balance = await token.balanceOf(account1);
+        //     return createDefaultTxTester()
+        //         .doTx([token, "castVotes", 1e50, {from: account2}])
+        //         .assertSuccess()
+        //         .assertCallReturns([token, "totalVotes"], balance)
+        //         .assertCallReturns([token, "numVotes", account1], balance)
+        //         .start();
+        // });
+        // it("Upon transfer, account1 votes is reduced to remaining tokens, account2 unchanged", function(){
+
+        // });
+    });
 
 
     // These functions keep track of expected dividends, and do assertions against them.
