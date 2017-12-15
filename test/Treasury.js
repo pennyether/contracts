@@ -251,7 +251,7 @@ describe('Treasury', function(){
             });
             it("cannot be called from admin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "removeFromBankroll", {from: admin, value: BANKROLL_ADD}])
+                    .doTx([treasury, "addToBankroll", {from: admin, value: BANKROLL_ADD}])
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -307,7 +307,7 @@ describe('Treasury', function(){
                     .start();
             });
         });
-        describe(".removeFromBankroll can drain entire balance", async function(){
+        describe(".removeFromBankroll cannot remove more than balance", async function(){
             before("Distribute, then fund a little so balance < bankroll", function(){
                 itCanDistribute();
                 it("Fast forwards...", function(){
@@ -315,25 +315,13 @@ describe('Treasury', function(){
                 });
                 itCanFund(DAILY_LIMIT.div(2));
             });
-            it("drains entire balance if not enough funds", async function(){
+            it("Fails if it cannot afford to removeFromBankroll", async function(){
                 const balance = testUtil.getBalance(treasury);
                 const br = await treasury.bankroll();
                 assert(br.gt(balance));
-                const expectedBr = br.minus(balance);
                 return createDefaultTxTester()
-                    .startLedger([treasury, dummyComptroller])
                     .doTx([treasury, "removeFromBankroll", br, {from: dummyComptroller}])
-                    .assertSuccess()
-                        .assertOnlyLog("BankrollChanged", {
-                            oldValue: br,
-                            newValue: expectedBr
-                        })
-                    .stopLedger()
-                        .assertDelta(treasury, balance.mul(-1))
-                        .assertDeltaMinusTxFee(dummyComptroller, balance)
-                    .assertBalance(treasury, 0)
-                    .assertCallReturns([treasury, "bankroll"], expectedBr)
-                    .assertCallReturns([treasury, "getAmountToDistribute"], 0)
+                    .assertInvalidOpCode()
                     .start();
             })
         })
@@ -357,6 +345,7 @@ describe('Treasury', function(){
                     .assertDeltaMinusTxFee(anyone, amount.mul(-1))
                     .assertDelta(treasury, amount)
                 .assertCallReturns([treasury, "totalRevenue"], expectedRevenue)
+                .doFn(assertIsBalanced)
                 .start();
         })
     }
@@ -380,6 +369,7 @@ describe('Treasury', function(){
                     .assertDeltaMinusTxFee(dummyMainController, amount)
                     .assertDelta(treasury, amount.mul(-1))
                 .assertCallReturns([treasury, "totalFunded"], expectedFunded)
+                .doFn(assertIsBalanced)
                 .start();
         });    
     }
@@ -400,6 +390,7 @@ describe('Treasury', function(){
                     .assertLostTxFee(dummyMainController)
                 .assertCallReturns([treasury, "totalFunded"], expectedFunded)
                 .assertCallReturns([treasury, "amtFundedToday"], expectedAmtFundedToday)
+                .doFn(assertIsBalanced)
                 .start();
         })
     }
@@ -421,6 +412,7 @@ describe('Treasury', function(){
                     .assertDelta(treasury, amount)
                     .assertDeltaMinusTxFee(dummyMainController, amount.mul(-1))
                 .assertCallReturns([treasury, "amtFundedToday"], expectedAmtFundedToday)
+                .doFn(assertIsBalanced)
                 .start();
         });
     }
@@ -451,6 +443,7 @@ describe('Treasury', function(){
                     .assertDeltaMinusTxFee(anyone, expectedReward)
                 .assertCallReturns([treasury, "totalDistributed"],
                     prevTotalDistributed.plus(expectedToDistribute))
+                .doFn(assertIsBalanced)
                 .start()
         });
     }
@@ -468,7 +461,21 @@ describe('Treasury', function(){
                     .assertNoDelta(treasury)
                     .assertLostTxFee(anyone)
                 .assertCallReturns([treasury, "totalDistributed"], expectedTotalDistributed)
+                .doFn(assertIsBalanced)
                 .start();
         });
+    }
+    async function assertIsBalanced() {
+        const balance = testUtil.getBalance(treasury);
+        const bankroll = await treasury.bankroll();
+        const revenue = await treasury.totalRevenue();
+        const funded = await treasury.totalFunded();
+        const distributed = await treasury.totalDistributed();
+        const rewarded = await treasury.totalRewarded();
+        const amtIn = bankroll.plus(revenue);
+        const amtOut = funded.plus(distributed).plus(rewarded);
+        assert(balance.equals(amtIn.minus(amtOut)),
+            `balance (${balance}), should be amtIn (${amtIn}) minus amtOut (${amtOut})`);
+        console.log("✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)");
     }
 });

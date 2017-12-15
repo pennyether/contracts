@@ -64,6 +64,7 @@ contract Treasury is
 
 	uint public totalRevenue;		// total revenues received
 	uint public totalFunded;		// total funds sent
+	uint public totalRewarded;		// total rewards paid
 	uint public totalDistributed;	// total dividends
 
 	// when someone calls distribute, they get a small reward
@@ -162,7 +163,7 @@ contract Treasury is
 		fromComptroller
 	{
 		require(bankroll >= _amount);
-		if (this.balance < _amount) _amount = this.balance;
+		require(this.balance >= _amount);
 		uint _oldValue = bankroll;
 		bankroll -= _amount;
 		require(comptroller.call.value(_amount)());
@@ -196,6 +197,7 @@ contract Treasury is
 		DistributeSuccess(now, token, _amount);
 
 		// try to pay the reward
+		totalRewarded += _reward;
 		require(msg.sender.call.value(_reward)());
 		RewardPaid(now, msg.sender, "Called .distrubuteToToken()", _reward);
 		return (true, _amount);
@@ -236,7 +238,9 @@ contract Treasury is
 		payable
 		fromMainController
 	{
-		if (msg.value <= amtFundedToday) amtFundedToday -= msg.value;
+		if (msg.value > amtFundedToday) amtFundedToday = 0;
+		else amtFundedToday -= msg.value;
+		totalFunded -= msg.value;
 		RefundReceived(now, _note, msg.sender, msg.value);
 	}
 

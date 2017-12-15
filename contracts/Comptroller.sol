@@ -23,7 +23,7 @@ It should also be the owner of the Treasury, so it can call:
 contract ITreasury {
 	function comptroller() public constant returns(address);
 	function addToBankroll() public payable;
-	function removeFromBankroll(uint _amount, address _receiver) public;
+	function removeFromBankroll(uint _amount) public;
 }
 contract Comptroller {
 	// Location of the treasury
@@ -35,8 +35,8 @@ contract Comptroller {
 	DividendToken public token = new DividendToken();
 	// Locker that holds PennyEther's tokens.
 	DividendTokenLocker public locker = new DividendTokenLocker(token, owner);
-	// How many tokens to issue per ETH
-	uint public tokensPerEth = 1000 * (10 ** uint(token.decimals()));
+	// 1 ETH gets 1000 full tokens, so 1 Wei gets that divided by WeiPerEth.
+	uint public tokensPerWei = 1000 * (10 ** uint(token.decimals())) / (1 ether);
 
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
@@ -48,9 +48,8 @@ contract Comptroller {
 	function initTreasury(address _treasury) public {
 		require(msg.sender == owner);
 		require(treasury == address(0));
-		ITreasury _iTreasury = ITreasury(_treasury);
-		require(_iTreasury.comptroller() == address(this));
-		treasury = _iTreasury;
+		require(ITreasury(_treasury).comptroller() == address(this));
+		treasury = ITreasury(_treasury);
 	}
 
 	// Allows the sender to buy tokens.
@@ -59,9 +58,9 @@ contract Comptroller {
 		payable
 		returns (uint _numTokens)
 	{
-		// min amount is 1GWei, and treasury must be initalized
-		require(msg.value >= 1000000000);
+		// ensure treasuy exists, limit rounding errors
 		require(treasury != address(0));
+		require(msg.value >= 1000000000);
 		// 20% goes to the owner
 		uint _capital = msg.value / 5;
 		require(owner.call.value(_capital)());
@@ -69,7 +68,7 @@ contract Comptroller {
 		uint _bankroll = msg.value - _capital;
 		treasury.addToBankroll.value(_bankroll)();
 		// mint tokens for the sender and locker
-		_numTokens = (tokensPerEth * msg.value) / (1 ether);
+		_numTokens = msg.value * tokensPerWei;
 		token.mintTokens(msg.sender, _numTokens);
 		token.mintTokens(locker, _numTokens / 5);
 		TokensBought(msg.sender, msg.value, _numTokens);
@@ -82,13 +81,18 @@ contract Comptroller {
 		// If number is too large, use their whole balance.
 		if (_numTokens > token.balanceOf(msg.sender))
 			_numTokens = token.balanceOf(msg.sender);
-		// ensure a minimum of 1GWei
-		uint _wei = (_numTokens / tokensPerEth) * (1 ether);
+		// set _numTokens to the most treasury can afford
+		uint _numAfford = treasury.balance * tokensPerWei;
+		if (_numAfford > _numTokens) _numTokens = _numAfford;
+		// convert tokens to wei, limit rounding errors
+		uint _wei = _numTokens / tokensPerWei;
 		require(_wei >= 1000000000);
 		// burn the tokens for sender, and for locker.
 		token.burnTokens(msg.sender, _numTokens);
 		token.burnTokens(locker, _numTokens / 5);
-		treasury.removeFromBankroll(_wei, msg.sender);
+		// remove from bankroll (this pays us), and send to user.
+		treasury.removeFromBankroll(_wei);
+		require(msg.sender.call.value(_wei)());
 		TokensBurnt(msg.sender, _numTokens, _wei);
 	}
 }

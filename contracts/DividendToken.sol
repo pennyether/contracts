@@ -11,7 +11,8 @@ contract DividendToken {
 	uint8 public decimals = 18;
 	uint public totalSupply;
 	event Transfer(address indexed from, address indexed to, uint amount);
-	event Approval(address indexed owner, address indexed spender, uint amount);
+	event AllowanceSet(address indexed owner, address indexed spender, uint amount);
+	event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
 
 	// non public state variables
 	mapping (address => uint) balances;
@@ -73,7 +74,7 @@ contract DividendToken {
 	{
 		require(allowed[_from][msg.sender] >= _value);
 		allowed[_from][msg.sender] -= _value;
-		TransferFrom(msg.sender, _from, _to, _value);
+		AllowanceUsed(_from, msg.sender, _value);
 		_transfer(_from, _to, _value);
 		return true;
 	}
@@ -84,7 +85,7 @@ contract DividendToken {
 		returns (bool success)
 	{
 		allowed[msg.sender][_spender] = _value;
-		Approval(msg.sender, _spender, _value);
+		AllowanceSet(msg.sender, _spender, _value);
 		return true;
 	}
 
