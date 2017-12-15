@@ -17,6 +17,8 @@ contract DividendToken {
 	mapping (address => uint) balances;
 	mapping (address => mapping (address => uint)) allowed;
 	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
+	event TokensMinted(address indexed account, uint amount, uint newTotalSupply);
+	event TokensBurnt(address indexed account, uint amount, uint newTotalSupply);
 
 	// How dividends work.
 	//
@@ -113,6 +115,7 @@ contract DividendToken {
 		updateCreditedPoints(_to);
 		totalSupply += _amount;
 		balances[_to] += _amount;
+		TokensMinted(_to, _amount, totalSupply);
 	}
 	
 	// Callable by comptroller, removes tokens from a balance.
@@ -121,10 +124,11 @@ contract DividendToken {
 	    onlyComptroller
 	    public
 	{
-	    require(balances[_account] >= _amount);
-	    updateCreditedPoints(_account);
-	    balances[_account] -= _amount;
-	    totalSupply -= _amount;
+		require(balances[_account] >= _amount);
+		updateCreditedPoints(_account);
+		balances[_account] -= _amount;
+		totalSupply -= _amount;
+		TokensBurnt(_account, _amount, totalSupply);
 	}
 
 	// Normal ERC20 transfer, except before transferring

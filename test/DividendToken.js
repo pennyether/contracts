@@ -7,28 +7,28 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
 const accounts = web3.eth.accounts;
-const owner = accounts[1];
+const comptroller = accounts[1];
 const account1 = accounts[2];
 const account2 = accounts[3];
 const account3 = accounts[4];
 const account4 = accounts[5];
-const nonOwner = accounts[6];
+const anybody = accounts[6];
 const nonAccount = accounts[7];
 var token;
 var unpayableTokenHolder;
 
 describe('Token', function(){
     before("Initialize TokenCrowdSale", async function(){
-        token = await Token.new({from: owner});
+        token = await Token.new({from: comptroller});
         unpayableTokenHolder = await UnpayableTokenHolder.new();
 
         const addresses = {
-            owner: owner,
+            comptroller: comptroller,
             account1: account1,
             account2: account2,
             account3: account3,
             account4: account4,
-            nonOwner: nonOwner,
+            anybody: anybody,
             nonAccount: nonAccount,
             token: token.address,
             unpayableTokenHolder: unpayableTokenHolder.address
@@ -38,53 +38,43 @@ describe('Token', function(){
             .start();
     });
     describe("Is initialized correctly", async function(){
-        it("token.owner() is correct", function(){
+        it("token.comptroller() is correct", function(){
             return createDefaultTxTester()
-                .assertCallReturns([token, "owner"], owner)
-                .start();
-        });
-        it("token.isMinting is true", function(){
-            return createDefaultTxTester()
-                .assertCallReturns([token, "isMinting"], true)
+                .assertCallReturns([token, "comptroller"], comptroller)
                 .start();
         });
     });
     describe(".mintTokens() works", async function(){
-        it("Cannot be called by nonOwner", async function(){
+        it("Cannot be called by anybody", async function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", account1, 1000, {from: nonOwner}])
+                .doTx([token, "mintTokens", account1, 1000, {from: anybody}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it(".buyTokens() works", function(){
-            return createDefaultTxTester()
-                .doTx([token, "mintTokens", account1, 1000, {from: owner}])
-                .assertSuccess()
-                .assertCallReturns([token, "balanceOf", account1], 1000)
-                .doTx([token, "mintTokens", account2, 2000, {from: owner}])
-                .assertSuccess()
-                .assertCallReturns([token, "balanceOf", account2], 2000)
-                .doTx([token, "mintTokens", account3, 3000, {from: owner}])
-                .assertSuccess()
-                .assertCallReturns([token, "balanceOf", account3], 3000)
-                .start();
+        it("Can be called by comptroller", async function(){
+            await assertCanMint(account1, 1000);
+            await assertCanMint(account2, 2000);
+            await assertCanMint(account3, 3000);
+            await assertCanMint(account4, 4000);
         });
     });
-    describe(".stopMinting() works", async function(){
-        it("Cannot be called by nonOwner", async function(){
+    describe(".burnTokens works", async function(){
+        it("Cannot be called by anybody", async function(){
             return createDefaultTxTester()
-                .doTx([token, "stopMinting", {from: nonOwner}])
+                .doTx([token, "burnTokens", account4, 4000, {from: anybody}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Works", function(){
+        it("Cannot burn more tokens than account has", async function(){
             return createDefaultTxTester()
-                .doTx([token, "stopMinting", {from: owner}])
-                .assertSuccess()
-                .assertCallReturns([token, "isMinting"], false)
+                .doTx([token, "burnTokens", account4, 4001, {from: comptroller}])
+                .assertInvalidOpCode()
                 .start();
         });
-    })
+        it("Can burn correctly", async function(){
+            await assertCanBurn(account4, 4000);
+        })
+    });
     describe("Dividends work", async function(){
         itCanReceiveDeposit(6e12);
         itCanGetCollectableDividends();
@@ -110,111 +100,39 @@ describe('Token', function(){
         itCanReceiveDeposit(6e15);
         itCanGetCollectableDividends();
     });
-    describe("Dividends fail gracefully if tokenHolder cannot get paid.", async function(){
+    describe(".collectDividends() when account is unpayable", async function(){
         it("Transfer from account4 to unpayableTokenHolder", function(){
             return assertCanTransfer(account4, unpayableTokenHolder.address);
         });
         itCanReceiveDeposit(6e16);
-        it(".collectDividends() fails gracefully", async function(){
+        it(".collectDividends() throws if cannot send", async function(){
             const unpayableAddress = unpayableTokenHolder.address;
             const amount = await token.getCollectableDividends(unpayableAddress);
             assert(amount.gt(0), `${amount} should be > 0`);
             return createDefaultTxTester()
                 .assertCallReturns([token, "getCollectableDividends", unpayableAddress], amount)
-                .startLedger([token, unpayableAddress])
-                .startWatching([token])
                 .doTx([unpayableTokenHolder, "collectDividends", token.address])
-                .assertSuccess()
-                .stopLedger()
-                    .assertNoDelta(token)
-                    .assertNoDelta(unpayableAddress)
-                .stopWatching()
-                    .assertOnlyEvent(token, "CollectDividendsFailure", {account: unpayableAddress})
-                .assertCallReturns([token, "getCollectableDividends", unpayableAddress], amount)
+                    .assertInvalidOpCode()
                 .start();
         })
     });
-    describe("Voting works", function(){
-        var expectedTotalVotes = new BigNumber(0);
-        it("account1 can cast some votes", function(){
-            return createDefaultTxTester()
-                .doTx([token, "castVotes", 100, {from: account1}])
-                .assertSuccess()
-                .assertOnlyLog("VotesCast", {
-                    sender: account1,
-                    amount: 100,
-                    oldTotalVotes: 0,
-                    newTotalVotes: 100
-                })
-                .assertCallReturns([token, "numVotes", account1], 100)
-                .assertCallReturns([token, "totalVotes"], 100)
-                .start();
+    describe("More dividends while minting and burning", async function(){
+        itCanReceiveDeposit(6e16);
+        it("Mint tokens for account3", function(){
+            return assertCanMint(account3, 5000);
         });
-        it("account1 can cast 0 votes", function(){
-            return createDefaultTxTester()
-                .doTx([token, "castVotes", 0, {from: account1}])
-                .assertSuccess()
-                .assertOnlyLog("VotesCast", {
-                    sender: account1,
-                    amount: 0,
-                    oldTotalVotes: 100,
-                    newTotalVotes: 0
-                })
-                .assertCallReturns([token, "numVotes", account1], 0)
-                .assertCallReturns([token, "totalVotes"], 0)
-                .start();
-        });
-        it("account1 can change their votes to all", async function(){
-            const balance = await token.balanceOf(account1);
-            expectedTotalVotes = expectedTotalVotes.plus(balance);
-            return createDefaultTxTester()
-                .doTx([token, "castVotes", 1e50, {from: account1}])
-                .assertSuccess()
-                .assertOnlyLog("VotesCast", {
-                    sender: account1,
-                    amount: expectedTotalVotes,
-                    oldTotalVotes: 0,
-                    newTotalVotes: expectedTotalVotes
-                })
-                .assertCallReturns([token, "numVotes", account1], balance)
-                .assertCallReturns([token, "totalVotes"], expectedTotalVotes)
-                .start();
-        });
-        it("account2 can cast some votes", async function(){
-            const balance = await token.balanceOf(account1);
-            const numVotes = balance.div(2);
-            const expectedOldTotalVotes = expectedTotalVotes;
-            expectedTotalVotes = expectedTotalVotes.plus(numVotes);
-            return createDefaultTxTester()
-                .doTx([token, "castVotes", numVotes, {from: account2}])
-                .assertSuccess()
-                .assertOnlyLog("VotesCast", {
-                    sender: account2,
-                    amount: numVotes,
-                    oldTotalVotes: expectedOldTotalVotes,
-                    newTotalVotes: expectedTotalVotes
-                })
-                .assertCallReturns([token, "numVotes", account2], numVotes)
-                .assertCallReturns([token, "totalVotes"], expectedTotalVotes)
-                .start();
-        });
-        // If account1 sends, and is left with less balance than votes
-        // then its votes should be reduced to match its new balance.
-        it("Transferring from account1 to account2 reduces votes.", async function(){
-            const balance1 = await token.balanceOf(account1);
-            const numVotes1 = await token.numVotes(account1);
-            const numVotes2 = await token.numVotes(account2);
-            assert(balance1.equals(numVotes1), "Account1 should have all their votes cast");
-            const totalVotes = await token.totalVotes();
-            const toTransfer = balance1.div(2);
-
-            await assertCanTransfer(account1, account2, toTransfer);
-            return createDefaultTxTester()
-                .assertCallReturns([token, "numVotes", account1], numVotes1.minus(toTransfer))
-                .assertCallReturns([token, "numVotes", account2], numVotes2)
-                .assertCallReturns([token, "totalVotes"], totalVotes.minus(toTransfer))
-                .start();
-        });
+        itCanReceiveDeposit(1e16);
+        itCanCollectDividend(0);
+        itCanCollectDividend(1);
+        itCanCollectDividend(2);
+        it("Burn tokens for account1", function(){
+            return assertCanBurn(account1, 500);
+        })
+        itCanReceiveDeposit(6e16);
+        itCanCollectDividend(0);
+        itCanCollectDividend(1);
+        itCanCollectDividend(2);
+        itCanCollectDividend(3);
     });
 
 
@@ -229,14 +147,12 @@ describe('Token', function(){
         async function expectDividends(amt) {
             const totalSupply = await token.totalSupply();
             expectedTotalDividends = expectedTotalDividends.plus(amt);
-            await Promise.all(
-                trackedAccounts.map((acc, i) => {
-                    return token.balanceOf(trackedAccounts[i]).then((numTokens)=>{
-                        expectedDividends[i] = expectedDividends[i]
-                            .plus(numTokens.mul(amt).div(totalSupply));
-                    });
-                })
-            );
+            await Promise.all(trackedAccounts.map((acc, i) => {
+                return token.balanceOf(trackedAccounts[i]).then((numTokens)=>{
+                    expectedDividends[i] = expectedDividends[i]
+                        .plus(numTokens.mul(amt).div(totalSupply));
+                });
+            }));
         }
 
         it(`Can receive deposit of ${amt.div(1e18)} ETH`, async function(){
@@ -254,7 +170,8 @@ describe('Token', function(){
         it(".getCollectableDividends() works", async function(){
             const tester = createDefaultTxTester();
             trackedAccounts.forEach((acc, i)=>{
-                tester.assertCallReturns([token, "getCollectableDividends", acc], expectedDividends[i]);
+                const expected = expectedDividends[i].floor();
+                tester.assertCallReturns([token, "getCollectableDividends", acc], expected);
             })
             return tester.start();
         });
@@ -263,16 +180,17 @@ describe('Token', function(){
     async function itCanCollectDividend(accountNum) {
         it(`account${accountNum+1} collects correct amount.`, function(){
             const account = trackedAccounts[accountNum];
+            const expected = expectedDividends[accountNum].floor();
             return createDefaultTxTester()
                 .startLedger([account])
                 .doTx([token, "collectDividends", {from: account}])
                 .assertSuccess()
                 .stopLedger()
-                    .assertLog("CollectDividendsSuccess", {
+                    .assertLog("CollectedDividends", {
                         account: account,
-                        amount: expectedDividends[accountNum]
+                        amount: expected
                     })
-                    .assertDeltaMinusTxFee(account, expectedDividends[accountNum])
+                    .assertDeltaMinusTxFee(account, expected)
                 .doFn(() => expectedDividends[accountNum] = new BigNumber(0))
                 .start();         
         })
@@ -300,6 +218,35 @@ describe('Token', function(){
         return createDefaultTxTester()
             .doTx([token, "transfer", to, amt, {from: from}])
             .assertInvalidOpCode()
+            .start();
+    }
+
+    async function assertCanMint(acct, amount) {
+        const expectedBal = (await token.balanceOf(acct)).plus(amount);
+        const expectedTotal = (await token.totalSupply()).plus(amount);
+        return createDefaultTxTester()
+            .doTx([token, "mintTokens", acct, amount, {from: comptroller}])
+            .assertSuccess()
+            .assertOnlyLog("TokensMinted", {
+                account: acct,
+                amount: amount,
+                newTotalSupply: expectedTotal
+            })
+            .assertCallReturns([token, "balanceOf", acct], expectedBal)
+            .start();
+    }
+    async function assertCanBurn(acct, amount) {
+        const expectedBal = (await token.balanceOf(acct)).minus(amount);
+        const expectedTotal = (await token.totalSupply()).minus(amount);
+        return createDefaultTxTester()
+            .doTx([token, "burnTokens", acct, amount, {from: comptroller}])
+            .assertSuccess()
+            .assertOnlyLog("TokensBurnt", {
+                account: acct,
+                amount: amount,
+                newTotalSupply: expectedTotal
+            })
+            .assertCallReturns([token, "balanceOf", acct], expectedBal)
             .start();
     }
 });
