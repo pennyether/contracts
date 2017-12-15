@@ -162,7 +162,6 @@ function createPlugins(testUtil, ledger) {
 			const ctx = this;
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
-			const util = require("util");
 			console.log(`Printing results of ${ctx.txName}...`);
 			console.log("txRes:", util.inspect(ctx.txRes, false, null))
 			console.log("txErr:", ctx.txErr);
@@ -173,7 +172,6 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txRes) {
-				const util = require("util");
 				console.log("printing tx logs...");
 				console.log(util.inspect(ctx.txRes.logs, false, null))
 			} else {
@@ -418,19 +416,45 @@ function createPlugins(testUtil, ledger) {
 						throw new Error("Expected an array, but did not get one.");
 					expected.forEach((e, i) => {
 						if (e === null || e === undefined) return;
-						if (e.hasOwnProperty("not")){ assert.strNotEqual(result[i], e.not, msg); }
-						else { assert.strEqual(result[i], e, msg); }
+						assertValues(result[i], e, msg);
 					});
 					console.log(`✓ ${msg}`);
 				} catch (e) {
 					throw new Error(`${msg}, but got back '${resultStr}'`);
 				}
 			} else {
-				if (expected.hasOwnProperty("not"))
-					assert.strNotEqual(result, expected, msg);
-				else
-					assert.strEqual(result, expected, msg);
+				assertValues(result, expected, msg);
 				console.log(`✓ ${msg}`);
+			}
+
+			function assertValues(val, expected, msg) {
+				const asserters = {
+					within1: function(v, e, msg) {
+						const BigNumber = require("bignumber.js");
+						try { v = new BigNumber(v); }
+						catch (err){ throw new Error(`${msg} - not a valid number: ${v}`); }
+						try { v = new BigNumber(e); }
+						catch (err){ throw new Error(`${msg} - not a valid number: ${e}`); }
+						msg = `${msg} - expected ${v.toString()} but got ${e.toString()}.`;
+						assert(v.minus(e).abs().toNumber() <= 1, msg);
+					},
+					not: function(v, e, msg) {
+						assert.strNotEqual(v, e, msg);
+					}
+				};
+				if (expected===Object(expected) && expected.constructor.name!=="BigNumber") {
+					const keys = Object.keys(expected);
+					if (keys.length!==1)
+						throw new Error(`Error with ${msg}: Asserter should only have one key: ${str(expected)}`);
+					const key = keys[0]
+					const asserter = asserters[key];
+					if (!asserter)
+						throw new Error(`Error with ${msg}: Invalid customer asserter: ${str(expected)}`);
+					asserter(val, expected[key], msg);
+				} else {
+					assert.strEqual(val, expected, msg);
+				}
+
 			}
 		},
 		assertCallThrows: async function(callParams) {

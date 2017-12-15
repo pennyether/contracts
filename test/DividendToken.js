@@ -1,4 +1,4 @@
-const Token = artifacts.require("Token");
+const Token = artifacts.require("DividendToken");
 const UnpayableTokenHolder = artifacts.require("UnpayableTokenHolder");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")

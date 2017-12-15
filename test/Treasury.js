@@ -10,14 +10,14 @@ describe('Treasury', function(){
     const accounts = web3.eth.accounts;
     const dummyMainController = accounts[1];
     const dummyToken = accounts[2];
-    const admin = accounts[3];
-    const nonAdmin = accounts[4];
-    const nonMainController = accounts[5];
+    const dummyComptroller = accounts[3];
+    const admin = accounts[4];
+    const anyone = accounts[5];
+    const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var registry;
     var treasury;
 
     const DAILY_LIMIT = new BigNumber(1000000);
-    const BANKROLL = new BigNumber(100000000);
 
     before("Set up registry and treasury", async function(){
         registry = await Registry.new();
@@ -30,25 +30,27 @@ describe('Treasury', function(){
             treasury: treasury.address,
             dummyToken: dummyToken,
             dummyMainController: dummyMainController,
+            dummyComptroller: dummyComptroller,
             admin: admin,
-            nonAdmin: nonAdmin,
-            nonMainController: nonMainController
+            anyone: anyone,
+            NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester()
             .nameAddresses(addresses)
             .start();
     });
-
     describe("Initially", function(){
         it("Should have correct mainController and admin", function(){
             return createDefaultTxTester()
                 .assertBalance(treasury, 0)
                 .assertCallReturns([treasury, "getMainController"], dummyMainController)
                 .assertCallReturns([treasury, "getAdmin"], admin)
+                .assertCallReturns([treasury, "token"], NO_ADDRESS)
+                .assertCallReturns([treasury, "comptroller"], NO_ADDRESS)
                 .start();
-        })
+        });
         itCannotFund(1, "Cannot fund.");
-        itCannotDistribute("No funds to distribute.");
+        itCannotDistribute("No profit to distribute.");
     });
     describe("Gets deposit", function(){
         itCanReceiveDeposit(10000);
@@ -56,9 +58,9 @@ describe('Treasury', function(){
         itCannotDistribute("No address to distribute to.");
     });
     describe(".setDistributeReward()", function(){
-        it("Not callable from nonAdmin", function(){
+        it("Not callable from anyone", function(){
             return createDefaultTxTester()
-                .doTx([treasury, "setDistributeReward", 100, {from: nonAdmin}])
+                .doTx([treasury, "setDistributeReward", 100, {from: anyone}])
                 .assertInvalidOpCode()
                 .start();
         });
@@ -83,9 +85,9 @@ describe('Treasury', function(){
     })
     describe("dailyFundLimit", function(){
         describe(".setDailyFundLimit() initialization", function(){
-            it("Not callable by nonAdmin", function(){
+            it("Not callable by anyone", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: nonAdmin}])
+                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: anyone}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -131,9 +133,9 @@ describe('Treasury', function(){
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Not callable by nonAdmin", function(){
+            it("Not callable by anyone", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: nonAdmin}])
+                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: anyone}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -194,17 +196,39 @@ describe('Treasury', function(){
             });
             itCannotFund(1, "Cannot fund.");
         });
-        describe("Setting token and bankroll", function(){
-            describe(".setToken()", function(){
-                it("Cannot be set from nonAdmin", function(){
+        describe(".initializing", function(){
+            describe(".initComptroller()", function(){
+                it("Cannot be set by anyone", async function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "setToken", dummyToken, {from: nonAdmin}])
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: anyone}])
+                        .assertInvalidOpCode()
+                        .start();
+                })
+                it("Works", function(){
+                    return createDefaultTxTester()
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                        .assertSuccess()
+                        .assertOnlyLog("ComptrollerSet")
+                        .assertCallReturns([treasury, "comptroller"], dummyComptroller)
+                        .start();
+                });
+                it("Cannot be set again", function(){
+                    return createDefaultTxTester()
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                        .assertInvalidOpCode()
+                        .start();
+                });
+            })
+            describe(".initToken()", function(){
+                it("Cannot be set from anyone", function(){
+                    return createDefaultTxTester()
+                        .doTx([treasury, "initToken", dummyToken, {from: anyone}])
                         .assertInvalidOpCode()
                         .start();
                 });
                 it("Can be set by admin", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "setToken", dummyToken, {from: admin}])
+                        .doTx([treasury, "initToken", dummyToken, {from: admin}])
                         .assertSuccess()
                             .assertOnlyLog("TokenSet", {token: dummyToken})
                         .assertCallReturns([treasury, "token"], dummyToken)
@@ -212,99 +236,127 @@ describe('Treasury', function(){
                 });
                 it("Cannot be set again", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "setToken", dummyToken, {from: admin}])
+                        .doTx([treasury, "initToken", dummyToken, {from: admin}])
                         .assertInvalidOpCode()
                         .start();
                 });
             });
-            describe(".setBankroll()", function(){
-                it("Cannot be set from nonAdmin", function(){
-                    return createDefaultTxTester()
-                        .doTx([treasury, "setBankroll", {from: nonAdmin, value: BANKROLL}])
-                        .assertInvalidOpCode()
-                        .start();
-                });
-                it("Cannot be set from admin", function(){
-                   return createDefaultTxTester()
-                        .doTx([treasury, "setBankroll", {from: admin, value: BANKROLL}])
-                        .assertInvalidOpCode()
-                        .start(); 
-                });
-                it("Can be set by token", function(){
-                    return createDefaultTxTester()
-                        .doTx([treasury, "setBankroll", {from: dummyToken, value: BANKROLL}])
-                        .assertSuccess()
-                            .assertOnlyLog("BankrollSet", {
-                                sender: dummyToken,
-                                amount: BANKROLL
-                            })
-                        .assertCallReturns([treasury, "bankroll"], BANKROLL)
-                        .start();
-                });
-                it("Cannot be set again", function(){
-                    return createDefaultTxTester()
-                        .doTx([treasury, "setBankroll", {from: dummyToken, value: BANKROLL}])
-                        .assertInvalidOpCode()
-                        .start();
-                });
-            })
         });
-        describe(".distributeToToken()", function(){
-            before("Has money to distribute", async function(){
+        describe(".addToBankroll()", function(){
+            const BANKROLL_ADD = new BigNumber(1000000);
+            before("has no bankroll", function(){
                 return createDefaultTxTester()
-                    .assertCallReturns([treasury, "getAmountToDistribute"], {not: 0})
+                    .assertCallReturns([treasury, "bankroll"], 0)
                     .start();
-            })
-            itCanDistribute();
-            itCannotDistribute("No funds to distribute.");
-        });
-        describe(".dissolve()", function(){
-            it("Cannot be called from nonAdmin", function(){
+            });
+            it("cannot be called from admin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "dissolve", {from: nonAdmin}])
+                    .doTx([treasury, "removeFromBankroll", {from: admin, value: BANKROLL_ADD}])
                     .assertInvalidOpCode()
+                    .start(); 
+            });
+            it("Works correctly (from comptroller)", function(){
+                const expectedDist = testUtil.getBalance(treasury);
+                return createDefaultTxTester()
+                    .doTx([treasury, "addToBankroll", {from: dummyComptroller, value: BANKROLL_ADD}])
+                    .assertSuccess()
+                        .assertOnlyLog("BankrollChanged", {
+                            oldValue: 0,
+                            newValue: BANKROLL_ADD
+                        })
+                    .assertCallReturns([treasury, "bankroll"], BANKROLL_ADD)
+                    .assertCallReturns([treasury, "getAmountToDistribute"], expectedDist)
+                    .start();
+            });
+        })
+        describe(".removeFromBankroll()", function(){
+            const BANKROLL_REMOVE = new BigNumber(400000);
+            before("has a bankroll already", function(){
+                return createDefaultTxTester()
+                    .assertCallReturns([treasury, "bankroll"], {not: 0})
                     .start();
             })
             it("Cannot be called from admin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "dissolve", {from: admin}])
+                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, {from: admin}])
+                    .assertInvalidOpCode()
+                    .start(); 
+            })
+            it("Works correctly (from comptroller)", async function(){
+                const balance = testUtil.getBalance(treasury);
+                const prevBankroll = await treasury.bankroll();
+                assert(balance.gt(BANKROLL_REMOVE));
+                return createDefaultTxTester()
+                    .startLedger([treasury, dummyComptroller])
+                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, {from: dummyComptroller}])
+                    .assertSuccess()
+                        .assertOnlyLog("BankrollChanged", {
+                            oldValue: prevBankroll,
+                            newValue: prevBankroll.minus(BANKROLL_REMOVE)
+                        })
+                    .stopLedger()
+                        .assertDelta(treasury, BANKROLL_REMOVE.mul(-1))
+                        .assertDeltaMinusTxFee(dummyComptroller, BANKROLL_REMOVE)
+                    .start();
+            });
+            it("Cannot remove more bankroll than exists", async function(){
+                const br = await treasury.bankroll();
+                return createDefaultTxTester()
+                    .doTx([treasury, "removeFromBankroll", br.plus(1), {from: dummyComptroller}])
                     .assertInvalidOpCode()
                     .start();
-            })
-            it("Can be called by token", function(){
+            });
+        });
+        describe(".removeFromBankroll can drain entire balance", async function(){
+            before("Distribute, then fund a little so balance < bankroll", function(){
+                itCanDistribute();
+                it("Fast forwards...", function(){
+                    return testUtil.fastForward(24*60*60);
+                });
+                itCanFund(DAILY_LIMIT.div(2));
+            });
+            it("drains entire balance if not enough funds", async function(){
                 const balance = testUtil.getBalance(treasury);
+                const br = await treasury.bankroll();
+                assert(br.gt(balance));
+                const expectedBr = br.minus(balance);
                 return createDefaultTxTester()
-                    .startLedger([dummyToken, treasury])
-                    .doTx([treasury, "dissolve", {from: dummyToken}])
+                    .startLedger([treasury, dummyComptroller])
+                    .doTx([treasury, "removeFromBankroll", br, {from: dummyComptroller}])
                     .assertSuccess()
-                        .assertLog("Dissolved", {sender: dummyToken})
+                        .assertOnlyLog("BankrollChanged", {
+                            oldValue: br,
+                            newValue: expectedBr
+                        })
                     .stopLedger()
-                        .assertDeltaMinusTxFee(dummyToken, balance)
                         .assertDelta(treasury, balance.mul(-1))
-                        .assertBalance(treasury, 0)
-                    .assertCallReturns([treasury, "bankroll"], 0)
-                    .assertCallReturns([treasury, "isDissolved"], true)
+                        .assertDeltaMinusTxFee(dummyComptroller, balance)
+                    .assertBalance(treasury, 0)
+                    .assertCallReturns([treasury, "bankroll"], expectedBr)
+                    .assertCallReturns([treasury, "getAmountToDistribute"], 0)
                     .start();
             })
-            itCanReceiveDeposit(1000000);
-            itCannotFund(100, "Cannot fund.");
-            itCanDistribute();
         })
+        describe(".distributeToToken()", function(){
+            itCanReceiveDeposit(123456789);
+            itCanDistribute();
+            itCannotDistribute("No profit to distribute.");
+        });
     });
 
     function itCanReceiveDeposit(amount){
         amount = new BigNumber(amount);
         it(`Can receive ${amount}`, async function(){
-            const expectedAmtIn = (await treasury.amtIn()).plus(amount);
+            const expectedRevenue = (await treasury.totalRevenue()).plus(amount);
             return createDefaultTxTester()
-                .startLedger([treasury, nonAdmin])
-                .doTx([treasury, "sendTransaction", {value: amount, from: nonAdmin}])
+                .startLedger([treasury, anyone])
+                .doTx([treasury, "sendTransaction", {value: amount, from: anyone}])
                 .assertSuccess()
-                    .assertOnlyLog("DepositReceived", {time: null, sender: nonAdmin, amount: amount})
+                    .assertOnlyLog("RevenueReceived", {time: null, sender: anyone, amount: amount})
                 .stopLedger()
-                    .assertDeltaMinusTxFee(nonAdmin, amount.mul(-1))
+                    .assertDeltaMinusTxFee(anyone, amount.mul(-1))
                     .assertDelta(treasury, amount)
-                .assertCallReturns([treasury, "amtIn"], expectedAmtIn)
+                .assertCallReturns([treasury, "totalRevenue"], expectedRevenue)
                 .start();
         })
     }
@@ -312,11 +364,9 @@ describe('Treasury', function(){
         amount = new BigNumber(amount);
         it(`Can fund ${amount}`, async function(){
             const NOTE = "Test reason.";
-            const expectedAmtOut = (await treasury.amtOut()).plus(amount);
+            const expectedFunded = (await treasury.totalFunded()).plus(amount);
             return createDefaultTxTester()
                 .assertCallReturns([treasury, "canFund", amount], true)
-                .doTx([treasury, "refund", NOTE, {from: nonMainController, value: amount}])
-                .assertInvalidOpCode()
                 .startLedger([treasury, dummyMainController])
                 .doTx([treasury, "fundMainController", amount, NOTE, {from: dummyMainController}])
                 .assertSuccess()
@@ -329,7 +379,7 @@ describe('Treasury', function(){
                 .stopLedger()
                     .assertDeltaMinusTxFee(dummyMainController, amount)
                     .assertDelta(treasury, amount.mul(-1))
-                .assertCallReturns([treasury, "amtOut"], expectedAmtOut)
+                .assertCallReturns([treasury, "totalFunded"], expectedFunded)
                 .start();
         });    
     }
@@ -337,7 +387,7 @@ describe('Treasury', function(){
         amount = new BigNumber(amount);
         it(`Cannot fund ${amount} (${reason})`, async function(){
             const NOTE = "Test reason.";
-            const expectedAmtOut = await treasury.amtOut();
+            const expectedFunded = await treasury.totalFunded();
             const expectedAmtFundedToday = await treasury.amtFundedToday();
             return createDefaultTxTester()
                 .assertCallReturns([treasury, "canFund", amount], false)
@@ -348,7 +398,7 @@ describe('Treasury', function(){
                 .stopLedger()
                     .assertNoDelta(treasury)
                     .assertLostTxFee(dummyMainController)
-                .assertCallReturns([treasury, "amtOut"], expectedAmtOut)
+                .assertCallReturns([treasury, "totalFunded"], expectedFunded)
                 .assertCallReturns([treasury, "amtFundedToday"], expectedAmtFundedToday)
                 .start();
         })
@@ -357,11 +407,10 @@ describe('Treasury', function(){
         amount = new BigNumber(amount);
         it(`MainController can refund ${amount}`, async function(){
             const NOTE = "Bla bla bla.";
-            const expectedAmtIn = (await treasury.amtIn()).plus(amount);
             const expectedAmtFundedToday = (await treasury.amtFundedToday()).minus(amount);
             return createDefaultTxTester()
                 .startLedger([treasury, dummyMainController])
-                .doTx([treasury, "refund", NOTE, {from: dummyMainController, value: amount}])
+                .doTx([treasury, "acceptRefund", NOTE, {from: dummyMainController, value: amount}])
                 .assertSuccess()
                     .assertOnlyLog("RefundReceived", {
                         note: NOTE,
@@ -371,7 +420,6 @@ describe('Treasury', function(){
                 .stopLedger()
                     .assertDelta(treasury, amount)
                     .assertDeltaMinusTxFee(dummyMainController, amount.mul(-1))
-                .assertCallReturns([treasury, "amtIn"], expectedAmtIn)
                 .assertCallReturns([treasury, "amtFundedToday"], expectedAmtFundedToday)
                 .start();
         });
@@ -381,12 +429,11 @@ describe('Treasury', function(){
             const surplus = testUtil.getBalance(treasury).minus(await treasury.bankroll());
             const expectedReward = surplus.div(await treasury.distributeRewardDenom()).floor();
             const expectedToDistribute = surplus.minus(expectedReward);
-            const prevAmtOut = await treasury.amtOut();
-            const prevAmtDistributed = await treasury.amtDistributed()
+            const prevTotalDistributed = await treasury.totalDistributed()
             return createDefaultTxTester()
                 .assertCallReturns([treasury, "getAmountToDistribute"], surplus)
-                .startLedger([nonAdmin, treasury, dummyToken])
-                .doTx([treasury, "distributeToToken", {from: nonAdmin}])
+                .startLedger([anyone, treasury, dummyToken])
+                .doTx([treasury, "distributeToToken", {from: anyone}])
                 .assertSuccess()
                     .assertLogCount(2)
                     .assertLog("DistributeSuccess", {
@@ -394,37 +441,33 @@ describe('Treasury', function(){
                         amount: expectedToDistribute
                     })
                     .assertLog("RewardPaid", {
-                        recipient: nonAdmin,
+                        recipient: anyone,
                         note: "Called .distrubuteToToken()",
                         amount: expectedReward
                     })
                 .stopLedger()
                     .assertDelta(dummyToken, expectedToDistribute)
                     .assertDelta(treasury, surplus.mul(-1))
-                    .assertDeltaMinusTxFee(nonAdmin, expectedReward)
-                .assertCallReturns([treasury, "amtDistributed"],
-                    prevAmtDistributed.plus(expectedToDistribute))
-                .assertCallReturns([treasury, "amtOut"],
-                    prevAmtOut.plus(surplus))
+                    .assertDeltaMinusTxFee(anyone, expectedReward)
+                .assertCallReturns([treasury, "totalDistributed"],
+                    prevTotalDistributed.plus(expectedToDistribute))
                 .start()
         });
     }
     async function itCannotDistribute(msg) {
         it(`Cannot distribute (${msg})`, async function(){
-            const expectedAmtOut = await treasury.amtOut();
-            const expectedAmtDistributed = await treasury.amtDistributed()
+            const expectedTotalDistributed = await treasury.totalDistributed()
             return createDefaultTxTester()
                 .assertCallReturns([treasury, "getAmountToDistribute"], 0)
                 .assertCallReturns([treasury, "getDistributeReward"], 0)
-                .startLedger([treasury, nonAdmin])
-                .doTx([treasury, "distributeToToken", {from: nonAdmin}])
+                .startLedger([treasury, anyone])
+                .doTx([treasury, "distributeToToken", {from: anyone}])
                 .assertSuccess()
-                    .assertOnlyLog("Error", {msg: msg})
+                    .assertOnlyLog("DistributeError", {msg: msg})
                 .stopLedger()
                     .assertNoDelta(treasury)
-                    .assertLostTxFee(nonAdmin)
-                .assertCallReturns([treasury, "amtOut"], expectedAmtOut)
-                .assertCallReturns([treasury, "amtDistributed"], expectedAmtDistributed)
+                    .assertLostTxFee(anyone)
+                .assertCallReturns([treasury, "totalDistributed"], expectedTotalDistributed)
                 .start();
         });
     }

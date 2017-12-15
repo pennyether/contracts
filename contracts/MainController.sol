@@ -54,6 +54,7 @@ contract MainController is
 	)
 		fromAdmin
 	{
+		require(_paFeeCollectRewardDenom >= 100);
 		paStartReward = _paStartReward;
 		paEndReward = _paEndReward;
 		paFeeCollectRewardDenom = _paFeeCollectRewardDenom;
@@ -85,7 +86,7 @@ contract MainController is
 		if (!_success) {
 			// this only happens if a definedAuction is invalid.
 			// refund the treasury, and dont pay a reward
-			_t.refund.value(_initialPrize + _reward)("PennyAuctionController.startDefinedAuction() failed.");
+			_t.acceptRefund.value(_initialPrize + _reward)("PennyAuctionController.startDefinedAuction() failed.");
 			Error(now, "PennyAuctionController.startDefinedAuction() failed.");
 			return;
 		}
@@ -95,7 +96,7 @@ contract MainController is
 		if (msg.sender.call.value(_reward)()){
 			RewardPaid(now, msg.sender, "Called .startPennyAuction()", _reward);
 		} else {
-			_t.refund.value(_reward)("Could not pay reward for .startPennyAuction()");
+			_t.acceptRefund.value(_reward)("Could not pay reward for .startPennyAuction()");
 			RewardNotPaid(now, msg.sender, "Started a PennyAuction", _reward);
 		}
 		return;
@@ -125,10 +126,11 @@ contract MainController is
 		}
 
 		// try to send reward, refund treasury on failure
+		// We could fail entirely, but that would eat all of their gas.
 		if (msg.sender.call.value(_reward)()){
 			RewardPaid(now, msg.sender, "Called .refreshPennyAuctions()", _reward);
 		} else {
-			_t.refund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
+			_t.acceptRefund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
 			RewardNotPaid(now, msg.sender, ".refreshPennyAuctions() couldnt send reward.", _reward);
 		}
 		return;

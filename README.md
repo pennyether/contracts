@@ -4,16 +4,34 @@ PennyEth.
 
 General architecture:
 
+COMPTROLLER / DIVIDENDTOKEN / LOCKER
+
+For security, are unaware of the registry.
+Comptroller:
+	- Does nothing until treasury is set (once) by owner.
+	- Mints/Burns tokens, keeps PennyEther ownership at 20%
+Token:
+	- Token that splits up deposits to token holders
+
+
 REGISTRY
 
 A contract that holds all entries to important addresses. This is set-up on deploy.
 If a contract is ever redeployed, the address should be updated here.
 Only the owner can change entries.
 
+Holds:
+	- Owner
+	- Admin
+	- Treasury
+	- MainController
+	- GameControllers
+	- PennyAuctionFactory
+
 TREASURY
 
 Holds all the funds, all the time.  All fees get collected here.  Only pays
-out to MainController and Token.
+out to MainController and Token (if set).
 
 MAIN CONTROLLER
 

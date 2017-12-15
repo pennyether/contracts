@@ -1,4 +1,4 @@
-var path = require('path');
+var util = require('util');
 
 function createUtil(web3, assert){
 	// add .strEqual to assert.
@@ -23,7 +23,7 @@ function createUtil(web3, assert){
 				await _self.expectLogCount(logs, 1);
 				await _self.expectLog(logs, eventName, args, address);
 			} catch (e) {
-				console.log(`Showing logs 3:`, logs);
+				console.log(`Showing logs 3:`, util.inspect(logs, false, null));
 				throw e;
 			}
 		},
@@ -56,7 +56,7 @@ function createUtil(web3, assert){
 					throw new Error(`Found '${eventName}' events, but none with matching args.`)
 				}
 			} catch (e) {
-				console.log(`Showing logs 1:`, logs)
+				console.log(`Showing logs 1:`, util.inspect(logs, false, null))
 				throw e;
 			}
 		},
@@ -66,7 +66,7 @@ function createUtil(web3, assert){
 				msg = msg || `expected exactly ${num} logs`;
 				assert.equal(num, logs.length, msg);
 			} catch (e) {
-				console.log("Showing logs 2:", logs);
+				console.log("Showing logs 2:", util.inspect(logs, false, null));
 				throw e;
 			}
 		},
