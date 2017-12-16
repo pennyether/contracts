@@ -196,7 +196,7 @@ describe('Treasury', function(){
             });
             itCannotFund(1, "Cannot fund.");
         });
-        describe(".initializing", function(){
+        describe("Setting Comptroller and Token", function(){
             describe(".initComptroller()", function(){
                 it("Cannot be set by anyone", async function(){
                     return createDefaultTxTester()

@@ -1,5 +1,6 @@
 const util = require("util");
 const colors = require("colors/safe");
+const BigNumber = require("bignumber.js");
 
 function createPlugins(testUtil, ledger) {
 	if (!testUtil)
@@ -94,7 +95,7 @@ function createPlugins(testUtil, ledger) {
 			const ctx = this;
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.")
 			if (!ctx.txErr) {
-				console.log("Result:", ctx.txRes);
+				console.log("Result:", util.inspect(ctx.txRes, false, null));
 				throw new Error(`Expected ${ctx.txName} to fail, but got result above.`);
 			}
 
@@ -430,7 +431,6 @@ function createPlugins(testUtil, ledger) {
 			function assertValues(val, expected, msg) {
 				const asserters = {
 					within1: function(v, e, msg) {
-						const BigNumber = require("bignumber.js");
 						try { v = new BigNumber(v); }
 						catch (err){ throw new Error(`${msg} - not a valid number: ${v}`); }
 						try { v = new BigNumber(e); }
@@ -617,6 +617,7 @@ function str(val, hideBrackets) {
 	}
 }
 function wei(val) {
+	val = new BigNumber(val);
 	if (val.abs().gt(1e15)) {
 		return val.div(1e18).toString() + " ETH";
 	}

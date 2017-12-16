@@ -3,11 +3,19 @@ var util = require('util');
 function createUtil(web3, assert){
 	// add .strEqual to assert.
 	assert.strEqual = function(val1, val2, msg){
+		if (val1 === undefined && val2 !== val1)
+			throw new Error(`${msg}: value1 was undefined.`);
+		if (val2 === undefined && val2 !== val1)
+			throw new Error(`${msg}: value2 was undefined.`);
 	    const val1str = val1.toString();
 	    const val2str = val2.toString();
 	    assert.equal(val1str, val2str, msg);
 	}
 	assert.strNotEqual = function(val1, val2, msg){
+		if (val1 === undefined && val2 !== val1)
+			throw new Error(`${msg}: value1 was undefined.`);
+		if (val2 === undefined && val2 !== val1)
+			throw new Error(`${msg}: value2 was undefined.`);
 		const val1str = val1.toString();
 	    const val2str = val2.toString();
 	    assert.notEqual(val1str, val2str, msg);
@@ -53,7 +61,8 @@ function createUtil(web3, assert){
 							return;
 						} catch (e) {}
 					}
-					throw new Error(`Found '${eventName}' events, but none with matching args.`)
+					const argsStr = util.inspect(args, false, null);
+					throw new Error(`Found '${eventName}' events, but none with matching args: ${argsStr}`);
 				}
 			} catch (e) {
 				console.log(`Showing logs 1:`, util.inspect(logs, false, null))
