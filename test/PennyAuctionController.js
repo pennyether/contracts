@@ -347,7 +347,8 @@ describe('PennyAuctionController', function(){
                     })
                 .doFn((ctx) => {
                     auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-                    return createDefaultTxTester().nameAddresses({auction0: auction}, false).start();
+                    return createDefaultTxTester()
+                        .nameAddresses({auction0: auction.address}, false).start();
                 })
                     .assertCallReturns([pac, "getAuction", 0], ()=>auction.address)
                     .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_0)
