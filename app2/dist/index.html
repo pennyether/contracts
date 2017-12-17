@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./javascripts/lib/Loader.js"></script>
+		<script src="./index.js"></script>
+		<script>
+		Loader.promise.then(function(){
+			$("#newAuction").click(function(){
+				var account = web3.eth.accounts[0];
+				Registry.new({}, {from: account}).then(function(res){
+					console.log("Got this back in promise:", res);
+				})
+
+				// var opts = {
+				// 	from: account,
+				// 	data: _Registry.data
+				// };
+				// console.log("Calling Registry.new with:", opts);
+				// _Registry.new(opts, function(err, res){
+				// 	console.log("result:", res);
+				// });
+
+			})
+		});
+		</script>
+	</head>
+	<body>
+		<div class="welcome">THIS IS A TEST!</div>
+		<button id="newAuction">Start New Auction</button>
+		<div id="log"></div>
+	</body>
+</html>

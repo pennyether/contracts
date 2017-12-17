@@ -151,7 +151,7 @@ contract MainController is
 	}
 
 	// Finds a definedAuction() that can be started, and returns the reward and index.
-	// If reward is > 0, you can call .startPennyAuction() to receive a reward.
+	// If reward is > 0, you can call .startPennyAuction(_index) to receive it.
 	function getStartPennyAuctionReward()
 		constant returns (uint _amount, uint _index)
 	{
