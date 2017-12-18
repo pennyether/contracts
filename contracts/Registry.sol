@@ -9,6 +9,7 @@ Only the owner can register names.
 contract Registry {
     // for each name, holds the current address
     mapping (bytes32 => address) addresses;
+    event NameRegistered(bytes32 name, address addr);
 
     modifier fromOwner(){
         require(msg.sender == addresses["OWNER"]);
@@ -25,6 +26,7 @@ contract Registry {
         fromOwner
     {
         addresses[_name] = _addr;
+        NameRegistered(_name, _addr);
     }
 
     // Retrieves the address for the name of _name.

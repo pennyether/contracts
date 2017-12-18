@@ -23,59 +23,125 @@
 		// }
 
 (function() {
-	var _web3;
-	function NiceWeb3(web3) {
-		_web3 = web3;
-		this.ContractFactory = NiceWeb3ContractFactory;
+	function NiceWeb3(web3, ethAbi) {
+		const _self = this;
+		this._knownInstances = {};
+		this.web3 = web3;
+		this.ethAbi = ethAbi;
+		this.createContractFactory = function(contractName, abi, unlinked_binary){
+			return new NiceWeb3ContractFactory(_self, contractName, abi, unlinked_binary);
+		};
+		this.addKnownInstance = function(instance, name) {
+			if (!instance.address) throw new Error(`Provided instance must have an address.`);
+			if (!name) name = `${instance.contractName}@${instance.address}`;
+			_self._knownInstances[instance.address.toLowerCase()] = instance;
+		};
+		this.decodeKnownEvents = function(events) {
+			// for each log, see if the address matches.
+			const knownEvents = [];
+			const unknownEvents = [];
+			events.forEach((event)=>{
+				const instance = _self._knownInstances[event.address];
+				if (!instance) { unknownEvents.push(event); return; }
+				// find corresponding ABI entry
+				const def = instance.abi.find((abi)=>{
+					return (abi.type === 'event' && 
+						event.topics[0].startsWith(ethAbi.encodeSignature(abi)));
+				});
+				if (!def) { unknownEvents.push(event); return; }
+				// update the event to have nice names.
+				event.name = def['name'];
+				event.args = ethAbi.decodeEvent(def, event.data);
+				delete event.data;
+				delete event.topics;
+				knownEvents.push(event);
+			})
+			return [knownEvents, unknownEvents];
+		};
+		this.doEthCall = function(name) {
+			const params = Array.prototype.slice.call(arguments);
+			params.shift();
+			return new Promise((resolve, reject)=>{
+				web3.eth[name].apply(web3.eth, params, function(err, result){
+					if (err){ reject(err); return; }
+					resolve(result);
+				});
+			});
+		};
+		this.waitForReceipt = function(transactionHash) {
+			var resolve, reject;
+			const p = new Promise((res, rej)=>{ resolve=res; reject=rej; });
+			function lookForReceipt() {
+				web3.eth.getTransactionReceipt(transactionHash, function(err, result){
+					if (err){ reject(err); return; }
+					if (result){ resolve(result); return; }
+					setTimeout(lookForReceipt, 1000);
+				});
+			}
+			lookForReceipt();
+			return p;
+		};
+		this.setCallHook = function(callHook) {
+			_callHook = callHook;
+		};
+		this.onNewCall = function(promise){
+			if (_callHook) _callHook(promise);
+		}
 	}
-	
-	function NiceWeb3ContractFactory(contractName, abi, unlinked_binary) {
+
+	function NiceWeb3ContractFactory(niceWeb3, contractName, abi, unlinked_binary) {
 		if (!contractName) throw new Error("First arg must be the name of this Contract type.");
 		if (!abi) throw new Error("Second arg must be the abi");
+		
+		const _self = this;
+		const _web3 = niceWeb3.web3;
+		const _ethAbi = niceWeb3.EthAbi;
+		const BigNumber = _web3.toBigNumber(0).constructor;
 
-		const _contractFactory = _web3.eth.contract(abi);
+		this.niceWeb3 = niceWeb3
+		this.contract = _web3.eth.contract(abi);
+		this.contractName = contractName;
+
+		// Creates a new instance, which is a standard web3 contract
+		// with a few extras added on:
+		// 		- niceContractFactory
+		//		- getDecodedEvent(<event>)
+		// 
+		// Returns a promise resolved with the NiceContract instance.
+		// You can also do return.getTxHash().then()
 		this.new = function(inputsObj, options){
-			// The old `new` does as follows, when passed a callback:
-			//	- creates an instance
-			//	- packs up args using constructor param
-			//	- does sendTransaction
-			//	- calls the callback once (passing it the contract)
-			//	- meanwhile, waits for it to get mined
-			//	- after its mined, calls callback a second time
-			//	- this time, the instace has methods on it.
+			const _contractFactory = _self.contract;
 			const oldNew = _contractFactory.new.bind(_contractFactory);
 			const constructorDef = abi.find(def=>def.type==='constructor');
 			if (!constructorDef)
 				throw new Error(`${contractName} ABI doesn't define a constructor.`);
-			return getCallFn(oldNew, constructorDef, null)(inputsObj, options)
-				.then(res => {
-					const instance = res.result;
-					attachNiceCalls(instance);
-					return res;
-				});
+			
+			return getCallFn(oldNew, constructorDef, null)(inputsObj, options);
 		};
-		this.at = function(){
-			const instance = _contractFactory.at.apply(_contractFactory, arguments);
-			attachNiceCalls(instance);
-			return instance;
-		};
-		this._contract = _contractFactory;
 
-		function attachNiceCalls(instance) {
+		// Returns a NiceContract instance, which is:
+		//	- a regular web3 contract instance
+		//	- all transactional calls return promises
+		//	- all constant calls... um... fail I guess.
+		//	- can decode events, provided the addresses matchh
+		this.at = function(address) {
+			const _contractFactory = _self.contract;
+			const instance = _contractFactory.at.call(_contractFactory, address);
 			abi.filter(def=>def.type==='function').forEach(def=>{
 				const oldCall = instance[def.name].bind(instance);
 				instance[def.name] = getCallFn(oldCall, def, instance);
-				console.log(`Overwrote ${def.name} on ${contractName} instance.`);
-				// todo: make realized call return a promi-event instead of a promise.
 			});
-		}
+			instance.niceContractFactory = _self;
+			return instance;
+		};
 
 		// Returns a function that calls 
 		//	 - oldCallFn(...validatedInputs, validatedOptions, [custom callback])
 		// And returns
-		//   - a Promise resolved when the oldCallFn() callback is fired.
-		// This promise will resolve with extra stuff, but always .result
-		// See: _getPromisifiedCallback()
+		//   - a Promise resolved with a nice object.
+		//	 - with a .getTxHash() property that resolves first.
+		// See: _doPromisifiedCall()
+		// todo: handle if this is a constant function!
 		function getCallFn(oldCallFn, def, instance) {
 			const isConstructor = def.type === "constructor";
 			const abiInputs = def.inputs;
@@ -103,26 +169,84 @@
 				} catch (e) {
 					throw new Error(`${callName} Validation Error: ${e.message}`);
 				}
-				
-				return new Promise((resolve, reject)=>{
-					callback = _getPromisifiedCallback({
-						contractName: contractName,
-						instance: instance,
-						fnName: fnName,
-						inputsObj: inputsObj,
-						inputs: inputs,
-						opts: opts
-					}, resolve, reject);
-					oldCallFn.apply(null, inputs.concat(opts, callback));
-				});
+				const metadata = {
+					contractName: contractName,
+					instance: instance,
+					fnName: fnName,
+					inputsObj: inputsObj,
+					inputs: inputs,
+					opts: opts
+				};
+				const p = _doPromisifiedCall(oldCallFn, metadata, def.constant);
+				niceWeb3.onNewCall(p);
+				return p;
 			}
+		}
+
+		// Does a call to oldCallFn, and returns an object:
+		//	- .getResult() after receipt is confirmed. returns a tx object thing.
+		//  - .getTxHash() if call is submitted successfully
+		function _doPromisifiedCall(oldCallFn, metadata, returnImmediate) {
+			const contractName = metadata.contractName;
+			const inputs = metadata.inputs;
+			const opts = metadata.opts;
+			const instance = metadata.instance;
+			const fnName = metadata.fnName;
+			const inputStr = metadata.inputs.join(",");
+			const optsStr = Object.keys(metadata.opts)
+				.map(name=>`${name}: ${metadata.opts[name]}`).join(", ");
+			const callStr = `${contractName}.${fnName}(${inputStr}, {${optsStr}})`;
+			
+			
+			var resResult, rejResult;
+			const resultPromise = new Promise((_res, _rej)=>{ resResult=_res; rejResult=_rej});
+			var resTxHash, rejTxHash;
+			const txHashPromise = new Promise((_res, _rej)=>{ resTxHash=_res; rejTxHash=_rej});
+			function callbackHandler(err, result){
+				if (err) {
+					const e = new Error(`${callStr} Failed: ${err.message}`);
+					e.prev = err;
+					rejTxHash(e);
+					rejResult(e);
+					return;
+				}
+				if (returnImmediate){
+					resResult(result);
+					return;
+				} 
+
+				const transactionHash = result.transactionHash || result;
+				resTxHash(transactionHash);	
+				niceWeb3.waitForReceipt(transactionHash).then(
+					(receipt)=>{
+						const result = {
+							receipt: receipt,
+							metadata: metadata
+						};
+						if (receipt.contractAddress){
+							result.instance = _self.at(receipt.contractAddress)
+							niceWeb3.addKnownInstance(result.instance);
+							console.log(`${contractName} created @ ${result.instance.address}`, result.instance);
+						}
+						[known, unknown] = niceWeb3.decodeKnownEvents(receipt.logs);
+						result.knownEvents = known;
+						result.unknownEvents = unknown;
+						resResult(result);
+					},(err)=>{
+						rejResult(new Error(`${callStr} Failed to get receipt: ${err.message}`));
+					}
+				);
+			}
+
+			oldCallFn.apply(null, inputs.concat(opts, callbackHandler));
+			if (!returnImmediate) resultPromise.getTxHash = txHashPromise;
+			resultPromise.metadata = metadata;
+			return resultPromise;
 		}
 	}
 
 	// validates providedInputs against abiInputs
 	function _validateInputs(providedInputs, abiInputs, callName) {
-		const BigNumber = _web3.toBigNumber(0).constructor;
-
 		// If we abi has no inputs and we also didn't get any, return.
 		if (abiInputs.length==0 && !providedInputs) return [];
 		// If provided inputs is not an object or is null, and we
@@ -149,20 +273,22 @@
 		abiInputs.forEach((abiInput) => {
 			const name = abiInput.name;
 			const type = abiInput.type;
-			const nameAsStr = `${name} (${type})`;
 			const val = providedInputs[name];
+			const nameAsStr = `${type} ${name}`;
 			if (!providedInputs.hasOwnProperty(name)) {
-				throw new Error(`Not passed expected input: ${nameAsStr}`);
+				throw new Error(`Not passed expected input: "${nameAsStr}"`);
 			}
 
-			const e = new Error(`Passed invalid value for ${nameAsStr} input. Got this: ${val}`);
+			const e = new Error(`Passed invalid value for "${nameAsStr}" input. Got this: ${val}`);
 			if (type == "address") {
 				if (typeof val!=='string') { throw e; }
-				else if (val.length != 42) { throw e; }
 				else if (!val.startsWith("0x")) { throw e; }
+				else if (val.length != 42) { throw e; }
 			} else if (type == "uint256") {
 				try { const bn = new BigNumber(val); }
 				catch(_e){ throw e; }
+			} else if (type == "string" || type == "bytes32") {
+				if (typeof val!=='string') { throw e; }
 			} else {
 				throw new Error(`Passed unsupported input type: ${nameAsStr}.`);
 			}
@@ -187,40 +313,10 @@
 		if (!isPayable && opts.hasOwnProperty('value')){
 			throw new Error(`Is not payable, but was passed a value in options.`);
 		}
+		if (!opts.hasOwnProperty("from") || !opts.from) {
+			throw new Error(`'from' option is missing.`);
+		}
 		return opts;
-	}
-
-	// returns a callback that can be sent to contract.someMethod() and factory.new()
-	// It returns useful stuff.
-	function _getPromisifiedCallback(meta, resolve, reject) {
-		const contractName = meta.contractName;
-		const isNew = !meta.instance;
-		const fnName = isNew ? "<constructor>" : meta.fnName;
-		const inputStr = meta.inputs.join(",");
-		const optsStr = Object.keys(meta.opts).map(name=>`${name}: ${meta.opts[name]}`).join(", ");
-		const callStr = `${contractName}.${fnName}(${inputStr}, {${optsStr}})`;
-		var count = 0;
-		return function(err, result){
-			if (err) {
-				const e = new Error(`${callStr} Failed: ${err.message}`);
-				e.prev = err;
-				reject(e);
-				return;
-			}
-			// todo: figure out what to do if is constant or not.
-
-			if (isNew && !result.address) {
-				// we got the transaction hash in result.transactionHash
-				debugger;
-				console.log("Got this result:", result);
-				return;
-			} 
-			resolve({
-				result: result,
-				instance: isNew ? result : meta.instance,
-				metadata: meta
-			});
-		}	
 	}
 
 	window.NiceWeb3 = NiceWeb3;

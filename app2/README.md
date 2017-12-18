@@ -10,6 +10,8 @@ In order for metamask to work, you need to:
 	- typical ethereum.. things randomly dont work, you dont know why, so
 	  you have to go debug the whole fucking stack looking for dumbshit
 	  glitches caused by code that doesnt validate shit.  FUCK ETHEREUM.
+	- MetaMask doens't support eth_Filter... SO WATCH OUT.  DONT EXPECT
+	  THERE TO BE ACTUAL LOGS OF THINGS.
 
 ARCHITECTURE
 

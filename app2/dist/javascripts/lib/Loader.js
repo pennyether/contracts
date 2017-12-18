@@ -19,12 +19,14 @@
 			new Promise((res, rej)=>{ window.addEventListener('load', res); }),
 			addScript("https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"),
 			addScript("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
+			addScript("./javascripts/lib/EthAbi.js"),
 			addScript("./javascripts/lib/ABIs.js"),
 			addScript("./javascripts/lib/NiceWeb3.js")
 		]).then(()=>{
 			var Web3 = require("web3");
-			if (!web3) throw new Error("Unable to find web3.");
-			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3");
+			if (!window.Web3) throw new Error("Unable to find web3.");
+			if (!window.ethAbi) throw new Error("Unable to find ethAbi.")
+			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
 			if (!window.ABIs){ throw new Error("window.ABIs not found!"); }
 
 		    // create web3 object depending on if its from browser or not
@@ -37,15 +39,34 @@
 		  		//var web3_backup = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 		  		//window.web3 = web3_backup;
 		  	}
+		  	window.web3_backup = web3_backup;
 
 		  	
-		  	web3_backup.eth.filter("latest", function(){
-		  		console.log("Latest got something:", arguments);
-		  	});
-		  	const niceWeb3 = new NiceWeb3(web3);
+		  	// web3.eth.filter("latest", function(){
+		  	// 	console.log("Latest got something:", arguments);
+		  	// });
+		  	const niceWeb3 = new NiceWeb3(web3, ethAbi);
+		  	niceWeb3.setCallHook(function(p){
+		  		const name = `${p.metadata.contractName}.${p.metadata.fnName}()`;
+		  		const isImmediate = !p.getTxHash;
+		  		if (isImmediate) {
+		  			p.then((res)=>{
+		  				console.log(`${name} call returned result:`, res);
+		  			})
+		  		} else {
+		  			console.log(`${name} waiting for txId...`);
+		  			p.getTxHash.then((txHash)=>{
+		  				console.log(`${name} got txHash: ${txHash}`)
+		  			});
+		  			p.then((res)=>{
+			  			console.log(`${name} mined, with result:`, res);
+			  		});
+		  		}
+		  	})
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
-		  		window[contractName] = new niceWeb3.ContractFactory("Registry", abi.abi, abi.unlinked_binary);
+		  		window[contractName] = niceWeb3.createContractFactory("Registry", abi.abi, abi.unlinked_binary);
+				window[`_${contractName}`] = web3_backup.eth.contract(abi.abi);
 				console.log(`Set window.${contractName} to new niceWeb3ContractFactory`);
 		  	});
 		});

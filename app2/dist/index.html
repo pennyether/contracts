@@ -7,19 +7,34 @@
 		Loader.promise.then(function(){
 			$("#newAuction").click(function(){
 				var account = web3.eth.accounts[0];
-				Registry.new({}, {from: account}).then(function(res){
-					console.log("Got this back in promise:", res);
+				Registry.new({}, {from: account}).then(function(result){
+					const reg = result.instance;
+					const addr = "0x6F6DEb5db0C4994A8283A01D6CFeEB27Fc3bBe9C"
+					reg.register({_name: "FOO", _addr: addr}, {from: account})
+						.then((result) => {
+							console.log("SET ADDRESS!!");
+							reg.addressOf({_name: "FOO"}, {from: account}).then((res)=>{
+								console.log("got address", res);
+							});
+						});
 				})
+// const blockNum = result.receipt.blockNumber;
 
-				// var opts = {
-				// 	from: account,
-				// 	data: _Registry.data
-				// };
-				// console.log("Calling Registry.new with:", opts);
-				// _Registry.new(opts, function(err, res){
-				// 	console.log("result:", res);
-				// });
+// oldReg.allEvents({fromBlock: blockNum, toBlock: blockNum})
+// 	.get(function(err, result){
+// 		console.log("nonMetaMask", "err", err, "result", result);
+// 	});
+// reg.allEvents({fromBlock: blockNum, toBlock: blockNum})
+// 	.get(function(err, result){
+// 		console.log("MetaMask shithole", "err", err, "result", result);
+// 	});
 
+			})
+			$("#eth_filter").click(function(){
+				console.log("attaching filter");
+				web3.eth.filter("latest", function(){
+			  		console.log("Latest got something:", arguments);
+			  	});
 			})
 		});
 		</script>
@@ -27,6 +42,8 @@
 	<body>
 		<div class="welcome">THIS IS A TEST!</div>
 		<button id="newAuction">Start New Auction</button>
+		<br>
+		<button id="eth_filter">START A FILTER</button>
 		<div id="log"></div>
 	</body>
 </html>
