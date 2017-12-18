@@ -132,8 +132,8 @@
 				instance[def.name] = getCallFn(oldCall, def, instance);
 			});
 			instance.niceContractFactory = _self;
-			niceWeb3.addKnownInstance(result.instance);
-			console.log(`Using ${contractName} @ ${result.instance.address}`, result.instance);
+			niceWeb3.addKnownInstance(instance);
+			console.log(`Using ${contractName} @ ${instance.address}`, instance);
 			return instance;
 		};
 
