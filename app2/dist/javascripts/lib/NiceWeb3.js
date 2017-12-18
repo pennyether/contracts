@@ -2,26 +2,13 @@
 //	- Requires named params to contract calls, and validates them.
 //	  	THIS WILL SAVE YOU A FUCKING LIFETIME IN DEBUGGING.
 //	  	WHY THIS IS NOT A DEFAULT, NOBODY KNOWS.
-//	- Lets you name register names to addresses
 //	- Result object contains useful details:
 //		- the original call data
 //		- the TX receipt
-//		- all logs, nicely parsed (by name of registered addresses)
-//		- how long it took, txFee in ETH
-
-
-		// var _old = web3.eth.sendRawTransaction;
-		// web3.eth.sendRawTransaction = function(){
-		// 	var argArray = Array.prototype.slice.call(arguments);
-		// 	var lastArg = arguments.slice(-1).pop();
-		// 	if (typeof lastArg == 'function') {
-		// 		// override callback
-		// 	}
-		// 	console.log("Did I Hook The Bitch?", arguments);
-		// 	var _self = this;
-		// 	_old.apply(_self, arguments);
-		// }
-
+//		- all logs, nicely parsed
+//  - Unfortunately still subject to the retardation of MetaMask
+//		- events may not work
+//		- other shit might randomly not work
 (function() {
 	function NiceWeb3(web3, ethAbi) {
 		const _self = this;
@@ -185,9 +172,12 @@
 			}
 		}
 
-		// Does a call to oldCallFn, and returns an object:
-		//	- .getResult() after receipt is confirmed. returns a tx object thing.
-		//  - .getTxHash() if call is submitted successfully
+		// Does a call to oldCallFn, and returns a promise:
+		//	- if a constant:
+		//		- resolves with result
+		//	- if a call
+		//		- resolves with a big useful object.
+		//      - promise.getTxHash: a promise tracking tx submission
 		function _doPromisifiedCall(oldCallFn, metadata, returnImmediate) {
 			const contractName = metadata.contractName;
 			const inputs = metadata.inputs;
@@ -201,8 +191,8 @@
 			
 			
 			var resResult, rejResult;
-			const resultPromise = new Promise((_res, _rej)=>{ resResult=_res; rejResult=_rej});
 			var resTxHash, rejTxHash;
+			const resultPromise = new Promise((_res, _rej)=>{ resResult=_res; rejResult=_rej});
 			const txHashPromise = new Promise((_res, _rej)=>{ resTxHash=_res; rejTxHash=_rej});
 			function callbackHandler(err, result){
 				if (err) {
@@ -213,6 +203,7 @@
 					return;
 				}
 				if (returnImmediate){
+					resTxHash(null);
 					resResult(result);
 					return;
 				} 
