@@ -48,25 +48,30 @@
 		  	const niceWeb3 = new NiceWeb3(web3, ethAbi);
 		  	niceWeb3.setCallHook(function(p){
 		  		const name = `${p.metadata.contractName}.${p.metadata.fnName}()`;
-		  		const isImmediate = !p.getTxHash;
-		  		if (isImmediate) {
+		  		const isConstant = !p.getTxHash;
+		  		if (isConstant) {
 		  			p.then((res)=>{
 		  				console.log(`${name} call returned result:`, res);
-		  			})
+		  			}, (e)=>{
+		  				console.log(`${name} call failed: ${e.message}`)
+		  			});
 		  		} else {
 		  			console.log(`${name} waiting for txId...`);
 		  			p.getTxHash.then((txHash)=>{
 		  				console.log(`${name} got txHash: ${txHash}`)
+		  			},(e)=>{
+		  				console.log(`${name} couldn't get txHash: ${e.message}`);
 		  			});
 		  			p.then((res)=>{
 			  			console.log(`${name} mined, with result:`, res);
+			  		}, (e)=>{
+			  			console.log(`${name} mined, but threw:`, e);
 			  		});
 		  		}
 		  	})
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
-		  		window[contractName] = niceWeb3.createContractFactory("Registry", abi.abi, abi.unlinked_binary);
-				window[`_${contractName}`] = web3_backup.eth.contract(abi.abi);
+		  		window[contractName] = niceWeb3.createContractFactory(contractName, abi.abi, abi.unlinked_binary);
 				console.log(`Set window.${contractName} to new niceWeb3ContractFactory`);
 		  	});
 		});

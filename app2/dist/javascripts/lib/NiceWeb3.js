@@ -55,17 +55,30 @@
 				});
 			});
 		};
-		this.waitForReceipt = function(transactionHash) {
+		this.getTxReceipt = function(transactionHash) {
 			var resolve, reject;
 			const p = new Promise((res, rej)=>{ resolve=res; reject=rej; });
-			function lookForReceipt() {
+			function poll() {
 				web3.eth.getTransactionReceipt(transactionHash, function(err, result){
 					if (err){ reject(err); return; }
 					if (result){ resolve(result); return; }
-					setTimeout(lookForReceipt, 1000);
+					setTimeout(poll, 1000);
 				});
 			}
-			lookForReceipt();
+			poll();
+			return p;
+		};
+		this.getTx = function(transactionHash) {
+			var resolve, reject;
+			const p = new Promise((res, rej)=>{ resolve=res; reject=rej; });
+			function poll() {
+				web3.eth.getTransaction(transactionHash, function(err, result){
+					if (err){ reject(err); return; }
+					if (result){ resolve(result); return; }
+					setTimeout(poll, 1000);
+				});
+			}
+			poll();
 			return p;
 		};
 		this.setCallHook = function(callHook) {
@@ -112,6 +125,8 @@
 		//	- all constant calls... um... fail I guess.
 		//	- can decode events, provided the addresses matchh
 		this.at = function(address) {
+			if (typeof address!=='string' || address.length!==42)
+				throw new Error(`Expected an address, but got: ${address}.`);
 			const _contractFactory = _self.contract;
 			const instance = _contractFactory.at.call(_contractFactory, address);
 			abi.filter(def=>def.type==='function').forEach(def=>{
@@ -148,6 +163,7 @@
 				}
 				if (!opts) opts = {};
 				if (!inputsObj) inputsObj = {};
+				if (!opts.from) opts.from = _web3.eth.accounts[0];
 				try {
 					inputs = _validateInputs(inputsObj, abiInputs);
 					opts = _validateOpts(opts, isPayable);
@@ -162,11 +178,12 @@
 					contractName: contractName,
 					instance: instance,
 					fnName: fnName,
+					isConstant: def.constant,
 					inputsObj: inputsObj,
 					inputs: inputs,
 					opts: opts
 				};
-				const p = _doPromisifiedCall(oldCallFn, metadata, def.constant);
+				const p = _doPromisifiedCall(oldCallFn, metadata);
 				niceWeb3.onNewCall(p);
 				return p;
 			}
@@ -178,61 +195,69 @@
 		//	- if a call
 		//		- resolves with a big useful object.
 		//      - promise.getTxHash: a promise tracking tx submission
-		function _doPromisifiedCall(oldCallFn, metadata, returnImmediate) {
+		function _doPromisifiedCall(oldCallFn, metadata) {
 			const contractName = metadata.contractName;
-			const inputs = metadata.inputs;
-			const opts = metadata.opts;
 			const instance = metadata.instance;
 			const fnName = metadata.fnName;
+			const isConstant = metadata.isConstant;
+			const inputs = metadata.inputs;
+			const opts = metadata.opts;
 			const inputStr = metadata.inputs.join(",");
 			const optsStr = Object.keys(metadata.opts)
 				.map(name=>`${name}: ${metadata.opts[name]}`).join(", ");
 			const callStr = `${contractName}.${fnName}(${inputStr}, {${optsStr}})`;
 			
 			
-			var resResult, rejResult;
-			var resTxHash, rejTxHash;
-			const resultPromise = new Promise((_res, _rej)=>{ resResult=_res; rejResult=_rej});
-			const txHashPromise = new Promise((_res, _rej)=>{ resTxHash=_res; rejTxHash=_rej});
-			function callbackHandler(err, result){
-				if (err) {
-					const e = new Error(`${callStr} Failed: ${err.message}`);
-					e.prev = err;
-					rejTxHash(e);
-					rejResult(e);
-					return;
+			const txCallPromise = new Promise((resolve, reject)=>{
+				function callbackHandler(err, result) {
+					if (err) {
+						err.message = `${callStr} Failed: ${err.message}`;
+						reject(err);
+						return;
+					}
+					const ret = isConstant
+						? result
+						: result.transactionHash || result;
+					resolve(ret);
 				}
-				if (returnImmediate){
-					resTxHash(null);
-					resResult(result);
-					return;
-				} 
+				oldCallFn.apply(null, inputs.concat(opts, callbackHandler));
+			});
+			const txResultPromise = txCallPromise.then((hashOrResult)=>{
+				const txHash = isConstant ? null : hashOrResult;
+				const result = isConstant ? hashOrResult : null;
+				if (isConstant) return result;
 
-				const transactionHash = result.transactionHash || result;
-				resTxHash(transactionHash);	
-				niceWeb3.waitForReceipt(transactionHash).then(
-					(receipt)=>{
-						const result = {
-							receipt: receipt,
-							metadata: metadata
-						};
+				return Promise.all([
+					niceWeb3.getTxReceipt(txHash),
+					niceWeb3.getTx(txHash)
+				]).then(
+					(arr)=>{
+						const receipt = arr[0];
+						const tx = arr[1];
+						if (receipt.status === 0) {
+							throw new Error(`${callStr} mined, but threw exception.`);
+						}
+
+						const result = {};
 						if (receipt.contractAddress){
 							result.instance = _self.at(receipt.contractAddress)
 						}
 						[known, unknown] = niceWeb3.decodeKnownEvents(receipt.logs);
 						result.knownEvents = known;
 						result.unknownEvents = unknown;
-						resResult(result);
+						result.receipt = receipt;
+						result.metadata = metadata;
+						result.transaction = tx;
+						return result;
 					},(err)=>{
-						rejResult(new Error(`${callStr} Failed to get receipt: ${err.message}`));
+						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
 					}
-				);
-			}
+				).then(niceWeb3.getTx(txHash))
+			});
 
-			oldCallFn.apply(null, inputs.concat(opts, callbackHandler));
-			if (!returnImmediate) resultPromise.getTxHash = txHashPromise;
-			resultPromise.metadata = metadata;
-			return resultPromise;
+			if (!isConstant) txResultPromise.getTxHash = txCallPromise;
+			txResultPromise.metadata = metadata;
+			return txResultPromise;
 		}
 	}
 

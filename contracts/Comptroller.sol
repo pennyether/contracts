@@ -89,6 +89,7 @@ contract Comptroller {
 		public
 	{
 		// If number is too large, use their whole balance.
+		require(treasury != address(0));
 		if (_numTokens > token.balanceOf(msg.sender))
 			_numTokens = token.balanceOf(msg.sender);
 		// should get back 80% of wei.

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./javascripts/lib/Loader.js"></script>
+		<script src="./javascripts/deploy.js"></script>
+	</head>
+	<body>
+		<div class="welcome">
+			DEPLOYMENT PAGE
+		</div>
+		<div>
+			<h1>Registry</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text id="RegLoadAddress" placeholder="address">
+					<button id="RegLoad">Load From Address</button>
+				</div>
+				<div>
+					<button id="RegCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div>
+					<span>Address:</span>
+					<span class="value" id="RegAddress"></span>
+				</div>
+				<div>
+					<span>Owner:</span>
+					<span class="value" id="RegOwner"></span>
+				</div>
+				<div>
+					<span>Admin:</span>
+					<span class="value" id="RegAdmin"></span>
+				</div>
+				<div>
+					<span>Treasury:</span>
+					<span class="value" id="RegTreasury"></span>
+				</div>
+			</div>
+			<div>
+				<h3>Interact</h3>
+				<div>
+					<button id="RegSetAdmin">Set Admin</button>
+					<input type=text placeholder="address" id="RegSetAdminAddress">
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Treasury</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text id="TrLoadAddress" placeholder="address">
+					<button id="TrLoad">Load From Address</button>
+				</div>
+				<div>
+					<button id="TrRegister">Register Self</button>
+				</div>
+				<div>
+					<input type=text id="TrRegistryAddress" placeholder="registry address">
+					<button id="TrCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div>
+					<span>Address:</span>
+					<span class="value" id="TrAddress"></span>
+				</div>
+				<div>
+					<span>Registry:</span>
+					<span class="value" id="TrRegistry"></span>
+				</div>
+				<div>
+					<span>Admin:</span>
+					<span class="value" id="TrAdmin"></span>
+				</div>
+				<div>
+					<span>Main Controller:</span>
+					<span class="value" id="TrMainController"></span>
+				</div>
+				<div>
+					<span>Comptroller:</span>
+					<span class="value" id="TrComptroller"></span>
+				</div>
+				<div>
+					<span>Token:</span>
+					<span class="value" id="TrToken"></span>
+				</div>
+			</div>
+			<div>
+				<h3>Interact (Admin Only)</h3>
+				<div>
+					<button id="TrInitComptroller">initComptroller</button>
+					<input type=text placeholder="address">
+				</div>
+				<div>
+					<button id="TrInitToken">initToken</button>
+					<input type=text placeholder="address">
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Comptroller</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text id="CompLoadAddress" placeholder="address">
+					<button id="CompLoad">Load From Address</button>
+				</div>
+				<div>
+					<button id="CompCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div>
+					<span>Address:</span>
+					<span class="value" id="CompAddress"></span>
+				</div>
+				<div>
+					<span>Owner:</span>
+					<span class="value" id="CompOwner"></span>
+				</div>
+				<div>
+					<span>Treasury:</span>
+					<span class="value" id="CompTreasury"></span>
+				</div>
+				<div>
+					<span>Token:</span>
+					<span class="value" id="CompToken"></span>
+				</div>
+				<div>
+					<span>Locker:</span>
+					<span class="value" id="CompLocker"></span>
+				</div>
+			</div>
+			<div>
+				<h3>Interact (Owner Only)</h3>
+				<div>
+					<button id="CompInitTreasury">initTreasury</button>
+					<input type=text placeholder="address" id="CompInitTreasuryAddress">
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Main Controller</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text name="McLoadAddress" placeholder="address">
+					<button id="McLoad">Load From Address</button>
+				</div>
+				<div>
+					<input type=text id="McRegisterAddress" placeholder="address">
+					<button id="McRegister">Register</button>
+				</div>
+				<div>
+					<button id="McCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div id="McTreasury">
+					<span>Treasury:</span>
+					<span class="value"></span>
+				</div>
+				<div id="McAdmin">
+					<span>Admin:</span>
+					<span class="value"></span>
+				</div>
+				<div id="McPennyAuctionController">
+					<span>PennyAuctionController:</span>
+					<span class="value"></span>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Penny Auction Controller</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text name="PacLoadAddress" placeholder="address">
+					<button id="PacLoad">Load From Address</button>
+				</div>
+				<div>
+					<input type=text id="PacRegisterAddress" placeholder="address">
+					<button id="PacRegister">Register</button>
+				</div>
+				<div>
+					<button id="PacCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div id="PacAdmin">
+					<span>Admin:</span>
+					<span class="value"></span>
+				</div>
+				<div id="PacPaf">
+					<span>PennyAuctionFactory:</span>
+					<span class="value"></span>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Penny Auction Factory</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text name="PafLoadAddress" placeholder="address">
+					<button id="PafLoad">Load From Address</button>
+				</div>
+				<div>
+					<input type=text id="PafRegisterAddress" placeholder="address">
+					<button id="PafRegister">Register</button>
+				</div>
+				<div>
+					<button id="PafCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div id="PafTreasury">
+					<span>Treasury:</span>
+					<span class="value"></span>
+				</div>
+				<div id="PafPac">
+					<span>Penny Auction Controller:</span>
+					<span class="value"></span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
