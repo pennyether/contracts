@@ -8,6 +8,58 @@ Loader.promise.then(function(){
 		});
 	}
 
+	$("#PopulateAll").click(function(){
+		const log = $("#PopulateLog").empty();
+		function addLog(msg) {
+			$("#PopulateLog").append($("<div>").text(msg));
+		}
+		const regAddress = $("#PopulateAllRegAddress").val();
+		if (!regAddress) return alert("Must provide a registry address.");
+		const reg = Registry.at(regAddress);
+		$("#RegLoadAddress").val(regAddress)
+		$("#RegLoad").click();
+		Promise.resolve()
+			// Treasury
+			.then(()=>reg.addressOf({_name: "TREASURY"}))
+			.then((addr)=>{
+				addLog(`Found treasury at ${addr}`);
+				$("#TrLoadAddress").val(addr);
+				$("#TrLoad").click();
+			}, (e)=>{ addLog(`Didn't find treasury.`); })
+			// comptroller
+			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found comptroller at ${addr}`);
+				$("#CompLoadAddress").val(addr);
+				$("#CompLoad").click();
+			}, (e)=>{ addLog(`Didn't find comptroller.`); })
+			// Main controller
+			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found main controller at ${addr}`);
+				$("#McLoadAddress").val(addr);
+				$("#McLoad").click();
+			}, (e)=>{ addLog(`Didn't find main controller.`); })
+			// pac
+			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found pac at ${addr}`);
+				$("#PacLoadAddress").val(addr);
+				$("#PacLoad").click();
+			}, (e)=>{ addLog(`Didn't find pac.`); })
+			// paf
+			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}))
+			.then((addr)=>{
+				addLog(`Found paf at ${addr}`);
+				$("#PafLoadAddress").val(addr);
+				$("#PafLoad").click();
+			}, (e)=>{ addLog(`Didn't find paf.`); })
+			.then(()=>{
+
+			})
+	});
+
+	/******** REGISTRY ***************************/
 	$("#RegCreate").click(function(){
 		Registry.new().then(function(result){
 			const reg = result.instance;
@@ -22,6 +74,9 @@ Loader.promise.then(function(){
 		bindToElement(reg.addressOf({_name: "OWNER"}), $("#RegOwner"));
 		bindToElement(reg.addressOf({_name: "ADMIN"}), $("#RegAdmin"));
 		bindToElement(reg.addressOf({_name: "TREASURY"}), $("#RegTreasury"));
+		bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
+		bindToElement(reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}), $("#RegPac"));
+		bindToElement(reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}), $("#RegPaf"));
 	});
 	$("#RegSetAdmin").click(function(){
 		const regAddress = $("#RegLoadAddress").val();
@@ -39,7 +94,9 @@ Loader.promise.then(function(){
 				alert("Unable to set admin. Are you the owner?");
 			});
 	});
+	/******** REGISTRY ***************************/
 
+	/******** TREASURY ***************************/
 	$("#TrCreate").click(function(){
 		const regAddress = $("#TrRegistryAddress").val();
 		if (!regAddress) return alert("No address set");
@@ -72,7 +129,39 @@ Loader.promise.then(function(){
 			alert(`Failed to register: ${e.message}`);
 		});
 	});
+	$("#TrInitComptroller").click(function(){
+		const trAddress = $("#TrLoadAddress").val();
+		const compAddress = $("#TrInitCompAddress").val();
+		if (!trAddress) return alert("No Treasury address set.");
+		if (!compAddress) return alert("No comp address set.");
+		const tr = Treasury.at(trAddress);
+		tr.initComptroller({_comptroller: compAddress})
+			.then(function(){
+				alert("initComptroller successful.");
+				$("#TrLoad").click();
+			})
+			.catch(function(){
+				alert("Unable to initComptroller. Are you the admin?");
+			});
+	});
+	$("#TrInitToken").click(function(){
+		const trAddress = $("#TrLoadAddress").val();
+		const tokenAddress = $("#TrInitTokenAddress").val();
+		if (!trAddress) return alert("No Treasury address set.");
+		if (!tokenAddress) return alert("No token address set.");
+		const tr = Treasury.at(trAddress);
+		tr.initComptroller({_token: tokenAddress})
+			.then(function(){
+				alert("initToken successful.");
+				$("#TrLoad").click();
+			})
+			.catch(function(){
+				alert("Unable to initToken. Are you the admin?");
+			});
+	});
+	/******** TREASURY ***************************/
 
+	/******** COMPTROLLER ************************/
 	$("#CompCreate").click(function(){
 		Comptroller.new().then(function(result){
 			$("#CompLoadAddress").val(result.instance.address);
@@ -88,6 +177,20 @@ Loader.promise.then(function(){
 		bindToElement(comp.token(), $("#CompToken"));
 		bindToElement(comp.locker(), $("#CompLocker"));
 	});
+	$("#CompRegister").click(function(){
+		const compAddress = $("#CompLoadAddress").val();
+		const regAddress = $("#RegLoadAddress").val();
+		if (!compAddress) return alert("No address set (use Load input)");
+		if (!regAddress) return alert("No address set for registry.");
+		Registry.at(regAddress)
+		.register({_name: "COMPTROLLER", _addr: compAddress})
+		.then(function(){
+			alert("Comptroller has been registered.");
+		}).catch(function(e){
+			alert(`Failed to register: ${e.message}`);
+		});
+	});
+
 	$("#CompInitTreasury").click(function(){
 		const compAddress = $("#CompLoadAddress").val();
 		const treasuryAddress = $("#CompInitTreasuryAddress").val();
@@ -103,4 +206,114 @@ Loader.promise.then(function(){
 				alert("Unable to init treasury. Are you the owner?");
 			});
 	});
+	$("#CompInitSale").click(function(){
+		const compAddress = $("#CompLoadAddress").val();
+		if (!compAddress) return aler("No Comptroller address set.");
+		const comp = Comptroller.at(compAddress);
+		comp.initSale()
+			.then(function(){
+				alert("Sale has started!");
+				$("#CompLoad").click();
+			})
+			.catch(function(){
+				alert("Unable to initSale. Are you the owner?");
+			});
+	})
+	/******** COMPTROLLER ************************/
+
+	/******** MAIN CONTROLLER ********************/
+	$("#McCreate").click(function(){
+		const regAddress = $("#McRegistryAddress").val();
+		if (!regAddress) return alert("No registry address set");
+		MainController.new({_registry: regAddress}).then(function(result){
+			$("#McLoadAddress").val(result.instance.address);
+			$("#McLoad").click();
+		});
+	});
+	$("#McLoad").click(function(){
+		const address = $("#McLoadAddress").val();
+		const mc = MainController.at(address);
+		$("#McAddress").text(address);
+		bindToElement(mc.getTreasury(), $("#McTreasury"));
+		bindToElement(mc.getAdmin(), $("#McAdmin"));
+		bindToElement(mc.getPennyAuctionController(), $("#McPac"));
+	});
+	$("#McRegister").click(function(){
+		const mcAddress = $("#McLoadAddress").val();
+		if (!mcAddress) return alert("No address set (use Load input)");
+		const mc = MainController.at(mcAddress);
+		mc.getRegistry().then((regAddress)=>{
+			const reg = Registry.at(regAddress);
+			return reg.register({_name: "MAIN_CONTROLLER", _addr: mcAddress});
+		}).then(function(){
+			alert("Main Controller has been registered.");
+		}).catch(function(e){
+			alert(`Failed to register: ${e.message}`);
+		});
+	});
+	/******** MAIN CONTROLLER ********************/
+
+	/******** Penny Auction Controller ********************/
+	$("#PacCreate").click(function(){
+		const regAddress = $("#PacRegistryAddress").val();
+		if (!regAddress) return alert("No registry address set");
+		PennyAuctionController.new({_registry: regAddress}).then(function(result){
+			$("#PacLoadAddress").val(result.instance.address);
+			$("#PacLoad").click();
+		});
+	});
+	$("#PacLoad").click(function(){
+		const address = $("#PacLoadAddress").val();
+		const pac = PennyAuctionController.at(address);
+		$("#PacAddress").text(address);
+		bindToElement(pac.getAdmin(), $("#PacAdmin"));
+		bindToElement(pac.getPennyAuctionFactory(), $("#PacPaf"));
+	});
+	$("#PacRegister").click(function(){
+		const pacAddress = $("#PacLoadAddress").val();
+		if (!pacAddress) return alert("No address set (use Load input)");
+		const pac = PennyAuctionController.at(pacAddress);
+		pac.getRegistry().then((regAddress)=>{
+			const reg = Registry.at(regAddress);
+			return reg.register({_name: "PENNY_AUCTION_CONTROLLER", _addr: pacAddress});
+		}).then(function(){
+			alert("Penny Auction Controller has been registered.");
+		}).catch(function(e){
+			alert(`Failed to register: ${e.message}`);
+		});
+	});
+	/******** Penny Auction Controller ********************/
+
+	/******** Penny Auction Factory ********************/
+	$("#PafCreate").click(function(){
+		const regAddress = $("#PafRegistryAddress").val();
+		if (!regAddress) return alert("No registry address set");
+		PennyAuctionFactory.new({_registry: regAddress}).then(function(result){
+			$("#PafLoadAddress").val(result.instance.address);
+			$("#PafLoad").click();
+		});
+	});
+	$("#PafLoad").click(function(){
+		const address = $("#PafLoadAddress").val();
+		const paf = PennyAuctionFactory.at(address);
+		$("#PafAddress").text(address);
+		bindToElement(paf.getTreasury(), $("#PafTreasury"));
+		bindToElement(paf.getPennyAuctionController(), $("#PafPac"));
+	});
+	$("#PafRegister").click(function(){
+		const pafAddress = $("#PafLoadAddress").val();
+		if (!pafAddress) return alert("No address set (use Load input)");
+		const paf = PennyAuctionFactory.at(pafAddress);
+		paf.getRegistry().then((regAddress)=>{
+			const reg = Registry.at(regAddress);
+			return reg.register({_name: "PENNY_AUCTION_FACTORY", _addr: pafAddress});
+		}).then(function(){
+			alert("Penny Auction Factory has been registered.");
+		}).catch(function(e){
+			alert(`Failed to register: ${e.message}`);
+		});
+	});
+	/******** Penny Auction Controller ********************/	
+
+
 });

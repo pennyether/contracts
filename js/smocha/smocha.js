@@ -187,7 +187,7 @@ function Smocha(opts) {
 			() => { _curNode = node.parent; },
 			(e) => {
 				_curNode = node.parent;
-				if (throwOnError) throw e;
+				if (throwOnError || _opts.bail) throw e;
 			}
 		);
 	}

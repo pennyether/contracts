@@ -9,8 +9,14 @@
 			DEPLOYMENT PAGE
 		</div>
 		<div>
+			<input type=text id="PopulateAllRegAddress">
+			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
+			<div id="PopulateLog"></div>
+		</div>
+		<div>
 			<h1>Registry</h1>
 			<div>
+				0x8d780e636805605e4561fbb834deec70883cbec7
 				<h3>Create/Load</h3>
 				<div>
 					<input type=text id="RegLoadAddress" placeholder="address">
@@ -37,6 +43,18 @@
 				<div>
 					<span>Treasury:</span>
 					<span class="value" id="RegTreasury"></span>
+				</div>
+				<div>
+					<span>Main Controller:</span>
+					<span class="value" id="RegMc"></span>
+				</div>
+				<div>
+					<span>Penny Auction Controller:</span>
+					<span class="value" id="RegPac"></span>
+				</div>
+				<div>
+					<span>Penny Auction Factory:</span>
+					<span class="value" id="RegPaf"></span>
 				</div>
 			</div>
 			<div>
@@ -95,11 +113,11 @@
 				<h3>Interact (Admin Only)</h3>
 				<div>
 					<button id="TrInitComptroller">initComptroller</button>
-					<input type=text placeholder="address">
+					<input type=text placeholder="address" id="TrInitCompAddress">
 				</div>
 				<div>
 					<button id="TrInitToken">initToken</button>
-					<input type=text placeholder="address">
+					<input type=text placeholder="address" id="TrInitTokenAddress">
 				</div>
 			</div>
 		</div>
@@ -111,6 +129,9 @@
 				<div>
 					<input type=text id="CompLoadAddress" placeholder="address">
 					<button id="CompLoad">Load From Address</button>
+				</div>
+				<div>
+					<button id="CompRegister">Register Self</button>
 				</div>
 				<div>
 					<button id="CompCreate">Create New</button>
@@ -145,6 +166,9 @@
 					<button id="CompInitTreasury">initTreasury</button>
 					<input type=text placeholder="address" id="CompInitTreasuryAddress">
 				</div>
+				<div>
+					<button id="CompInitSale">initSale!</button>
+				</div>
 			</div>
 		</div>
 		<hr>
@@ -153,30 +177,34 @@
 			<div>
 				<h3>Create/Load</h3>
 				<div>
-					<input type=text name="McLoadAddress" placeholder="address">
+					<input type=text id="McLoadAddress" placeholder="address">
 					<button id="McLoad">Load From Address</button>
 				</div>
 				<div>
-					<input type=text id="McRegisterAddress" placeholder="address">
 					<button id="McRegister">Register</button>
 				</div>
 				<div>
-					<button id="McCreate">Create New</button>
+					<input type=text id="McRegistryAddress" placeholder="address">
+					<button id="McCreate">Create new</button>
 				</div>
 			</div>
 			<div>
 				<h3>Summary</h3>
-				<div id="McTreasury">
+				<div>
+					<span>Address:</span>
+					<span class="value" id="McAddress"></span>
+				</div>
+				<div>
 					<span>Treasury:</span>
-					<span class="value"></span>
+					<span class="value" id="McTreasury"></span>
 				</div>
-				<div id="McAdmin">
+				<div>
 					<span>Admin:</span>
-					<span class="value"></span>
+					<span class="value" id="McAdmin"></span>
 				</div>
-				<div id="McPennyAuctionController">
+				<div>
 					<span>PennyAuctionController:</span>
-					<span class="value"></span>
+					<span class="value" id="McPac"></span>
 				</div>
 			</div>
 		</div>
@@ -186,26 +214,30 @@
 			<div>
 				<h3>Create/Load</h3>
 				<div>
-					<input type=text name="PacLoadAddress" placeholder="address">
+					<input type=text id="PacLoadAddress" placeholder="address">
 					<button id="PacLoad">Load From Address</button>
 				</div>
 				<div>
-					<input type=text id="PacRegisterAddress" placeholder="address">
 					<button id="PacRegister">Register</button>
 				</div>
 				<div>
-					<button id="PacCreate">Create New</button>
+					<input type=text id="PacRegistryAddress" placeholder="address">
+					<button id="PacCreate">Create new</button>
 				</div>
 			</div>
 			<div>
 				<h3>Summary</h3>
-				<div id="PacAdmin">
-					<span>Admin:</span>
-					<span class="value"></span>
+				<div>
+					<span>Address:</span>
+					<span class="value" id="PacAddress"></span>
 				</div>
-				<div id="PacPaf">
+				<div>
+					<span>Admin:</span>
+					<span class="value" id="PacAdmin"></span>
+				</div>
+				<div>
 					<span>PennyAuctionFactory:</span>
-					<span class="value"></span>
+					<span class="value" id="PacPaf"></span>
 				</div>
 			</div>
 		</div>
@@ -215,26 +247,30 @@
 			<div>
 				<h3>Create/Load</h3>
 				<div>
-					<input type=text name="PafLoadAddress" placeholder="address">
+					<input type=text id="PafLoadAddress" placeholder="address">
 					<button id="PafLoad">Load From Address</button>
 				</div>
 				<div>
-					<input type=text id="PafRegisterAddress" placeholder="address">
 					<button id="PafRegister">Register</button>
 				</div>
 				<div>
-					<button id="PafCreate">Create New</button>
+					<input type=text id="PafRegistryAddress" placeholder="address">
+					<button id="PafCreate">Create new</button>
 				</div>
 			</div>
 			<div>
 				<h3>Summary</h3>
-				<div id="PafTreasury">
-					<span>Treasury:</span>
-					<span class="value"></span>
+				<div>
+					<span>Address:</span>
+					<span class="value" id="PafAddress"></span>
 				</div>
-				<div id="PafPac">
+				<div>
+					<span>Treasury:</span>
+					<span class="value" id="PafTreasury"></span>
+				</div>
+				<div>
 					<span>Penny Auction Controller:</span>
-					<span class="value"></span>
+					<span class="value" id="PafPac"></span>
 				</div>
 			</div>
 		</div>

@@ -1,7 +1,9 @@
 In order for metamask to work, you need to:
 - `npm install http-server -g` and then `http-server` from the `./dist` folder
 	- I think metamask has problems when running from local files... bummer.
-- Anytime ABIs are changed, do `node generate_abis.js`.
+- Anytime contracts are changed.
+	- truffle compile --all
+	- `node generate_abis.js`: populates ABIs.js
 - When running locally with metamask:
 	- anytime you start ganache, log out of metamask, log back in.
 	- select main network, then select private network.
@@ -17,8 +19,8 @@ ARCHITECTURE
 
 - Loader.js loads all scripts that are needed on every page
 	- Web3
-	- TruffleContract (for now...)
+	- NiceWeb3
 	- jQuery
-	- PennyEther object (makes life easier)
+	- ABIs
 
 - Loader.promise.then(...page's code...)
