@@ -30,7 +30,7 @@
 			if (!window.ABIs){ throw new Error("window.ABIs not found!"); }
 
 		    // create web3 object depending on if its from browser or not
-		    var web3_backup = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		    const _web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 			if (typeof web3 !== 'undefined') {
 				console.log("Got the injected web3!");
 		    	window.web3 = new Web3(web3.currentProvider);
@@ -39,13 +39,15 @@
 		  		//var web3_backup = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 		  		//window.web3 = web3_backup;
 		  	}
-		  	window.web3_backup = web3_backup;
-
+		  	window._web3 = _web3;
+		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi);
+		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
+		  	window.BigNumber = web3.toBigNumber().constructor;
+		  	
 		  	
 		  	// web3.eth.filter("latest", function(){
 		  	// 	console.log("Latest got something:", arguments);
 		  	// });
-		  	const niceWeb3 = new NiceWeb3(web3, ethAbi);
 		  	niceWeb3.setCallHook(function(p){
 		  		const name = `${p.metadata.contractName}.${p.metadata.fnName}()`;
 		  		const isConstant = !p.getTxHash;

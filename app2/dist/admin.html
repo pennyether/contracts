@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./javascripts/lib/Loader.js"></script>
+		<script src="./javascripts/admin.js"></script>
+		<style>
+		.pacDefinedAuction {
+			margin: 10px;
+			border: 1px solid gray;
+			background: #FAFAFA;
+			padding: 10px;
+		}
+		</style>
+	</head>
+	<body>
+		<div class="welcome">
+			ADMIN PAGE
+		</div>
+		<div>
+			<h3>Populate</h3>
+			<input type=text id="PopulateRegAddress" placeholder="registry address"
+				value="0xa04642c3a4c19a62cb355912923cd5a6e922abb0">
+			<button id="Populate">POPULATE</button>
+			<div id="PopulateLog"></div>
+		</div>
+
+		<div>
+			<h1>Treasury</h1>
+			<div>
+				<div>
+					Admin: <span id="TrAdmin"></span>
+				</div>
+				<h4>Daily Fund Limit</h4>
+				<div>
+					Daily Limit Last Changed: <span id="TrDailyFundLimitLastChanged"></span>
+					<br>
+					Today is: <span id="TrToday"></span>
+				</div>
+				<div>
+					<span>Daily Fund Limit (ETH)</span>
+					<input type=text id="TrDailyFundLimit" placeholder="eth">
+					<span style='color: gray'>
+						Only changable once per day, and must be within 5% of old value.
+					</span>
+					<br>
+					<button id="TrChangeDailyFundLimit">SET DAILY LIMIT</button>
+				</div>
+			</div>
+		</div>
+
+		<div>
+			<h1>Main Controller</h1>
+			<div>
+				<div>
+					Admin: <span id="McAdmin"></span>
+				</div>
+				<h4>Penny Auction Rewards</h4>
+				<div>
+					<div>
+						<span>Start Reward (ETH)</span>
+						<input type=text id="McPaStartReward" placeholder="eth">
+					</div>
+					<div>
+						<span>End Reward (ETH)</span>
+						<input type=text id="McPaEndReward" placeholder="eth">
+					</div>
+					<div>
+						<span>Reward Denom</span>
+						<input type=text id="McPaRewardDenom" placeholder="inverse number">
+						Min Value is 100 (eg, 1%)
+					</div>
+					<button id="McChangePaRewards">SET REWARDS</button>
+				</div>
+			</div>
+		</div>
+
+		<div>
+			<h1>Penny Auction Controller</h1>
+			<div>
+				<div>
+					Admin: <span id="PacAdmin"></span>
+				</div>
+				<h4>Defined Auctions</h4>
+				<div>
+					<b>Num Defined:</b> <span id="PacNumDefinedAuctions"></span>
+				</div>
+				<div class="pacDefinedAuctionTemplate" style="display: none;">
+					Index: <span class="index">loading...</span>
+					<div style="display: none;" class="values">
+						<div>
+							Enabled: <span class="enabled"></span>
+							<button class="enable">enable</button>
+							<button class="disable">disable</button>
+						</div>
+						Auction: <span class="auction"></span><br>
+						Summary: <input type=text class="summary"><br>
+						InitialPrize (ETH): <input type=text class="initialPrize"><br>
+						bidPrice (ETH): <input type=text class="bidPrice"><br>
+						bidFeePct: <input type=text class="bidFeePct"><br>
+						bidAddBlocks: <input type=text class="bidAddBlocks"><br>
+						initialBlocks: <input type=text class="initialBlocks"><br>
+					</div>
+					<button class="change">UPDATE</button>
+				</div>
+				<div id="PacDefinedAuctions"></div>
+			</div>
+		</div>
+	</body>
+</html>

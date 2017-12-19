@@ -9,10 +9,9 @@ Loader.promise.then(function(){
 	}
 
 	$("#PopulateAll").click(function(){
-		const log = $("#PopulateLog").empty();
-		function addLog(msg) {
-			$("#PopulateLog").append($("<div>").text(msg));
-		}
+		const $log = $("#PopulateLog").empty();
+		const addLog = (msg) => $log.append($("<div>").text(msg));
+
 		const regAddress = $("#PopulateAllRegAddress").val();
 		if (!regAddress) return alert("Must provide a registry address.");
 		const reg = Registry.at(regAddress);
@@ -53,10 +52,56 @@ Loader.promise.then(function(){
 				addLog(`Found paf at ${addr}`);
 				$("#PafLoadAddress").val(addr);
 				$("#PafLoad").click();
-			}, (e)=>{ addLog(`Didn't find paf.`); })
-			.then(()=>{
+			}, (e)=>{ addLog(`Didn't find paf.`); });
+	});
 
-			})
+	$("#FullDeploy").click(function(){
+		const adminAddr = $("#FullDeployAdminAddress").val();
+		Registry.new().then(function(result){
+			const reg = result.instance;
+			return Promise.all([
+				reg,
+				reg.register({
+					_name: "ADMIN",
+					_addr: adminAddr
+				}),
+				Treasury.new({_registry: reg.address}),
+				MainController.new({_registry: reg.address}),
+				PennyAuctionController.new({_registry: reg.address}),
+				PennyAuctionFactory.new({_registry: reg.address}),
+				Comptroller.new()
+			]);
+		}).then((deployed)=>{
+			const reg = deployed[0];
+			return Promise.all([
+				reg,
+				reg.register({
+					_name: "TREASURY",
+					_addr: deployed[2].instance.address
+				}),
+				reg.register({
+					_name: "MAIN_CONTROLLER", 
+					_addr: deployed[3].instance.address
+				}),
+				reg.register({
+					_name: "PENNY_AUCTION_CONTROLLER",
+					_addr: deployed[4].instance.address
+				}),
+				reg.register({
+					_name: "PENNY_AUCTION_FACTORY",
+					_addr: deployed[5].instance.address
+				}),
+				reg.register({
+					_name: "COMPTROLLER",
+					_addr: deployed[6].instance.address
+				}),
+			]);
+		}).then((arr)=>{
+			alert("All done!");
+			const reg = arr[0];
+			$("#PopulateAllRegAddress").val(reg.address);
+			$("#PopulateAll").click();
+		})
 	});
 
 	/******** REGISTRY ***************************/
