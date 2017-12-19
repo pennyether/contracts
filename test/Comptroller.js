@@ -105,15 +105,42 @@ describe('Comptroller', function(){
 			});
 		})
     });
-    describe("Owner gets all dividends before sale starts", function(){
-        const AMT = new BigNumber(1e12);
-        return createDefaultTxTester()
-            .startLedger([token])
-            .doTx([token, "sendTransaction", {value: AMT, from: anyone}])
-            .stopLedger()
-            .assertDelta(token, AMT)
-            .assertCallReturns([token, "getCollectableDividends", locker.address], AMT)
-            .start();
+    describe("Before sale", function(){
+        it("Owner gets all dividends before is started", function(){
+            const AMT = new BigNumber(1e12);
+            return createDefaultTxTester()
+                .startLedger([token])
+                .doTx([token, "sendTransaction", {value: AMT, from: anyone}])
+                .stopLedger()
+                .assertDelta(token, AMT)
+                .assertCallReturns([token, "getCollectableDividends", locker.address], AMT)
+                .start();
+        })
+        it("Nobody can buy tokens", async function(){
+            try {
+                await assertBuysTokens(account1, 1.5e16);
+            } catch (e) { return; }
+            throw new Error("Should not have been allowed to buy tokens.");
+        });
+        it(".initSale() not callable by anyone", function(){
+            return createDefaultTxTester()
+                .doTx([comptroller, "initSale", {from: anyone}])
+                .assertInvalidOpCode()
+                .start();
+        });
+        it(".initSale works from owner", function(){
+           return createDefaultTxTester()
+                .doTx([comptroller, "initSale", {from: owner}])
+                .assertSuccess()
+                .assertCallReturns([comptroller, "isStarted"], true)
+                .start(); 
+        });
+        it(".initSale not callable again", function(){
+            return createDefaultTxTester()
+                .doTx([comptroller, "initSale", {from: owner}])
+                .assertInvalidOpCode()
+                .start();
+        });
     });
     describe(".buyTokens()", async function(){
     	it("Doesn't work with small values", async function(){

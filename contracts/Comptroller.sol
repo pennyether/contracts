@@ -26,7 +26,7 @@ contract ITreasury {
 	function removeFromBankroll(uint _amount) public;
 }
 contract Comptroller {
-	// Location of the treasury
+	// Location of the treasury, once set, cannot change.
 	ITreasury public treasury;
 	// Owner that can initialize the Treasury
 	// And that gets sent ETH capital
@@ -37,6 +37,8 @@ contract Comptroller {
 	DividendTokenLocker public locker = new DividendTokenLocker(token, owner);
 	// 1 ETH gets 1000 full tokens, so 1 Wei gets that divided by WeiPerEth.
 	uint public tokensPerWei = 1000 * (10 ** uint(token.decimals())) / (1 ether);
+	// Once set to true, cannot be set to false
+	bool public isStarted;
 
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
@@ -61,6 +63,13 @@ contract Comptroller {
 		require(ITreasury(_treasury).comptroller() == address(this));
 		treasury = ITreasury(_treasury);
 	}
+	// Allows tokens to be bought / burnt.
+	function initSale() public {
+		require(msg.sender == owner);
+		require(!isStarted);
+		require(treasury != address(0));
+		isStarted = true;
+	}
 
 	// Allows the sender to buy tokens.
 	function buyTokens()
@@ -69,7 +78,7 @@ contract Comptroller {
 		returns (uint _numTokens)
 	{
 		// ensure treasuy exists, limit rounding errors
-		require(treasury != address(0));
+		require(isStarted);
 		require(msg.value >= 1000000000);
 		// 20% goes to the owner
 		uint _capital = msg.value / 5;
