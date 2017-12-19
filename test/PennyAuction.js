@@ -8,8 +8,8 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 
 const INITIAL_PRIZE  = new BigNumber(.05e18);
 const BID_PRICE      = new BigNumber(.001e18);
-const BID_ADD_BLOCKS = new BigNumber(5);
 const BID_FEE_PCT    = new BigNumber(60);
+const BID_ADD_BLOCKS = new BigNumber(5);
 const INITIAL_BLOCKS = new BigNumber(5);
 
 const accounts = web3.eth.accounts;
@@ -36,7 +36,7 @@ describe('PennyAuction', function() {
         it("Fails when too little funds are sent", function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
+                    INITIAL_PRIZE, BID_PRICE, BID_FEE_PCT, BID_ADD_BLOCKS, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE.minus(1)}))
                 .assertInvalidOpCode()
                 .start();
@@ -44,7 +44,7 @@ describe('PennyAuction', function() {
         it("Fails when too much funds are sent", function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
+                    INITIAL_PRIZE, BID_PRICE, BID_FEE_PCT, BID_ADD_BLOCKS, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE.plus(1)}))
                 .assertInvalidOpCode()
                 .start();
@@ -55,7 +55,7 @@ describe('PennyAuction', function() {
         before("Can be created", async function(){
             return createDefaultTxTester()
                 .doNewTx(() => PennyAuction.new(collector,
-                    INITIAL_PRIZE, BID_PRICE, BID_ADD_BLOCKS, BID_FEE_PCT, INITIAL_BLOCKS,
+                    INITIAL_PRIZE, BID_PRICE, BID_FEE_PCT, BID_ADD_BLOCKS, INITIAL_BLOCKS,
                     {value: INITIAL_PRIZE}))
                 .assertSuccess("Created auction")
                     .assertOnlyLog("Started", {time: null, initialBlocks: null})
@@ -85,8 +85,8 @@ describe('PennyAuction', function() {
                     .assertCallReturns([auction, 'collector'], collector)
                     .assertCallReturns([auction, 'initialPrize'], INITIAL_PRIZE)
                     .assertCallReturns([auction, 'bidPrice'], BID_PRICE)
-                    .assertCallReturns([auction, 'bidAddBlocks'], BID_ADD_BLOCKS)
                     .assertCallReturns([auction, 'bidFeePct'], BID_FEE_PCT)
+                    .assertCallReturns([auction, 'bidAddBlocks'], BID_ADD_BLOCKS)
                     .assertCallReturns([auction, 'blockEnded'], INITIAL_BLOCKS.plus(blockStarted))
                     .assertCallReturns([auction, 'isEnded'], false)
                     .assertBalance(auction, INITIAL_PRIZE)

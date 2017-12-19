@@ -62,8 +62,8 @@ contract PennyAuction {
 	        address _collector,
 		    uint _initialPrize,
 		    uint _bidPrice,
-		    uint _bidAddBlocks,
 		    uint _bidFeePct,
+		    uint _bidAddBlocks,
 	        uint _initialBlocks
 		)
 		payable
@@ -79,8 +79,8 @@ contract PennyAuction {
 		collector = _collector;
         initialPrize = _initialPrize;
 		bidPrice = _bidPrice;
-		bidAddBlocks = _bidAddBlocks;
 		bidFeePct = _bidFeePct;
+		bidAddBlocks = _bidAddBlocks;
 
 		// start the auction
 		prize = initialPrize;
