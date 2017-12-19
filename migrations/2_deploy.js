@@ -7,6 +7,8 @@ var PennyAuctionController = artifacts.require("./PennyAuctionController.sol");
 module.exports = function(deployer, network, accounts) {
 	const owner = accounts[0];
 	const admin = accounts[1];
+	// fuck deployer. we dont need this shit.
+	return;
 
 	deployer.then(async function(){
 		console.log("Deploying PennyEth singletons...");

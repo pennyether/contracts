@@ -105,6 +105,16 @@ describe('Comptroller', function(){
 			});
 		})
     });
+    describe("Owner gets all dividends before sale starts", function(){
+        const AMT = new BigNumber(1e12);
+        return createDefaultTxTester()
+            .startLedger([token])
+            .doTx([token, "sendTransaction", {value: AMT, from: anyone}])
+            .stopLedger()
+            .assertDelta(token, AMT)
+            .assertCallReturns([token, "getCollectableDividends", locker.address], AMT)
+            .start();
+    });
     describe(".buyTokens()", async function(){
     	it("Doesn't work with small values", async function(){
     		return createDefaultTxTester()
