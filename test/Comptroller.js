@@ -33,6 +33,7 @@ describe('Comptroller', function(){
         locker = DividendTokenLocker.at(await comptroller.locker());
         await registry.register("MAIN_CONTROLLER", dummyMainController);
         await registry.register("ADMIN", admin);
+        await registry.register("OWNER", owner);
 
         const addresses = {
         	comptroller: comptroller.address,
@@ -56,9 +57,9 @@ describe('Comptroller', function(){
     describe("Set up Treasury", function(){
     	it("Call .initializeToken and .initializeComptroller", function(){
     		return createDefaultTxTester()
-    			.doTx([treasury, "initToken", token.address, {from: admin}])
+    			.doTx([treasury, "initToken", token.address, {from: owner}])
     			.assertSuccess()
-    			.doTx([treasury, "initComptroller", comptroller.address, {from: admin}])
+    			.doTx([treasury, "initComptroller", comptroller.address, {from: owner}])
     			.assertSuccess()
                 .doTx([treasury, "setDailyFundLimit", 1e20, {from: admin}])
     			.assertCallReturns([treasury, "token"], token.address)

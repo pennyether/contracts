@@ -13,7 +13,7 @@ describe('Treasury', function(){
     const dummyComptroller = accounts[3];
     const owner = accounts[4];
     const admin = accounts[5];
-    const anyone = accounts[6];
+    const anon = accounts[6];
     const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var registry;
     var treasury;
@@ -34,7 +34,7 @@ describe('Treasury', function(){
             dummyMainController: dummyMainController,
             dummyComptroller: dummyComptroller,
             admin: admin,
-            anyone: anyone,
+            anon: anon,
             NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester()
@@ -52,7 +52,7 @@ describe('Treasury', function(){
                 .start();
         });
         itCannotFund(1, "Cannot fund.");
-        itCannotDistribute("No profit to distribute.");
+        itCannotDistribute("No address to distribute to.");
     });
     describe("Gets deposit", function(){
         itCanReceiveDeposit(10000);
@@ -60,9 +60,9 @@ describe('Treasury', function(){
         itCannotDistribute("No address to distribute to.");
     });
     describe(".setDistributeReward()", function(){
-        it("Not callable from anyone", function(){
+        it("Not callable from anon", function(){
             return createDefaultTxTester()
-                .doTx([treasury, "setDistributeReward", 100, {from: anyone}])
+                .doTx([treasury, "setDistributeReward", 100, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
@@ -87,9 +87,9 @@ describe('Treasury', function(){
     })
     describe("dailyFundLimit", function(){
         describe(".setDailyFundLimit() initialization", function(){
-            it("Not callable by anyone", function(){
+            it("Not callable by anon", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: anyone}])
+                    .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -121,23 +121,23 @@ describe('Treasury', function(){
                     .doFn(()=>{ testUtil.fastForward(60*60*24); })
                     .start();
             });
-            it("Cannot change by >5%", function(){
+            it("Cannot be increased by >5%", function(){
                 const limit = DAILY_LIMIT.mul(1.051);
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", limit, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Cannot change by <%5", function(){
+            it("Cannot be decreased by >%5", function(){
                 const limit = DAILY_LIMIT.mul(.949);
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", limit, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Not callable by anyone", function(){
+            it("Not callable by anon", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: anyone}])
+                    .doTx([treasury, "setDailyFundLimit", newLimit, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -200,9 +200,9 @@ describe('Treasury', function(){
         });
         describe("Setting Comptroller and Token", function(){
             describe(".initComptroller()", function(){
-                it("Cannot be set by anyone", async function(){
+                it("Cannot be set by anon", async function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initComptroller", dummyComptroller, {from: anyone}])
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: anon}])
                         .assertInvalidOpCode()
                         .start();
                 })
@@ -222,9 +222,9 @@ describe('Treasury', function(){
                 });
             })
             describe(".initToken()", function(){
-                it("Cannot be set from anyone", function(){
+                it("Cannot be set from anon", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initToken", dummyToken, {from: anyone}])
+                        .doTx([treasury, "initToken", dummyToken, {from: anon}])
                         .assertInvalidOpCode()
                         .start();
                 });
@@ -257,8 +257,7 @@ describe('Treasury', function(){
                     .assertInvalidOpCode()
                     .start(); 
             });
-            it("Works correctly (from comptroller)", function(){
-                const expectedDist = testUtil.getBalance(treasury);
+            it("Works correctly (from comptroller)", async function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "addToBankroll", {from: dummyComptroller, value: BANKROLL_ADD}])
                     .assertSuccess()
@@ -267,7 +266,6 @@ describe('Treasury', function(){
                             newValue: BANKROLL_ADD
                         })
                     .assertCallReturns([treasury, "bankroll"], BANKROLL_ADD)
-                    .assertCallReturns([treasury, "getAmountToDistribute"], expectedDist)
                     .start();
             });
         })
@@ -310,19 +308,25 @@ describe('Treasury', function(){
             });
         });
         describe(".removeFromBankroll cannot remove more than balance", async function(){
-            before("Distribute, then fund a little so balance < bankroll", function(){
+            before("Distribute, then fund 7 * DAILY_LIMIT + 1", function(){
+                itCanReceiveDeposit(1e12);
                 itCanDistribute();
-                it("Fast forwards...", function(){
-                    return testUtil.fastForward(24*60*60);
+                it("Funds 7*DAILY_LIMIT + 1", async function(){
+                    await testUtil.fastForward(24*60*60);
+                    for (var i=0; i<7; i++){
+                        await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
+                        await testUtil.fastForward(24*60*60);
+                    }
+                    await treasury.fundMainController(1, "", {from: dummyMainController});
                 });
-                itCanFund(DAILY_LIMIT.div(2));
             });
             it("Fails if it cannot afford to removeFromBankroll", async function(){
                 const balance = testUtil.getBalance(treasury);
-                const br = await treasury.bankroll();
-                assert(br.gt(balance));
+                const bankroll = await treasury.bankroll();
+                console.log(`Balance: ${balance}, Bankroll: ${bankroll}`);
+                assert(balance.lt(bankroll), "Balance should be < bankroll");
                 return createDefaultTxTester()
-                    .doTx([treasury, "removeFromBankroll", br, {from: dummyComptroller}])
+                    .doTx([treasury, "removeFromBankroll", bankroll, {from: dummyComptroller}])
                     .assertInvalidOpCode()
                     .start();
             })
@@ -339,12 +343,12 @@ describe('Treasury', function(){
         it(`Can receive ${amount}`, async function(){
             const expectedRevenue = (await treasury.totalRevenue()).plus(amount);
             return createDefaultTxTester()
-                .startLedger([treasury, anyone])
-                .doTx([treasury, "sendTransaction", {value: amount, from: anyone}])
+                .startLedger([treasury, anon])
+                .doTx([treasury, "sendTransaction", {value: amount, from: anon}])
                 .assertSuccess()
-                    .assertOnlyLog("RevenueReceived", {time: null, sender: anyone, amount: amount})
+                    .assertOnlyLog("RevenueReceived", {time: null, sender: anon, amount: amount})
                 .stopLedger()
-                    .assertDeltaMinusTxFee(anyone, amount.mul(-1))
+                    .assertDeltaMinusTxFee(anon, amount.mul(-1))
                     .assertDelta(treasury, amount)
                 .assertCallReturns([treasury, "totalRevenue"], expectedRevenue)
                 .doFn(assertIsBalanced)
@@ -420,29 +424,34 @@ describe('Treasury', function(){
     }
     async function itCanDistribute() {
         it(`Can distribute to token`, async function(){
-            const surplus = testUtil.getBalance(treasury).minus(await treasury.bankroll());
+            const bankroll = await treasury.bankroll();
+            const surplus = testUtil.getBalance(treasury)
+                .minus(bankroll)
+                .minus(DAILY_LIMIT.mul(7));
             const expectedReward = surplus.div(await treasury.distributeRewardDenom()).floor();
             const expectedToDistribute = surplus.minus(expectedReward);
-            const prevTotalDistributed = await treasury.totalDistributed()
+            const prevTotalDistributed = await treasury.totalDistributed();
             return createDefaultTxTester()
+                .assertCallReturns([treasury, "getDistributeReward"], expectedReward)
                 .assertCallReturns([treasury, "getAmountToDistribute"], surplus)
-                .startLedger([anyone, treasury, dummyToken])
-                .doTx([treasury, "distributeToToken", {from: anyone}])
+                .startLedger([anon, treasury, dummyToken])
+                .doTx([treasury, "distributeToToken", {from: anon}])
                 .assertSuccess()
                     .assertLogCount(2)
+                    .assertLog("RewardPaid", {
+                        recipient: anon,
+                        note: "Called .distrubuteToToken()",
+                        amount: expectedReward
+                    })
                     .assertLog("DistributeSuccess", {
                         token: dummyToken,
                         amount: expectedToDistribute
                     })
-                    .assertLog("RewardPaid", {
-                        recipient: anyone,
-                        note: "Called .distrubuteToToken()",
-                        amount: expectedReward
-                    })
                 .stopLedger()
                     .assertDelta(dummyToken, expectedToDistribute)
                     .assertDelta(treasury, surplus.mul(-1))
-                    .assertDeltaMinusTxFee(anyone, expectedReward)
+                    .assertDeltaMinusTxFee(anon, expectedReward)
+                    .assertBalance(treasury, bankroll.plus(DAILY_LIMIT.mul(7)))
                 .assertCallReturns([treasury, "totalDistributed"],
                     prevTotalDistributed.plus(expectedToDistribute))
                 .doFn(assertIsBalanced)
@@ -455,13 +464,13 @@ describe('Treasury', function(){
             return createDefaultTxTester()
                 .assertCallReturns([treasury, "getAmountToDistribute"], 0)
                 .assertCallReturns([treasury, "getDistributeReward"], 0)
-                .startLedger([treasury, anyone])
-                .doTx([treasury, "distributeToToken", {from: anyone}])
+                .startLedger([treasury, anon])
+                .doTx([treasury, "distributeToToken", {from: anon}])
                 .assertSuccess()
                     .assertOnlyLog("DistributeError", {msg: msg})
                 .stopLedger()
                     .assertNoDelta(treasury)
-                    .assertLostTxFee(anyone)
+                    .assertLostTxFee(anon)
                 .assertCallReturns([treasury, "totalDistributed"], expectedTotalDistributed)
                 .doFn(assertIsBalanced)
                 .start();
@@ -479,5 +488,139 @@ describe('Treasury', function(){
         assert(balance.equals(amtIn.minus(amtOut)),
             `balance (${balance}), should be amtIn (${amtIn}) minus amtOut (${amtOut})`);
         console.log("✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)");
+    }
+});
+
+describe('Distribution Stats', function(){
+    const accounts = web3.eth.accounts;
+    const owner = accounts[1];
+    const anon = accounts[2];
+    const dummyToken = accounts[3];
+    const admin = accounts[4];
+    var treasury;
+
+    before("Set up registry and treasury", async function(){
+        const registry = await Registry.new({from: owner});
+        await registry.register("ADMIN", admin, {from: owner});
+        treasury = await Treasury.new(registry.address);
+
+        const addresses = {
+            registry: registry.address,
+            treasury: treasury.address,
+            dummyToken: dummyToken,
+            admin: admin
+        };
+        await createDefaultTxTester()
+            .nameAddresses(addresses)
+            .doTx([treasury, "initToken", dummyToken, {from: owner}])
+            .assertSuccess()
+            .doTx([treasury, "setDistributeReward", 101, {from: admin}])
+            .assertSuccess()
+            .start();
+    });
+    describe("Distribution stats", function(){
+        it("Works for 1st deposit", async function(){
+            await assertReceivesDeposit(101);
+            await assertDistributes();    
+        });
+        it("Works for 2nd deposit", async function(){
+            await assertReceivesDeposit(1010);
+            await assertDistributes();    
+        });
+        it("Works for 3rd deposit", async function(){
+            await assertReceivesDeposit(10100);
+            await assertDistributes();    
+        });
+        it("Works for 4th deposit", async function(){
+            await assertReceivesDeposit(101000);
+            await assertDistributes();    
+        });
+        it("Works for 5th deposit", async function(){
+            await assertReceivesDeposit(1010000);
+            await assertDistributes();    
+        });
+        it("Works for 6th deposit", async function(){
+            await assertReceivesDeposit(10100000);
+            await assertDistributes();    
+        });
+        it("Works for 7th deposit", async function(){
+            await assertReceivesDeposit(202);
+            await assertDistributes();    
+        });
+        it("Works for 8th deposit", async function(){
+            await assertReceivesDeposit(2020);
+            await assertDistributes();    
+        });
+        it("Works for 9th deposit", async function(){
+            await assertReceivesDeposit(20200);
+            await assertDistributes();    
+        });
+        it("Works for 10th deposit", async function(){
+            await assertReceivesDeposit(202000);
+            await assertDistributes();    
+        });
+        it("Works for 11th deposit", async function(){
+            await assertReceivesDeposit(2020000);
+            await assertDistributes();    
+        });
+        it("Works for 12th deposit", async function(){
+            await assertReceivesDeposit(20200000);
+            await assertDistributes();    
+        });
+    });
+
+    const divDates = [];
+    const divAmounts = [];
+    var divTotal = new BigNumber(0);
+    var curIndex = -1;
+    function computeStats(d1, d2) {
+        if (d2 == 0) d2 = Infinity;
+        var count = 0;
+        var total = new BigNumber(0);
+        divDates.forEach((d,i)=>{
+            if (d.lt(d1) || d.gt(d2)) return;
+            count++;
+            total = total.plus(divAmounts[i]);
+        });
+        return [count, total];
+    }
+    async function assertDistributes() {
+        const txRes = await treasury.distributeToToken({from: anon});
+        const date = txRes.logs[0].args.time;
+        const amt = txRes.logs[0].args.amount;
+        divDates.push(date);
+        divAmounts.push(amt);
+        divTotal = divTotal.plus(amt);
+        curIndex++;
+
+        function rand(start, end) {
+            return start + Math.floor(Math.random()*end);
+        }
+        const len = divDates.length;
+        const midIndex = Math.floor(len/2);
+        const midDate = divDates[midIndex];
+        const randIndex1 = rand(0, len);
+        const randIndex2 = randIndex1 + rand(0, (len - randIndex1));
+        const randDate1 = divDates[randIndex1].plus(rand(0,3)*7);
+        const randDate2 = divDates[randIndex2].plus(rand(0,3)*7);
+        const zeroToMidStats = computeStats(0, midDate);
+        const midToNowStats = computeStats(midDate, 0);
+        const randomStats = computeStats(randDate1, randDate2);
+        await createDefaultTxTester()
+            .assertCallReturns([treasury, "getDistributionStats", 0, 0], ()=>[divDates.length, divTotal])
+            .assertCallReturns([treasury, "getDistributionStats", 0, midDate], zeroToMidStats)
+            .assertCallReturns([treasury, "getDistributionStats", midDate, 0], midToNowStats)
+            .assertCallReturns([treasury, "getDistributionStats", randDate1, randDate2], randomStats)
+            .start();
+
+        const estGas = await treasury.getDistributionStats.estimateGas(0, 0);
+        console.log(`Estimate gas for getting all: ${estGas}`);
+    }
+    async function assertReceivesDeposit(amount) {
+        await createDefaultTxTester()
+            .doTx([treasury, "sendTransaction", {value: amount, from: anon}])
+            .assertSuccess()
+            .assertOnlyLog("RevenueReceived", {time: null, sender: anon, amount: amount})
+            .start();
     }
 });

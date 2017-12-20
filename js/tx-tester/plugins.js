@@ -44,6 +44,8 @@ function createPlugins(testUtil, ledger) {
 				.then(res => {
 					if (res === undefined)
 						throw new Error(`'.doTx' function returned undefined -- expected a result.`);
+					if (!res.receipt)
+						throw new Error('No receipt found.');
 					if (res.receipt.status===0)
 						throw new Error("receipt.status===0");
 					return res;

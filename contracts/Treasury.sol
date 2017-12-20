@@ -3,49 +3,55 @@ pragma solidity ^0.4.0;
 import "./roles/UsingMainController.sol";
 import "./roles/UsingAdmin.sol";
 
-/**
-Treasury safeguards all funds and will only send funds:
-	- to token, via .distributeToToken(). If balance > bankroll.
-	  As reward to incentize people to call this, a portion of
-	  the profits (up to 1%) go to the caller.
-	- to registry.getMainController(), limited by dailyFundLimit
+/*
+
+Treasury safeguards the bankroll, collects revenue, and 
+pays profits to the token.
+
+It transfers out ONLY in these conditions:
+	- to token
+		- When: balance > (bankroll + 7*dailyFundLimit)
+		- Amount: the surplus profits.
+	- to comptroller
+		- When: When comptroller lowers the bankroll due
+		        to an investor burning tokens.
+		- Amount: The amount of bankroll that was added
+		          when those tokens were minted.
+	- to registry.getMainController()
+		- When: Whenever MainController requests funds.
+		- Amount: limited by dailyFundLimit per day.
+		          Note: dailyFundLimit can not be changed
+		          by more than 5% per day.
+
+To safeguard the bankroll, there is a buffer of 7 days
+of funding between the bankroll and paying out profits.
+That is, Treasury will only pay profits if the balance
+exceeds the bankroll by 7 days of funding.
+
+In a worst-case scenario where Treasury is being depleted
+by `dailyFundLimit` per day, this ensures the bankroll
+can pay back users for their burnt tokens for at least
+7 whole days.
+
+To incentivize a steady flow of dividends, anybody can 
+call .distributeToToken() and receive a small percentage
+of the dividends as a reward.  The reward is set
+by the admin, and limited to at most 1%.
 
 Roles:
+	Owner:
+		- can set Comptroller and Token, once.
 	Comptroller:
-		- can .addToBankroll() and .removeFromBankroll()
-		- (once set, can never change)
+		- can alter the bankroll
 	Token:
-		- profits sent to it when .distributeToToken() is called.
-		- (once set, can never change)
+		- receives profits via .distributeToToken()
 	Admin:
-		- can set the address of token, once
-		- can set the address of comptroller, once
 		- can set dailyFundLimit, once
 		- can change dailyFundLimit +/- 5% per day
-		- can set the distributeReward, up to 10%
+		- can set the distributeReward, up to 1%
 	Anybody:
-		- can call .distributeToToken(), they get small reward
-		  proportional to the amount distributed.
-
-Safety Restrictions:
-	- dailyFundLimit is low, and can only be increased 5% per day
-		- This prevents an attacker who owns mainController
-		  from draining funds by calling .fundMainController()
-		  repeatedly.
-	- distributeReward is limited to 10%
-		- At most, only 10% of profit can be claimed as a reward.
-		  This prevents an admin from setting a value too high
-		  and having the rewardee get all profit (instead of
-		  the shareholders).
-	- once set, token address cannot be changed.
-		- This prevents the admin from setting the token to 
-		  their own account, in which case they would receive
-		  all dividends.
-	- once set, comptroller address cannot be changed.
-		- This prevents somebody from changing the comptroller
-		  to themselves and removing the bankroll
+		- can call .distributeToToken() for a reward
 */
-//@createInterface
 contract Treasury is 
 	UsingMainController,
 	UsingAdmin
@@ -56,23 +62,23 @@ contract Treasury is
 	address public comptroller;
 	// minimum amount before allow distribution
 	uint public bankroll;
-
+	// settable by admin, can increase +/-5%
 	uint public dailyFundLimit;
 	uint public dayDailyFundLimitChanged;
 	uint public dayLastFunded;
 	uint public amtFundedToday;
 
-	uint public totalRevenue;		// total revenues received
-	uint public totalFunded;		// total funds sent
-	uint public totalRewarded;		// total rewards paid
-	uint public totalDistributed;	// total dividends
-
 	// when someone calls distribute, they get a small reward
 	// 100 = 1%, 1000 = .1%, etc
 	uint public distributeRewardDenom = 1000;
 
-	uint[] distributionDates;
-	uint[] distributionAmounts;
+	// stats
+	uint public totalRevenue;			// total revenues received
+	uint public totalFunded;			// total funds sent
+	uint public totalRewarded;			// total rewards paid
+	uint public totalDistributed;		// total dividends
+	uint[] public distributionDates;
+	uint[] public distributionAmounts;
 
 	// prevents a function from being called again before it has completed
 	bool private locked;
@@ -121,7 +127,7 @@ contract Treasury is
 	
 
 	/**** ADMIN FUNCTIONS *****************************/
-	// Callable once daily to change the dailyFundLimit +/-5%
+	// Callable once daily to change the dailyFundLimit by up to 5%.
 	function setDailyFundLimit(uint _newValue)
 		fromAdmin
 	{
@@ -137,7 +143,8 @@ contract Treasury is
 		dayDailyFundLimitChanged = today();
 		DailyFundLimitChanged(now, msg.sender, _oldValue, _newValue);
 	}
-	// Minimum value is 100, meaning maximum reward is 1%
+	// Sets reward for calling .distributeToToken.
+	// Maximum of 1% (minimum denom of 100)
 	function setDistributeReward(uint _newValue)
 		fromAdmin
 	{
@@ -155,8 +162,9 @@ contract Treasury is
 		RevenueReceived(now, msg.sender, msg.value);
 	}
 
-	// Called by the token once to set the baseline bankroll.
-	// Any funds above bankroll can be distributed via distributeToToken()
+	// Called by the Comptroller anytime it has received an investment.
+	// The investment adds bankroll, and mints tokens in return.
+	// The tokens can be burnt to redeem their bankroll.
 	function addToBankroll()
 		payable
 		fromComptroller
@@ -165,6 +173,8 @@ contract Treasury is
 		bankroll += msg.value;
 		BankrollChanged(now, _oldValue, bankroll);
 	}
+	// Comptroller calls this when somebody burns their tokens. This
+	// sends the bankroll back to the Comptroller to be sent to the user.
 	function removeFromBankroll(uint _amount)
 		fromComptroller
 	{
@@ -176,23 +186,21 @@ contract Treasury is
 		BankrollChanged(now, _oldValue, bankroll);
 	}
 
-	// Sends any surplus balance to token.
-	// Pays a small reward to whoever calls this.
-	// Not subject to daily limits.
+	// Sends any surplus balance to the token, and a reward to the caller.
 	function distributeToToken()
 		returns (bool _success, uint _amount)
 	{
-		if (this.balance <= bankroll) {
-			DistributeError(now, "No profit to distribute.");
-			return;
-		}
 		if (token == address(0)) {
 			DistributeError(now, "No address to distribute to.");
 			return;
 		}
+		uint _surplus = getAmountToDistribute();
+		if (_surplus <= 0) {
+			DistributeError(now, "No profit to distribute.");
+			return;
+		}
 
 		// calculate _reward and _amount, and send _amount
-		uint _surplus = this.balance - bankroll;
 		uint _reward = _surplus / distributeRewardDenom;
 		_amount = _surplus - _reward;
 		if (!token.call.value(_amount)()) {
@@ -200,6 +208,8 @@ contract Treasury is
 			return (false, 0);
 		}
 		totalDistributed += _amount;
+		distributionDates.push(now);
+		distributionAmounts.push(_amount);
 		DistributeSuccess(now, token, _amount);
 
 		// try to pay the reward
@@ -211,7 +221,8 @@ contract Treasury is
 
 	// Gives the MainController funds so it can start games.
 	// Will fund at most dailyFundLimit per day.
-	// noRentry ensures this is only called once at a time.
+	// Since we don't trust "MainController", noRentry modifier
+	// ensures this is only called once at a time.
 	function fundMainController(uint _amount, string _note)
 		noRentry
 		fromMainController
@@ -238,7 +249,8 @@ contract Treasury is
 		return true;
 	}
 
-	// For recieving funds back from mainController.
+	// For recieving funds back from mainController in case
+	// it was not able to use those funds, for some reason.
 	// Subtracts from daily limit so it can be funded again.
 	function acceptRefund(string _note)
 		payable
@@ -251,24 +263,94 @@ contract Treasury is
 	}
 
   	// if _amount is too large, or would exceed our limit for today, then return false.
-  	function canFund(uint _amount) constant returns (bool) {
+  	function canFund(uint _amount)
+  		constant
+  		public
+  		returns (bool)
+  	{
 		if (_amount > this.balance || _amount > dailyFundLimit) return false;
 		if (dayLastFunded >= today() && amtFundedToday + _amount > dailyFundLimit) return false;
 		return true;
   	}
 
-  	function getAmountToDistribute() constant returns (uint) {
+  	// returns 0 unless balance > bankroll + 7*dailyFundLimit
+  	function getAmountToDistribute()
+  		constant
+  		public
+  		returns (uint)
+  	{
   		if (token == address(0)) return 0;
-  		if (this.balance <= bankroll) return 0;
-  		return this.balance - bankroll;
+  		uint _minBalance = getMinBalanceToDistribute();
+  		if (this.balance <= _minBalance) return 0;
+  		return this.balance - _minBalance;
   	}
 
-  	function getDistributeReward() constant returns (uint) {
+  	// returns the bankroll plus a buffer of 7 days of funding.
+  	function getMinBalanceToDistribute()
+  		constant
+  		public
+  		returns (uint)
+  	{
+  		return bankroll + (7 * dailyFundLimit);
+  	}
+
+  	// returns reward to be received if getDistributeReward() is called
+  	function getDistributeReward()
+  		constant
+  		public
+  		returns (uint)
+  	{
   		return getAmountToDistribute() / distributeRewardDenom;
   	}
 
-  	function today() private constant returns (uint) {
-    	return now / 1 days;
+  	// stats of distributions paid between _startDate and _endDate, inclusive
+  	function getDistributionStats(uint _startDate, uint _endDate)
+  		constant
+  		public
+  		returns (uint _count, uint _total)
+  	{
+  		if (distributionDates.length == 0) return;
+  		if (_endDate == 0) _endDate = now;
+  		uint _startIndex = findDistIndexFor(_startDate, true);
+  		uint _endIndex = findDistIndexFor(_endDate, false);
+  		if (_endIndex == distributionDates.length - 2) _endIndex += 1;
+  		for (uint _i = _startIndex; _i <= _endIndex; _i++) {
+  			if (distributionDates[_i] < _startDate) continue;
+  			if (distributionDates[_i] > _endDate) continue;
+  			_count++;
+  			_total += distributionAmounts[_i];
+  		}
   	}
 
+  	// finds a distribution date that is on or before the date given.
+  	// tie's are broken via the `_first` param
+	// may return one index too little in case the answer is the last.
+	// may return one index too much in case answer is the first.
+  	function findDistIndexFor(uint _date, bool _first)
+  		private
+  		constant
+  		returns (uint _index)
+  	{
+  		uint _front = 0;
+  		uint _back = distributionDates.length-1;
+  		uint _mid = (_back + _front)/2;
+  		do {
+			if (	_first && distributionDates[_mid] < _date
+				|| !_first && distributionDates[_mid] <= _date){
+				_front = _mid;
+			}
+			else { _back = _mid; }	
+  			_mid = (_back + _front)/2;
+  		} while (_mid != _front);
+  		return _mid;
+  	}
+
+
+  	function today()
+  		private 
+  		constant 
+  		returns (uint)
+  	{
+    	return now / 1 days;
+  	}
 }
