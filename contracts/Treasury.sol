@@ -71,6 +71,9 @@ contract Treasury is
 	// 100 = 1%, 1000 = .1%, etc
 	uint public distributeRewardDenom = 1000;
 
+	uint[] distributionDates;
+	uint[] distributionAmounts;
+
 	// prevents a function from being called again before it has completed
 	bool private locked;
 	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
