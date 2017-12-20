@@ -11,8 +11,9 @@ describe('Treasury', function(){
     const dummyMainController = accounts[1];
     const dummyToken = accounts[2];
     const dummyComptroller = accounts[3];
-    const admin = accounts[4];
-    const anyone = accounts[5];
+    const owner = accounts[4];
+    const admin = accounts[5];
+    const anyone = accounts[6];
     const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var registry;
     var treasury;
@@ -23,6 +24,7 @@ describe('Treasury', function(){
         registry = await Registry.new();
         await registry.register("MAIN_CONTROLLER", dummyMainController);
         await registry.register("ADMIN", admin);
+        await registry.register("OWNER", owner);
         treasury = await Treasury.new(registry.address);
 
         const addresses = {
@@ -206,7 +208,7 @@ describe('Treasury', function(){
                 })
                 it("Works", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
                         .assertSuccess()
                         .assertOnlyLog("ComptrollerSet")
                         .assertCallReturns([treasury, "comptroller"], dummyComptroller)
@@ -226,9 +228,9 @@ describe('Treasury', function(){
                         .assertInvalidOpCode()
                         .start();
                 });
-                it("Can be set by admin", function(){
+                it("Can be set by owner", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initToken", dummyToken, {from: admin}])
+                        .doTx([treasury, "initToken", dummyToken, {from: owner}])
                         .assertSuccess()
                             .assertOnlyLog("TokenSet", {token: dummyToken})
                         .assertCallReturns([treasury, "token"], dummyToken)

@@ -56,15 +56,16 @@ Loader.promise.then(function(){
 	});
 
 	$("#FullDeploy").click(function(){
+		const $log = $("#FullDeployLog").empty();
+		const addLog = (msg) => $log.append($("<div>").text(msg));
 		const adminAddr = $("#FullDeployAdminAddress").val();
+		var reg, tr, comp;
 		Registry.new().then(function(result){
-			const reg = result.instance;
+			addLog("Creating new instances...");
+			reg = result.instance;
 			return Promise.all([
+				reg.register({_name: "ADMIN", _addr: adminAddr}),
 				reg,
-				reg.register({
-					_name: "ADMIN",
-					_addr: adminAddr
-				}),
 				Treasury.new({_registry: reg.address}),
 				MainController.new({_registry: reg.address}),
 				PennyAuctionController.new({_registry: reg.address}),
@@ -72,12 +73,13 @@ Loader.promise.then(function(){
 				Comptroller.new()
 			]);
 		}).then((deployed)=>{
-			const reg = deployed[0];
+			addLog("Registering addresses...");
+			tr = deployed[2].instance;
+			comp = deployed[6].instance;
 			return Promise.all([
-				reg,
 				reg.register({
 					_name: "TREASURY",
-					_addr: deployed[2].instance.address
+					_addr: tr.address
 				}),
 				reg.register({
 					_name: "MAIN_CONTROLLER", 
@@ -93,12 +95,20 @@ Loader.promise.then(function(){
 				}),
 				reg.register({
 					_name: "COMPTROLLER",
-					_addr: deployed[6].instance.address
+					_addr: comp.address
 				}),
 			]);
 		}).then((arr)=>{
+			addLog("Initializing Treasury and Comptroller...");
+			return Promise.all([
+				comp.token().then((token)=>tr.initToken({_token: token})),
+				tr.initComptroller({_comptroller: comp.address})
+			]).then(()=>{
+				return comp.initTreasury({_treasury: tr.address});
+			});
+		}).then((arr)=>{
+			addLog("All done!");
 			alert("All done!");
-			const reg = arr[0];
 			$("#PopulateAllRegAddress").val(reg.address);
 			$("#PopulateAll").click();
 		})
@@ -156,6 +166,7 @@ Loader.promise.then(function(){
 		const tr = Treasury.at(address);
 		$("#TrAddress").text(address);
 		bindToElement(tr.getRegistry(), $("#TrRegistry"));
+		bindToElement(tr.getOwner(), $("#TrOwner"));
 		bindToElement(tr.getAdmin(), $("#TrAdmin"));
 		bindToElement(tr.getMainController(), $("#TrMainController"));
 		bindToElement(tr.comptroller(), $("#TrComptroller"));
@@ -195,7 +206,7 @@ Loader.promise.then(function(){
 		if (!trAddress) return alert("No Treasury address set.");
 		if (!tokenAddress) return alert("No token address set.");
 		const tr = Treasury.at(trAddress);
-		tr.initComptroller({_token: tokenAddress})
+		tr.initToken({_token: tokenAddress})
 			.then(function(){
 				alert("initToken successful.");
 				$("#TrLoad").click();
@@ -279,6 +290,7 @@ Loader.promise.then(function(){
 		const address = $("#McLoadAddress").val();
 		const mc = MainController.at(address);
 		$("#McAddress").text(address);
+		bindToElement(mc.version(), $("#McVersion"));
 		bindToElement(mc.getTreasury(), $("#McTreasury"));
 		bindToElement(mc.getAdmin(), $("#McAdmin"));
 		bindToElement(mc.getPennyAuctionController(), $("#McPac"));
@@ -311,6 +323,7 @@ Loader.promise.then(function(){
 		const address = $("#PacLoadAddress").val();
 		const pac = PennyAuctionController.at(address);
 		$("#PacAddress").text(address);
+		bindToElement(pac.version(), $("#PacVersion"));
 		bindToElement(pac.getAdmin(), $("#PacAdmin"));
 		bindToElement(pac.getPennyAuctionFactory(), $("#PacPaf"));
 	});
@@ -342,6 +355,7 @@ Loader.promise.then(function(){
 		const address = $("#PafLoadAddress").val();
 		const paf = PennyAuctionFactory.at(address);
 		$("#PafAddress").text(address);
+		bindToElement(paf.version(), $("#PafVersion"));
 		bindToElement(paf.getTreasury(), $("#PafTreasury"));
 		bindToElement(paf.getPennyAuctionController(), $("#PafPac"));
 	});

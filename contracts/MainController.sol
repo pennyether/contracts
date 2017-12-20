@@ -20,6 +20,7 @@ contract MainController is
 	UsingTreasury,
 	UsingAdmin
 {
+	uint constant public version = 1;
 	/* these are incentives for people to call our functions. */
 	// how much is paid to a user that starts a pennyAuction
 	uint public paStartReward;

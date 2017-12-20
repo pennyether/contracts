@@ -16,16 +16,16 @@
 			</div>
 			<input type=text id="FullDeployAdminAddress" placeholder="admin address">
 			<button id="FullDeploy">FULL DEPLOY</button>
+			<div id="FullDeployLog"></div>
 		</div>
 		<div>
-			<input type=text id="PopulateAllRegAddress">
+			<input type=text id="PopulateAllRegAddress" value="0x4cbce608ce6ee8cab4492f3357c827f43c704a63">
 			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
 			<div id="PopulateLog"></div>
 		</div>
 		<div>
 			<h1>Registry</h1>
 			<div>
-				0xa04642c3a4c19a62cb355912923cd5a6e922abb0
 				<h3>Create/Load</h3>
 				<div>
 					<input type=text id="RegLoadAddress" placeholder="address">
@@ -39,31 +39,31 @@
 				<h3>Summary</h3>
 				<div>
 					<span>Address:</span>
-					<span class="value" id="RegAddress"></span>
+					<span id="RegAddress"></span>
 				</div>
 				<div>
 					<span>Owner:</span>
-					<span class="value" id="RegOwner"></span>
+					<span id="RegOwner"></span>
 				</div>
 				<div>
 					<span>Admin:</span>
-					<span class="value" id="RegAdmin"></span>
+					<span id="RegAdmin"></span>
 				</div>
 				<div>
 					<span>Treasury:</span>
-					<span class="value" id="RegTreasury"></span>
+					<span id="RegTreasury"></span>
 				</div>
 				<div>
 					<span>Main Controller:</span>
-					<span class="value" id="RegMc"></span>
+					<span id="RegMc"></span>
 				</div>
 				<div>
 					<span>Penny Auction Controller:</span>
-					<span class="value" id="RegPac"></span>
+					<span id="RegPac"></span>
 				</div>
 				<div>
 					<span>Penny Auction Factory:</span>
-					<span class="value" id="RegPaf"></span>
+					<span id="RegPaf"></span>
 				</div>
 			</div>
 			<div>
@@ -95,31 +95,35 @@
 				<h3>Summary</h3>
 				<div>
 					<span>Address:</span>
-					<span class="value" id="TrAddress"></span>
+					<span id="TrAddress"></span>
 				</div>
 				<div>
 					<span>Registry:</span>
-					<span class="value" id="TrRegistry"></span>
+					<span id="TrRegistry"></span>
+				</div>
+				<div>
+					<span>Owner:</span>
+					<span id="TrOwner"></span>
 				</div>
 				<div>
 					<span>Admin:</span>
-					<span class="value" id="TrAdmin"></span>
+					<span id="TrAdmin"></span>
 				</div>
 				<div>
 					<span>Main Controller:</span>
-					<span class="value" id="TrMainController"></span>
+					<span id="TrMainController"></span>
 				</div>
 				<div>
 					<span>Comptroller:</span>
-					<span class="value" id="TrComptroller"></span>
+					<span id="TrComptroller"></span>
 				</div>
 				<div>
 					<span>Token:</span>
-					<span class="value" id="TrToken"></span>
+					<span id="TrToken"></span>
 				</div>
 			</div>
 			<div>
-				<h3>Interact (Admin Only)</h3>
+				<h3>Interact (Owner Only)</h3>
 				<div>
 					<button id="TrInitComptroller">initComptroller</button>
 					<input type=text placeholder="address" id="TrInitCompAddress">
@@ -150,23 +154,23 @@
 				<h3>Summary</h3>
 				<div>
 					<span>Address:</span>
-					<span class="value" id="CompAddress"></span>
+					<span id="CompAddress"></span>
 				</div>
 				<div>
 					<span>Owner:</span>
-					<span class="value" id="CompOwner"></span>
+					<span id="CompOwner"></span>
 				</div>
 				<div>
 					<span>Treasury:</span>
-					<span class="value" id="CompTreasury"></span>
+					<span id="CompTreasury"></span>
 				</div>
 				<div>
 					<span>Token:</span>
-					<span class="value" id="CompToken"></span>
+					<span id="CompToken"></span>
 				</div>
 				<div>
 					<span>Locker:</span>
-					<span class="value" id="CompLocker"></span>
+					<span id="CompLocker"></span>
 				</div>
 			</div>
 			<div>
@@ -200,20 +204,24 @@
 			<div>
 				<h3>Summary</h3>
 				<div>
+					<span>Version:</span>
+					<span id="McVersion"></span>
+				</div>
+				<div>
 					<span>Address:</span>
-					<span class="value" id="McAddress"></span>
+					<span id="McAddress"></span>
 				</div>
 				<div>
 					<span>Treasury:</span>
-					<span class="value" id="McTreasury"></span>
+					<span id="McTreasury"></span>
 				</div>
 				<div>
 					<span>Admin:</span>
-					<span class="value" id="McAdmin"></span>
+					<span id="McAdmin"></span>
 				</div>
 				<div>
 					<span>PennyAuctionController:</span>
-					<span class="value" id="McPac"></span>
+					<span id="McPac"></span>
 				</div>
 			</div>
 		</div>
@@ -237,16 +245,20 @@
 			<div>
 				<h3>Summary</h3>
 				<div>
+					<span>Version:</span>
+					<span id="PacVersion"></span>
+				</div>
+				<div>
 					<span>Address:</span>
-					<span class="value" id="PacAddress"></span>
+					<span id="PacAddress"></span>
 				</div>
 				<div>
 					<span>Admin:</span>
-					<span class="value" id="PacAdmin"></span>
+					<span id="PacAdmin"></span>
 				</div>
 				<div>
 					<span>PennyAuctionFactory:</span>
-					<span class="value" id="PacPaf"></span>
+					<span id="PacPaf"></span>
 				</div>
 			</div>
 		</div>
@@ -270,16 +282,20 @@
 			<div>
 				<h3>Summary</h3>
 				<div>
+					<span>Version:</span>
+					<span id="PafVersion"></span>
+				</div>
+				<div>
 					<span>Address:</span>
-					<span class="value" id="PafAddress"></span>
+					<span id="PafAddress"></span>
 				</div>
 				<div>
 					<span>Treasury:</span>
-					<span class="value" id="PafTreasury"></span>
+					<span id="PafTreasury"></span>
 				</div>
 				<div>
 					<span>Penny Auction Controller:</span>
-					<span class="value" id="PafPac"></span>
+					<span id="PafPac"></span>
 				</div>
 			</div>
 		</div>

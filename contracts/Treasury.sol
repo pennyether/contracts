@@ -98,10 +98,10 @@ contract Treasury is
 		UsingAdmin(_registry)
 	{}
 
-	/**** ADMIN FUNCTIONS *****************************/
+	/**** OWNER FUNCTIONS *****************************/
 	// Callable once to set the Token address
 	function initToken(address _token)
-		fromAdmin
+		fromOwner
 	{
 		require(token == address(0));
 		token = _token;
@@ -109,12 +109,15 @@ contract Treasury is
 	}
 	// Callable once to set the Comptroller address
 	function initComptroller(address _comptroller)
-		fromAdmin
+		fromOwner
 	{
 		require(comptroller == address(0));
 		comptroller = _comptroller;
 		ComptrollerSet(now, msg.sender, _comptroller);	
 	}
+	
+
+	/**** ADMIN FUNCTIONS *****************************/
 	// Callable once daily to change the dailyFundLimit +/-5%
 	function setDailyFundLimit(uint _newValue)
 		fromAdmin
@@ -140,9 +143,9 @@ contract Treasury is
 		distributeRewardDenom = _newValue;
 		DistributeRewardChanged(now, msg.sender, _oldValue, _newValue);
 	}
-	/******* END ADMIN FUNCTIONS ***************************/
 
 
+	/******* DEPOSTING, FUNDING, DISTRIUTING *************************/
 	// Can receive deposits from anyone (eg: PennyAuctions, other games)
 	function () payable {
 		totalRevenue += msg.value;

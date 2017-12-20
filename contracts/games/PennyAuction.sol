@@ -27,6 +27,8 @@ the auction can be paid to the winner.
 */
 //@createInterface
 contract PennyAuction {
+	uint constant version = 1;
+	
 	address public collector;		// address that fees get sent to
 
 	uint public initialPrize;		// amt initially staked

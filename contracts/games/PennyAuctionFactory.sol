@@ -8,6 +8,7 @@ contract PennyAuctionFactory is
     UsingPennyAuctionController,
     UsingTreasury
 {
+    uint constant public version = 1;
     PennyAuction public lastCreatedAuction;
 
     event AuctionCreated(
