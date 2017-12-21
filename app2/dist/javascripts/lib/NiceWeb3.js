@@ -158,6 +158,7 @@
 					contractName: contractName,
 					instance: instance,
 					fnName: fnName,
+					callName: callName,
 					isConstant: def.constant,
 					inputsObj: inputsObj,
 					inputs: inputs,
@@ -191,7 +192,6 @@
 			const txCallPromise = new Promise((resolve, reject)=>{
 				function callbackHandler(err, result) {
 					if (err) {
-						err.message = `${callStr} Failed: ${err.message}`;
 						reject(err);
 						return;
 					}
@@ -215,7 +215,7 @@
 						const receipt = arr[0];
 						const tx = arr[1];
 						if (receipt.status === 0) {
-							throw new Error(`${callStr} mined, but threw exception.`);
+							throw new Error(`Transaction failed (out of gas, or other error)`);
 						}
 
 						const result = {};

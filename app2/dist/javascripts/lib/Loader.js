@@ -17,17 +17,20 @@
 
 		this.promise = Promise.all([
 			new Promise((res, rej)=>{ window.addEventListener('load', res); }),
-			addScript("https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"),
 			addScript("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
-			addScript("/javascripts/lib/EthAbi.js"),
-			addScript("/javascripts/lib/ABIs.js"),
-			addScript("/javascripts/lib/NiceWeb3.js")
+			addScript("/javascripts/lib/external/web3.min.js"),
+			addScript("/javascripts/lib/external/EthAbi.js"),
+			addScript("/javascripts/lib/NiceWeb3.js"),
+			addScript("/javascripts/lib/NiceWeb3Logger.js"),
+			addScript("/javascripts/lib/ABIs.js")
 		]).then(()=>{
 			var Web3 = require("web3");
+			if (!window.$) throw new Error("Unable to find jQuery.");
 			if (!window.Web3) throw new Error("Unable to find web3.");
 			if (!window.ethAbi) throw new Error("Unable to find ethAbi.")
 			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
-			if (!window.ABIs){ throw new Error("window.ABIs not found!"); }
+			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
+			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
 
 		    // create web3 object depending on if its from browser or not
 		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
@@ -39,45 +42,23 @@
 		  		//var web3_backup = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 		  		//window.web3 = web3_backup;
 		  	}
+		  	// these are back-up web3's, in case Metamask shits the bed.
 		  	window._web3 = _web3;
 		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi);
+		  	// public things.
 		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
 		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
-		  	
-		  	
-		  	// web3.eth.filter("latest", function(){
-		  	// 	console.log("Latest got something:", arguments);
-		  	// });
-		  	niceWeb3.setCallHook(function(p){
-		  		const name = `${p.metadata.contractName}.${p.metadata.fnName}()`;
-		  		const isConstant = !p.getTxHash;
-		  		if (isConstant) {
-		  			p.then((res)=>{
-		  				console.log(`${name} call returned result:`, res);
-		  			}, (e)=>{
-		  				console.log(`${name} call failed: ${e.message}`)
-		  			});
-		  		} else {
-		  			console.log(`${name} waiting for txId...`);
-		  			p.getTxHash.then((txHash)=>{
-		  				console.log(`${name} got txHash: ${txHash}`)
-		  			},(e)=>{
-		  				console.log(`${name} couldn't get txHash: ${e.message}`);
-		  			});
-		  			p.then((res)=>{
-			  			console.log(`${name} mined, with result:`, res);
-			  		}, (e)=>{
-			  			console.log(`${name} mined, but threw:`, e);
-			  		});
-		  		}
-		  	})
+		  	// make public all ContractFactories.
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
 		  		window[contractName] = niceWeb3.createContractFactory(contractName, abi.abi, abi.unlinked_binary);
 				window[`_${contractName}`] = _web3.eth.contract(abi.abi);
 				console.log(`Set window.${contractName} to new niceWeb3ContractFactory`);
 		  	});
+		  	// attach logger to body
+		  	const logger = new NiceWeb3Logger(niceWeb3);
+		  	logger.$e.appendTo(document.body);
 		});
 	}
 	window.Loader = new Loader();

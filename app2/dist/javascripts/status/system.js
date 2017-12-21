@@ -1,14 +1,12 @@
 Loader.promise.then(function(){
 	var reg, comp, tr, mc, pac;
 
-	function bindToElement(promise, element, asText) {
-		if (asText === undefined) toText = true;
-
+	function bindToElement(promise, element, doAppend) {
 		element.empty().text("loading...");
 		promise.then(function(res){
-			asText
-				? element.empty().text(res)
-				: element.empty().append(res);
+			doAppend
+				? element.empty().append(res)
+				: element.empty().text(res);
 		},function(e){
 			element.empty().text(`Error: ${e.message}`);
 		});
@@ -17,7 +15,7 @@ Loader.promise.then(function(){
 	function $getLogs(instance) {
 		return niceWeb3.getAllEvents(instance).then((events)=>{
 			const $ctnr = $("<div class='logs'></div>");
-			events.forEach((e)=>{
+			events.reverse().forEach((e)=>{
 				const argsStr = Object.keys(e.argStrs)
 					.map((name)=>`${name}: ${e.argStrs[name]}`)
 					.join(", ");
@@ -46,24 +44,28 @@ Loader.promise.then(function(){
 			// Comptroller
 			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
 			.then((addr)=>{
+				if (addr=="0x") throw new Error();
 				addLog(`Found comptroller at ${addr}`);
 				comp = Comptroller.at(addr);
 			}, (e)=>{ addLog(`Didn't find comptroller.`); })
 			// Treasury
 			.then(()=>reg.addressOf({_name: "TREASURY"}))
 			.then((addr)=>{
+				if (addr=="0x") throw new Error();
 				addLog(`Found treasury at ${addr}`);
 				tr = Treasury.at(addr);
 			}, (e)=>{ addLog(`Didn't find treasury.`); })
 			// Main controller
 			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
 			.then((addr)=>{
+				if (addr=="0x") throw new Error();
 				addLog(`Found main controller at ${addr}`);
 				mc = MainController.at(addr);
 			}, (e)=>{ addLog(`Didn't find main controller.`); })
 			// pac
 			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
 			.then((addr)=>{
+				if (addr=="0x") throw new Error();
 				addLog(`Found pac at ${addr}`);
 				pac = PennyAuctionController.at(addr);
 			}, (e)=>{ addLog(`Didn't find pac.`); })
@@ -105,7 +107,7 @@ Loader.promise.then(function(){
 			const token = DividendToken.at(tokenAddr);
 			bindToElement(token.totalSupply(), $("#CompTokenTotalSupply"));
 			bindToElement(token.balanceOf([lockerAddr]).then(ethUtil.toEth), $("#CompLockerBalance"));
-			bindToElement($getLogs(comp), $("#CompLogs"));
+			bindToElement($getLogs(comp), $("#CompLogs"), true);
 		});
 	}
 
@@ -115,7 +117,7 @@ Loader.promise.then(function(){
 		bindToElement(ethUtil.getBalance(tr).then(ethUtil.toEth), $("#TrBalance"));
 		bindToElement(tr.bankroll().then(ethUtil.toEth), $("#TrBankroll"));
 		bindToElement(tr.dailyFundLimit().then(ethUtil.toEth), $("#TrDailyLimit"));
-		bindToElement($getLogs(tr), $("#TrLogs"));
+		bindToElement($getLogs(tr), $("#TrLogs"), true);
 	}
 
 	function refreshMc() {
@@ -126,7 +128,7 @@ Loader.promise.then(function(){
 		bindToElement(mc.paStartReward().then(ethUtil.toEth), $("#McPaStartReward"));
 		bindToElement(mc.paEndReward().then(ethUtil.toEth), $("#McPaEndReward"));
 		bindToElement(mc.paFeeCollectRewardDenom().then(toPct), $("#McPaFeeCollectReward"));
-		bindToElement($getLogs(mc), $("#McLogs"), false);
+		bindToElement($getLogs(mc), $("#McLogs"), true);
 	}
 
 	function refreshPac() {
@@ -149,6 +151,6 @@ Loader.promise.then(function(){
 		bindToElement(pac.numEndedAuctions(), $("#PacNumEndedAuctions"));
 		bindToElement(pac.totalPrizes().then(ethUtil.toEth), $("#PacTotalPrizes"));
 		bindToElement(pac.totalFees().then(ethUtil.toEth), $("#PacTotalFees"));
-		bindToElement($getLogs(pac), $("#PacLogs"));
+		bindToElement($getLogs(pac), $("#PacLogs"), true);
 	}
 });
