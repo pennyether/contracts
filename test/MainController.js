@@ -16,7 +16,7 @@ const BID_PRICE_0      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_0 = new BigNumber(2);
 const BID_FEE_PCT_0    = new BigNumber(60);
 const INITIAL_BLOCKS_0 = new BigNumber(15);
-const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_ADD_BLOCKS_0, BID_FEE_PCT_0, INITIAL_BLOCKS_0];
+const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_FEE_PCT_0, BID_ADD_BLOCKS_0, INITIAL_BLOCKS_0];
 const FEE_INCR_0 = BID_PRICE_0.mul(BID_FEE_PCT_0.div(100));
 const BID_INCR_0 = BID_PRICE_0.minus(FEE_INCR_0);
 
@@ -26,7 +26,7 @@ const BID_PRICE_1      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_1 = new BigNumber(0);
 const BID_FEE_PCT_1    = new BigNumber(30);
 const INITIAL_BLOCKS_1 = new BigNumber(5);
-const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_ADD_BLOCKS_1, BID_FEE_PCT_1, INITIAL_BLOCKS_1];
+const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_FEE_PCT_1, BID_ADD_BLOCKS_1, INITIAL_BLOCKS_1];
 const FEE_INCR_1 = BID_PRICE_1.mul(BID_FEE_PCT_1.div(100));
 const BID_INCR_1 = BID_PRICE_1.minus(FEE_INCR_1);
 
@@ -36,7 +36,7 @@ const BID_PRICE_2      = new BigNumber(.001e18);
 const BID_ADD_BLOCKS_2 = new BigNumber(2);
 const BID_FEE_PCT_2    = new BigNumber(30);
 const INITIAL_BLOCKS_2 = new BigNumber(5);
-const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_ADD_BLOCKS_2, BID_FEE_PCT_2, INITIAL_BLOCKS_2];
+const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_FEE_PCT_2, BID_ADD_BLOCKS_2, INITIAL_BLOCKS_2];
 const FEE_INCR_2 = BID_PRICE_2.mul(BID_FEE_PCT_2.div(100));
 const BID_INCR_2 = BID_PRICE_2.minus(FEE_INCR_2);
 
@@ -46,7 +46,7 @@ const BID_PRICE_3      = new BigNumber(.01e18);
 const BID_ADD_BLOCKS_3 = new BigNumber(2);
 const BID_FEE_PCT_3    = new BigNumber(50);
 const INITIAL_BLOCKS_3 = new BigNumber(40);
-const DEF_3 = [SUMMARY_3, INITIAL_PRIZE_3, BID_PRICE_3, BID_ADD_BLOCKS_3, BID_FEE_PCT_3, INITIAL_BLOCKS_3];
+const DEF_3 = [SUMMARY_3, INITIAL_PRIZE_3, BID_PRICE_3, BID_FEE_PCT_3, BID_ADD_BLOCKS_3, INITIAL_BLOCKS_3];
 const FEE_INCR_3 = BID_PRICE_3.mul(BID_FEE_PCT_3.div(100));
 const BID_INCR_3 = BID_PRICE_3.minus(FEE_INCR_3);
 
@@ -449,8 +449,8 @@ describe("MainController", function(){
 			        collector: treasury.address,
 			        initialPrize: DEFS[index][1],
 			        bidPrice: DEFS[index][2],
-			        bidAddBlocks: DEFS[index][3],
-			        bidFeePct: DEFS[index][4],
+			        bidFeePct: DEFS[index][3],
+			        bidAddBlocks: DEFS[index][4],
 			        initialBlocks: DEFS[index][5]
 				})
 				.assertOnlyEvent(treasury, "FundSuccess", {

@@ -1,14 +1,14 @@
 pragma solidity ^0.4.0;
 
 contract __IToken {
-	function collectDividends();
+	function collectDividends() public;
 }
 
 contract UnpayableTokenHolder {
-	function collectDividends(address token){
+	function collectDividends(address token) public {
 		__IToken(token).collectDividends();
 	}
-	function () payable {
-		throw;
+	function () public payable {
+		revert();
 	}
 }

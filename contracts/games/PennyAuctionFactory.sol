@@ -1,9 +1,8 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 import "./PennyAuction.sol";
 import "../roles/UsingPennyAuctionController.sol";
 import "../roles/UsingTreasury.sol";
 
-//@createInterface
 contract PennyAuctionFactory is
     UsingPennyAuctionController,
     UsingTreasury
@@ -25,15 +24,19 @@ contract PennyAuctionFactory is
     function PennyAuctionFactory(address _registry)
         UsingPennyAuctionController(_registry)
         UsingTreasury(_registry)
+        public
     {}
 
-    function createAuction(uint _initialPrize,
-	                       uint _bidPrice,
-                           uint _bidFeePct,
-	                       uint _bidAddBlocks,
-                           uint _initialBlocks)
-        fromPennyAuctionController
+    function createAuction(
+        uint _initialPrize,
+        uint _bidPrice,
+        uint _bidFeePct,
+        uint _bidAddBlocks,
+        uint _initialBlocks
+    )
+        public
         payable
+        fromPennyAuctionController
         returns (PennyAuction _auction)
     {
         require(msg.value == _initialPrize);

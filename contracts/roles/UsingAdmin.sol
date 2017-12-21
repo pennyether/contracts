@@ -5,7 +5,10 @@ import "./UsingRegistry.sol";
 contract UsingAdmin is
 	UsingRegistry
 {
-	function UsingAdmin(address _registry) UsingRegistry(_registry){}
+	function UsingAdmin(address _registry)
+		UsingRegistry(_registry)
+		public
+	{}
 
 	modifier fromAdmin(){
 		require(msg.sender == getAdmin());
@@ -13,6 +16,7 @@ contract UsingAdmin is
 	}
 	
 	function getAdmin()
+		public
 		constant
 		returns (address _addr)
 	{

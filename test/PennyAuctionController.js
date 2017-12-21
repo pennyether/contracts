@@ -460,12 +460,6 @@ describe('PennyAuctionController', function(){
                 .assertCallReturns([pac, "getNumEndedAuctions"], 0)
                 .start();
         });
-        it(".getActiveAuctions() returns two of them", async function(){
-            const callParams = [pac, "getActiveAuctions"];
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, [auction0.address, auction2.address])
-                .start();
-        });
         it(".refreshAuctions() collects fees, ends no games", async function(){
             const fees0 = FEE_INCR_0.mul(2);
             const fees2 = FEE_INCR_2.mul(2);

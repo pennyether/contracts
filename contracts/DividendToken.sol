@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.19;
 
 contract DividendToken {
 	// Comptroller can call .mintTokens() and .burnTokens().
@@ -53,21 +53,25 @@ contract DividendToken {
 	function DividendToken() public {}
 
 	// Upon receiving payment, increment lastPointsPerToken.
-	function () payable public {
+	function ()
+		payable
+		public
+	{
 		// POINTS_PER_WEI is 1e32 -- no overflow unless we get 1e45 wei (1e27 ETH)
 		totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
 		totalDividends += msg.value;
 		DividendReceived(msg.sender, msg.value);
 	}
 
-	// ERC20
+	/*************************************************************/
+	/********** ERC 20 FUNCTIONS *********************************/
+	/*************************************************************/
 	function transfer(address _to, uint _value)
 		public
 	{
 		_transfer(msg.sender, _to, _value);
 	}
 
-	// ERC20
 	function transferFrom(address _from, address _to, uint256 _value)
 		public
 		returns (bool success)
@@ -79,7 +83,6 @@ contract DividendToken {
 		return true;
 	}
 
-	// ERC20
 	function approve(address _spender, uint _value)
 		public
 		returns (bool success)
@@ -89,7 +92,6 @@ contract DividendToken {
 		return true;
 	}
 
-	// ERC20
 	function allowance(address _owner, address _spender)
 		public
 		constant
@@ -98,7 +100,6 @@ contract DividendToken {
 		return allowed[_owner][_spender];
 	}
 
-	// ERC20
 	function balanceOf(address _owner)
 		public
 		constant
@@ -107,8 +108,11 @@ contract DividendToken {
 		return balances[_owner];
 	}
 
-	// Callable by comptroller, adds tokens to a balance.
-	// It first credits them with whatever points are owed.
+
+	/*************************************************************/
+	/******* COMPTROLLER FUNCTIONS *******************************/
+	/*************************************************************/
+	// Credits dividends, then mints more tokens.
 	function mintTokens(address _to, uint _amount)
 		onlyComptroller
 		public
@@ -119,8 +123,7 @@ contract DividendToken {
 		TokensMinted(_to, _amount, totalSupply);
 	}
 	
-	// Callable by comptroller, removes tokens from a balance.
-	// It first credits them with whatever points are owed.
+	// Credits dividends, burns tokens.
 	function burnTokens(address _account, uint _amount)
 	    onlyComptroller
 	    public
@@ -132,8 +135,28 @@ contract DividendToken {
 		TokensBurnt(_account, _amount, totalSupply);
 	}
 
+
+	/*************************************************************/
+	/********** OTHER PUBLIC FUNCTIONS ***************************/
+	/*************************************************************/
+	// Updates creditedPoints, sends all wei to the owner
+	function collectDividends()
+		public
+	{
+		// update creditedPoints, store amount, and zero it.
+		updateCreditedPoints(msg.sender);
+		uint _amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
+		creditedPoints[msg.sender] = 0;
+		CollectedDividends(msg.sender, _amount);
+		msg.sender.transfer(_amount);
+	}
+
+
+	/*************************************************************/
+	/********** PRIVATE FUNCTIONS ********************************/
+	/*************************************************************/
 	// Normal ERC20 transfer, except before transferring
-	// it credits points for the sender and receiver.
+	// it credits points for both the sender and receiver.
 	function _transfer(address _from, address _to, uint _value)
 		private
 	{
@@ -150,23 +173,9 @@ contract DividendToken {
 		Transfer(_from, _to, _value);
 	}
 
-	// Updates creditedPoints, sends all wei to the owner
-	function collectDividends()
-		public
-	{
-		// update creditedPoints, store amount, and zero it.
-		updateCreditedPoints(msg.sender);
-		uint _amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
-		creditedPoints[msg.sender] = 0;
-		CollectedDividends(msg.sender, _amount);
-		msg.sender.transfer(_amount);
-	}
-
 	// Credits _account with whatever dividend points they haven't yet been credited.
-	// This needs to be called before a user's balance changes to ensure their
-	// "lastPointsPerToken" is always accurate.  If this isn't called, a user
-	// could simply transfer a large amount of tokens and receive lots of points
-	// (or conversely transfer out tokens and receive no dividend).
+	// This needs to be called before any user's balance changes to ensure their
+	// "lastPointsPerToken" credits their current balance, and not an altered one.
 	function updateCreditedPoints(address _account)
 		private
 	{
@@ -184,6 +193,10 @@ contract DividendToken {
 		return _pointsPerToken * balances[_account];
 	}
 
+
+	/*************************************************************/
+	/********* CONSTANTS *****************************************/
+	/*************************************************************/
 	// Returns how many wei a call to .collectDividends() would transfer.
 	function getCollectableDividends(address _account)
 		public

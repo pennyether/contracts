@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.19;
 
 /**
 	A locker is a simple wallet that collects dividends
@@ -13,12 +13,19 @@ contract IDividendToken {
 contract DividendTokenLocker {
 	address public owner;
 	address public token;
-	function () payable public {}
-    function DividendTokenLocker(address _token, address _owner) public {
+	
+    function DividendTokenLocker(address _token, address _owner)
+    	public
+    {
 		token = _token;
 		owner = _owner;
 	}
-	function collectDividends() public {
+
+	function () payable public {}
+
+	function collectDividends()
+		public
+	{
 		IDividendToken(token).collectDividends();
 		require(owner.call.value(this.balance)());
 	}

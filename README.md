@@ -62,3 +62,14 @@ To develop:
 	- probably need to install other things... I've polluted my global NPM at this point
 	- truffle test test/PathToTest.js
 	- Front-end development is more complicated... see the readme in "/app"
+
+Notes:
+
+	- truffle compiles by passing a "runs" paramater to solcjs. This parameter tells the
+	  optimizer to optimize against a certain number of "runs" of the contract... 0
+	  represents never running the contract, 1000 represents calling it 1,000 times, etc.
+	  Now, etherscan validates against a value of 200.  There's a separate page that
+	  can allow you to enter a custom value here: 
+	  Anyway, you can change truffle's default by finding wherever the fuck it is
+	  installed (/usr/local/bin/lib/node_modules/trufflesuit/node_modules/truffle-compile)
+	  and changing the value there.

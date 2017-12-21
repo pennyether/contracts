@@ -6,7 +6,10 @@ import "../interfaces/IPennyAuctionController.sol";
 contract UsingPennyAuctionController is
 	UsingRegistry
 {
-	function UsingPennyAuctionController(address _registry) UsingRegistry(_registry){}
+	function UsingPennyAuctionController(address _registry)
+		UsingRegistry(_registry)
+		public
+	{}
 
 	modifier fromPennyAuctionController(){
 		require(msg.sender == address(getPennyAuctionController()));
@@ -14,6 +17,7 @@ contract UsingPennyAuctionController is
 	}
 
 	function getPennyAuctionController()
+		public
 		constant
 		returns (IPennyAuctionController)
 	{

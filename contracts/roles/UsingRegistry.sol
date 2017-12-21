@@ -15,7 +15,9 @@ contract UsingRegistry {
 		_;
 	}
 
-	function UsingRegistry(address _registry){
+	function UsingRegistry(address _registry)
+		public
+	{
 		require(_registry != 0);
 		registry = IRegistry(_registry);
 	}
@@ -29,6 +31,7 @@ contract UsingRegistry {
 	}
 
 	function getOwner()
+		public
 		constant
 		returns (address _addr)
 	{
@@ -36,6 +39,7 @@ contract UsingRegistry {
 	}
 
 	function getRegistry()
+		public
 		constant
 		returns (IRegistry _addr)
 	{

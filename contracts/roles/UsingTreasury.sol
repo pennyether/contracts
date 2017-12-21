@@ -6,7 +6,10 @@ import "../interfaces/ITreasury.sol";
 contract UsingTreasury is
 	UsingRegistry
 {
-	function UsingTreasury(address _registry) UsingRegistry(_registry){}
+	function UsingTreasury(address _registry)
+		UsingRegistry(_registry)
+		public
+	{}
 
 	modifier fromTreasury(){
 		require(msg.sender == address(getTreasury()));
@@ -14,6 +17,7 @@ contract UsingTreasury is
 	}
 	
 	function getTreasury()
+		public
 		constant
 		returns (ITreasury)
 	{

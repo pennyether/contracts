@@ -61,7 +61,8 @@ Loader.promise.then(function(){
 		const adminAddr = $("#FullDeployAdminAddress").val();
 		var reg, tr, comp;
 		Registry.new().then(function(result){
-			addLog("Creating new instances...");
+			addLog(`Registry created @ ${result.instance.address}`);
+			addLog(`Creating other instances...`);
 			reg = result.instance;
 			return Promise.all([
 				reg.register({_name: "ADMIN", _addr: adminAddr}),

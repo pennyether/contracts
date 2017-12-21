@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.19;
 
 import "./DividendToken.sol";
 import "./DividendTokenLocker.sol";
@@ -44,7 +44,9 @@ contract Comptroller {
 	event TokensBought(address indexed sender, uint value, uint numTokens);
 	event TokensBurnt(address indexed sender, uint numTokens, uint refund);
 
-	function Comptroller() public {
+	function Comptroller()
+		public
+	{
 		// the locker will always own at least 1 token.
 		// this way, if nobody buys tokens, locker gets all profits.
 		token.mintTokens(locker, 1);
@@ -52,25 +54,39 @@ contract Comptroller {
 
 	// Only accept payment from Treasury
 	// This hapens in burnTokens when we call .removeFromBankroll()
-	function () payable {
+	function ()
+		payable
+		public
+	{
 		require(msg.sender == address(treasury));
 	}
 
+	/*************************************************************/
+	/************ OWNER FUNCTIONS ********************************/
+	/*************************************************************/
 	// Allows owner to initialize the treasury one time.
-	function initTreasury(address _treasury) public {
+	function initTreasury(address _treasury)
+		public
+	{
 		require(msg.sender == owner);
 		require(treasury == address(0));
 		require(ITreasury(_treasury).comptroller() == address(this));
 		treasury = ITreasury(_treasury);
 	}
 	// Allows tokens to be bought / burnt.
-	function initSale() public {
+	function initSale()
+		public
+	{
 		require(msg.sender == owner);
 		require(!isStarted);
 		require(treasury != address(0));
 		isStarted = true;
 	}
 
+
+	/*************************************************************/
+	/********** BUYING/BURNING TOKENS ****************************/
+	/*************************************************************/
 	// Allows the sender to buy tokens.
 	function buyTokens()
 		public

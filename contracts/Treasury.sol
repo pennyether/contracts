@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 import "./roles/UsingMainController.sol";
 import "./roles/UsingAdmin.sol";
@@ -62,6 +62,7 @@ contract Treasury is
 	address public comptroller;
 	// minimum amount before allow distribution
 	uint public bankroll;
+	
 	// settable by admin, can increase +/-5%
 	uint public dailyFundLimit;
 	uint public dayDailyFundLimitChanged;
@@ -105,19 +106,26 @@ contract Treasury is
 	function Treasury(address _registry)
 		UsingMainController(_registry)
 		UsingAdmin(_registry)
+		public
 	{}
 
-	/**** OWNER FUNCTIONS *****************************/
+
+	/*************************************************************/
+	/*************** OWNER FUNCTIONS *****************************/
+	/*************************************************************/
 	// Callable once to set the Token address
 	function initToken(address _token)
+		public
 		fromOwner
 	{
 		require(token == address(0));
 		token = _token;
 		TokenSet(now, msg.sender, _token);
 	}
+
 	// Callable once to set the Comptroller address
 	function initComptroller(address _comptroller)
+		public
 		fromOwner
 	{
 		require(comptroller == address(0));
@@ -126,9 +134,12 @@ contract Treasury is
 	}
 	
 
-	/**** ADMIN FUNCTIONS *****************************/
+	/*************************************************************/
+	/*************** ADMIN FUNCTIONS *****************************/
+	/*************************************************************/
 	// Callable once daily to change the dailyFundLimit by up to 5%.
 	function setDailyFundLimit(uint _newValue)
+		public
 		fromAdmin
 	{
 		require(today() > dayDailyFundLimitChanged);
@@ -146,6 +157,7 @@ contract Treasury is
 	// Sets reward for calling .distributeToToken.
 	// Maximum of 1% (minimum denom of 100)
 	function setDistributeReward(uint _newValue)
+		public
 		fromAdmin
 	{
 		require(_newValue >= 100);
@@ -155,9 +167,11 @@ contract Treasury is
 	}
 
 
-	/******* DEPOSTING, FUNDING, DISTRIUTING *************************/
+	/*************************************************************/
+	/******* DEPOSTING, FUNDING, DISTRIUTING *********************/
+	/*************************************************************/
 	// Can receive deposits from anyone (eg: PennyAuctions, other games)
-	function () payable {
+	function () public payable {
 		totalRevenue += msg.value;
 		RevenueReceived(now, msg.sender, msg.value);
 	}
@@ -166,6 +180,7 @@ contract Treasury is
 	// The investment adds bankroll, and mints tokens in return.
 	// The tokens can be burnt to redeem their bankroll.
 	function addToBankroll()
+		public
 		payable
 		fromComptroller
 	{
@@ -173,9 +188,11 @@ contract Treasury is
 		bankroll += msg.value;
 		BankrollChanged(now, _oldValue, bankroll);
 	}
+
 	// Comptroller calls this when somebody burns their tokens. This
 	// sends the bankroll back to the Comptroller to be sent to the user.
 	function removeFromBankroll(uint _amount)
+		public
 		fromComptroller
 	{
 		require(bankroll >= _amount);
@@ -188,6 +205,7 @@ contract Treasury is
 
 	// Sends any surplus balance to the token, and a reward to the caller.
 	function distributeToToken()
+		public
 		returns (bool _success, uint _amount)
 	{
 		if (token == address(0)) {
@@ -224,8 +242,9 @@ contract Treasury is
 	// Since we don't trust "MainController", noRentry modifier
 	// ensures this is only called once at a time.
 	function fundMainController(uint _amount, string _note)
-		noRentry
+		public
 		fromMainController
+		noRentry
 		returns (bool _success)
 	{
 		address _mainController = address(getMainController());
@@ -253,6 +272,7 @@ contract Treasury is
 	// it was not able to use those funds, for some reason.
 	// Subtracts from daily limit so it can be funded again.
 	function acceptRefund(string _note)
+		public
 		payable
 		fromMainController
 	{
@@ -262,10 +282,14 @@ contract Treasury is
 		RefundReceived(now, _note, msg.sender, msg.value);
 	}
 
+
+	/*************************************************************/
+	/*************** CONSTANTS ***********************************/
+	/*************************************************************/
   	// if _amount is too large, or would exceed our limit for today, then return false.
   	function canFund(uint _amount)
-  		constant
   		public
+  		constant
   		returns (bool)
   	{
 		if (_amount > this.balance || _amount > dailyFundLimit) return false;
@@ -275,8 +299,8 @@ contract Treasury is
 
   	// returns 0 unless balance > bankroll + 7*dailyFundLimit
   	function getAmountToDistribute()
-  		constant
   		public
+  		constant
   		returns (uint)
   	{
   		if (token == address(0)) return 0;
@@ -287,8 +311,8 @@ contract Treasury is
 
   	// returns the bankroll plus a buffer of 7 days of funding.
   	function getMinBalanceToDistribute()
-  		constant
   		public
+  		constant
   		returns (uint)
   	{
   		return bankroll + (7 * dailyFundLimit);
@@ -296,8 +320,8 @@ contract Treasury is
 
   	// returns reward to be received if getDistributeReward() is called
   	function getDistributeReward()
-  		constant
   		public
+  		constant
   		returns (uint)
   	{
   		return getAmountToDistribute() / distributeRewardDenom;
@@ -305,8 +329,8 @@ contract Treasury is
 
   	// stats of distributions paid between _startDate and _endDate, inclusive
   	function getDistributionStats(uint _startDate, uint _endDate)
-  		constant
   		public
+  		constant
   		returns (uint _count, uint _total)
   	{
   		if (distributionDates.length == 0) return;
@@ -344,7 +368,6 @@ contract Treasury is
   		} while (_mid != _front);
   		return _mid;
   	}
-
 
   	function today()
   		private 

@@ -1,11 +1,14 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
-/**
-The registry holds mappings of names to addresses.
-It automatically adds a mapping for the creator, as OWNER.
-Only the owner can register names.
+/*
+Registry allows the owner (whoever created the contract)
+to map names to addresses.  Anyone can find a mapped
+address by calling addressOf(), which throws if there
+is no mapping.
+
+To remove a mapping, the owner can register an address
+as 0.
 */
-//@createInterface
 contract Registry {
     // for each name, holds the current address
     mapping (bytes32 => address) addresses;
@@ -16,13 +19,16 @@ contract Registry {
         _;
     }
     
-    function Registry(){
+    function Registry()
+        public
+    {
         addresses["OWNER"] = msg.sender;
     }
 
     // Adds the address to the mapping, so that it can be retrieved later by name.
     // Only the owner can register an address
     function register(bytes32 _name, address _addr)
+        public
         fromOwner
     {
         addresses[_name] = _addr;
@@ -31,6 +37,7 @@ contract Registry {
 
     // Retrieves the address for the name of _name.
     function addressOf(bytes32 _name)
+        public
         constant
         returns (address _addr)
     {

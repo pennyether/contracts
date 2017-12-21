@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 /**
 An unstoppable auction for $_initialPrize.
@@ -61,13 +61,14 @@ contract PennyAuction {
 	event FeeCollectionFailure(uint time);
 
 	function PennyAuction(
-	        address _collector,
-		    uint _initialPrize,
-		    uint _bidPrice,
-		    uint _bidFeePct,
-		    uint _bidAddBlocks,
-	        uint _initialBlocks
-		)
+		address _collector,
+		uint _initialPrize,
+		uint _bidPrice,
+		uint _bidFeePct,
+		uint _bidAddBlocks,
+		uint _initialBlocks
+	)
+		public
 		payable
 	{
         require(_initialPrize > 0);     	 // there is an initial prize
@@ -101,8 +102,9 @@ contract PennyAuction {
 	  mark this as noRentry.
 	*/
 	function()
-		noRentry
+		public
 		payable
+		noRentry
 	{
 		// check that there is still time to bid
 		if (isEnded()) {
@@ -152,10 +154,10 @@ contract PennyAuction {
 
 	// called from payable functions to refund the sender
 	// if we cannot refund, throw so that the tx reverts
-	function errorAndRefund(string _msg) private {
-		if (!msg.sender.call.value(msg.value)()){
-		 	throw;
-		}
+	function errorAndRefund(string _msg)
+		private
+	{
+		require(msg.sender.call.value(msg.value)());
 		BidRefundSuccess({time: now, msg: _msg, bidder: msg.sender});
 	}
 
@@ -163,6 +165,7 @@ contract PennyAuction {
 	Sends prize to the current winner using _gasLimit (0 is unlimited)
 	*/
 	function payWinner(uint _gasLimit)
+		public
 	    noRentry
 	    returns (bool _success, uint _prizeSent)
 	{
@@ -213,6 +216,7 @@ contract PennyAuction {
 	Sends the fees to the collector, or throws
 	*/
 	function collectFees()
+		public
 	    noRentry
 	    returns (bool _success, uint _feesSent)
     {
@@ -231,12 +235,20 @@ contract PennyAuction {
 	}
 
 	// Returns true if the auction has ended
-	function isEnded() constant returns (bool _bool) {
+	function isEnded()
+		public
+		constant
+		returns (bool _bool)
+	{
 		return block.number >= blockEnded;
 	}
 	
 	// returns the number of blocks remaining
-	function getBlocksRemaining() constant returns (uint _timeRemaining) {
+	function getBlocksRemaining()
+		public
+		constant
+		returns (uint _timeRemaining)
+	{
 	    if (isEnded()) return 0;
 	    return blockEnded - block.number;
 	}

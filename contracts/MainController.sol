@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 import "./roles/UsingPennyAuctionController.sol";
 import "./roles/UsingTreasury.sol";
@@ -44,15 +44,21 @@ contract MainController is
 		UsingPennyAuctionController(_registry)
 		UsingTreasury(_registry)
 		UsingAdmin(_registry)
+		public
 	{}
 
-	function() payable {}
+	function() public payable {}
 
+
+	/*************************************************************/
+	/****** ADMIN FUNCTIONS **************************************/
+	/*************************************************************/
 	function setPennyAuctionRewards(
 		uint _paStartReward,
 		uint _paEndReward,
 		uint _paFeeCollectRewardDenom
 	)
+		public
 		fromAdmin
 	{
 		require(_paFeeCollectRewardDenom >= 100);
@@ -62,9 +68,13 @@ contract MainController is
 		PennyAuctionRewardsChanged(now);
 	}
 
-	// Starts a pennyAuction
-	// Upon success, caller gets their gas back plus a bonus
+	/*************************************************************/
+	/******* PUBLIC FUNCTIONS ************************************/
+	/*************************************************************/
+	// Starts a pennyAuction at some index of a predefined auction.
+	// on success, caller gets a reward.
 	function startPennyAuction(uint _index)
+		public
 		returns (bool _success, address _auction)
 	{
 		// ensure it is startable
@@ -104,8 +114,9 @@ contract MainController is
 	}
 
 	// calls .refreshPennyAuctions() (ends auctions, collects fees)
-	// user gets their gas back, plus a bonus
+	// user gets a bonus for each auction ended, as well as fees collected.
 	function refreshPennyAuctions()
+		public
 		returns (uint _numAuctionsEnded, uint _feesCollected)
 	{
 		// do the call
@@ -137,12 +148,18 @@ contract MainController is
 		return;
 	}
 
+
+	/*************************************************************/
+	/************ CONSTANTS **************************************/
+	/*************************************************************/
 	// Gets the total reward amount if one were to call pac.refreshPennyAuctions()
 	// Note: this is an estimate -- it's possible that a call to <auction>.collectFees()
 	//		 can fail to send fees to its collector, in which case those fees wont be
 	//		 actually counted and rewarded upon.
 	function getRefreshPennyAuctionsReward()
-		constant returns (uint _amount)
+		public
+		constant 
+		returns (uint _amount)
 	{
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
@@ -154,13 +171,16 @@ contract MainController is
 	// Finds a definedAuction() that can be started, and returns the reward and index.
 	// If reward is > 0, you can call .startPennyAuction(_index) to receive it.
 	function getStartPennyAuctionReward()
-		constant returns (uint _amount, uint _index)
+		public
+		constant
+		returns (uint _amount, uint _index)
 	{
-		if (!getTreasury().canFund(paStartReward)) return (0,0);
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _numIndexes = _pac.numDefinedAuctions();
 		for (_index = 0; _index < _numIndexes; _index++) {
 			if (!_pac.getIsStartable(_index)) continue;
+			if (!getTreasury().canFund(_pac.getInitialPrize(_index) + paStartReward))
+				continue;
 			return (paStartReward, _index);
 		}
 		return (0, 0);
