@@ -100,12 +100,12 @@ contract DividendToken {
 		return allowed[_owner][_spender];
 	}
 
-	function balanceOf(address _owner)
+	function balanceOf(address _addr)
 		public
 		constant
 		returns (uint balance)
 	{
-		return balances[_owner];
+		return balances[_addr];
 	}
 
 

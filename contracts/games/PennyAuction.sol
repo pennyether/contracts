@@ -52,11 +52,11 @@ contract PennyAuction {
 
 	event Error(uint time, string msg);
 	event Started(uint time, uint initialBlocks);
-	event BidOccurred(uint time, address bidder);
-	event BidRefundSuccess(uint time, string msg, address bidder);
-	event BidRefundFailure(uint time, string msg, address bidder);
-	event PaymentSuccess(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
-	event PaymentFailure(uint time, address redeemer, address recipient, uint amount, uint gasLimit);
+	event BidOccurred(uint time, address indexed bidder);
+	event BidRefundSuccess(uint time, string msg, address indexed bidder);
+	event BidRefundFailure(uint time, string msg, address indexed bidder);
+	event PaymentSuccess(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
+	event PaymentFailure(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
 	event FeeCollectionSuccess(uint time, uint amount);
 	event FeeCollectionFailure(uint time);
 

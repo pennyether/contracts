@@ -20,12 +20,6 @@ Loader.promise.then(function(){
 			element.empty().text(`Error: ${e.message}`);
 		});
 	}
-	function toEth(val) {
-		return (new BigNumber(val)).div(1e18);
-	}
-	function toWei(val) {
-		return (new BigNumber(val)).mul(1e18);
-	}
 
 	$("#Populate").click(function(){
 		const $log = $("#PopulateLog").empty();
@@ -69,12 +63,12 @@ Loader.promise.then(function(){
 		$("#TrToday").text( ((+new Date())/(1000*60*60*24)).toFixed(2) );
 		bindToElement(tr.getAdmin(), $("#TrAdmin"));
 		bindToElement(tr.dayDailyFundLimitChanged(), $("#TrDailyFundLimitLastChanged"));
-		bindToInput(tr.dailyFundLimit().then(toEth), $("#TrDailyFundLimit"));
+		bindToInput(tr.dailyFundLimit().then(ethUtil.toEth), $("#TrDailyFundLimit"));
 	}
 
 	$("#TrChangeDailyFundLimit").click(function(){
 		if (!tr) return alert("tr not loaded.");
-		const newLimit = toWei($("#TrDailyFundLimit").val());
+		const newLimit = ethUtil.toWei($("#TrDailyFundLimit").val());
 		tr.setDailyFundLimit({_newValue: newLimit})
 			.then(function(){
 				alert("Value updated.");
@@ -88,14 +82,14 @@ Loader.promise.then(function(){
 	function updateMc() {
 		if (!mc) return alert("mc not loaded.");
 		bindToElement(mc.getAdmin(), $("#McAdmin"));
-		bindToInput(mc.paStartReward().then(toEth), $("#McPaStartReward"));
-		bindToInput(mc.paEndReward().then(toEth), $("#McPaEndReward"));
+		bindToInput(mc.paStartReward().then(ethUtil.toEth), $("#McPaStartReward"));
+		bindToInput(mc.paEndReward().then(ethUtil.toEth), $("#McPaEndReward"));
 		bindToInput(mc.paFeeCollectRewardDenom(), $("#McPaRewardDenom"));
 	}
 	$("#McChangePaRewards").click(function(){
 		if (!mc) return alert("mc not loaded.");
-		const paStartReward = toWei($("#McPaStartReward").val());
-		const paEndReward = toWei($("#McPaEndReward").val());
+		const paStartReward = ethUtil.toWei($("#McPaStartReward").val());
+		const paEndReward = ethUtil.toWei($("#McPaEndReward").val());
 		const paRewardDenom = $("#McPaRewardDenom").val();
 		mc.setPennyAuctionRewards({
 			_paStartReward: paStartReward,
@@ -133,8 +127,8 @@ Loader.promise.then(function(){
 					$defined.find(".auction").text(res[0]);
 					$defined.find(".enabled").text(res[1] ? "ENABLED" : "DISABLED");
 					$defined.find(".summary").val(res[2]);
-					$defined.find(".initialPrize").val(toEth(res[3]));
-					$defined.find(".bidPrice").val(toEth(res[4]));
+					$defined.find(".initialPrize").val(ethUtil.toEth(res[3]));
+					$defined.find(".bidPrice").val(ethUtil.toEth(res[4]));
 					$defined.find(".bidFeePct").val(res[5])
 					$defined.find(".bidAddBlocks").val(res[6]);
 					$defined.find(".initialBlocks").val(res[7]);
@@ -160,8 +154,8 @@ Loader.promise.then(function(){
 		var obj = {
 			_index: index,
 			_summary: $e.find(".summary").val(),
-			_initialPrize: toWei($e.find(".initialPrize").val()),
-			_bidPrice: toWei($e.find(".bidPrice").val()),
+			_initialPrize: ethUtil.toWei($e.find(".initialPrize").val()),
+			_bidPrice: ethUtil.toWei($e.find(".bidPrice").val()),
 			_bidFeePct: $e.find(".bidFeePct").val(),
 			_bidAddBlocks: $e.find(".bidAddBlocks").val(),
 			_initialBlocks: $e.find(".initialBlocks").val()
@@ -177,6 +171,7 @@ Loader.promise.then(function(){
 		if (!pac) return alert("Pac not loaded");
 		pac.enableDefinedAuction({_index: index}).then(()=>{
 			alert(`Defined auction ${index} is now enabled.`);
+			updatePac();
 		}).catch(e=>{
 			alert(`Failed to enable auction ${index}.`);
 		})
@@ -186,6 +181,7 @@ Loader.promise.then(function(){
 		debugger;
 		pac.disableDefinedAuction({_index: index}).then(()=>{
 			alert(`Defined auction ${index} is now enabled.`);
+			updatePac();
 		}).catch(e=>{
 			alert(`Failed to enable auction ${index}.`);
 		})

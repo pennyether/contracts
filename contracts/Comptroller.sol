@@ -43,6 +43,7 @@ contract Comptroller {
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
 	event TokensBurnt(address indexed sender, uint numTokens, uint refund);
+	event SaleStarted(uint date);
 
 	function Comptroller()
 		public
@@ -81,6 +82,7 @@ contract Comptroller {
 		require(!isStarted);
 		require(treasury != address(0));
 		isStarted = true;
+		SaleStarted(now);
 	}
 
 

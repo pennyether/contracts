@@ -94,14 +94,14 @@ contract Treasury is
 	event DailyFundLimitChanged(uint time, address sender, uint oldValue, uint newValue);
 	event DistributeRewardChanged(uint time, address sender, uint oldValue, uint newValue);
 	// non-admin stuff
-	event RevenueReceived(uint time, address sender, uint amount);
+	event RevenueReceived(uint time, address indexed sender, uint amount);
 	event DistributeError(uint time, string msg);
 	event DistributeSuccess(uint time, address token, uint amount);
 	event DistributeFailure(uint time, address token, uint amount);
-	event RewardPaid(uint time, address recipient, string note, uint amount);
-	event FundSuccess(uint time, address recipient, string note, uint value);
-	event FundFailure(uint time, string reason, address recipient, string note, uint value);
-	event RefundReceived(uint time, string note, address sender, uint value);
+	event RewardPaid(uint time, address indexed recipient, string note, uint amount);
+	event FundSuccess(uint time, address indexed recipient, string note, uint value);
+	event FundFailure(uint time, string reason, address indexed recipient, string note, uint value);
+	event RefundReceived(uint time, string note, address indexed sender, uint value);
 
 	function Treasury(address _registry)
 		UsingMainController(_registry)

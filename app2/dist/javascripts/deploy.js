@@ -18,13 +18,6 @@ Loader.promise.then(function(){
 		$("#RegLoadAddress").val(regAddress)
 		$("#RegLoad").click();
 		Promise.resolve()
-			// Treasury
-			.then(()=>reg.addressOf({_name: "TREASURY"}))
-			.then((addr)=>{
-				addLog(`Found treasury at ${addr}`);
-				$("#TrLoadAddress").val(addr);
-				$("#TrLoad").click();
-			}, (e)=>{ addLog(`Didn't find treasury.`); })
 			// comptroller
 			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
 			.then((addr)=>{
@@ -32,6 +25,13 @@ Loader.promise.then(function(){
 				$("#CompLoadAddress").val(addr);
 				$("#CompLoad").click();
 			}, (e)=>{ addLog(`Didn't find comptroller.`); })
+			// Treasury
+			.then(()=>reg.addressOf({_name: "TREASURY"}))
+			.then((addr)=>{
+				addLog(`Found treasury at ${addr}`);
+				$("#TrLoadAddress").val(addr);
+				$("#TrLoad").click();
+			}, (e)=>{ addLog(`Didn't find treasury.`); })
 			// Main controller
 			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
 			.then((addr)=>{
@@ -152,6 +152,66 @@ Loader.promise.then(function(){
 	});
 	/******** REGISTRY ***************************/
 
+	/******** COMPTROLLER ************************/
+	$("#CompCreate").click(function(){
+		Comptroller.new().then(function(result){
+			$("#CompLoadAddress").val(result.instance.address);
+			$("#CompLoad").click();
+		});
+	});
+	$("#CompLoad").click(function(){
+		const address = $("#CompLoadAddress").val();
+		const comp = Comptroller.at(address);
+		$("#CompAddress").text(address);
+		bindToElement(comp.owner(), $("#CompOwner"));
+		bindToElement(comp.treasury(), $("#CompTreasury"));
+		bindToElement(comp.token(), $("#CompToken"));
+		bindToElement(comp.locker(), $("#CompLocker"));
+	});
+	$("#CompRegister").click(function(){
+		const compAddress = $("#CompLoadAddress").val();
+		const regAddress = $("#RegLoadAddress").val();
+		if (!compAddress) return alert("No address set (use Load input)");
+		if (!regAddress) return alert("No address set for registry.");
+		Registry.at(regAddress)
+		.register({_name: "COMPTROLLER", _addr: compAddress})
+		.then(function(){
+			alert("Comptroller has been registered.");
+		}).catch(function(e){
+			alert(`Failed to register: ${e.message}`);
+		});
+	});
+
+	$("#CompInitTreasury").click(function(){
+		const compAddress = $("#CompLoadAddress").val();
+		const treasuryAddress = $("#CompInitTreasuryAddress").val();
+		if (!compAddress) return aler("No Comptroller address set.");
+		if (!treasuryAddress) return alert("No Treasury address set.");
+		const comp = Comptroller.at(compAddress);
+		comp.initTreasury({_treasury: treasuryAddress})
+			.then(function(){
+				alert("Treasury has been initialized.");
+				$("#CompLoad").click();
+			})
+			.catch(function(){
+				alert("Unable to init treasury. Are you the owner?");
+			});
+	});
+	$("#CompInitSale").click(function(){
+		const compAddress = $("#CompLoadAddress").val();
+		if (!compAddress) return aler("No Comptroller address set.");
+		const comp = Comptroller.at(compAddress);
+		comp.initSale()
+			.then(function(){
+				alert("Sale has started!");
+				$("#CompLoad").click();
+			})
+			.catch(function(){
+				alert("Unable to initSale. Are you the owner?");
+			});
+	})
+	/******** COMPTROLLER ************************/
+
 	/******** TREASURY ***************************/
 	$("#TrCreate").click(function(){
 		const regAddress = $("#TrRegistryAddress").val();
@@ -217,66 +277,6 @@ Loader.promise.then(function(){
 			});
 	});
 	/******** TREASURY ***************************/
-
-	/******** COMPTROLLER ************************/
-	$("#CompCreate").click(function(){
-		Comptroller.new().then(function(result){
-			$("#CompLoadAddress").val(result.instance.address);
-			$("#CompLoad").click();
-		});
-	});
-	$("#CompLoad").click(function(){
-		const address = $("#CompLoadAddress").val();
-		const comp = Comptroller.at(address);
-		$("#CompAddress").text(address);
-		bindToElement(comp.owner(), $("#CompOwner"));
-		bindToElement(comp.treasury(), $("#CompTreasury"));
-		bindToElement(comp.token(), $("#CompToken"));
-		bindToElement(comp.locker(), $("#CompLocker"));
-	});
-	$("#CompRegister").click(function(){
-		const compAddress = $("#CompLoadAddress").val();
-		const regAddress = $("#RegLoadAddress").val();
-		if (!compAddress) return alert("No address set (use Load input)");
-		if (!regAddress) return alert("No address set for registry.");
-		Registry.at(regAddress)
-		.register({_name: "COMPTROLLER", _addr: compAddress})
-		.then(function(){
-			alert("Comptroller has been registered.");
-		}).catch(function(e){
-			alert(`Failed to register: ${e.message}`);
-		});
-	});
-
-	$("#CompInitTreasury").click(function(){
-		const compAddress = $("#CompLoadAddress").val();
-		const treasuryAddress = $("#CompInitTreasuryAddress").val();
-		if (!compAddress) return aler("No Comptroller address set.");
-		if (!treasuryAddress) return alert("No Treasury address set.");
-		const comp = Comptroller.at(compAddress);
-		comp.initTreasury({_treasury: treasuryAddress})
-			.then(function(){
-				alert("Treasury has been initialized.");
-				$("#CompLoad").click();
-			})
-			.catch(function(){
-				alert("Unable to init treasury. Are you the owner?");
-			});
-	});
-	$("#CompInitSale").click(function(){
-		const compAddress = $("#CompLoadAddress").val();
-		if (!compAddress) return aler("No Comptroller address set.");
-		const comp = Comptroller.at(compAddress);
-		comp.initSale()
-			.then(function(){
-				alert("Sale has started!");
-				$("#CompLoad").click();
-			})
-			.catch(function(){
-				alert("Unable to initSale. Are you the owner?");
-			});
-	})
-	/******** COMPTROLLER ************************/
 
 	/******** MAIN CONTROLLER ********************/
 	$("#McCreate").click(function(){

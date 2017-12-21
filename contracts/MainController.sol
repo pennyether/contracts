@@ -37,8 +37,8 @@ contract MainController is
 	event RewardGasPriceLimitChanged(uint time);
 	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address addr);
-	event RewardPaid(uint time, address recipient, string note, uint amount);
-	event RewardNotPaid(uint time, address recipient, string note, uint amount);
+	event RewardPaid(uint time, address indexed recipient, string note, uint amount);
+	event RewardNotPaid(uint time, address indexed recipient, string note, uint amount);
 
 	function MainController(address _registry)
 		UsingPennyAuctionController(_registry)

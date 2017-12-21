@@ -19,9 +19,9 @@
 			new Promise((res, rej)=>{ window.addEventListener('load', res); }),
 			addScript("https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"),
 			addScript("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
-			addScript("./javascripts/lib/EthAbi.js"),
-			addScript("./javascripts/lib/ABIs.js"),
-			addScript("./javascripts/lib/NiceWeb3.js")
+			addScript("/javascripts/lib/EthAbi.js"),
+			addScript("/javascripts/lib/ABIs.js"),
+			addScript("/javascripts/lib/NiceWeb3.js")
 		]).then(()=>{
 			var Web3 = require("web3");
 			if (!window.Web3) throw new Error("Unable to find web3.");
@@ -30,7 +30,7 @@
 			if (!window.ABIs){ throw new Error("window.ABIs not found!"); }
 
 		    // create web3 object depending on if its from browser or not
-		    const _web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
 			if (typeof web3 !== 'undefined') {
 				console.log("Got the injected web3!");
 		    	window.web3 = new Web3(web3.currentProvider);
@@ -42,6 +42,7 @@
 		  	window._web3 = _web3;
 		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi);
 		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
+		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
 		  	
 		  	
@@ -74,6 +75,7 @@
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
 		  		window[contractName] = niceWeb3.createContractFactory(contractName, abi.abi, abi.unlinked_binary);
+				window[`_${contractName}`] = _web3.eth.contract(abi.abi);
 				console.log(`Set window.${contractName} to new niceWeb3ContractFactory`);
 		  	});
 		});

@@ -14,7 +14,8 @@
 		const _self = this;
 		this._knownInstances = {};
 		this.web3 = web3;
-		this.ethAbi = ethAbi;
+		this.ethUtil = new EthUtil(web3, ethAbi);
+
 		this.createContractFactory = function(contractName, abi, unlinked_binary){
 			return new NiceWeb3ContractFactory(_self, contractName, abi, unlinked_binary);
 		};
@@ -23,64 +24,39 @@
 			if (!name) name = `${instance.contractName}@${instance.address}`;
 			_self._knownInstances[instance.address.toLowerCase()] = instance;
 		};
+		// gets all events in a way shitamask and infura can live with
+		this.getAllEvents = function(instance) {
+			return _self.ethUtil.sendAsync("eth_getLogs", [{
+				address: instance.address,
+				fromBlock: web3.toHex(0),
+				toBlock: "latest"
+			}]).then((rpcResponse)=>{
+				const events = rpcResponse.result;
+				const arr = _self.decodeKnownEvents(events);
+				if (arr[0].length !== events.length)
+					throw new Error("Unable to decode events", instance, events)
+				return arr[0];
+			});
+		};
+		// will decode events where the address matches a known instance
+		// and that instance has the topic in its ABI
 		this.decodeKnownEvents = function(events) {
-			// for each log, see if the address matches.
 			const knownEvents = [];
 			const unknownEvents = [];
 			events.forEach((event)=>{
+				// return if its not known
 				const instance = _self._knownInstances[event.address];
 				if (!instance) { unknownEvents.push(event); return; }
-				// find corresponding ABI entry
-				const def = instance.abi.find((abi)=>{
-					return (abi.type === 'event' && 
-						event.topics[0].startsWith(ethAbi.encodeSignature(abi)));
-				});
-				if (!def) { unknownEvents.push(event); return; }
-				// update the event to have nice names.
-				event.name = def['name'];
-				event.args = ethAbi.decodeEvent(def, event.data);
-				delete event.data;
-				delete event.topics;
-				knownEvents.push(event);
+				// try to decode it (ABI may not have the topic)
+				const decodedEvent = _self.ethUtil.decodeEvent(event, instance.abi);
+				decodedEvent
+					? knownEvents.push(decodedEvent)
+					: unknownEvents.push(event);
 			})
 			return [knownEvents, unknownEvents];
 		};
-		this.doEthCall = function(name) {
-			const params = Array.prototype.slice.call(arguments);
-			params.shift();
-			return new Promise((resolve, reject)=>{
-				web3.eth[name].apply(web3.eth, params, function(err, result){
-					if (err){ reject(err); return; }
-					resolve(result);
-				});
-			});
-		};
-		this.getTxReceipt = function(transactionHash) {
-			var resolve, reject;
-			const p = new Promise((res, rej)=>{ resolve=res; reject=rej; });
-			function poll() {
-				web3.eth.getTransactionReceipt(transactionHash, function(err, result){
-					if (err){ reject(err); return; }
-					if (result){ resolve(result); return; }
-					setTimeout(poll, 1000);
-				});
-			}
-			poll();
-			return p;
-		};
-		this.getTx = function(transactionHash) {
-			var resolve, reject;
-			const p = new Promise((res, rej)=>{ resolve=res; reject=rej; });
-			function poll() {
-				web3.eth.getTransaction(transactionHash, function(err, result){
-					if (err){ reject(err); return; }
-					if (result){ resolve(result); return; }
-					setTimeout(poll, 1000);
-				});
-			}
-			poll();
-			return p;
-		};
+
+		// allows for someone to watch all calls from instances
 		this.setCallHook = function(callHook) {
 			_callHook = callHook;
 		};
@@ -95,7 +71,6 @@
 		
 		const _self = this;
 		const _web3 = niceWeb3.web3;
-		const _ethAbi = niceWeb3.EthAbi;
 		const BigNumber = _web3.toBigNumber(0).constructor;
 
 		this.niceWeb3 = niceWeb3
@@ -127,15 +102,20 @@
 		this.at = function(address) {
 			if (typeof address!=='string' || address.length!==42)
 				throw new Error(`Expected an address, but got: ${address}.`);
+			// create standard web3 instance
 			const _contractFactory = _self.contract;
 			const instance = _contractFactory.at.call(_contractFactory, address);
+			instance.niceContractFactory = _self;
+			// attach a bunch of useful functions...
+			// you know, that return actual promises and useful results.
 			abi.filter(def=>def.type==='function').forEach(def=>{
 				const oldCall = instance[def.name].bind(instance);
 				instance[def.name] = getCallFn(oldCall, def, instance);
 			});
-			instance.niceContractFactory = _self;
+			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
+			// add instance to known instances (so can parse events)
 			niceWeb3.addKnownInstance(instance);
-			console.log(`Using ${contractName} @ ${instance.address}`, instance);
+			//console.log(`Created ${contractName} @ ${instance.address}`);
 			return instance;
 		};
 
@@ -228,8 +208,8 @@
 				if (isConstant) return result;
 
 				return Promise.all([
-					niceWeb3.getTxReceipt(txHash),
-					niceWeb3.getTx(txHash)
+					niceWeb3.ethUtil.getTxReceipt(txHash),
+					niceWeb3.ethUtil.getTx(txHash)
 				]).then(
 					(arr)=>{
 						const receipt = arr[0];
@@ -252,7 +232,7 @@
 					},(err)=>{
 						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
 					}
-				).then(niceWeb3.getTx(txHash))
+				).then(niceWeb3.ethUtil.getTx(txHash))
 			});
 
 			if (!isConstant) txResultPromise.getTxHash = txCallPromise;
@@ -261,37 +241,178 @@
 		}
 	}
 
+	function EthUtil(web3, ethAbi) {
+		const _web3 = web3;
+		const _ethAbi = ethAbi;
+		const _self = this;
+
+		this.NO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+		// decodes event, or returns null if no matching topic in abi
+		this.decodeEvent = function(event, abi) {
+			// find corresponding ABI entry
+			const def = abi.find((abi)=>{
+				return (abi.type === 'event' && 
+					event.topics[0].startsWith(_ethAbi.encodeSignature(abi)));
+			});
+			if (!def) { return null; }
+			// update the event to have nice names.
+			event.name = def['name'];
+			event.args = _ethAbi.decodeEvent(def, event.data, undefined, false);
+			event.argStrs = {};
+			def.inputs.forEach((i) => {
+				event.argStrs[i.name] = ethUtil.inputToString(i.name, i.type, event.args[i.name]);
+			});
+			delete event.data;
+			delete event.topics;
+			return event;
+		};
+
+		this.inputToString = function(name, type, val) {
+			if (name=="time") {
+				return (new Date(val.toNumber()*1000)).toString();
+			} else {
+				return `${val}`;
+			}
+		}
+
+		// does a low-level JSON RPC call with provided method/params
+		this.sendAsync = function(method, params){
+	        return new Promise((res,rej)=>{
+	        	const paramsStr = JSON.stringify(params);
+	        	const name = `$method (${paramsStr}`;
+	        	const obj = {
+		            jsonrpc: "2.0",
+		            method: method,
+		            params: params,
+		            id: new Date().getTime()
+		        };
+		        console.log(`starting asyncSend: ${name}...`);
+	        	_web3.currentProvider.sendAsync(obj, function(err, result){
+	        		console.log(`finished asyncSend: ${name}...`, err, result);
+		        	if (err) rej(err);
+		        	else res(result);
+		        });	
+	        });
+		};
+
+		// resolves/rejects with response from web3.eth.<name>(args[0], args[1],...)
+		this.doEthCall = function(name, args) {
+			if (!args) args = [];
+			if (!Array.isArray(args))
+				throw new Error(`doAsyncEthCall(${name}) expects an array as args.`);
+			return new Promise((resolve, reject)=>{
+				function callback(err, result){
+					if (err){ reject(err); }
+					if (result!==null){ resolve(result); }
+					reject(`_web3.eth.${name} returned null.`);
+				}
+				_web3.eth[name].apply(_web3.eth, args.concat(callback));
+			});
+		};
+
+		// waits for a non-null response from web3.eth.<name>(args[0], args[1],...)
+		this.pollEthCall = function(name, args) {
+			if (!args) args = [];
+			if (!Array.isArray(args))
+				throw new Error(`doAsyncEthCall(${name}) expects an array as args.`);
+
+			return new Promise((resolve, reject)=>{
+				function callback(err, result){
+					if (err){ reject(err); return; }
+					if (result !== null){ resolve(result); return; }
+					setTimeout(poll, 1000);
+				}
+				function poll() {
+					_web3.eth[name].apply(_web3.eth, args.concat(callback));
+				}
+				poll();	
+			});
+		}
+
+		//////// COMMON ETH CALLS ///////////////////////////////
+		this.getTxReceipt = function(transactionHash) {
+			return _self.pollEthCall("getTransactionReceipt", [transactionHash]);
+		};
+		this.getTx = function(transactionHash) {
+			return _self.pollEthCall("getTransaction", [transactionHash]);
+		};
+		this.getBalance = function(addr) {
+			if (addr.address) addr = addr.address;
+			return _self.doEthCall("getBalance", [addr]);
+		};
+		this.getBlockNumber = function(){
+			return _self.doEthCall("getBlockNumber");
+		}
+
+		this.toEth = function(val) {
+			try { var bn = new BigNumber(val); }
+			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
+			return val.div(1e18);
+		}
+		this.toWei = function(val) {
+			try { var bn = new BigNumber(val); }
+			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
+			return val.mul(1e18);
+		}
+		this.getLogs = function(filterObj){
+			_self.doProviderSend("eth_getLogs", filterObj);
+		}
+	}
+
 	// validates providedInputs against abiInputs
-	function _validateInputs(providedInputs, abiInputs, callName) {
+	// Can accept cardinal values:
+	// 		[val1, val2, val3]
+	// or named values:
+	// 		{arg1: val1, arg2: val2}
+	function _validateInputs(providedInputs, abiInputs) {
+		const expectedInputsStr = abiInputs.map(function(def, i){
+			return `${def.name ? def.name : i}: ${def.type}`;
+		}).join(", ");
+
 		// If we abi has no inputs and we also didn't get any, return.
 		if (abiInputs.length==0 && !providedInputs) return [];
-		// If provided inputs is not an object or is null, and we
-		// are expecting some inputs, then throw.
-		if (typeof providedInputs !== "object" || providedInputs === null) {
-			if (abiInputs.length)
-				throw new Error(`Expected an input object, but got: ${providedInputs}`);
+		// if we expected inputs, but got none, throw.
+		if (abiInputs.length>0 && !providedInputs)
+			throw new Error(`Expected inputs: ${expectedInputsStr}, but got none.`);
+		// if provided inputs is not an object, complain
+		if (typeof providedInputs !== "object")
+			throw new Error(`Must be passed an array or object.`);
+		
+		
+		var providedInputsArr;
+		if (Array.isArray(providedInputs)) {
+			providedInputsArr = providedInputs;
+		} else {
+			// If object, for each providedInput key, validate it exists in abiInputs
+			// create a mapping of index => name || index
+			const abiInputsByName = abiInputs.map((def, i)=>def.name ? def.name : i);
+			
+			// for each providedInput key, map the value to corresponding ABI index.
+			// if ABI index not found, its an invalid key.
+			providedInputsArr = [];
+			const invalidInputs = [];
+			Object.keys(providedInputs).forEach((name) => {
+				const index = abiInputsByName.indexOf(name);
+				if (index === -1) invalidInputs.push(name);
+				else providedInputsArr[index] = providedInputs[name];
+			});
+
+			if (invalidInputs.length)
+				throw new Error(`Passed unexpected inputs: ${invalidInputs}`);
 		}
 
-		// For each providedInput, valid it exists in abiInputs
-		const invalidInputs = [];
-		Object.keys(providedInputs).forEach((providedName) => {
-			if (!abiInputs.some((input)=>input.name===providedName)) {
-				invalidInputs.push(providedName);
-			}
-		});
-		if (invalidInputs.length) {
-			throw new Error(`Passed invalid inputs: ${invalidInputs}`);
-		}
+		// validate providedInputsArr has correct length
+		if (providedInputsArr.length > abiInputs.length)
+			throw new Error(`Expected ${abiInputs.length} arguments, but got ${providedInputsArr.length}.`);
 
-		// for each abi input, validate exists correctly in providedInputs
-		// if so, add it to the cardinal inputs array to be returned.
-		const inputs = [];
-		abiInputs.forEach((abiInput) => {
-			const name = abiInput.name;
+		// for each abi input, validate exists correctly in providedInputsArr
+		abiInputs.forEach((abiInput, i) => {
+			const name = abiInput.name ? `"${abiInput.name}"` : "";
 			const type = abiInput.type;
-			const val = providedInputs[name];
-			const nameAsStr = `${type} ${name}`;
-			if (!providedInputs.hasOwnProperty(name)) {
+			const val = providedInputsArr[i];
+			const nameAsStr = `[${i}]${name}: (${type})`;
+			if (!providedInputsArr.hasOwnProperty(i)) {
 				throw new Error(`Not passed expected input: "${nameAsStr}"`);
 			}
 
@@ -308,12 +429,11 @@
 			} else {
 				throw new Error(`Passed unsupported input type: ${nameAsStr}.`);
 			}
-			inputs.push(val);
 		});
-		return inputs;
+		return providedInputsArr;
 	}
 
-	// Validates options passed in.
+	// Validates options passed in against isPayable
 	function _validateOpts(opts, isPayable) {
 		const allowedNames = ["from","value","gas","gasPrice"];
 		const invalidOpts = [];

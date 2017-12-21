@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="/javascripts/lib/Loader.js"></script>
+		<script src="/javascripts/status/system.js"></script>
+		<style>
+			h4 {
+				border-bottom: 1px solid gray;
+				padding: 4px 0px;
+				font-weight: bold;
+				background: #EEE;
+				margin: 20px 0px 0px 0px;
+			}
+			.values {
+				background: #FAFAFA;
+				padding: 10px 0px;
+			}
+			.values span {
+				font-weight: bold;
+				border-bottom: 1px dotted gray;
+			}
+			.values div {
+				padding: 3px 10px;
+			}
+			.logs {
+				border: 1px solid blue;
+				margin: 10px;
+				padding: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="welcome">
+			SYSTEM SUMMARY
+		</div>
+		<div>
+			<input type=text id="PopulateAllRegAddress" value="0x92bb3d907f886f3d4b8b2cf6b491a971692cb488">
+			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
+			<div id="PopulateLog"></div>
+		</div>
+		<div>
+
+			<div>
+				<h4>Owner</h4>
+				<div class="values">
+					<div>
+						Address:
+						<span id="OwnerAddr"></span>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<h4>Admin</h4>
+				<div class="values">
+					<div>
+						Address:
+						<span id="AdminAddr"></span>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<h4>Comptroller</h4>
+				<div class="values">
+					<div>
+						Address:
+						<span id="CompAddr"></span>
+					</div>
+					<div>
+						Token:
+						<span id="CompTokenAddr"></span>
+					</div>
+					<div>
+						TotalSupply
+						<span id="CompTokenTotalSupply"></span> Tokens
+					</div>
+					<div>
+						<b>PennyEther Token Locker</b>:
+						<div>
+							Balance:
+							<span id="CompLockerBalance"></span> Tokens
+						</div>
+						<div>
+							Address:
+							<span id="CompLockerAddr"></span>
+						</div>
+					</div>
+				</div>
+				<div id="CompLogs"></div>
+			</div>
+
+			<div>
+				<h4>Treasury</h4>
+				<div class="values">
+					<div>
+						Address: 
+						<span id="TrAddr"></span>
+					</div>
+					<div>
+						Balance: 
+						<span id="TrBalance"></span> ETH
+					</div>
+					<div>
+						Bankroll: 
+						<span id="TrBankroll"></span> ETH
+					</div>
+					<div>
+						Daily Fund Limit:
+						<span id="TrDailyLimit"></span> ETH
+					</div>
+				</div>
+				<div id="TreasuryLogs"></div>
+			</div>
+
+			<div>
+				<h4>Main Controller</h4>
+				<div class="values">
+					<div>
+						Address: 
+						<span id="McAddr"></span>
+					</div>
+					<div>
+						Version:
+						<span id="McVersion"></span>
+					</div>
+					<div>
+						Penny Auction Start Reward: 
+						<span id="McPaStartReward"></span> ETH
+					</div>
+					<div>
+						Penny Auction End Reward: 
+						<span id="McPaEndReward"></span> ETH
+					</div>
+					<div>
+						Penny Auction Fee Collect Reward: 
+						<span id="McPaFeeCollectReward"></span>%
+					</div>
+				</div>
+				<div id="McLogs"></div>
+			</div>
+
+			<div>
+				<h4>Penny Auction Controller</h4>
+				<div class="values">
+					<div>
+						Address:
+						<span id="PacAddr"></span>
+					</div>
+					<div>
+						Version:
+						<span id="PacVersion"></span>
+					</div>
+					<div>
+						Active Auctions:
+						<span id="PacNumActiveAuctions"></span>
+					</div>
+					<div>
+						Ended Auctions:
+						<span id="PacNumEndedAuctions"></span>
+					</div>
+					<div>
+						Total Prize Money:
+						<span id="PacTotalPrizes"></span>
+					</div>
+					<div>
+						Total Fees Collected:
+						<span id="PacTotalFees"></span>
+					</div>
+				</div>
+				<div id="PacLogs"></div>
+			</div>
+
+		</div>
+	</body>
+</html>

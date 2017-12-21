@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="./javascripts/lib/Loader.js"></script>
-		<script src="./javascripts/deploy.js"></script>
+		<script src="/javascripts/lib/Loader.js"></script>
+		<script src="/javascripts/deploy.js"></script>
 	</head>
 	<body>
 		<div class="welcome">
@@ -19,7 +19,7 @@
 			<div id="FullDeployLog"></div>
 		</div>
 		<div>
-			<input type=text id="PopulateAllRegAddress" value="0xed72f235755ea4e5b2bd55e7ca9558ed5c8558fe">
+			<input type=text id="PopulateAllRegAddress" value="0x92bb3d907f886f3d4b8b2cf6b491a971692cb488">
 			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
 			<div id="PopulateLog"></div>
 		</div>
@@ -71,6 +71,56 @@
 				<div>
 					<button id="RegSetAdmin">Set Admin</button>
 					<input type=text placeholder="address" id="RegSetAdminAddress">
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div>
+			<h1>Comptroller</h1>
+			<div>
+				<h3>Create/Load</h3>
+				<div>
+					<input type=text id="CompLoadAddress" placeholder="address">
+					<button id="CompLoad">Load From Address</button>
+				</div>
+				<div>
+					<button id="CompRegister">Register Self</button>
+				</div>
+				<div>
+					<button id="CompCreate">Create New</button>
+				</div>
+			</div>
+			<div>
+				<h3>Summary</h3>
+				<div>
+					<span>Address:</span>
+					<span id="CompAddress"></span>
+				</div>
+				<div>
+					<span>Owner:</span>
+					<span id="CompOwner"></span>
+				</div>
+				<div>
+					<span>Treasury:</span>
+					<span id="CompTreasury"></span>
+				</div>
+				<div>
+					<span>Token:</span>
+					<span id="CompToken"></span>
+				</div>
+				<div>
+					<span>Locker:</span>
+					<span id="CompLocker"></span>
+				</div>
+			</div>
+			<div>
+				<h3>Interact (Owner Only)</h3>
+				<div>
+					<button id="CompInitTreasury">initTreasury</button>
+					<input type=text placeholder="address" id="CompInitTreasuryAddress">
+				</div>
+				<div>
+					<button id="CompInitSale">initSale!</button>
 				</div>
 			</div>
 		</div>
@@ -131,56 +181,6 @@
 				<div>
 					<button id="TrInitToken">initToken</button>
 					<input type=text placeholder="address" id="TrInitTokenAddress">
-				</div>
-			</div>
-		</div>
-		<hr>
-		<div>
-			<h1>Comptroller</h1>
-			<div>
-				<h3>Create/Load</h3>
-				<div>
-					<input type=text id="CompLoadAddress" placeholder="address">
-					<button id="CompLoad">Load From Address</button>
-				</div>
-				<div>
-					<button id="CompRegister">Register Self</button>
-				</div>
-				<div>
-					<button id="CompCreate">Create New</button>
-				</div>
-			</div>
-			<div>
-				<h3>Summary</h3>
-				<div>
-					<span>Address:</span>
-					<span id="CompAddress"></span>
-				</div>
-				<div>
-					<span>Owner:</span>
-					<span id="CompOwner"></span>
-				</div>
-				<div>
-					<span>Treasury:</span>
-					<span id="CompTreasury"></span>
-				</div>
-				<div>
-					<span>Token:</span>
-					<span id="CompToken"></span>
-				</div>
-				<div>
-					<span>Locker:</span>
-					<span id="CompLocker"></span>
-				</div>
-			</div>
-			<div>
-				<h3>Interact (Owner Only)</h3>
-				<div>
-					<button id="CompInitTreasury">initTreasury</button>
-					<input type=text placeholder="address" id="CompInitTreasuryAddress">
-				</div>
-				<div>
-					<button id="CompInitSale">initSale!</button>
 				</div>
 			</div>
 		</div>
