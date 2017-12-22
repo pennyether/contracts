@@ -47,7 +47,7 @@
 				// return if its not known
 				const instance = _self._knownInstances[event.address];
 				if (!instance) { unknownEvents.push(event); return; }
-				// try to decode it (ABI may not have the topic)
+				// decode it
 				const decodedEvent = _self.ethUtil.decodeEvent(event, instance.abi);
 				decodedEvent
 					? knownEvents.push(decodedEvent)
@@ -223,16 +223,16 @@
 							result.instance = _self.at(receipt.contractAddress)
 						}
 						[known, unknown] = niceWeb3.decodeKnownEvents(receipt.logs);
+						result.receipt = receipt;
+						result.transaction = tx;
 						result.knownEvents = known;
 						result.unknownEvents = unknown;
-						result.receipt = receipt;
 						result.metadata = metadata;
-						result.transaction = tx;
 						return result;
 					},(err)=>{
 						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
 					}
-				).then(niceWeb3.ethUtil.getTx(txHash))
+				)
 			});
 
 			if (!isConstant) txResultPromise.getTxHash = txCallPromise;
@@ -255,10 +255,15 @@
 				return (abi.type === 'event' && 
 					event.topics[0].startsWith(_ethAbi.encodeSignature(abi)));
 			});
-			if (!def) { return null; }
+			if (!def){ return null; }
 			// update the event to have nice names.
 			event.name = def['name'];
-			event.args = _ethAbi.decodeEvent(def, event.data, undefined, false);
+			try {
+				event.args = _ethAbi.decodeEvent(def, event.data, event.topics, false);
+			} catch (e){
+				console.log("Failed to decode event:", event, "With abi:", def);
+				return null;
+			}
 			event.argStrs = {};
 			def.inputs.forEach((i) => {
 				event.argStrs[i.name] = ethUtil.inputToString(i.name, i.type, event.args[i.name]);

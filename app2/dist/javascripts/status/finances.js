@@ -1,4 +1,6 @@
 Loader.promise.then(function(){
+	var reg, comp, tr;
+
 	function bindToElement(promise, element, doAppend) {
 		element.empty().text("loading...");
 		promise.then(function(res){
@@ -9,6 +11,19 @@ Loader.promise.then(function(){
 			element.empty().text(`Error: ${e.message}`);
 		});
 	}
+
+	$("#BuyTokens").click(function(){
+		if (!comp) return alert('Comp must be defined.');
+		const val = new BigNumber($("#NumTokens").val());
+		const value = val.div(1000).mul(1e18);
+		comp.buyTokens([], {value: value}).then((res)=>{
+			console.log('token guy success:', res)
+			alert("Done");
+		}, (e)=>{
+			console.log('token buy error:', e);
+			alert("Error buying tokens.");
+		});
+	})
 
 	$("#PopulateAll").click(function(){
 		const $log = $("#PopulateLog").empty();
@@ -95,6 +110,53 @@ Loader.promise.then(function(){
 			}
 		});
 
+
+		$("#Bankroll").text("loading...");
+		$("#TotalRevenue").text("loading...");
+		$("#TotalDistributed").text("loading...");
+		$("#TotalFunded").text("loading...");
+		$("#TotalRewarded").text("loading...");
+		$("#TotalIn").text("loading...");
+		$("#TotalOut").text("loading...");
+		$("#ExpectedBalance").text("loading...");
+		$("#IsBalanced").text("loading...");
+		Promise.all([
+			tr.bankroll(),
+			tr.totalRevenue(),
+			tr.totalDistributed(),
+			tr.totalFunded(),
+			tr.totalRewarded(),
+			ethUtil.getBalance(tr)
+		]).then((arr)=>{
+			const bankroll = arr[0];
+			const totalRevenue = arr[1];
+			const totalDistributed = arr[2].mul(-1);
+			const totalFunded = arr[3].mul(-1);
+			const totalRewarded = arr[4].mul(-1);
+			const balance = arr[5];
+			const totalIn = bankroll.plus(totalRevenue);
+			const totalOut = totalDistributed.plus(totalFunded).plus(totalRewarded);
+			const expectedBalance = totalIn.minus(totalOut);
+			$("#Bankroll").text(ethUtil.toEth(bankroll) + " ETH");
+			$("#TotalRevenue").text(ethUtil.toEth(totalRevenue) + " ETH");
+			$("#TotalDistributed").text(ethUtil.toEth(totalDistributed) + " ETH");
+			$("#TotalFunded").text(ethUtil.toEth(totalFunded) + " ETH");
+			$("#TotalRewarded").text(ethUtil.toEth(totalRewarded) + " ETH");
+			$("#TotalIn").text(ethUtil.toEth(totalIn) + " ETH");
+			$("#TotalOut").text(ethUtil.toEth(totalOut) + " ETH")
+			$("#ExpectedBalance").text(ethUtil.toEth(expectedBalance) + " ETH");
+
+			if (expectedBalance.equals(balance)) {
+				$("#IsBalanced")
+					.text(`☑ Treasury is balanced -- all funds accounted for.`)
+					.addClass("good").removeClass("bad");
+			} else {
+				$("#IsBalanced")
+					.text(`⚠️ Actual balance is ${ethUtil.toEth(balance) + "ETH"}`)
+					.addClass("bad").removeClass("good");
+			}
+		})
+
 		bindToElement(barPromise, $("#FinanceBar"), true);
 	}
 
@@ -106,7 +168,7 @@ Loader.promise.then(function(){
 		const _$e = $(`
 			<div class="FinanceBar">
 				<div class="bar" style="position: relative;">
-					<div class="divBar" style="height: 100% position: absolute;"></div>
+					<div class="divBar" style="height: 100%; position: absolute;"></div>
 					<div class="fundingBar" style="height: 100%; position: absolute;"></div>
 					<div class="bankrollBar" style="height: 100%; position: absolute;"></div>
 					<div class="collatBar" style="height: 100%; position: absolute;"></div>
@@ -156,9 +218,10 @@ Loader.promise.then(function(){
 				.text("↑ Bankroll: " + ethUtil.toEth(bankroll) + " ETH");
 			_$divThreshTxt.css("left", toPct(divThreshold))
 				.text("↑ Dividend Threshold: " + ethUtil.toEth(divThreshold) + " ETH");
+
 			if (balance.gt(divThreshold)) {
 				_$collatBar.width(toPct(bankroll));
-				_$fundingBar.hide();
+				_$fundingBar.show().width(toPct(divThreshold));
 				_$divBar.show().width(toPct(balance));
 			} else if (balance.gt(bankroll)){
 				_$collatBar.width(toPct(bankroll));

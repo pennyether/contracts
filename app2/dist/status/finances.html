@@ -26,13 +26,14 @@
 			}
 			.divBar {
 				background: #66FF66;
+				border-right: 2px solid green;
 			}
 
 			.bankrollMarker {
-				border-right: 2px solid gray;
+				border-right: 2px dotted gray;
 			}
 			.divThreshMarker {
-				border-right: 2px solid green;
+				border-right: 2px dotted gray;
 			}
 			.balanceTxt {
 				font-size: 75%;
@@ -62,6 +63,37 @@
 			.good {
 				color: green;
 			}
+			.centered {
+				display: inline-block;
+				vertical-align: middle;
+				text-align: center;
+				padding: 3px;
+			}
+			.value {
+
+			}
+			.description {
+				font-weight: bold;
+				font-size: 70%;
+			}
+			.description.positive {
+				color: #484;
+			}
+			.description.negative {
+				color: #844;
+			}
+			.description.right {
+				text-align: right;
+			}
+			.symbol {
+				font-weight: bold;
+				color: #888;
+			}
+			.in, .out {
+				padding-right: 10px;
+				font-weight: bold;
+				color: #888;
+			}
 		</style>
 	</head>
 	<body>
@@ -69,17 +101,90 @@
 			PENNYETHER FINANCIAL STATUS
 		</div>
 		<div>
-			<input type=text id="PopulateAllRegAddress" value="0x92bb3d907f886f3d4b8b2cf6b491a971692cb488">
+			<input type=text id="PopulateAllRegAddress" value="0xc1096f203834d7ef377865dc248c1b8b0adcab88">
 			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
 			<div id="PopulateLog"></div>
+			<div>
+				<h3>Buy tokens</h3>
+				<input type=text id="NumTokens" placeholder="Number of tokens"> Tokens (1 ETH = 1000)
+				<button id="BuyTokens">Buy Tokens</button>
+			</div>
 		</div>
 		<div>
 			<div>
-				<h4>Treasury</h4>
+				<h2>Current Status</h4>
 				<div id="FinanceBar"></div>
 				<div>
 					<div id="BurnStatus"></div>
 					<div id="DivStatus"></div>
+				</div>
+				<h2>Balance</h4>
+				<div>
+					<table cellpadding="0" cellspacing="5">
+						<tr>
+							<td class="in">Funds In:</td>
+							<td align="right">
+								<div>
+									<div class="centered">
+										<div class="value" id="Bankroll"></div>
+										<div class="description positive">Bankroll</div>
+									</div>
+									<div class="centered symbol">+</div>
+									<div class="centered">
+										<div class="value" id="TotalRevenue"></div>
+										<div class="description positive">Revenue</div>
+									</div>
+								</div>
+							</td>
+							<td class="symbol">&nbsp;=&nbsp;</td>
+							<td align=right>
+								<div class="centered">
+									<div class="value" id="TotalIn"></div>
+									<div class="description positive right">Total In</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="out">Funds Out:</td>
+							<td align=right>
+								<div class="centered">
+									<div id="TotalFunded"></div>
+									<div class="description negative">Funded</div>
+								</div>
+								<div class="centered symbol">+</div>
+								<div class="centered">
+									<div class="value" id="TotalDistributed"></div>
+									<div class="description negative">Distributed</div>
+								</div>
+								<div class="centered symbol">+</div>
+								<div class="centered">
+									<div class="value" id="TotalRewarded"></div>
+									<div class="description negative">Rewarded</div>
+								</div>
+							</td>
+							<td class="symbol">&nbsp;=&nbsp;</td>
+							<td align=right>
+								<div class="centered">
+									<div class="value" id="TotalOut"></div>
+									<div class="description negative right">Total Out</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td align=right>
+								<div class="centered">
+									<div class="value" id="ExpectedBalance"></div>
+									<div class="description positive right">Expected Balance</div>
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div>
+						<div id="IsBalanced"></div>
+					</div>
 				</div>
 			</div>
 		</div>

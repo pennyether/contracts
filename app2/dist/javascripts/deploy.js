@@ -59,6 +59,8 @@ Loader.promise.then(function(){
 		const $log = $("#FullDeployLog").empty();
 		const addLog = (msg) => $log.append($("<div>").text(msg));
 		const adminAddr = $("#FullDeployAdminAddress").val();
+		if (!adminAddr) return alert("Must provide admin address.");
+
 		var reg, tr, comp;
 		Registry.new().then(function(result){
 			addLog(`Registry created @ ${result.instance.address}`);

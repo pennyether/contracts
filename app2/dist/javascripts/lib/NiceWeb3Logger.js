@@ -101,6 +101,7 @@
 	  			return;
 	  		}
 
+	  		const callName = p.metadata.callName;
 	  		const $e = _$txTemplate.clone().show().prependTo(_$txs);
 			const $name = $e.find(".name").text(p.metadata.callName);
 			const $hashStatus = $e.find(".hash .status");
@@ -113,7 +114,8 @@
   				$hashStatus.removeClass("pending")
   					.addClass("success")
   					.text(`${txHash}`);
-  				$result.show().text("Mining...");
+  				$result.show();
+  				$resultStatus.text("Mining...");
   			},(e)=>{
   				$hashStatus.removeClass("pending")
   					.addClass("error")
@@ -122,10 +124,12 @@
 
   			// update resultStatus
   			p.then((res)=>{
+  				console.log(`${callName} success`, res);
 	  			$resultStatus.removeClass("pending")
 	  				.addClass("success")
 	  				.text(`Mined.`);
 	  		}, (e)=>{
+	  			console.log(`${callName} failure`, e);
 	  			$resultStatus.removeClass("pending")
 	  				.addClass("error")
 	  				.text(e.message);
