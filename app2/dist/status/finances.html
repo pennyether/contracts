@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="/javascripts/lib/Loader.js"></script>
+		<script src="/javascripts/status/finances.js"></script>
+		<style>
+			.FinanceBar {
+				width: 600px;
+				margin: 30px 20px;
+			}
+			.FinanceBar .bar {
+				border: 1px solid black;
+				background: #FAFAFA;
+				height: 20px;
+			}
+			
+			.bankrollBar {
+				background: #FFDADA;
+				border-right: 2px solid gray;
+			}
+			.collatBar {
+				background: #DAFFDA;
+			}
+			.fundingBar {
+				background: #AAFFAA;
+			}
+			.divBar {
+				background: #66FF66;
+			}
+
+			.bankrollMarker {
+				border-right: 2px solid gray;
+			}
+			.divThreshMarker {
+				border-right: 2px solid green;
+			}
+			.balanceTxt {
+				font-size: 75%;
+				font-weight: bold;
+				white-space: nowrap;
+				margin-left: -3px;
+			}
+			.bankrollTxt {
+				font-size: 75%;
+				font-weight: bold;
+				white-space: nowrap;
+				margin-left: -3px;
+			}
+			.divThreshTxt {
+				font-size: 75%;
+				font-weight: bold;
+				white-space: nowrap;
+				margin-left: -3px;
+			}
+
+			#BurnStatus, #DivStatus {
+				font-weight: bold;
+			}
+			.bad {
+				color: maroon;
+			}
+			.good {
+				color: green;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="welcome">
+			PENNYETHER FINANCIAL STATUS
+		</div>
+		<div>
+			<input type=text id="PopulateAllRegAddress" value="0x92bb3d907f886f3d4b8b2cf6b491a971692cb488">
+			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
+			<div id="PopulateLog"></div>
+		</div>
+		<div>
+			<div>
+				<h4>Treasury</h4>
+				<div id="FinanceBar"></div>
+				<div>
+					<div id="BurnStatus"></div>
+					<div id="DivStatus"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

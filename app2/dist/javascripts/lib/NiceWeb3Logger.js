@@ -2,60 +2,67 @@
 	// receives calls from NiceWeb3 and displays them in the DOM
 	function NiceWeb3Logger(niceWeb3){
 		const _$e = $(`
-			<style>
-				.Web3Logger {
-					position: fixed;
-					background: #CCC;
-					border: 1px solid black;
-					padding: 10px;
-					bottom: 10px;
-					right: 10px;
-				}
+			<div>
+				<style>
+					.Web3Logger {
+						position: fixed;
+						background: #CCC;
+						border: 1px solid black;
+						padding: 10px;
+						bottom: 10px;
+						right: 10px;
+					}
 
-				.Web3Logger .call {
-					margin: 5px;
-					border: 1px solid gray;
-					background: #DDD;
-				}
-				.Web3Logger .call .name {
-					font-weight: bold;
-					padding: 2px 4px;
-					border-bottom: 1px solid gray;
-				}
-				.Web3Logger .call .transaction {
-					font-size: 90%;
-				}
-				.Web3Logger .call .header {
-					font-weight: bold;
-					text-decoration: underline;
-				}
-				.Web3Logger .call .pending {
-					color: gray;
-				}
-				.Web3Logger .call .error {
-					color: red;
-				}
-				.Web3Logger .call .success {
-					color: green;
-				}
-			</style>
-			<div class="Web3Logger">
-				<div>Test</div>
-				<div class="calls"></div>
-				<div class="tx template" style="display: none;">
-					<div class="name"></div>
-					<div class="hash">
-						<div class="header">Transaction:</div>
-						<div class="status"></div>
+					.Web3Logger .tx {
+						margin: 2px 0px;
+						border: 1px solid gray;
+						background: #DDD;
+					}
+					.Web3Logger .tx .name {
+						font-weight: bold;
+						padding: 2px 4px;
+						border-bottom: 1px solid gray;
+					}
+					.Web3Logger .body {
+						padding: 3px;
+					}
+					.Web3Logger .tx .transaction {
+						font-size: 90%;
+					}
+					.Web3Logger .tx .header {
+						font-weight: bold;
+						text-decoration: underline;
+					}
+					.Web3Logger .tx .pending {
+						color: gray;
+					}
+					.Web3Logger .tx .error {
+						color: red;
+					}
+					.Web3Logger .tx .success {
+						color: green;
+					}
+				</style>
+				<div class="Web3Logger">
+					<div>Test</div>
+					<div class="calls"></div>
+					<div class="tx template" style="display: none;">
+						<div class="name"></div>
+						<div class="body">
+							<div class="hash">
+								<div class="header">Transaction:</div>
+								<div class="status"></div>
+							</div>
+							<div class="result" style="display: none;">
+								<div class="header">Result:</div>
+								<div class="status"></div>
+							</div>
+						</div>
 					</div>
-					<div class="result" style="display: none;">
-						<div class="header">Result:</div>
-						<div class="status"></div>
-					</div>
+					<div class="txs"></div>
 				</div>
-				<div class="txs"></div>
 			</div>
-		`).appendTo(document.body);
+		`);
 		const _$txTemplate = _$e.find(".tx.template").removeClass(".template");
 		const _$txs = _$e.find(".txs");
 		const _$calls = _$e.find(".calls");
@@ -106,15 +113,11 @@
   				$hashStatus.removeClass("pending")
   					.addClass("success")
   					.text(`${txHash}`);
+  				$result.show().text("Mining...");
   			},(e)=>{
   				$hashStatus.removeClass("pending")
   					.addClass("error")
   					.text(e.message);
-  			}).then(()=>{
-  				$result.show();
-  				$resultStatus
-  					.addClass("pending")
-  					.text("Mining...");
   			});
 
   			// update resultStatus
@@ -125,7 +128,7 @@
 	  		}, (e)=>{
 	  			$resultStatus.removeClass("pending")
 	  				.addClass("error")
-	  				.text(e);
+	  				.text(e.message);
 	  		});
 		}
 

@@ -122,7 +122,7 @@ Loader.promise.then(function(){
 					.show();
 
 				$defined.find(".index").text(index);
-				pac.definedAuctions({"": index}).then((res)=>{
+				pac.definedAuctions([index]).then((res)=>{
 					$defined.find(".values").show();
 					$defined.find(".auction").text(res[0]);
 					$defined.find(".enabled").text(res[1] ? "ENABLED" : "DISABLED");

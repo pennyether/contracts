@@ -202,7 +202,7 @@
 				}
 				oldCallFn.apply(null, inputs.concat(opts, callbackHandler));
 			});
-			const txResultPromise = txCallPromise.then((hashOrResult)=>{
+			const txResultPromise = Promise.resolve(txCallPromise).then((hashOrResult)=>{
 				const txHash = isConstant ? null : hashOrResult;
 				const result = isConstant ? hashOrResult : null;
 				if (isConstant) return result;
@@ -348,12 +348,12 @@
 		this.toEth = function(val) {
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
-			return val.div(1e18);
+			return bn.div(1e18);
 		}
 		this.toWei = function(val) {
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
-			return val.mul(1e18);
+			return bn.mul(1e18);
 		}
 		this.getLogs = function(filterObj){
 			_self.doProviderSend("eth_getLogs", filterObj);
