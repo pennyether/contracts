@@ -172,8 +172,10 @@ Loader.promise.then(function(){
 					<div class="fundingBar" style="height: 100%; position: absolute;"></div>
 					<div class="bankrollBar" style="height: 100%; position: absolute;"></div>
 					<div class="collatBar" style="height: 100%; position: absolute;"></div>
+
 					<div class="bankrollMarker" style="height: 100%; position: absolute;"></div>
 					<div class="divThreshMarker" style="height: 100%; position: absolute;"></div>
+					<div class="balanceMarker" style="height: 100%; position: absolute;"></div>
 
 					<div class="balanceTxt" style="position: absolute; top: -20px;"></div>
 					<div class="bankrollTxt" style="position: absolute; bottom: -20px;"></div>
@@ -184,11 +186,13 @@ Loader.promise.then(function(){
 		const _$amtBalance = _$e.find(".amtBalance");
 		const _$amtBankroll = _$e.find(".amtBankroll");
 		const _$amtDivThresh = _$e.find(".amtDivThresh");
+
 		const _$divBar = _$e.find(".divBar");
 		const _$fundingBar = _$e.find(".fundingBar");
 		const _$bankrollBar = _$e.find(".bankroll");
 		const _$collatBar = _$e.find(".collatBar");
 
+		const _$balanceMarker = _$e.find(".balanceMarker");
 		const _$bankrollMarker = _$e.find(".bankrollMarker");
 		const _$divThreshMarker = _$e.find(".divThreshMarker");
 
@@ -210,6 +214,7 @@ Loader.promise.then(function(){
 				return result;
 			}
 
+			_$balanceMarker.width(toPct(balance));
 			_$bankrollMarker.width(toPct(bankroll));
 			_$divThreshMarker.width(toPct(divThreshold));
 			_$balanceTxt.css("left", toPct(balance))
