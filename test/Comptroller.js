@@ -123,6 +123,11 @@ describe('Comptroller', function(){
             } catch (e) { return; }
             throw new Error("Should not have been allowed to buy tokens.");
         });
+        it(".isSaleStarted is false", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([comptroller, "isSaleStarted"], false)
+                .start();
+        })
         it(".initSale() not callable by anyone", function(){
             return createDefaultTxTester()
                 .doTx([comptroller, "initSale", {from: anyone}])
@@ -133,7 +138,7 @@ describe('Comptroller', function(){
            return createDefaultTxTester()
                 .doTx([comptroller, "initSale", {from: owner}])
                 .assertSuccess()
-                .assertCallReturns([comptroller, "isStarted"], true)
+                .assertCallReturns([comptroller, "isSaleStarted"], true)
                 .start(); 
         });
         it(".initSale not callable again", function(){
