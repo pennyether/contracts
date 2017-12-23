@@ -13,7 +13,12 @@
 			}
 
 			#Settings {}
-				#TokenAddr, #ComptrollerAddr, #SettingsBankroll, #DailyFundLimit {
+				#TokenAddr,
+				#ComptrollerAddr,
+				#SettingsBankroll,
+				#SettingsBalance,
+				#DailyFundLimit,
+				#DistributionReward {
 					display: inline-block;
 					margin-bottom: 5px;
 				}
@@ -90,6 +95,7 @@
 				#Balance .in, #Balance .out {
 					padding-right: 10px;
 					font-weight: bold;
+					font-size: 90%;
 					color: #888;
 				}
 				#IsBalanced {
@@ -104,7 +110,7 @@
 			#Stats table .bottom {
 				font-size: 80%;
 				font-weight: bold;
-				color: #080;
+				color: #87bd87;
 			}
 			#Stats table {
 				border-collapse: collapse;
@@ -134,7 +140,7 @@
 					Comptroller: <span class="value"></span>
 				</div>
 				<br>
-				<div id="SettingsBankroll" title="The total amount of ETH staked by token holders. If the Treasury balance is greater than this, all tokens can be burnt for a full refund. If this is not the case, tokens can be refunded until there is no balance remaining.">
+				<div id="SettingsBankroll" title="The total amount of ETH staked by token holders. If the Treasury balance is greater than this, all tokens can be burnt for a full refund. If this is not the case, tokens can be burnt for a refund until there is no balance remaining.">
 					Bankroll: <span class="value"></span>
 				</div>
 				<br>
@@ -142,6 +148,11 @@
 					Daily Fund Limit: <span class="value"></span>
 				</div>
 				<br>
+				<div id="DistributionReward" title="A function must be called to send dividends to the token, and this costs gas. In order to ensure dividends happen frequently, a small portion of the dividends sent are paid to the caller as a reward. This has a maximum value of 1%.">
+					Distribution Reward: <span class="value"></span>
+				</div>
+				<br>
+				
 			</div>
 		</div>
 		<div id="Status" class="section">
@@ -166,12 +177,12 @@
 							<div>
 								<div class="centered">
 									<div class="value" id="Bankroll"></div>
-									<div class="description positive">Bankroll</div>
+									<div class="description positive" title="ETH staked by token holders. Bankroll is added anytime tokens are minted, and subtracted anytime they are burnt.">Bankroll</div>
 								</div>
 								<div class="centered symbol">+</div>
 								<div class="centered">
 									<div class="value" id="TotalRevenue"></div>
-									<div class="description positive">Revenue</div>
+									<div class="description positive" title="Any ETH sent to the Treasury. All games send their revenues to the Treasury." >Revenue</div>
 								</div>
 							</div>
 						</td>
@@ -188,17 +199,17 @@
 						<td align=right>
 							<div class="centered">
 								<div id="TotalFunded"></div>
-								<div class="description negative">Funded</div>
+								<div class="description negative" title="The amount of ETH spent to fund games.">Funded</div>
 							</div>
 							<div class="centered symbol">+</div>
 							<div class="centered">
 								<div class="value" id="TotalDistributed"></div>
-								<div class="description negative">Distributed</div>
+								<div class="description negative" title="The amount of ETH sent to token holders as dividends.">Distributed</div>
 							</div>
 							<div class="centered symbol">+</div>
 							<div class="centered">
 								<div class="value" id="TotalRewarded"></div>
-								<div class="description negative">Rewarded</div>
+								<div class="description negative" title="The amount of ETH sent as a reward for having Treasury distribute dividends.">Rewarded</div>
 							</div>
 						</td>
 						<td class="symbol">&nbsp;=&nbsp;</td>
@@ -236,7 +247,7 @@
 							<th></th>
 							<th>
 								<div class='top'>Last 30 days</div>
-								<div class='bottom' title='Run rate is the value extrapolated to one year.'>run rate</div>
+								<div class='bottom' title='Run rate is the value extrapolated out to one year.'>run rate</div>
 							</th>
 							<th>
 								<div class='top'>Last 90 days</div>
