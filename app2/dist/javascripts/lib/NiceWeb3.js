@@ -30,8 +30,7 @@
 				address: instance.address,
 				fromBlock: web3.toHex(0),
 				toBlock: "latest"
-			}]).then((rpcResponse)=>{
-				const events = rpcResponse.result;
+			}]).then((events)=>{
 				const arr = _self.decodeKnownEvents(events);
 				if (arr[0].length !== events.length)
 					throw new Error("Unable to decode events", instance, events)
@@ -285,18 +284,19 @@
 		this.sendAsync = function(method, params){
 	        return new Promise((res,rej)=>{
 	        	const paramsStr = JSON.stringify(params);
-	        	const name = `$method (${paramsStr}`;
+	        	const name = `${method} (${paramsStr}`;
 	        	const obj = {
 		            jsonrpc: "2.0",
 		            method: method,
 		            params: params,
-		            id: new Date().getTime()
+		            id: new Date().getTime() + Math.round(Math.random()*1e12)
 		        };
-		        console.log(`starting asyncSend: ${name}...`);
+		        //console.log(`starting asyncSend: ${name}...`, obj);
 	        	_web3.currentProvider.sendAsync(obj, function(err, result){
-	        		console.log(`finished asyncSend: ${name}...`, err, result);
+	        		//console.log(`finished asyncSend: ${name}...`, err, result);
 		        	if (err) rej(err);
-		        	else res(result);
+		        	if (result.error) rej(new Error(result.error.message));
+		        	else res(result.result);
 		        });	
 	        });
 		};
@@ -336,6 +336,7 @@
 		}
 
 		//////// COMMON ETH CALLS ///////////////////////////////
+		// todo: iterate over existing .eth to populate these all automatically.
 		this.getTxReceipt = function(transactionHash) {
 			return _self.pollEthCall("getTransactionReceipt", [transactionHash]);
 		};
@@ -349,20 +350,63 @@
 		this.getBlockNumber = function(){
 			return _self.doEthCall("getBlockNumber");
 		}
+		this.getBlock = function(blockNum){
+			return _self.doEthCall("getBlock", [blockNum]);
+		}
+		// finds the first block mined on or after a given date.
+		this.getBlockNumberAtTimestamp = function(timestamp) {
+			if (!Number.isInteger(timestamp))
+				throw new Error('Invalid timestamp: ${timestamp}');
+			return _self.getBlockNumber().then(cur => {
+				return new Promise((res, ref)=>{
+					var front = 0;
+					var back = cur;
+					iterate();
+
+					function iterate(){
+						const mid = Math.floor((front + back)/2);
+						if (mid == front) { res(mid+1); return; }
+						_self.getBlock(mid).then((block)=>{
+							if (block.timestamp == timestamp){ res(mid); return; }
+							if (block.timestamp > timestamp) back = mid;
+							else front = mid;
+							iterate();
+						}) ;
+					}
+				});
+			});
+		}
+
+		this.getStorageAt = function(address, index, blockNum) {
+			// convert blockNum to string.
+			if (!Number.isInteger(blockNum) && typeof blockNum !== "string")
+				throw new Error(`blockNum must be a string or an integer: ${blockNum}`);
+			if (Number.isInteger(blockNum)) blockNum = web3.toHex(blockNum);
+
+			return _self.sendAsync("eth_getStorageAt", [
+				web3.toHex(address),
+				web3.toHex(index),
+				blockNum
+			]);
+		}
 
 		this.toEth = function(val) {
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
 			return bn.div(1e18);
 		}
+		this.toEthStr = function(val, digits) {
+			if (digits===undefined) digits = 4;
+			return _self.toEth(val).toFixed(digits) + " ETH";
+		}
 		this.toWei = function(val) {
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
 			return bn.mul(1e18);
 		}
-		this.getLogs = function(filterObj){
-			_self.doProviderSend("eth_getLogs", filterObj);
-		}
+		// this.getLogs = function(filterObj){
+		// 	_self.doProviderSend("eth_getLogs", filterObj);
+		// }
 	}
 
 	// validates providedInputs against abiInputs
@@ -440,7 +484,7 @@
 
 	// Validates options passed in against isPayable
 	function _validateOpts(opts, isPayable) {
-		const allowedNames = ["from","value","gas","gasPrice"];
+		const allowedNames = ["from","value","gas","gasPrice","blockNumber"];
 		const invalidOpts = [];
 		Object.keys(opts).forEach((name)=>{
 			if (allowedNames.indexOf(name)===-1) invalidOpts.push(name);

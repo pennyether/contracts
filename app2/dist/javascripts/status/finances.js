@@ -54,15 +54,17 @@ Loader.promise.then(function(){
 			.then(function(){
 				addLog("All loading complete. Refreshing everything now.");
 				refreshAll();
-			})
+			});
 	});
 
 	function refreshAll() {
-		refreshFinanceBar();
-		refreshDetails();
+		refreshHealth();
+		refreshBalance();
+		refreshStats();
 	}
 
-	function refreshFinanceBar() {
+	function refreshHealth() {
+		// get various required things.
 		const p = Promise.all([
 			ethUtil.getBalance(tr),
 			tr.bankroll(),
@@ -70,12 +72,14 @@ Loader.promise.then(function(){
 			tr.dailyFundLimit()
 		]);
 
-		const barPromise = p.then((arr)=>{
+		// refresh the finance bar
+		bindToElement(p.then((arr)=>{
 			const bar = new FinanceBar();
 			bar.setValues(arr[0], arr[1], arr[2]);
 			return bar.$e;
-		});
+		}), $("#FinanceBar"), true);
 
+		// refresh the BurnStatus and DividendStatus
 		p.then((arr)=>{
 			const balance = arr[0];
 			const bankroll = arr[1];
@@ -89,7 +93,7 @@ Loader.promise.then(function(){
 					.addClass("bad")
 					.removeClass("good");
 			} else {
-				const diff = balance.minus(bankroll);
+				const diff = BigNumber.min(balance, divThreshold).minus(bankroll);
 				const days = diff.div(dailyFundLimit).toFixed(2);
 				$("#BurnStatus")
 					.text(`☑ 100% of tokens can be burnt for a refund, for at least ${days} days.`)
@@ -105,12 +109,13 @@ Loader.promise.then(function(){
 			} else {
 				const amt = ethUtil.toEth(divThreshold.minus(balance));
 				$("#DivStatus")
-					.text(`☐ ${amt} ETH away from being able to send a dividend.`)
+					.text(`☐ ${amt} ETH away from dividend threshold.`)
 					.removeClass("good");
 			}
 		});
+	}
 
-
+	function refreshBalance() {
 		$("#Bankroll").text("loading...");
 		$("#TotalRevenue").text("loading...");
 		$("#TotalDistributed").text("loading...");
@@ -137,14 +142,14 @@ Loader.promise.then(function(){
 			const totalIn = bankroll.plus(totalRevenue);
 			const totalOut = totalDistributed.plus(totalFunded).plus(totalRewarded);
 			const expectedBalance = totalIn.minus(totalOut);
-			$("#Bankroll").text(ethUtil.toEth(bankroll) + " ETH");
-			$("#TotalRevenue").text(ethUtil.toEth(totalRevenue) + " ETH");
-			$("#TotalDistributed").text(ethUtil.toEth(totalDistributed) + " ETH");
-			$("#TotalFunded").text(ethUtil.toEth(totalFunded) + " ETH");
-			$("#TotalRewarded").text(ethUtil.toEth(totalRewarded) + " ETH");
-			$("#TotalIn").text(ethUtil.toEth(totalIn) + " ETH");
-			$("#TotalOut").text(ethUtil.toEth(totalOut) + " ETH")
-			$("#ExpectedBalance").text(ethUtil.toEth(expectedBalance) + " ETH");
+			$("#Bankroll").text(ethUtil.toEthStr(bankroll));
+			$("#TotalRevenue").text(ethUtil.toEthStr(totalRevenue));
+			$("#TotalDistributed").text(ethUtil.toEthStr(totalDistributed));
+			$("#TotalFunded").text(ethUtil.toEthStr(totalFunded));
+			$("#TotalRewarded").text(ethUtil.toEthStr(totalRewarded));
+			$("#TotalIn").text(ethUtil.toEthStr(totalIn));
+			$("#TotalOut").text(ethUtil.toEthStr(totalOut))
+			$("#ExpectedBalance").text(ethUtil.toEthStr(expectedBalance));
 
 			if (expectedBalance.equals(balance)) {
 				$("#IsBalanced")
@@ -156,12 +161,109 @@ Loader.promise.then(function(){
 					.addClass("bad").removeClass("good");
 			}
 		})
-
-		bindToElement(barPromise, $("#FinanceBar"), true);
 	}
 
-	function refreshDetails() {
+	function refreshStats() {
+		function log(msg) { $("#Stats .log").text(msg); }
 
+		const SECS_PER_DAY = 60*60*24;
+		var now;
+		var blockNums = {};
+		ethUtil.getBlock("latest")
+			.then((block)=>{
+				now = block.timestamp;
+				log("Finding block from 30 days ago.");
+				return ethUtil.getBlockNumberAtTimestamp(now - 30*SECS_PER_DAY)
+			})
+			.then((blockNum)=>{
+				blockNums[30] = blockNum;
+				log("Finding block from 90 days ago.");
+				return ethUtil.getBlockNumberAtTimestamp(now - 90*SECS_PER_DAY);
+			})
+			.then((blockNum)=>{
+				blockNums[90] = blockNum;
+				log("Finding block from 180 days ago.");
+				return ethUtil.getBlockNumberAtTimestamp(now - 180*SECS_PER_DAY);
+			})
+			.then((blockNum)=>{
+				blockNums[180] = blockNum;
+				log("Populating results...");
+			})
+			.then(()=>{
+				blockNums["Total"] = "latest";
+				const storageIndexes = {
+					totalRevenue: 9,
+					totalDistributed: 12,
+					totalFunded: 10,
+					totalRewarded: 11
+				};
+				const values = {
+					totalRevenue: {},
+					totalDistributed: {},
+					totalFunded: {},
+					totalRewarded: {}
+				};
+
+				function setValue(fnName, numDaysAgo) {
+					const storageIndex = storageIndexes[fnName];
+					const blockNum = blockNums[numDaysAgo];
+					if (!storageIndex)
+						throw new Error(`No storageIndex found for fnName: ${fnName}`);
+					if (!blockNum)
+						throw new Error(`No blockNum found for numDaysAgo: ${numDaysAgo}`);
+
+					return _niceWeb3.ethUtil.getStorageAt(tr.address, storageIndex, blockNum)
+						.then((val)=>{
+							val = web3.toBigNumber(val);
+							values[fnName][numDaysAgo] = web3.toBigNumber(val);
+						});
+				}
+				function setAllValuesFromDaysAgo(numDaysAgo) {
+					// request values for all fnNames at once.
+					return Promise.all(
+						Object.keys(values).map(fnName => setValue(fnName, numDaysAgo))
+					);
+				}
+				function setAllValues(){
+					// for each daysAgo, setAllValuesFromDaysAgo. chain this.
+					log("Retrieving all values...");
+					var p = Promise.resolve();
+					Object.keys(blockNums).forEach((numDaysAgo)=>{
+						p = p.then(()=>{
+							log(`Loading all values from ${numDaysAgo}...`);
+							return setAllValuesFromDaysAgo(numDaysAgo)
+						});
+					});
+					return p;
+				}
+
+				setAllValues().then(()=>{
+					// set each value to Total - <whatever>
+					Object.keys(values).forEach((fnName)=>{
+						Object.keys(values[fnName]).forEach((numDaysAgo)=>{
+							if (numDaysAgo == "Total") return;
+							values[fnName][numDaysAgo] = values[fnName]["Total"]
+								.minus(values[fnName][numDaysAgo]);
+						});
+					});
+				}).then(()=>{
+					// Populate values on page
+					log("");
+					Object.keys(values).forEach((fnName)=>{
+						Object.keys(values[fnName]).forEach((numDaysAgo)=>{
+							// convert "totalWhatever" to "Wha"
+							const val = values[fnName][numDaysAgo];
+							const name = fnName.slice(5,8);
+							const id = `#${name}${numDaysAgo}`;
+							$(id).text(ethUtil.toEthStr(val));
+							if (numDaysAgo!=="Total"){
+								const rr = val.mul(365).div(numDaysAgo);
+								$(`${id}RR`).text("~" + ethUtil.toEthStr(rr,0) + " / yr");
+							}
+						});
+					});
+				})
+			})
 	}
 
 	function FinanceBar() {
@@ -202,27 +304,25 @@ Loader.promise.then(function(){
 
 		this.$e = _$e;
 		this.setValues = function(balance, bankroll, divThreshold){
-			_$amtBalance.text(ethUtil.toEth(balance) + " ETH");
-			_$amtBankroll.text(ethUtil.toEth(bankroll) + " ETH");
-			_$amtDivThresh.text(ethUtil.toEth(divThreshold) + " ETH");
+			_$amtBalance.text(ethUtil.toEthStr(balance));
+			_$amtBankroll.text(ethUtil.toEthStr(bankroll));
+			_$amtDivThresh.text(ethUtil.toEthStr(divThreshold));
 
 			// calculate max number, add 10%
 			const max = BigNumber.max(balance, bankroll, divThreshold).mul(1.1);
 			function toPct(val) {
-				const result = val.div(max).mul(100).toFixed(2) + "%";
-				console.log("max, val, result", max, val, result);
-				return result;
+				return val.div(max).mul(100).toFixed(2) + "%";
 			}
 
 			_$balanceMarker.width(toPct(balance));
 			_$bankrollMarker.width(toPct(bankroll));
 			_$divThreshMarker.width(toPct(divThreshold));
 			_$balanceTxt.css("left", toPct(balance))
-				.text("↓ Balance: " + ethUtil.toEth(balance) + " ETH");
+				.text("↓ Balance: " + ethUtil.toEthStr(balance));
 			_$bankrollTxt.css("left", toPct(bankroll))
-				.text("↑ Bankroll: " + ethUtil.toEth(bankroll) + " ETH");
+				.text("↑ Bankroll: " + ethUtil.toEthStr(bankroll));
 			_$divThreshTxt.css("left", toPct(divThreshold))
-				.text("↑ Dividend Threshold: " + ethUtil.toEth(divThreshold) + " ETH");
+				.text("↑ Dividend Threshold: " + ethUtil.toEthStr(divThreshold));
 
 			if (balance.gt(divThreshold)) {
 				_$collatBar.width(toPct(bankroll));

@@ -18,11 +18,12 @@
 		this.promise = Promise.all([
 			new Promise((res, rej)=>{ window.addEventListener('load', res); }),
 			addScript("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
+			addScript("https://unpkg.com/tippy.js@2.0.8/dist/tippy.all.min.js"),
 			addScript("/javascripts/lib/external/web3.min.js"),
 			addScript("/javascripts/lib/external/EthAbi.js"),
 			addScript("/javascripts/lib/NiceWeb3.js"),
 			addScript("/javascripts/lib/NiceWeb3Logger.js"),
-			addScript("/javascripts/lib/ABIs.js")
+			addScript("/javascripts/lib/ABIs.js"),
 		]).then(()=>{
 			var Web3 = require("web3");
 			if (!window.$) throw new Error("Unable to find jQuery.");
@@ -31,6 +32,7 @@
 			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
 			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
 			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
+			if (!window.tippy){ throw new Error("Unable to find Tippy."); }
 
 		    // create web3 object depending on if its from browser or not
 		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
@@ -54,11 +56,20 @@
 		  		var abi = ABIs[contractName];
 		  		window[contractName] = niceWeb3.createContractFactory(contractName, abi.abi, abi.unlinked_binary);
 				window[`_${contractName}`] = _web3.eth.contract(abi.abi);
-				console.log(`Set window.${contractName} to new niceWeb3ContractFactory`);
 		  	});
 		  	// attach logger to body
 		  	const logger = new NiceWeb3Logger(niceWeb3);
 		  	logger.$e.appendTo(document.body);
+		  	// done.
+		  	$('[title]').addClass("tipped");
+		  	tippy('[title]', {
+		  		trigger: 'click',
+		  		interactive: true,
+		  		sticky: true,
+		  		performance: true,
+		  		arrow: true, 
+		  	});
+		  	console.log("Loader is done setting things up.");
 		});
 	}
 	window.Loader = new Loader();
