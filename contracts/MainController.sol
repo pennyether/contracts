@@ -14,7 +14,6 @@ For now, there is only one type of game controller, but there may be more
 added in the future.  As such, it's best if the MainController contains zero state
 so that swapping in another MainController is trivial.
 */
-//@createInterface
 contract MainController is 
 	UsingPennyAuctionController,
 	UsingTreasury,
