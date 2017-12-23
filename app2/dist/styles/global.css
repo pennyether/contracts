@@ -10,7 +10,7 @@ body {
 	background: #EEE;
 }
 
-.content {
+#Content {
 	min-height: 100%;
 	width: 980px;
 	padding: 0px 10px 30px 10px;
@@ -80,13 +80,24 @@ body {
 	}
 
 /* Anything with a tooltip gets a little i next to it */
-	.tipped::after {
-		color: #AAA;
+	.tipRight::after,
+	.tipLeft::before {
+		content: "i";
 		font-family: serif;
 		font-weight: bold;
 		font-size: 80%;
-		padding: 0px 5px;
-		content: "i";
 		font-style: italic;
-		cursor: pointer;
+		color: white;
+		background: #DDD;
+
+		display: inline-block;
+		margin: 0px 5px;
+		padding: 0px 5px;
+		border-radius: 3px;
+		cursor: pointer;		
 	}
+
+.ib {
+	display: inline-block;
+	margin-bottom: 5px;
+}

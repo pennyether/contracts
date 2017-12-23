@@ -11,16 +11,9 @@
 				background: #EEE;
 				margin: 20px 0px 0px 0px;
 			}
-			.values {
-				background: #FAFAFA;
-				padding: 10px 0px;
-			}
-			.values span {
-				font-weight: bold;
-				border-bottom: 1px dotted gray;
-			}
-			.values div {
-				padding: 3px 10px;
+			.section .body div {
+				display: inline-block;
+				margin-bottom: 5px;
 			}
 			.logs {
 				border: 1px solid blue;
@@ -29,148 +22,209 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body><div id="Content">
 		<div class="welcome">
 			SYSTEM SUMMARY
+			<button id="Load">Load</button>
 		</div>
-		<div>
-			<input type=text id="PopulateAllRegAddress" value="0xc1096f203834d7ef377865dc248c1b8b0adcab88">
-			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
-			<div id="PopulateLog"></div>
-		</div>
-		<div>
 
-			<div>
-				<h4>Owner</h4>
-				<div class="values">
-					<div>
-						Address:
-						<span id="OwnerAddr"></span>
-					</div>
+		<div class="section">
+			<div class="head">
+				<span title="The owner can upgrade any versioned contracts.">
+					Owner
+				</span>
+			</div>
+			<div class="body">
+				<div>
+					Address:
+					<span id="OwnerAddr"></span>
 				</div>
 			</div>
+		</div>
 
-			<div>
-				<h4>Admin</h4>
-				<div class="values">
-					<div>
-						Address:
-						<span id="AdminAddr"></span>
-					</div>
+		<div class="section">
+			<div class="head">
+				<span title="The admin can alter some minor settings of PennyEther, such as reward values and game settings.">
+					Admin
+				</span>
+			</div>
+			<div class="body">
+				<div>
+					Address:
+					<span id="AdminAddr"></span>
 				</div>
 			</div>
+		</div>
 
-			<div>
-				<h4>Comptroller</h4>
-				<div class="values">
-					<div>
-						Address:
-						<span id="CompAddr"></span>
-					</div>
-					<div>
+		<div class="section">
+			<div class="head">
+				<span title="The Comptroller is in charge of burning and minting tokens.">
+					Comptroller
+				</span>
+			</div>
+			<div class="body">
+				<div>
+					Address:
+					<span id="CompAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The Comptroller can tell the Token contract to burn and mint tokens. This value cannot be changed.">
 						Token:
-						<span id="CompTokenAddr"></span>
-					</div>
-					<div>
-						TotalSupply
-						<span id="CompTokenTotalSupply"></span> Tokens
-					</div>
-					<div>
-						<b>PennyEther Token Locker</b>:
-						<div>
-							Balance:
-							<span id="CompLockerBalance"></span> Tokens
-						</div>
-						<div>
-							Address:
-							<span id="CompLockerAddr"></span>
-						</div>
-					</div>
-					<div id="CompLogs"></div>
+					</span>
+					<span id="CompTokenAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The total supply of all tokens.">
+						TotalSupply:
+					</span>
+					<span id="CompTokenTotalSupply"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="PennyEther's 20% ownership of tokens is stored in this address. Tokens are locked here and cannot be burnt or transferred. This contract simply receives dividends.">
+						Token Locker Address:
+					</span>
+					<span id="CompLockerAddr"></span>
 				</div>
+				<div id="CompLogs"></div>
 			</div>
+		</div>
 
-			<div>
-				<h4>Treasury</h4>
-				<div class="values">
-					<div>
-						Address: 
-						<span id="TrAddr"></span>
-					</div>
-					<div>
+		<div class="section">
+			<div class="head">
+				<span title="The treasury holds the bankroll of PennyEther, receives revenue, and pays dividends.">
+					Treasury
+				</span>
+			</div>
+			<div class="body">
+				<div>
+					Address: 
+					<span id="TrAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The Comptroller can add to and remove from the bankroll. This address cannot be changed.">
+						Comptroller:
+					</span>
+					<span id="TrComp"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="This is the address that dividends are sent to. This address cannot be changed.">
+						Token:
+					</span>
+					<span id="TrToken"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The total amount of ETH in the contract.">
 						Balance: 
-						<span id="TrBalance"></span> ETH
-					</div>
-					<div>
+					</span>
+					<span id="TrBalance"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The amount staked by investors. As long as balance is greater than this, all tokens can be burnt for a full refund.">
 						Bankroll: 
-						<span id="TrBankroll"></span> ETH
-					</div>
-					<div>
+					</span>
+					<span id="TrBankroll"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The Treasury can fund MainController a fixed amount of ETH per day. This limits the amount of losses possible.">
 						Daily Fund Limit:
-						<span id="TrDailyLimit"></span> ETH
-					</div>
-					<div id="TrLogs"></div>
+					</span>
+					<span id="TrDailyLimit"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="If the balance is greater than this, the Treasury can distribute dividends to token holders.">
+						Dividend Threshold:
+					</span>
+					<span id="TrDivThreshold"></span>
 				</div>
+				<div id="TrLogs"></div>
+			</div>
+		</div>
+
+		<div class="section">
+			<div class="head">
+				<span title="The MainController is in charge of keeping all games running, and distributing funding to games.">
+					Main Controller
+				</span>
 			</div>
 
-			<div>
-				<h4>Main Controller</h4>
-				<div class="values">
-					<div>
-						Address: 
-						<span id="McAddr"></span>
-					</div>
-					<div>
+			<div class="body">
+				<div>
+					Address: 
+					<span id="McAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="This contract can be upgraded. This identifies which version is currently in use.">
 						Version:
-						<span id="McVersion"></span>
-					</div>
-					<div>
+					</span>
+					<span id="McVersion"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="In order to ensure Penny Auctions are always running, PennyEther pays a small reward to those who trigger the starting of a new auction.">
 						Penny Auction Start Reward: 
-						<span id="McPaStartReward"></span> ETH
-					</div>
-					<div>
+					</span>
+					<span id="McPaStartReward"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="In order to ensure Penny Auctions end and pay prizes, PennyEther pays a small reward to those who trigger the ending of an auction.">
 						Penny Auction End Reward: 
-						<span id="McPaEndReward"></span> ETH
-					</div>
-					<div>
+					</span>
+					<span id="McPaEndReward"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="In order to ensure revenues are collected frequently, PennyEther pays a small reward to those who trigger the collection of fees.">
 						Penny Auction Fee Collect Reward: 
-						<span id="McPaFeeCollectReward"></span>%
-					</div>
-					<div id="McLogs"></div>
-				</div>
+					</span>
+					<span id="McPaFeeCollectReward"></span>%
+				</div><br>
+				<div id="McLogs"></div>
 			</div>
+		</div>
 
-			<div>
-				<h4>Penny Auction Controller</h4>
-				<div class="values">
-					<div>
+		<div class="section">
+			<div class="head">
+				<span title="The Penny Auction Controller is in charge of starting/stopping/refreshing Penny Auctions.">
+					Penny Auction Controller
+				</span>
+			</div>
+			<div class="body">
+				<div>
+					<span>
 						Address:
-						<span id="PacAddr"></span>
-					</div>
-					<div>
+					</span>
+					<span id="PacAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="This contract can be upgraded. This identifies which version is currently in use.">
 						Version:
-						<span id="PacVersion"></span>
-					</div>
-					<div>
+					</span>
+					<span id="PacVersion"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The number of auctions that are currently ongoing (in this version).">
 						Active Auctions:
-						<span id="PacNumActiveAuctions"></span>
-					</div>
-					<div>
+					</span>
+					<span id="PacNumActiveAuctions"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The number of auctions that have been completed (in this version).">
 						Ended Auctions:
-						<span id="PacNumEndedAuctions"></span>
-					</div>
-					<div>
+					</span>
+					<span id="PacNumEndedAuctions"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The total amount of ETH paid out as prizes (in this version).">
 						Total Prize Money:
-						<span id="PacTotalPrizes"></span>
-					</div>
-					<div>
+					</span>
+					<span id="PacTotalPrizes"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The total amount of Penny Auction fees (revenue) that has been sent to the Treasury (in this version). Note: It is possible (but not likely) that Penny Auction fees are collected from outside the Penny Auction Controller, so this value may not be entirely accurate.">
 						Total Fees Collected:
-						<span id="PacTotalFees"></span>
-					</div>
-					<div id="PacLogs"></div>
-				</div>
+					</span>
+					<span id="PacTotalFees"></span>
+				</div><br>
+				<div id="PacLogs"></div>
 			</div>
-
 		</div>
 	</body>
 </html>

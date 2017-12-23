@@ -80,14 +80,14 @@
 		  	logger.$e.appendTo(document.body);
 
 		  	// attach Tippy's
-		  	$('[title]').addClass("tipped");
 		  	tippy.defaults.trigger = "click";
-		  	tippy.defaults.placement = "right";
 		  	tippy.defaults.interactive = true;
 		  	tippy.defaults.sticky = true;
 		  	tippy.defaults.performance = true;
 		  	tippy.defaults.arrow = true;
-		  	tippy('.tipped');
+		  	$('[title]:not(.tipLeft)').addClass("tipRight");
+		  	tippy('.tipLeft', {placement: "top"});
+		  	tippy('.tipRight', {placement: "right"});
 
 		  	// done.
 		  	console.log("Loader is done setting things up.");

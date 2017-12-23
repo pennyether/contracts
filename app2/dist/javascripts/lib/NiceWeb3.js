@@ -403,6 +403,10 @@
 			if (digits===undefined) digits = 4;
 			return _self.toEth(val).toFixed(digits) + " ETH";
 		}
+		this.toTokenStr = function(val, digits) {
+			if (digits===undefined) digits = 4;
+			return _self.toEth(val).toFixed(digits) + " Tokens";
+		}
 		this.toWei = function(val) {
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
