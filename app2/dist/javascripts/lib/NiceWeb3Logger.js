@@ -3,46 +3,6 @@
 	function NiceWeb3Logger(niceWeb3){
 		const _$e = $(`
 			<div>
-				<style>
-					.Web3Logger {
-						position: fixed;
-						background: #CCC;
-						border: 1px solid black;
-						padding: 10px;
-						bottom: 10px;
-						right: 10px;
-					}
-
-					.Web3Logger .tx {
-						margin: 2px 0px;
-						border: 1px solid gray;
-						background: #DDD;
-					}
-					.Web3Logger .tx .name {
-						font-weight: bold;
-						padding: 2px 4px;
-						border-bottom: 1px solid gray;
-					}
-					.Web3Logger .body {
-						padding: 3px;
-					}
-					.Web3Logger .tx .transaction {
-						font-size: 90%;
-					}
-					.Web3Logger .tx .header {
-						font-weight: bold;
-						text-decoration: underline;
-					}
-					.Web3Logger .tx .pending {
-						color: gray;
-					}
-					.Web3Logger .tx .error {
-						color: red;
-					}
-					.Web3Logger .tx .success {
-						color: green;
-					}
-				</style>
 				<div class="Web3Logger">
 					<div>Test</div>
 					<div class="calls"></div>

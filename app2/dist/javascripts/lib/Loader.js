@@ -4,11 +4,22 @@
 			var timeout;
 		    var script = document.createElement('script');
 		    script.type = 'text/javascript';
-		    script.async = false;
+		    script.async = true;
 		    script.src = src;
 		    script.onload = res;
 		    script.onerror = rej;
 		    document.getElementsByTagName('head')[0].appendChild(script);
+		})
+	}
+	function addStyle(src) {
+		return new Promise((res, rej)=>{
+			var link = document.createElement('link');
+			link.rel = "stylesheet";
+			link.type = "text/css";
+			link.href = src;
+			link.onload = res;
+			link.onerror = rej;
+			document.getElementsByTagName('head')[0].appendChild(link);	
 		})
 	}
 
@@ -24,6 +35,7 @@
 			addScript("/javascripts/lib/NiceWeb3.js"),
 			addScript("/javascripts/lib/NiceWeb3Logger.js"),
 			addScript("/javascripts/lib/ABIs.js"),
+			addStyle("/styles/global.css")
 		]).then(()=>{
 			var Web3 = require("web3");
 			if (!window.$) throw new Error("Unable to find jQuery.");
@@ -36,53 +48,90 @@
 
 		    // create web3 object depending on if its from browser or not
 		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
-			if (typeof web3 !== 'undefined') {
-				console.log("Got the injected web3!");
+			if (typeof web3 !== 'undefined' && !false) {
+				window.hasWeb3 = true;
 		    	window.web3 = new Web3(web3.currentProvider);
 		  	} else {
-		  		throw new Error("No injected web3 found.");
-		  		//var web3_backup = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-		  		//window.web3 = web3_backup;
+		  		window.hasWeb3 = false;
+		  		window.web3 = _web3;
 		  	}
+
 		  	// these are back-up web3's, in case Metamask shits the bed.
 		  	window._web3 = _web3;
 		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi);
+
 		  	// public things.
 		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
 		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
+
 		  	// make public all ContractFactories.
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
 		  		window[contractName] = niceWeb3.createContractFactory(contractName, abi.abi, abi.unlinked_binary);
 				window[`_${contractName}`] = _web3.eth.contract(abi.abi);
 		  	});
+
+			// make Registry public
+		  	const registry = Registry.at("0xc1096f203834d7ef377865dc248c1b8b0adcab88");
+
 		  	// attach logger to body
 		  	const logger = new NiceWeb3Logger(niceWeb3);
 		  	logger.$e.appendTo(document.body);
-		  	// done.
+
+		  	// attach Tippy's
 		  	$('[title]').addClass("tipped");
-		  	tippy('[title]', {
-		  		trigger: 'click',
-		  		interactive: true,
-		  		sticky: true,
-		  		performance: true,
-		  		arrow: true, 
-		  	});
+		  	tippy.defaults.trigger = "click";
+		  	tippy.defaults.placement = "right";
+		  	tippy.defaults.interactive = true;
+		  	tippy.defaults.sticky = true;
+		  	tippy.defaults.performance = true;
+		  	tippy.defaults.arrow = true;
+		  	tippy('.tipped');
+
+		  	// done.
 		  	console.log("Loader is done setting things up.");
+		  	return registry;
 		});
+
+		// Returns a fake promise with which you can pass a function.
+		// That function will be invoked with params as the instances.
+		this.require = function(){
+			var _callback = null;
+			const strs = Array.prototype.slice.call(arguments);
+
+			Promise.resolve(_self.promise).then((reg)=>{
+				const mappings = {
+					"comp": [Comptroller, "COMPTROLLER"],
+					"tr": [Treasury, "TREASURY"],
+					"mc": [MainController, "MAIN_CONTROLLER"],
+					"pac": [PennyAuctionController, "PENNY_AUCTION_CONTROLLER"]
+				};
+				strs.forEach(str => {
+					if (!mappings[str] && str!=="reg")
+						throw new Error(`Unknown requirement: ${str}`);
+				});
+
+				return Promise.all(
+					strs.map((str)=>{
+						if (str==="reg") return reg;
+						const type = mappings[str][0];
+						const name = mappings[str][1];
+						return reg.addressOf([name]).then(addr => {
+							console.log("addr", addr);
+							return type.at.call(type, addr);
+						});
+					})
+				)
+			}).then((arr)=>{
+				if (_callback){ _callback.apply(null, arr); }
+			})
+
+			return {
+				then: function(cb) { _callback = cb; }
+			}
+		}
 	}
 	window.Loader = new Loader();
 }());
-
-// <script src="https://cdn.rawgit.com/ethereum/web3.js/develop/dist/web3.js"></script>
-// <script>Web3 = require("web3");</script>
-// <script src="https://cdn.rawgit.com/trufflesuite/truffle-contract/master/dist/truffle-contract.min.js"></script>
-// <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-// 			integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
-// 			crossorigin="anonymous"></script>
-// 	<script src="./javascripts/artifacts.js"></script>
-// 	<script src="./javascripts/Playground.js"></script>
-// 	<script src="./javascripts/PennyAuctionUI.js"></script>
-// 	<script src="./javascripts/app.js"></script>
 

@@ -3,16 +3,8 @@
 	<head>
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/status/finances.js"></script>
+ 	</head>
 		<style>
-			.tipped::after {
-				color: #AAA;
-				font-weight: bold;
-				font-size: 80%;
-				padding: 0px 5px;
-				content: "i";
-				font-style: italic;
-				cursor: pointer;
-			}
 			.bad {
 				color: maroon;
 			}
@@ -20,14 +12,26 @@
 				color: green;
 			}
 
+			#Settings {}
+				#TokenAddr, #ComptrollerAddr, #SettingsBankroll, #DailyFundLimit {
+					display: inline-block;
+					margin-bottom: 5px;
+				}
+
 			/* stuff withing #STATUS */
 			#Status {}
 				#BurnStatus, #DivStatus {
 					font-weight: bold;
+					margin-top: 20px;
+					display: inline-block;
 				}
+				#BurnStatus {
+					margin-top: 50px;
+				}
+				
 				#FinanceBar {
+					margin-top: 20px;
 					width: 500px;
-					margin: 30px 20px;
 				}
 				#FinanceBar .bar {
 					border: 1px solid black;
@@ -89,7 +93,9 @@
 					color: #888;
 				}
 				#IsBalanced {
+					display: inline-block;
 					font-weight: bold;
+					margin-top: 20px;
 				}
 
 			#Stats table td, #Stats table th {
@@ -112,184 +118,203 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body><div class="content">
 		<div class="welcome">
 			PENNYETHER FINANCIAL STATUS
+			<button id="Load">Load</button>
 		</div>
-		<div>
-			<input type=text id="PopulateAllRegAddress" value="0xc1096f203834d7ef377865dc248c1b8b0adcab88">
-			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>
-			<div id="PopulateLog"></div>
-			<div>
-				<h3>Buy tokens</h3>
-				<input type=text id="NumTokens" placeholder="Number of tokens"> Tokens (1 ETH = 1000)
-				<button id="BuyTokens">Buy Tokens</button>
-			</div>
-		</div>
-		<div id="Status">
-			<h2>Health</h2>
-			<div id="FinanceBar"></div>
-			<div>
-				<span id="BurnStatus" title="The balance of the Treasury is above 'bankroll' -- the amount needed to burn all tokens. Since the Treasury can only lose a limited amount of funds per day, the bankroll can be guaranteed for some time."></span>
+		<div id="Settings" class="section">
+			<div class="head">Settings</div>
+			<div class="body">
+				<div id="TokenAddr" title="The address that will receive dividends. This can never be changed.">
+					Token: <span class="value"></span>
+				</div>
 				<br>
-				<span id="DivStatus" title="The Treasury can distribute profits to token holders whenever its balance is greater than 'Dividend Threshold'."></span>
+				<div id="ComptrollerAddr" title="The address of the Comptroller. This can never be changed. The comptroller deposits bankroll when someone buys tokens, and withdraws bankroll when someone burns tokens.">
+					Comptroller: <span class="value"></span>
+				</div>
+				<br>
+				<div id="SettingsBankroll" title="The total amount of ETH staked by token holders. If the Treasury balance is greater than this, all tokens can be burnt for a full refund. If this is not the case, tokens can be refunded until there is no balance remaining.">
+					Bankroll: <span class="value"></span>
+				</div>
+				<br>
+				<div id="DailyFundLimit" title="The maximum amount Treasury can send per day. Excludes dividends. This can be changed only +/-5% per day by the Admin.">
+					Daily Fund Limit: <span class="value"></span>
+				</div>
+				<br>
 			</div>
 		</div>
-		<div id="Balance">
-			<h2>Balance</h2>
-			<table cellpadding="0" cellspacing="5">
-				<tr>
-					<td class="in">Funds In:</td>
-					<td align="right">
-						<div>
+		<div id="Status" class="section">
+			<div class="head">Health</div>
+			<div class="body">
+				<div id="FinanceBar"></div>
+				<div>
+					<div id="BurnStatus" title="Bankroll is the amount needed to burn all existing tokens. Since the Treasury can only lose a limited amount of funds per day, the bankroll can be guaranteed for some time."></div>
+					<br>
+					<div id="DivStatus" title="The Treasury can distribute profits to token holders whenever its balance is greater than 'Dividend Threshold'."></div>
+					<br>
+				</div>
+			</div>
+		</div>
+		<div id="Balance" class="section">
+			<div class="head">Balance</div>
+			<div class="body">
+				<table cellpadding="0" cellspacing="5">
+					<tr>
+						<td class="in">Funds In:</td>
+						<td align="right">
+							<div>
+								<div class="centered">
+									<div class="value" id="Bankroll"></div>
+									<div class="description positive">Bankroll</div>
+								</div>
+								<div class="centered symbol">+</div>
+								<div class="centered">
+									<div class="value" id="TotalRevenue"></div>
+									<div class="description positive">Revenue</div>
+								</div>
+							</div>
+						</td>
+						<td class="symbol">&nbsp;=&nbsp;</td>
+						<td align=right>
 							<div class="centered">
-								<div class="value" id="Bankroll"></div>
-								<div class="description positive">Bankroll</div>
+								<div class="value" id="TotalIn"></div>
+								<div class="description positive right">Total In</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td class="out">Funds Out:</td>
+						<td align=right>
+							<div class="centered">
+								<div id="TotalFunded"></div>
+								<div class="description negative">Funded</div>
 							</div>
 							<div class="centered symbol">+</div>
 							<div class="centered">
-								<div class="value" id="TotalRevenue"></div>
-								<div class="description positive">Revenue</div>
+								<div class="value" id="TotalDistributed"></div>
+								<div class="description negative">Distributed</div>
 							</div>
-						</div>
-					</td>
-					<td class="symbol">&nbsp;=&nbsp;</td>
-					<td align=right>
-						<div class="centered">
-							<div class="value" id="TotalIn"></div>
-							<div class="description positive right">Total In</div>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td class="out">Funds Out:</td>
-					<td align=right>
-						<div class="centered">
-							<div id="TotalFunded"></div>
-							<div class="description negative">Funded</div>
-						</div>
-						<div class="centered symbol">+</div>
-						<div class="centered">
-							<div class="value" id="TotalDistributed"></div>
-							<div class="description negative">Distributed</div>
-						</div>
-						<div class="centered symbol">+</div>
-						<div class="centered">
-							<div class="value" id="TotalRewarded"></div>
-							<div class="description negative">Rewarded</div>
-						</div>
-					</td>
-					<td class="symbol">&nbsp;=&nbsp;</td>
-					<td align=right>
-						<div class="centered">
-							<div class="value" id="TotalOut"></div>
-							<div class="description negative right">Total Out</div>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td align=right>
-						<div class="centered">
-							<div class="value" id="ExpectedBalance"></div>
-							<div class="description positive right">Expected Balance</div>
-						</div>
-					</td>
-				</tr>
-			</table>
-			<div>
-				<div id="IsBalanced"></div>
+							<div class="centered symbol">+</div>
+							<div class="centered">
+								<div class="value" id="TotalRewarded"></div>
+								<div class="description negative">Rewarded</div>
+							</div>
+						</td>
+						<td class="symbol">&nbsp;=&nbsp;</td>
+						<td align=right>
+							<div class="centered">
+								<div class="value" id="TotalOut"></div>
+								<div class="description negative right">Total Out</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td align=right>
+							<div class="centered">
+								<div class="value" id="ExpectedBalance"></div>
+								<div class="description positive right">Expected Balance</div>
+							</div>
+						</td>
+					</tr>
+				</table>
+				<div>
+					<div id="IsBalanced" title="If Treasury is balanced, every single Wei in and out is accounted for."></div>
+				</div>
 			</div>
 		</div>
-		<div id="Stats">
-			<h2>Stats</h2>
-			<div class="log"></div>
-			<table>
-				<thead>
-					<tr>
-						<th></th>
-						<th>
-							<div class='top'>Last 30 days</div>
-							<div class='bottom' title='Run rate is the value extrapolated to one year.'>run rate</div>
-						</th>
-						<th>
-							<div class='top'>Last 90 days</div>
-							<div class='bottom'>run rate</div>
-						</th>
-						<th>
-							<div class='top'>Last 180 days</div>
-							<div class='bottom'>run rate</div>
-						</th>
-						<th>All time</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<th>Revenue</th>
-						<td>
-							<div class='top' id="Rev30"></div>
-							<div class='bottom' id="Rev30RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Rev90"></div>
-							<div class='bottom' id="Rev90RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Rev180"></div>
-							<div class='bottom' id="Rev180RR"></div>
-						</td>
-						<td id="RevTotal"></td>
-					</tr>
-					<tr>
-						<th>Dividends</th>
-						<td>
-							<div class='top' id="Dis30"></div>
-							<div class='bottom' id="Dis30RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Dis90"></div>
-							<div class='bottom' id="Dis90RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Dis180"></div>
-							<div class='bottom' id="Dis180RR"></div>
-						</td>
-						<td id="DivTotal"></td>
-					</tr>
-					<tr>
-						<th>Funded</th>
-						<td>
-							<div class='top' id="Fun30"></div>
-							<div class='bottom' id="Fun30RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Fun90"></div>
-							<div class='bottom' id="Fun90RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Fun180"></div>
-							<div class='bottom' id="Fun180RR"></div>
-						</td>
-						<td id="FunTotal"></td>
-					</tr>
-						<th>Rewarded</th>
-						<td>
-							<div class='top' id="Rew30"></div>
-							<div class='bottom' id="Rew30RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Rew90"></div>
-							<div class='bottom' id="Rew90RR"></div>
-						</td>
-						<td>
-							<div class='top' id="Rew180"></div>
-							<div class='bottom' id="Rew180RR"></div>
-						</td>
-						<td id="RewTotal"></td>
-				</tbody>
-			</table>
+		<div id="Stats" class="section">
+			<div class="head">Stats</div>
+			<div class="body">
+				<div class="log"></div>
+				<table>
+					<thead>
+						<tr>
+							<th></th>
+							<th>
+								<div class='top'>Last 30 days</div>
+								<div class='bottom' title='Run rate is the value extrapolated to one year.'>run rate</div>
+							</th>
+							<th>
+								<div class='top'>Last 90 days</div>
+								<div class='bottom'>run rate</div>
+							</th>
+							<th>
+								<div class='top'>Last 180 days</div>
+								<div class='bottom'>run rate</div>
+							</th>
+							<th>All time</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<th>Revenue</th>
+							<td>
+								<div class='top' id="Rev30"></div>
+								<div class='bottom' id="Rev30RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Rev90"></div>
+								<div class='bottom' id="Rev90RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Rev180"></div>
+								<div class='bottom' id="Rev180RR"></div>
+							</td>
+							<td id="RevTotal"></td>
+						</tr>
+						<tr>
+							<th>Dividends</th>
+							<td>
+								<div class='top' id="Dis30"></div>
+								<div class='bottom' id="Dis30RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Dis90"></div>
+								<div class='bottom' id="Dis90RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Dis180"></div>
+								<div class='bottom' id="Dis180RR"></div>
+							</td>
+							<td id="DivTotal"></td>
+						</tr>
+						<tr>
+							<th>Funded</th>
+							<td>
+								<div class='top' id="Fun30"></div>
+								<div class='bottom' id="Fun30RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Fun90"></div>
+								<div class='bottom' id="Fun90RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Fun180"></div>
+								<div class='bottom' id="Fun180RR"></div>
+							</td>
+							<td id="FunTotal"></td>
+						</tr>
+							<th>Rewarded</th>
+							<td>
+								<div class='top' id="Rew30"></div>
+								<div class='bottom' id="Rew30RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Rew90"></div>
+								<div class='bottom' id="Rew90RR"></div>
+							</td>
+							<td>
+								<div class='top' id="Rew180"></div>
+								<div class='bottom' id="Rew180RR"></div>
+							</td>
+							<td id="RewTotal"></td>
+					</tbody>
+				</table>
+			</div>
 		</div>
-	</body>
+	</div></body>
 </html>

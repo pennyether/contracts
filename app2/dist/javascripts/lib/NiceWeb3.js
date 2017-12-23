@@ -56,10 +56,12 @@
 		};
 
 		// allows for someone to watch all calls from instances
+		// note: non-instance calls (eg: web3.eth.getTransaction) will not be hooked.
 		this.setCallHook = function(callHook) {
 			_callHook = callHook;
 		};
-		this.onNewCall = function(promise){
+		// this is invoked by instances to notify of a new call.
+		this.notifyCall = function(promise){
 			if (_callHook) _callHook(promise);
 		}
 	}
@@ -164,7 +166,7 @@
 					opts: opts
 				};
 				const p = _doPromisifiedCall(oldCallFn, metadata);
-				niceWeb3.onNewCall(p);
+				niceWeb3.notifyCall(p);
 				return p;
 			}
 		}
@@ -376,7 +378,9 @@
 				});
 			});
 		}
-
+		// gets storage value from a contract address at a given blocknum
+		// Note: metamask doesnt support this at the moment... it caches
+		//       results or something.
 		this.getStorageAt = function(address, index, blockNum) {
 			// convert blockNum to string.
 			if (!Number.isInteger(blockNum) && typeof blockNum !== "string")
@@ -404,9 +408,6 @@
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
 			return bn.mul(1e18);
 		}
-		// this.getLogs = function(filterObj){
-		// 	_self.doProviderSend("eth_getLogs", filterObj);
-		// }
 	}
 
 	// validates providedInputs against abiInputs

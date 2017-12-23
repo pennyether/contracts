@@ -1,6 +1,5 @@
-Loader.promise.then(function(){
-	var reg, comp, tr;
-
+Loader.require("reg", "comp", "tr")
+.then(function(reg, comp, tr){
 	function bindToElement(promise, element, doAppend) {
 		element.empty().text("loading...");
 		promise.then(function(res){
@@ -12,55 +11,44 @@ Loader.promise.then(function(){
 		});
 	}
 
-	$("#BuyTokens").click(function(){
-		if (!comp) return alert('Comp must be defined.');
-		const val = new BigNumber($("#NumTokens").val());
-		const value = val.div(1000).mul(1e18);
-		comp.buyTokens([], {value: value}).then((res)=>{
-			console.log('token guy success:', res)
-			alert("Done");
-		}, (e)=>{
-			console.log('token buy error:', e);
-			alert("Error buying tokens.");
-		});
-	})
+	// $("#BuyTokens").click(function(){
+	// 	if (!comp) return alert('Comp must be defined.');
+	// 	const val = new BigNumber($("#NumTokens").val());
+	// 	const value = val.div(1000).mul(1e18);
+	// 	comp.buyTokens([], {value: value}).then((res)=>{
+	// 		console.log('token guy success:', res)
+	// 		alert("Done");
+	// 	}, (e)=>{
+	// 		console.log('token buy error:', e);
+	// 		alert("Error buying tokens.");
+	// 	});
+	// })
 
-	$("#PopulateAll").click(function(){
-		const $log = $("#PopulateLog").empty();
-		const addLog = (msg) => $log.append($("<div>").text(msg));
-
-		const regAddress = $("#PopulateAllRegAddress").val();
-		if (!regAddress) return alert("Must provide a registry address.");
-
-		reg = Registry.at(regAddress);
-		comp = null;
-		tr = null;
-		addLog("Loading all addresses.");
-		Promise.resolve()
-			// Comptroller
-			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
-			.then((addr)=>{
-				if (addr=="0x") throw new Error();
-				addLog(`Found comptroller at ${addr}`);
-				comp = Comptroller.at(addr);
-			}, (e)=>{ addLog(`Didn't find comptroller.`); })
-			// Treasury
-			.then(()=>reg.addressOf({_name: "TREASURY"}))
-			.then((addr)=>{
-				if (addr=="0x") throw new Error();
-				addLog(`Found treasury at ${addr}`);
-				tr = Treasury.at(addr);
-			}, (e)=>{ addLog(`Didn't find treasury.`); })
-			.then(function(){
-				addLog("All loading complete. Refreshing everything now.");
-				refreshAll();
-			});
-	});
+	$("#Load").click(refreshAll);
 
 	function refreshAll() {
+		refreshSettings();
 		refreshHealth();
 		refreshBalance();
-		refreshStats();
+		//refreshStats();
+	}
+
+	function refreshSettings() {
+		Promise.all([
+			tr.token(),
+			tr.comptroller(),
+			tr.bankroll(),
+			tr.dailyFundLimit()
+		]).then((arr)=>{
+			const tokenAddr = arr[0];
+			const compAddr = arr[1];
+			const bankroll = arr[2];
+			const dailyFundLimit = arr[3];
+			$("#TokenAddr .value").text(tokenAddr);
+			$("#ComptrollerAddr .value").text(compAddr);
+			$("#SettingsBankroll .value").text(ethUtil.toEthStr(bankroll));
+			$("#DailyFundLimit .value").text(ethUtil.toEthStr(dailyFundLimit));
+		});
 	}
 
 	function refreshHealth() {
@@ -109,7 +97,7 @@ Loader.promise.then(function(){
 			} else {
 				const amt = ethUtil.toEth(divThreshold.minus(balance));
 				$("#DivStatus")
-					.text(`☐ ${amt} ETH away from dividend threshold.`)
+					.text(`☐ ${amt} ETH more needed to distribute a dividend.`)
 					.removeClass("good");
 			}
 		});
@@ -298,9 +286,16 @@ Loader.promise.then(function(){
 		const _$bankrollMarker = _$e.find(".bankrollMarker");
 		const _$divThreshMarker = _$e.find(".divThreshMarker");
 
-		const _$balanceTxt = _$e.find(".balanceTxt");
-		const _$bankrollTxt = _$e.find(".bankrollTxt");
-		const _$divThreshTxt = _$e.find(".divThreshTxt");
+		const _$balanceTxt = _$e.find(".balanceTxt")
+			.attr("title", "The amount of ETH Treasury is holding.")
+			.addClass("tipped");
+		const _$bankrollTxt = _$e.find(".bankrollTxt")
+			.attr("title", "The amount of ETH token holders have staked. If balance is above this, all token holder's ETH is safe.")
+			.addClass("tipped");
+		const _$divThreshTxt = _$e.find(".divThreshTxt")
+			.attr("title", "Any balance above this amount can be distributed as dividends.")
+			.addClass("tipped");
+		tippy([_$balanceTxt[0], _$bankrollTxt[0], _$divThreshTxt[0]]);
 
 		this.$e = _$e;
 		this.setValues = function(balance, bankroll, divThreshold){

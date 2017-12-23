@@ -1,0 +1,92 @@
+html, 
+body {
+    min-height: 100%;
+}
+
+body {
+	font-family: verdana;
+	font-size: 90%;
+	margin: 0px;
+	background: #EEE;
+}
+
+.content {
+	min-height: 100%;
+	width: 980px;
+	padding: 0px 10px 30px 10px;
+	border-right: 1px solid gray;
+	border-left: 1px solid gray;
+	box-shadow: 0px 0px 30px 0px gray;
+	/*box-shadow: 20px 0px 0px 20px black;*/
+	margin: 0px auto;
+	background: white;
+}
+
+
+/* Web3 Logger in bottom right of screen */
+.Web3Logger {
+	position: fixed;
+	background: #CCC;
+	border: 1px solid black;
+	padding: 10px;
+	bottom: 10px;
+	right: 20px;
+}
+
+	.Web3Logger .tx {
+		margin: 2px 0px;
+		border: 1px solid gray;
+		background: #DDD;
+	}
+	.Web3Logger .tx .name {
+		font-weight: bold;
+		padding: 2px 4px;
+		border-bottom: 1px solid gray;
+	}
+	.Web3Logger .body {
+		padding: 3px;
+	}
+	.Web3Logger .tx .transaction {
+		font-size: 90%;
+	}
+	.Web3Logger .tx .header {
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	.Web3Logger .tx .pending {
+		color: gray;
+	}
+	.Web3Logger .tx .error {
+		color: red;
+	}
+	.Web3Logger .tx .success {
+		color: green;
+	}
+
+/* Sections are commonly used chunks of related info */
+.section {
+	margin: 50px 0px 0px 0px;
+}
+	.section .head {
+		font-size: 120%;
+		font-weight: bold;
+		background: #EEE;
+		padding: 5px 10px;
+		margin: 0px;
+		border-bottom: 1px solid #CCC;
+	}
+	.section .body {
+		padding: 30px 10px 10px 10px;
+	}
+
+/* Anything with a tooltip gets a little i next to it */
+	.tipped::after {
+		color: #AAA;
+		font-family: serif;
+		font-weight: bold;
+		font-size: 80%;
+		padding: 0px 5px;
+		content: "i";
+		font-style: italic;
+		cursor: pointer;
+	}
