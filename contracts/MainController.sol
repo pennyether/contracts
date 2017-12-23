@@ -28,7 +28,7 @@ contract MainController is
 	uint public paEndReward;
 	// % of collected fees that are paid to user that calls .refreshPennyAuctions()
 	// 100 = 1%, 1000 = .1%, etc
-	uint public paFeeCollectRewardDenom;
+	uint public paFeeCollectRewardDenom = 1000;
 
 	/* events */
 	event Error(uint time, string msg);
