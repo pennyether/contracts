@@ -1,9 +1,5 @@
-Loader.promise.then(function(){
-	var isLoaded;
-	var tr;
-	var mc;
-	var pac;
-
+Loader.require("reg", "tr", "mc", "pac")
+.then(function(reg, tr, mc, pac){
 	function bindToInput(promise, element) {
 		element.empty().text("loading...");
 		promise.then(function(res){
@@ -21,42 +17,13 @@ Loader.promise.then(function(){
 		});
 	}
 
-	$("#Populate").click(function(){
-		const $log = $("#PopulateLog").empty();
-		const addLog = (msg) => $log.append($("<div>").text(msg));
+	$("#Load").click(updateAll);
 
-		const regAddress = $("#PopulateRegAddress").val();
-		if (!regAddress) return alert("Must set a registry address");
-		const reg = Registry.at(regAddress);
-		Promise.resolve()
-			// Treasury
-			.then(()=>reg.addressOf({_name: "TREASURY"}))
-			.then((addr)=>{
-				addLog(`Found treasury at ${addr}`);
-				tr = Treasury.at(addr);
-			}, (e)=>{ addLog(`Didn't find treasury!`); })
-			// Main controller
-			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
-			.then((addr)=>{
-				addLog(`Found main controller at ${addr}`);
-				mc = MainController.at(addr);
-			}, (e)=>{ addLog(`Didn't find main controller!`); })
-			// pac
-			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
-			.then((addr)=>{
-				addLog(`Found pac at ${addr}`);
-				pac = PennyAuctionController.at(addr);
-			}, (e)=>{ addLog(`Didn't find pac!`); })
-			.then(()=>{
-				isLoaded = (!!tr && !!mc && !!pac);
-				addLog(`isLoaded: ${isLoaded}`);
-				if (isLoaded) {
-					updateTr();
-					updateMc();
-					updatePac();
-				}
-			});
-	});
+	function updateAll(){
+		updateTr();
+		updateMc();
+		updatePac();
+	}
 
 	function updateTr() {
 		if (!tr) return alert("tr not loaded.");

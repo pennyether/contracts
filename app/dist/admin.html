@@ -12,21 +12,13 @@
 		}
 		</style>
 	</head>
-	<body>
+	<body><div id="Content">
 		<div class="welcome">
-			ADMIN PAGE
+			ADMIN PAGE <button id="Load">Load</button>
 		</div>
-		<div>
-			<h3>Populate</h3>
-			<input type=text id="PopulateRegAddress" placeholder="registry address"
-				value="0xc1096f203834d7ef377865dc248c1b8b0adcab88">
-			<button id="Populate">POPULATE</button>
-			<div id="PopulateLog"></div>
-		</div>
-
-		<div>
-			<h1>Treasury</h1>
-			<div>
+		<div class="section">
+			<div class="head">Treasury</div>
+			<div class="body">
 				<div>
 					Admin: <span id="TrAdmin"></span>
 				</div>
@@ -48,9 +40,9 @@
 			</div>
 		</div>
 
-		<div>
-			<h1>Main Controller</h1>
-			<div>
+		<div class="section">
+			<div class="head">Main Controller</div>
+			<div class="body">
 				<div>
 					Admin: <span id="McAdmin"></span>
 				</div>
@@ -74,9 +66,9 @@
 			</div>
 		</div>
 
-		<div>
-			<h1>Penny Auction Controller</h1>
-			<div>
+		<div class="section">
+			<div class="head">Penny Auction Controller</div>
+			<div class="body">
 				<div>
 					Admin: <span id="PacAdmin"></span>
 				</div>
@@ -105,5 +97,5 @@
 				<div id="PacDefinedAuctions"></div>
 			</div>
 		</div>
-	</body>
+	</div></body>
 </html>
