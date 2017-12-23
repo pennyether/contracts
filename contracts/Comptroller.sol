@@ -38,7 +38,7 @@ contract Comptroller {
 	// 1 ETH gets 1000 full tokens, so 1 Wei gets that divided by WeiPerEth.
 	uint public tokensPerWei = 1000 * (10 ** uint(token.decimals())) / (1 ether);
 	// Once set to true, cannot be set to false
-	bool public isStarted;
+	bool public isSaleStarted;
 
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
@@ -79,9 +79,9 @@ contract Comptroller {
 		public
 	{
 		require(msg.sender == owner);
-		require(!isStarted);
+		require(!isSaleStarted);
 		require(treasury != address(0));
-		isStarted = true;
+		isSaleStarted = true;
 		SaleStarted(now);
 	}
 
@@ -96,7 +96,7 @@ contract Comptroller {
 		returns (uint _numTokens)
 	{
 		// ensure sale has started, and limit rounding errors
-		require(isStarted);
+		require(isSaleStarted);
 		require(msg.value >= 1000000000);
 		// 20% goes to the owner
 		uint _capital = msg.value / 5;

@@ -131,24 +131,39 @@
 		<div id="Settings" class="section">
 			<div class="head">Settings</div>
 			<div class="body">
-				<div id="TokenAddr" title="The address that will receive dividends. This can never be changed.">
-					Token: <span class="value"></span>
+				<div id="TokenAddr">
+					<span class="tipLeft" title="The address that will receive dividends. This can never be changed.">
+						Token:
+					</span>
+					<span class="value"></span>
 				</div>
 				<br>
-				<div id="ComptrollerAddr" title="The address of the Comptroller. This can never be changed. The comptroller deposits bankroll when someone buys tokens, and withdraws bankroll when someone burns tokens.">
-					Comptroller: <span class="value"></span>
+				<div id="ComptrollerAddr" >
+					<span class="tipLeft" title="The address of the Comptroller. This can never be changed. The comptroller deposits bankroll when someone buys tokens, and withdraws bankroll when someone burns tokens.">
+						Comptroller:
+					</span>
+					<span class="value"></span>
 				</div>
 				<br>
-				<div id="SettingsBankroll" title="The total amount of ETH staked by token holders. If the Treasury balance is greater than this, all tokens can be burnt for a full refund. If this is not the case, tokens can be burnt for a refund until there is no balance remaining.">
-					Bankroll: <span class="value"></span>
+				<div id="SettingsBankroll">
+					<span class="tipLeft" title="The total amount of ETH staked by token holders. If the Treasury balance is greater than this, all tokens can be burnt for a full refund. If this is not the case, tokens can be burnt for a refund until there is no balance remaining.">
+						Bankroll:
+					</span>
+					<span class="value"></span>
 				</div>
 				<br>
-				<div id="DailyFundLimit" title="The maximum amount Treasury can send per day. Excludes dividends. This can be changed only +/-5% per day by the Admin.">
-					Daily Fund Limit: <span class="value"></span>
+				<div id="DailyFundLimit">
+					<span class="tipLeft" title="The maximum amount Treasury can send per day. Excludes dividends. This can be changed only +/-5% per day by the Admin.">
+						Daily Fund Limit: 
+					</span>
+					<span class="value"></span>
 				</div>
 				<br>
-				<div id="DistributionReward" title="A function must be called to send dividends to the token, and this costs gas. In order to ensure dividends happen frequently, a small portion of the dividends sent are paid to the caller as a reward. This has a maximum value of 1%.">
-					Distribution Reward: <span class="value"></span>
+				<div id="DistributionReward">
+					<span class="tipLeft" title="A function must be called to send dividends to the token, and this costs gas. In order to ensure dividends happen frequently, a small portion of the dividends sent are paid to the caller as a reward. This has a maximum value of 1%.">
+						Distribution Reward: 
+					</span>
+					<span class="value"></span>
 				</div>
 				<br>
 				

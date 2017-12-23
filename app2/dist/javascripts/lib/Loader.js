@@ -48,7 +48,7 @@
 
 		    // create web3 object depending on if its from browser or not
 		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
-			if (typeof web3 !== 'undefined' && !false) {
+			if (typeof web3 !== 'undefined') {
 				window.hasWeb3 = true;
 		    	window.web3 = new Web3(web3.currentProvider);
 		  	} else {
@@ -118,12 +118,15 @@
 						const type = mappings[str][0];
 						const name = mappings[str][1];
 						return reg.addressOf([name]).then(addr => {
-							console.log("addr", addr);
 							return type.at.call(type, addr);
+						},(e)=>{
+							console.error(`Could not find address of ${name}: ${e.message}`);
+							throw e;
 						});
 					})
 				)
 			}).then((arr)=>{
+				console.log(`Loader finished requirements: ${strs}`)
 				if (_callback){ _callback.apply(null, arr); }
 			})
 

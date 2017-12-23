@@ -60,6 +60,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 			$("#CompTokenAddr").empty().text(tokenAddr);
 			$("#CompLockerAddr").empty().text(lockerAddr);
 			const token = DividendToken.at(tokenAddr);
+			bindToElement(comp.isStarted(), $("#CompSaleStarted"));
 			bindToElement(token.totalSupply().then(ethUtil.toTokenStr), $("#CompTokenTotalSupply"));
 			bindToElement(token.balanceOf([lockerAddr]).then(ethUtil.toTokenStr), $("#CompLockerBalance"));
 			bindToElement($getLogs(comp), $("#CompLogs"), true);

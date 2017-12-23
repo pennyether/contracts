@@ -144,7 +144,7 @@
 				}
 				if (!opts) opts = {};
 				if (!inputsObj) inputsObj = {};
-				if (!opts.from) opts.from = _web3.eth.accounts[0];
+				if (!opts.from) opts.from = _web3.eth.accounts[0] || ethUtil.NO_ADDRESS;
 				try {
 					inputs = _validateInputs(inputsObj, abiInputs);
 					opts = _validateOpts(opts, isPayable);
