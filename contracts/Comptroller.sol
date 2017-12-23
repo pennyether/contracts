@@ -95,7 +95,7 @@ contract Comptroller {
 		payable
 		returns (uint _numTokens)
 	{
-		// ensure treasuy exists, limit rounding errors
+		// ensure sale has started, and limit rounding errors
 		require(isStarted);
 		require(msg.value >= 1000000000);
 		// 20% goes to the owner
@@ -105,6 +105,7 @@ contract Comptroller {
 		uint _bankroll = msg.value - _capital;
 		treasury.addToBankroll.value(_bankroll)();
 		// mint tokens for the sender and locker
+		// units: (wei) * (tokens * wei^-1) = (tokens)
 		_numTokens = msg.value * tokensPerWei;
 		token.mintTokens(msg.sender, _numTokens);
 		token.mintTokens(locker, _numTokens / 5);
@@ -121,6 +122,7 @@ contract Comptroller {
 			_numTokens = token.balanceOf(msg.sender);
 		// should get back 80% of wei.
 		// if treasury cannot afford, lower number of tokens to burn.
+		// units: (tokens) / (tokens * wei^-1) = wei
 		uint _wei = (4 * _numTokens) / (5 * tokensPerWei);
 		if (treasury.balance < _wei){
 			_wei = treasury.balance;
