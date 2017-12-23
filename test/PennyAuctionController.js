@@ -471,20 +471,16 @@ describe('PennyAuctionController', function(){
                 .startWatching([auction0, auction2])
                 .doTx(callParams)
                 .assertSuccess()
-                    .assertLog("FeeCollectionSuccess", {
+                    .assertLog("FeesSent", {
                         time: null,
                         amount: totalFees
                     })
                 .stopLedger()
                     .assertDelta(treasury, totalFees)
                 .stopWatching()
-                    .assertEvent(auction0, "FeeCollectionSuccess", {
+                    .assertOnlyEvent(auction0, "FeesSent", {
                         time: null,
                         amount: fees0
-                    })
-                    .assertEvent(auction2, "FeeCollectionSuccess", {
-                        time: null,
-                        amount: fees2
                     })
                 .assertCallReturns([pac, "totalFees"], totalFees)
                 .assertCallReturns([auction0, "fees"], 0)
@@ -556,7 +552,7 @@ describe('PennyAuctionController', function(){
                     .assertDelta(winner, prize)
                     .assertNoDelta(pac)
                 .stopWatching()
-                    .assertEvent(auction0, "PaymentSuccess", {
+                    .assertEvent(auction0, "SendPrizeSuccess", {
                         time: null,
                         redeemer: pac.address,
                         recipient: winner,
@@ -632,7 +628,7 @@ describe('PennyAuctionController', function(){
                         index: 2,
                         addr: auction2.address
                     })
-                    .assertLog("FeeCollectionSuccess", {
+                    .assertLog("FeesSent", {
                         time: null,
                         amount: feesCollected
                     })
@@ -641,11 +637,12 @@ describe('PennyAuctionController', function(){
                     .assertNoDelta(unpayableBidder)
                     .assertNoDelta(pac)
                 .stopWatching()
-                    .assertEvent(auction2, "FeeCollectionSuccess", {
+                    .assertEventCount(auction2, 2)
+                    .assertEvent(auction2, "FeesSent", {
                         time: null,
                         amount: feesCollected
                     })
-                    .assertEvent(auction2, "PaymentFailure", {
+                    .assertEvent(auction2, "SendPrizeFailure", {
                         time: null,
                         redeemer: pac.address,
                         recipient: unpayableBidder.address,

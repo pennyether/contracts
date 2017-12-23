@@ -112,13 +112,13 @@ describe('PennyAuction', function() {
             });
         });
 
-        describe(".collectFees()", async function(){
+        describe(".sendFees()", async function(){
             before("should have fees to redeem", async function(){
                 // fee amount was already tested in ensureBiddable()
                 assert((await auction.fees()).gt(0));
             });
             it("fees should be redeemable", async function(){
-                await ensureFeesRedeemable();
+                await ensureFeesSendable();
             });
         });
 
@@ -332,7 +332,7 @@ describe('PennyAuction', function() {
             })
         });
 
-        describe(".payWinner()", function(){
+        describe(".sendPrize()", function(){
             before("auction should be ended, and won by bidderContract", async function(){
                 await createDefaultTxTester()
                     .assertCallReturns([auction, "isEnded"], true)
@@ -344,13 +344,13 @@ describe('PennyAuction', function() {
                 it("tx should error", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
-                    const callParams = [auction, "payWinner", 1, {from: nonBidder}];
+                    const callParams = [auction, "sendPrize", 1, {from: nonBidder}];
                     await createDefaultTxTester()
                         .assertCallReturns(callParams, [false, 0])
                         .startLedger([currentWinner, auction, collector, nonBidder])
                         .doTx(callParams)
                         .assertSuccess()
-                        .assertOnlyLog("PaymentFailure", {
+                        .assertOnlyLog("SendPrizeFailure", {
                             time: null,
                             redeemer: nonBidder,
                             recipient: currentWinner,
@@ -368,13 +368,13 @@ describe('PennyAuction', function() {
                 it("should pay to winner (callable by anyone)", async function(){
                     const prize = await auction.prize();
                     const currentWinner = await auction.currentWinner();
-                    const callParams = [auction, "payWinner", 0, {from: nonBidder}];
+                    const callParams = [auction, "sendPrize", 0, {from: nonBidder}];
                     await createDefaultTxTester()
                         .assertCallReturns(callParams, [true, prize])
                         .startLedger([nonBidder, currentWinner, auction, collector])
                         .doTx(callParams)
                             .assertSuccess()
-                            .assertOnlyLog("PaymentSuccess", {
+                            .assertOnlyLog("SendPrizeSuccess", {
                                 time: null,
                                 redeemer: nonBidder,
                                 recipient: currentWinner,
@@ -403,7 +403,7 @@ describe('PennyAuction', function() {
                 await ensureNotBiddable(nonBidder, BID_PRICE, "Could not bid: Auction has already ended.");
             });
             it("should allow remaining fees to be redeemed", async function(){
-                await ensureFeesRedeemable();
+                await ensureFeesSendable();
             });
             it("should now have zero balance", function(){
                 assert.strEqual(testUtil.getBalance(auction), "0", "Zero balance");
@@ -457,20 +457,20 @@ describe('PennyAuction', function() {
             .start();
     }
     // fees should be transferred to collected, then set to 0
-    async function ensureFeesRedeemable() {
+    async function ensureFeesSendable() {
         const expectedFees = await auction.fees();
         const prize = await auction.isPaid()
             ? 0
             : await auction.prize();
-        const callParams = [auction, 'collectFees', {from: nonAdmin}];
+        const callParams = [auction, 'sendFees', {from: nonAdmin}];
         
         return createDefaultTxTester()
-            .assertCallReturns(callParams, [true, expectedFees])
+            .assertCallReturns(callParams, expectedFees)
             .startLedger([collector, auction, nonAdmin])
             .doTx(callParams)
             .assertSuccess()
                 .assertCallReturns([auction, 'fees'], 0, 'should be zero')
-                .assertOnlyLog("FeeCollectionSuccess", {time: null, amount: null})
+                .assertOnlyLog("FeesSent", {time: null, amount: null})
             .stopLedger()
                 .assertDelta(collector, expectedFees, 'got fees')
                 .assertDelta(auction, expectedFees.mul(-1), 'lost fees')
@@ -481,7 +481,7 @@ describe('PennyAuction', function() {
     // auction should not be able to be paid to winner
     async function ensureNotPayable(errorMsg) {
         // test that call returns (false, 0)
-        const callParams = [auction, "payWinner", false, {from: nonAdmin}];
+        const callParams = [auction, "sendPrize", false, {from: nonAdmin}];
         return createDefaultTxTester()
             .assertCallReturns(callParams, [false, 0])
             .startLedger([auction, nonAdmin])

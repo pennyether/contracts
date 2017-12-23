@@ -55,10 +55,9 @@ contract PennyAuction {
 	event BidOccurred(uint time, address indexed bidder);
 	event BidRefundSuccess(uint time, string msg, address indexed bidder);
 	event BidRefundFailure(uint time, string msg, address indexed bidder);
-	event PaymentSuccess(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
-	event PaymentFailure(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
-	event FeeCollectionSuccess(uint time, uint amount);
-	event FeeCollectionFailure(uint time);
+	event SendPrizeSuccess(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
+	event SendPrizeFailure(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
+	event FeesSent(uint time, address collector, uint amount);
 
 	function PennyAuction(
 		address _collector,
@@ -164,7 +163,7 @@ contract PennyAuction {
 	/**
 	Sends prize to the current winner using _gasLimit (0 is unlimited)
 	*/
-	function payWinner(uint _gasLimit)
+	function sendPrize(uint _gasLimit)
 		public
 	    noRentry
 	    returns (bool _success, uint _prizeSent)
@@ -191,7 +190,7 @@ contract PennyAuction {
         if (_paySuccessful) {
         	// mark as paid
         	isPaid = true;
-        	PaymentSuccess({
+        	SendPrizeSuccess({
 				time: now,
 	            redeemer: msg.sender,
 	            recipient: currentWinner,
@@ -201,7 +200,7 @@ contract PennyAuction {
 			return (true, prize);
         } else {
         	// log payment failed
-        	PaymentFailure({
+        	SendPrizeFailure({
         		time: now,
         		redeemer: msg.sender,
         		recipient: currentWinner,
@@ -215,23 +214,15 @@ contract PennyAuction {
 	/**
 	Sends the fees to the collector, or throws
 	*/
-	function collectFees()
+	function sendFees()
 		public
-	    noRentry
-	    returns (bool _success, uint _feesSent)
+	    returns (uint _feesSent)
     {
-		if (fees == 0) return(true, 0);
-
-		// attempt to send, rollback if unsuccessful
-		if (collector.call.value(fees)()) {
-			_feesSent = fees;
-			fees = 0;
-			FeeCollectionSuccess(now, _feesSent);
-			return (true, _feesSent);
-		} else {
-			FeeCollectionFailure(now);
-			return (false, 0);
-		}
+		if (fees == 0) return;
+		_feesSent = fees;
+		fees = 0;
+		require(collector.call.value(_feesSent)());
+		FeesSent(now, collector, _feesSent);
 	}
 
 	// Returns true if the auction has ended

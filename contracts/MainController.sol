@@ -29,8 +29,6 @@ contract MainController is
 	// % of collected fees that are paid to user that calls .refreshPennyAuctions()
 	// 100 = 1%, 1000 = .1%, etc
 	uint public paFeeCollectRewardDenom;
-	// minimum amount of fees to collect
-	uint public paMinFeeCollect = .01 ether;
 
 	/* events */
 	event Error(uint time, string msg);
