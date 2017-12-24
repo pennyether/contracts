@@ -1,12 +1,4 @@
 Loader.promise.then(function(){
-	function bindToElement(promise, element) {
-		element.empty().text("loading...");
-		promise.then(function(res){
-			element.empty().text(res);
-		},function(e){
-			element.empty().text(`Error: ${e.message}`);
-		});
-	}
 
 	$("#PopulateAll").click(function(){
 		const $log = $("#PopulateLog").empty();
@@ -129,12 +121,12 @@ Loader.promise.then(function(){
 		const address = $("#RegLoadAddress").val();
 		const reg = Registry.at(address);
 		$("#RegAddress").text(address);
-		bindToElement(reg.addressOf({_name: "OWNER"}), $("#RegOwner"));
-		bindToElement(reg.addressOf({_name: "ADMIN"}), $("#RegAdmin"));
-		bindToElement(reg.addressOf({_name: "TREASURY"}), $("#RegTreasury"));
-		bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
-		bindToElement(reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}), $("#RegPac"));
-		bindToElement(reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}), $("#RegPaf"));
+		util.bindToElement(reg.addressOf({_name: "OWNER"}), $("#RegOwner"));
+		util.bindToElement(reg.addressOf({_name: "ADMIN"}), $("#RegAdmin"));
+		util.bindToElement(reg.addressOf({_name: "TREASURY"}), $("#RegTreasury"));
+		util.bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
+		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}), $("#RegPac"));
+		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}), $("#RegPaf"));
 	});
 	$("#RegSetAdmin").click(function(){
 		const regAddress = $("#RegLoadAddress").val();
@@ -165,10 +157,10 @@ Loader.promise.then(function(){
 		const address = $("#CompLoadAddress").val();
 		const comp = Comptroller.at(address);
 		$("#CompAddress").text(address);
-		bindToElement(comp.owner(), $("#CompOwner"));
-		bindToElement(comp.treasury(), $("#CompTreasury"));
-		bindToElement(comp.token(), $("#CompToken"));
-		bindToElement(comp.locker(), $("#CompLocker"));
+		util.bindToElement(comp.owner(), $("#CompOwner"));
+		util.bindToElement(comp.treasury(), $("#CompTreasury"));
+		util.bindToElement(comp.token(), $("#CompToken"));
+		util.bindToElement(comp.locker(), $("#CompLocker"));
 	});
 	$("#CompRegister").click(function(){
 		const compAddress = $("#CompLoadAddress").val();
@@ -228,12 +220,12 @@ Loader.promise.then(function(){
 		if (!address) return alert("No address set.");
 		const tr = Treasury.at(address);
 		$("#TrAddress").text(address);
-		bindToElement(tr.getRegistry(), $("#TrRegistry"));
-		bindToElement(tr.getOwner(), $("#TrOwner"));
-		bindToElement(tr.getAdmin(), $("#TrAdmin"));
-		bindToElement(tr.getMainController(), $("#TrMainController"));
-		bindToElement(tr.comptroller(), $("#TrComptroller"));
-		bindToElement(tr.token(), $("#TrToken"));
+		util.bindToElement(tr.getRegistry(), $("#TrRegistry"));
+		util.bindToElement(tr.getOwner(), $("#TrOwner"));
+		util.bindToElement(tr.getAdmin(), $("#TrAdmin"));
+		util.bindToElement(tr.getMainController(), $("#TrMainController"));
+		util.bindToElement(tr.comptroller(), $("#TrComptroller"));
+		util.bindToElement(tr.token(), $("#TrToken"));
 	});
 	$("#TrRegister").click(function(){
 		const trAddress = $("#TrLoadAddress").val();
@@ -293,10 +285,10 @@ Loader.promise.then(function(){
 		const address = $("#McLoadAddress").val();
 		const mc = MainController.at(address);
 		$("#McAddress").text(address);
-		bindToElement(mc.version(), $("#McVersion"));
-		bindToElement(mc.getTreasury(), $("#McTreasury"));
-		bindToElement(mc.getAdmin(), $("#McAdmin"));
-		bindToElement(mc.getPennyAuctionController(), $("#McPac"));
+		util.bindToElement(mc.version(), $("#McVersion"));
+		util.bindToElement(mc.getTreasury(), $("#McTreasury"));
+		util.bindToElement(mc.getAdmin(), $("#McAdmin"));
+		util.bindToElement(mc.getPennyAuctionController(), $("#McPac"));
 	});
 	$("#McRegister").click(function(){
 		const mcAddress = $("#McLoadAddress").val();
@@ -326,9 +318,9 @@ Loader.promise.then(function(){
 		const address = $("#PacLoadAddress").val();
 		const pac = PennyAuctionController.at(address);
 		$("#PacAddress").text(address);
-		bindToElement(pac.version(), $("#PacVersion"));
-		bindToElement(pac.getAdmin(), $("#PacAdmin"));
-		bindToElement(pac.getPennyAuctionFactory(), $("#PacPaf"));
+		util.bindToElement(pac.version(), $("#PacVersion"));
+		util.bindToElement(pac.getAdmin(), $("#PacAdmin"));
+		util.bindToElement(pac.getPennyAuctionFactory(), $("#PacPaf"));
 	});
 	$("#PacRegister").click(function(){
 		const pacAddress = $("#PacLoadAddress").val();
@@ -358,9 +350,9 @@ Loader.promise.then(function(){
 		const address = $("#PafLoadAddress").val();
 		const paf = PennyAuctionFactory.at(address);
 		$("#PafAddress").text(address);
-		bindToElement(paf.version(), $("#PafVersion"));
-		bindToElement(paf.getTreasury(), $("#PafTreasury"));
-		bindToElement(paf.getPennyAuctionController(), $("#PafPac"));
+		util.bindToElement(paf.version(), $("#PafVersion"));
+		util.bindToElement(paf.getTreasury(), $("#PafTreasury"));
+		util.bindToElement(paf.getPennyAuctionController(), $("#PafPac"));
 	});
 	$("#PafRegister").click(function(){
 		const pafAddress = $("#PafLoadAddress").val();

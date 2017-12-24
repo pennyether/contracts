@@ -1,21 +1,5 @@
 Loader.require("reg", "tr", "mc", "pac")
 .then(function(reg, tr, mc, pac){
-	function bindToInput(promise, element) {
-		element.empty().text("loading...");
-		promise.then(function(res){
-			element.val(res);
-		},function(e){
-			element.val(`Error: ${e.message}`);
-		});
-	}
-	function bindToElement(promise, element) {
-		element.empty().text("loading...");
-		promise.then(function(res){
-			element.empty().text(res);
-		},function(e){
-			element.empty().text(`Error: ${e.message}`);
-		});
-	}
 
 	$("#Load").click(updateAll);
 
@@ -28,9 +12,9 @@ Loader.require("reg", "tr", "mc", "pac")
 	function updateTr() {
 		if (!tr) return alert("tr not loaded.");
 		$("#TrToday").text( ((+new Date())/(1000*60*60*24)).toFixed(2) );
-		bindToElement(tr.getAdmin(), $("#TrAdmin"));
-		bindToElement(tr.dayDailyFundLimitChanged(), $("#TrDailyFundLimitLastChanged"));
-		bindToInput(tr.dailyFundLimit().then(ethUtil.toEth), $("#TrDailyFundLimit"));
+		util.bindToElement(tr.getAdmin(), $("#TrAdmin"));
+		util.bindToElement(tr.dayDailyFundLimitChanged(), $("#TrDailyFundLimitLastChanged"));
+		util.bindToInput(tr.dailyFundLimit().then(ethUtil.toEth), $("#TrDailyFundLimit"));
 	}
 
 	$("#TrChangeDailyFundLimit").click(function(){
@@ -48,10 +32,10 @@ Loader.require("reg", "tr", "mc", "pac")
 
 	function updateMc() {
 		if (!mc) return alert("mc not loaded.");
-		bindToElement(mc.getAdmin(), $("#McAdmin"));
-		bindToInput(mc.paStartReward().then(ethUtil.toEth), $("#McPaStartReward"));
-		bindToInput(mc.paEndReward().then(ethUtil.toEth), $("#McPaEndReward"));
-		bindToInput(mc.paFeeCollectRewardDenom(), $("#McPaRewardDenom"));
+		util.bindToElement(mc.getAdmin(), $("#McAdmin"));
+		util.bindToInput(mc.paStartReward().then(ethUtil.toEth), $("#McPaStartReward"));
+		util.bindToInput(mc.paEndReward().then(ethUtil.toEth), $("#McPaEndReward"));
+		util.bindToInput(mc.paFeeCollectRewardDenom(), $("#McPaRewardDenom"));
 	}
 	$("#McChangePaRewards").click(function(){
 		if (!mc) return alert("mc not loaded.");
@@ -73,7 +57,7 @@ Loader.require("reg", "tr", "mc", "pac")
 
 	function updatePac() {
 		if (!pac) return alert("pac not loaded.");
-		bindToElement(pac.getAdmin(), $("#PacAdmin"));
+		util.bindToElement(pac.getAdmin(), $("#PacAdmin"));
 		pac.numDefinedAuctions().then(function(num){
 			$("#PacNumDefinedAuctions").text(num);
 

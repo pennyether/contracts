@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="/javascripts/lib/Loader.js"></script>
+		<script src="/javascripts/status/games.js"></script>
+		<style>
+			.stats > div {
+				display: inline-block;
+				margin-bottom: 5px;
+			}
+		</style>
+	</head>
+	<body><div id="Content">
+		<div class="welcome">
+			PENNYETHER GAMES
+			<button id="Load">Load</button>
+		</div>
+		<div id="Settings" class="section">
+			<div class="head">Penny Auctions</div>
+			<div class="body">
+				<div class="subsection">
+					<div class="head">Stats</div>
+					<div class="body stats">
+						<div>
+							<span class="tipLeft" title="This contract can be upgraded. This identifies which version is currently in use.">
+								Version:
+							</span>
+							<span id="PacVersion"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The number of auctions that are currently ongoing (in this version).">
+								Active Auctions:
+							</span>
+							<span id="PacNumActiveAuctions"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The number of auctions that have been completed (in this version).">
+								Ended Auctions:
+							</span>
+							<span id="PacNumEndedAuctions"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The total amount of ETH paid out as prizes (in this version).">
+								Total Prize Money:
+							</span>
+							<span id="PacTotalPrizes"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The total amount of Penny Auction fees (revenue) that has been sent to the Treasury (in this version). Note: It is possible (but not likely) that Penny Auction fees are collected from outside the Penny Auction Controller, so this value may not be entirely accurate.">
+								Total Fees Collected:
+							</span>
+							<span id="PacTotalFees"></span>
+						</div><br>
+						<div id="PacLogs"></div>
+					</div>
+				</div>
+				<div class="subsection">
+					<div class="head">Defined Auctions</div>
+					<div class="body"></div>
+				</div>
+			</div>
+		</div>
+		<div id="Status" class="section">
+			<div class="head">Dice</div>
+			<div class="body">
+				
+			</div>
+		</div>
+	</div></body>
+</html>

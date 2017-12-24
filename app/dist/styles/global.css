@@ -67,7 +67,7 @@ body {
 .section {
 	margin: 50px 0px 0px 0px;
 }
-	.section .head {
+	.section > .head {
 		font-size: 120%;
 		font-weight: bold;
 		background: #EEE;
@@ -75,8 +75,20 @@ body {
 		margin: 0px;
 		border-bottom: 1px solid #CCC;
 	}
-	.section .body {
+	.section > .body {
 		padding: 30px 10px 10px 10px;
+	}
+
+.subsection {
+	margin: 0px 0px 30px 20px;
+}
+	.subsection > .head {
+		font-weight: bold;
+		border-bottom: 1px dotted #CCC;
+		padding: 4px 8px;
+	}
+	.subsection > .body {
+		padding: 20px 10px 10px 0px;
 	}
 
 /* Anything with a tooltip gets a little i next to it */

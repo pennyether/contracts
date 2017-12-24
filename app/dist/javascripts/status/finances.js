@@ -1,15 +1,5 @@
 Loader.require("reg", "comp", "tr")
 .then(function(reg, comp, tr){
-	function bindToElement(promise, element, doAppend) {
-		element.empty().text("loading...");
-		promise.then(function(res){
-			doAppend
-				? element.empty().append(res)
-				: element.empty().text(res);
-		},function(e){
-			element.empty().text(`Error: ${e.message}`);
-		});
-	}
 
 	// $("#BuyTokens").click(function(){
 	// 	if (!comp) return alert('Comp must be defined.');
@@ -64,7 +54,7 @@ Loader.require("reg", "comp", "tr")
 		]);
 
 		// refresh the finance bar
-		bindToElement(p.then((arr)=>{
+		util.bindToElement(p.then((arr)=>{
 			const bar = new FinanceBar();
 			bar.setValues(arr[0], arr[1], arr[2]);
 			return bar.$e;

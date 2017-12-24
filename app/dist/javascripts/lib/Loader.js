@@ -35,16 +35,19 @@
 			addScript("/javascripts/lib/NiceWeb3.js"),
 			addScript("/javascripts/lib/NiceWeb3Logger.js"),
 			addScript("/javascripts/lib/ABIs.js"),
+			addScript("/javascripts/lib/PennyEtherWebUtil.js"),
 			addStyle("/styles/global.css")
 		]).then(()=>{
 			var Web3 = require("web3");
 			if (!window.$) throw new Error("Unable to find jQuery.");
+			if (!window.tippy){ throw new Error("Unable to find Tippy."); }
 			if (!window.Web3) throw new Error("Unable to find web3.");
 			if (!window.ethAbi) throw new Error("Unable to find ethAbi.")
 			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
 			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
 			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
-			if (!window.tippy){ throw new Error("Unable to find Tippy."); }
+			if (!window.PennyEtherWebUtil){ throw new Error("Unable to find PennyEtherWebUtil."); }
+			
 
 		    // create web3 object depending on if its from browser or not
 		    const _web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/"));
@@ -64,6 +67,7 @@
 		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
 		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
+		  	window.util = new PennyEtherWebUtil(niceWeb3);
 
 		  	// make public all ContractFactories.
 		  	Object.keys(ABIs).forEach((contractName) => {
