@@ -11,9 +11,10 @@ body {
 }
 
 #Content {
+	margin-top: 30px;
 	min-height: 100%;
 	width: 980px;
-	padding: 0px 10px 30px 10px;
+	padding: 0px 0px 30px 0px;
 	border-right: 1px solid gray;
 	border-left: 1px solid gray;
 	box-shadow: 0px 0px 30px 0px gray;
@@ -65,7 +66,8 @@ body {
 
 /* Sections are commonly used chunks of related info */
 .section {
-	margin: 50px 0px 0px 0px;
+	margin: 25px 0px 25px 0px;
+	padding: 0px 20px;
 }
 	.section > .head {
 		font-size: 120%;
@@ -106,7 +108,13 @@ body {
 		margin: 0px .5em;
 		padding: 0px .5em;
 		border-radius: .3em;
-		cursor: pointer;		
+		cursor: pointer;
+
+		transition: background-color .4s;
+	}
+	.tipRight:hover::after,
+	.tipLeft:hover::before {
+		background: #CCC;
 	}
 
 .ib {

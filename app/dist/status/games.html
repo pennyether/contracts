@@ -8,45 +8,111 @@
 				display: inline-block;
 				margin-bottom: 5px;
 			}
-			/*
-<div class="initialPrize field">
-	<div class="label" class="tipLeft" title="The initial prize staked when this auction is created.">
-		Initial Prize:
-	</div>
-	<div class="value"></div>
-</div>
-			*/
 			.definedAuction {
 				border: 1px solid #CCC;
 				background: #FAFAFA;
 				padding: 5px;
 				margin: 10px 0px;
 			}
-			.definedAuction .name {
-				font-weight: bold;
-				padding: 4px 0px 4px 6px;
-			}
-			.definedAuction .field {
-				margin: 8px 0px;
-			}
-			.definedAuction .field .label {
-				font-weight: bold;
-				display: inline-block;
-			}
-			.definedAuction .field .value {
-				display: inline-block;
-				padding-left: 5px;
-			}
+				.definedAuction .name {
+					font-weight: bold;
+					padding: 4px 0px 4px 6px;
+				}
+				.definedAuction .field {
+					margin: 8px 0px;
+				}
+				.definedAuction .field .label {
+					font-weight: bold;
+					display: inline-block;
+				}
+				.definedAuction .field .value {
+					display: inline-block;
+					padding-left: 5px;
+				}
 
 			#PacLogs {
 				border: 1px solid blue;
 				padding: 5px;
 				margin: 10px;
 			}
+
+			#Nav {
+				background: #FAFFFA;
+				border-bottom: 1px solid #CCC;
+				position: relative;
+				padding: 0px;
+				width: 100%;
+			}
+				#Nav .left {
+					padding: 10px;
+				}
+					#Nav .logo {
+						font-size: 200%;	
+					}
+				#Nav .middle {
+					padding-right: 25px;
+				}
+					#Nav .menuItem {
+						display: inline-block;
+						padding: 20px 8px;
+						display: pointer;
+						cursor: pointer;
+						transition: color .3s, background .3s;
+					}
+					#Nav .menuItem:hover {
+						color: white;
+						background: green;
+					}
+				#Nav .right {
+					border-left: 1px solid #CCC;
+					background: #FAFAFA;
+					background: linear-gradient(to bottom, #FAFAFA 0%,#CCCCCC 100%);
+				}
+					#Nav #Eth {
+						padding: 10px;
+						cursor: pointer;
+						filter: hue-rotate(0) saturate(300%) contrast(1);
+						/*background: linear-gradient(to bottom, #FAFAFA 0%,#CCCCCC 100%);*/
+						transition: all 1s;
+					}
+					#Nav #Eth:hover, #Nav #Eth.open {
+						filter: hue-rotate(0deg) saturate(500%) contrast(5);
+						margin-top: 5px;
+						margin-bottom: -5px;
+					}
+					#Nav #Eth.off {
+						filter: hue-rotate(0) saturate(0%) contrast(1);
+						transition: all 1s;
+					}
+					#Nav #Eth.off:hover {
+						filter: hue-rotate(0deg) saturate(100%) contrast(2);
+						margin-top: 0px;
+						margin-bottom: 0px;	
+					}
 		</style>
 	</head>
 	<body><div id="Content">
-		<div class="welcome">
+		<div id="Nav">
+			<table width=100% cellspacing="0" cellpadding="0"><tr>
+				<td align=left class="left">
+					<div class="logo">
+						PennyEther
+					</div>
+				</td>
+				<td align=right class="middle" width="100%">
+					<div class="menuItem">Penny Auctions</div>
+					<div class="menuItem">About</div>
+					<div class="menuItem">Status</div>
+					<div class="menuItem">Tokens</div>
+				</td>
+				<td align=right class="right">
+					<div id="Eth" class="">
+						<img src="/images/ethereum.png" width="30"/>
+					</div>
+				</td>
+			</tr></table>
+		</div>
+		<div class="welcome" style="margin-top: 20px">
 			PENNYETHER GAMES
 			<button id="Load">Load</button>
 		</div>
