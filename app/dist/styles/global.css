@@ -80,7 +80,7 @@ body {
 	}
 
 .subsection {
-	margin: 0px 0px 30px 20px;
+	margin: 10px 0px 0px 20px;
 }
 	.subsection > .head {
 		font-weight: bold;
@@ -88,7 +88,7 @@ body {
 		padding: 4px 8px;
 	}
 	.subsection > .body {
-		padding: 20px 10px 10px 0px;
+		padding: 10px 10px 10px 0px;
 	}
 
 /* Anything with a tooltip gets a little i next to it */

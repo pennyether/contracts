@@ -393,6 +393,26 @@
 				blockNum
 			]);
 		}
+		// returns average blocktime, weighted to be somewhat recent
+		// in case of difficulty bomb or other event
+		this.getAverageBlockTime = function(){
+			return _self.getBlock("latest").then((block)=>{
+				const curBlockNum = block.number;
+				const curBlockTime = block.timestamp;
+				return Promise.all([
+					_self.getBlock(curBlockNum-100),
+					_self.getBlock(curBlockNum-1000),
+					_self.getBlock(curBlockNum-5000),
+				]).then(arr=>{
+					const num = ((curBlockTime - arr[0].timestamp)/100
+						     +   (curBlockTime - arr[1].timestamp)/1000
+						     +   (curBlockTime - arr[2].timestamp)/5000)
+							     / 3;
+					return new BigNumber(num.toFixed(15));
+				});
+			});
+		}
+
 
 		this.toEth = function(val) {
 			try { var bn = new BigNumber(val); }

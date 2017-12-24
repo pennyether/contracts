@@ -20,7 +20,7 @@ Loader.require("reg", "comp", "tr")
 		refreshSettings();
 		refreshHealth();
 		refreshBalance();
-		refreshStats();
+		//refreshStats();
 	}
 
 	function refreshSettings() {
@@ -281,14 +281,16 @@ Loader.require("reg", "comp", "tr")
 
 		const _$balanceTxt = _$e.find(".balanceTxt")
 			.attr("title", "The amount of ETH Treasury is holding.")
-			.addClass("tipped");
+			.addClass("tipRight");
 		const _$bankrollTxt = _$e.find(".bankrollTxt")
 			.attr("title", "The amount of ETH token holders have staked. If balance is above this, all token holder's ETH is safe.")
-			.addClass("tipped");
+			.addClass("tipRight");
 		const _$divThreshTxt = _$e.find(".divThreshTxt")
 			.attr("title", "Any balance above this amount can be distributed as dividends.")
-			.addClass("tipped");
-		tippy([_$balanceTxt[0], _$bankrollTxt[0], _$divThreshTxt[0]]);
+			.addClass("tipRight");
+
+		tippy(_$balanceTxt[0], {placement: "top"});
+		tippy([_$bankrollTxt[0], _$divThreshTxt[0]], {placement: "bottom"});
 
 		this.$e = _$e;
 		this.setValues = function(balance, bankroll, divThreshold){

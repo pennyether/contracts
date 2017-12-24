@@ -8,6 +8,41 @@
 				display: inline-block;
 				margin-bottom: 5px;
 			}
+			/*
+<div class="initialPrize field">
+	<div class="label" class="tipLeft" title="The initial prize staked when this auction is created.">
+		Initial Prize:
+	</div>
+	<div class="value"></div>
+</div>
+			*/
+			.definedAuction {
+				border: 1px solid #CCC;
+				background: #FAFAFA;
+				padding: 5px;
+				margin: 10px 0px;
+			}
+			.definedAuction .name {
+				font-weight: bold;
+				padding: 4px 0px 4px 6px;
+			}
+			.definedAuction .field {
+				margin: 8px 0px;
+			}
+			.definedAuction .field .label {
+				font-weight: bold;
+				display: inline-block;
+			}
+			.definedAuction .field .value {
+				display: inline-block;
+				padding-left: 5px;
+			}
+
+			#PacLogs {
+				border: 1px solid blue;
+				padding: 5px;
+				margin: 10px;
+			}
 		</style>
 	</head>
 	<body><div id="Content">
@@ -15,7 +50,7 @@
 			PENNYETHER GAMES
 			<button id="Load">Load</button>
 		</div>
-		<div id="Settings" class="section">
+		<div id="PennyAuctions" class="section">
 			<div class="head">Penny Auctions</div>
 			<div class="body">
 				<div class="subsection">
@@ -55,8 +90,58 @@
 					</div>
 				</div>
 				<div class="subsection">
-					<div class="head">Defined Auctions</div>
-					<div class="body"></div>
+					<div class="head">
+						<span title="Penny Auctions are all pre-defined by an admin. MainController will periodically look for any enabled pre-defined auctions that are completed and will restart them by creating a new auction instance. This ensures there are always Penny Auctions running.">
+							Pre-Defined Auctions
+						</span>
+					</div>
+					<div class="body definedAuctions">
+						<div class="definedAuction definedAuctionTemplate" style="display: none;">
+							<div class="name">Auction 1</div>
+							<div class="isEnabled field">
+								<div class="label tipLeft dontTip" title="Whether or not a new instance of this Penny Auction will be created when the current one, if any, ends.">
+									isEnabled:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="auction field">
+								<div class="label tipLeft dontTip" title="The existing instance of this pre-defined auction, if any.">
+									Auction:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="initialPrize field">
+								<div class="label tipLeft dontTip" title="The initial prize staked when this auction is created.">
+									Initial Prize:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="bidPrice field">
+								<div class="label tipLeft dontTip" title="The cost to bid on this auction and become the current winner.">
+									Bid Price:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="bidFeePct field">
+								<div class="label tipLeft dontTip" title="The % of each bid that is kept as revenue. The rest is put into the prize pool.">
+									Bid Fee:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="bidAddBlocks field">
+								<div class="label tipLeft dontTip" title="The number of blocks that the auction is extended by each time someone bids.">
+									Bid Add Blocks:
+								</div>
+								<div class="value"></div>
+							</div>
+							<div class="initialBlocks field">
+								<div class="label tipLeft dontTip" title="The number of blocks that the auction starts with when initialized.">
+									Initial Blocks:
+								</div>
+								<div class="value"></div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

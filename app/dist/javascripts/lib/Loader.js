@@ -83,15 +83,15 @@
 		  	const logger = new NiceWeb3Logger(niceWeb3);
 		  	logger.$e.appendTo(document.body);
 
-		  	// attach Tippy's
+		  	// attach Tippies
 		  	tippy.defaults.trigger = "click";
 		  	tippy.defaults.interactive = true;
 		  	tippy.defaults.sticky = true;
 		  	tippy.defaults.performance = true;
 		  	tippy.defaults.arrow = true;
 		  	$('[title]:not(.tipLeft)').addClass("tipRight");
-		  	tippy('.tipLeft', {placement: "top"});
-		  	tippy('.tipRight', {placement: "right"});
+		  	tippy('.tipLeft:not(.dontTip)', {placement: "top"});
+		  	tippy('.tipRight:not(.dontTip)', {placement: "right"});
 
 		  	// done.
 		  	console.log("Loader is done setting things up.");

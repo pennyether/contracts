@@ -65,7 +65,7 @@ Loader.require("reg", "tr", "mc", "pac")
 			const $template = $(".pacDefinedAuctionTemplate");
 			for (var i=0; i<=num; i++){
 				let index = i;
-				const $defined = $template
+				let $defined = $template
 					.clone()
 					.removeClass("pacDefinedAuctionTemplate")
 					.addClass("pacDefinedAuction")
