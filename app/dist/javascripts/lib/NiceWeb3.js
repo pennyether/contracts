@@ -136,6 +136,9 @@
 			const callName = isConstructor 
 				? `new ${contractName}(${inputStr})`
 				: `${contractName}.${fnName}(${inputStr})`;
+			function getCurAccount(){
+				try{ return _web3.eth.accounts[0]; } catch(e){ return null; }
+			}
 
 			return function NiceWeb3ContractCall(inputsObj, opts, callback) {
 				var inputs, opts;
@@ -144,7 +147,7 @@
 				}
 				if (!opts) opts = {};
 				if (!inputsObj) inputsObj = {};
-				if (!opts.from) opts.from = _web3.eth.accounts[0] || ethUtil.NO_ADDRESS;
+				if (!opts.from) opts.from = getCurAccount() || ethUtil.NO_ADDRESS;
 				try {
 					inputs = _validateInputs(inputsObj, abiInputs);
 					opts = _validateOpts(opts, isPayable);

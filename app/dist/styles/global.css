@@ -22,6 +22,240 @@ body {
 	background: white;
 }
 
+/***********************************************/
+/** NAVIGATION *********************************/
+/***********************************************/
+#Nav {
+	position: fixed;
+	top: 0px;
+	margin: 0px auto;
+	width: 980px;
+	box-shadow: 0px 3px 4px 0px #888;
+}
+
+#Top {
+	display: table;
+	background: #FAFFFA;
+	background: linear-gradient(to bottom, #FAFFFA 0%, #CFC 100%);
+	width: 100%;
+}
+	#Top > .left {
+		display: table-cell;
+		text-align: left;
+		vertical-align: middle;
+		border-bottom: 1px solid #CCC;
+	}
+	#Top > .middle {
+		display: table-cell;
+		text-align: right;
+		vertical-align: middle;
+		width: 100%;
+		padding-right: 25px;
+		border-bottom: 1px solid #CCC;
+	}
+	#Top > .right {
+		display: table-cell;
+		vertical-align: middle;
+		border-left: 1px solid #CCC;
+	}
+
+#Top .logo {
+	padding: 8px 20px;
+	font-size: 200%;	
+}
+#Top .menuItem {
+	position: relative;
+	display: inline-block;
+	padding: 18px 8px;
+	margin: 0px 5px;
+	cursor: pointer;
+	transition: color .3s, background .3s;
+}
+#Top .menuItem.on {
+	font-weight: bold;
+}
+#Top .menuItem:hover {
+	color: white;
+	background: green;
+}
+
+	#Top .menuItem .subMenu {
+		font-weight: normal;
+		font-size: 90%;
+		position: absolute;
+		border: 1px solid #CCC;
+
+		background: linear-gradient(to bottom, #FAFAFA 0%, #BBBBBB 100%);
+		margin-top: 18px; /* should match padding of .menuItem */
+		color: black;
+		right: -1000px;
+		opacity: 0;
+		transition: opacity .3s;
+	}
+	#Top .menuItem:hover .subMenu {
+		display: block;
+		right: 0px;
+		opacity: 1;
+	}
+	#Top .menuItem .subItem {
+		padding: 8px 25px;
+	}
+	#Top .menuItem .subItem.on {
+		font-weight: bold;
+		color: white;
+		background: green;
+	}
+	#Top .menuItem .subItem:hover {
+		background: green;
+		color: white;
+	}
+
+#Breadcrumb {
+	display: block;
+	font-size: 90%;
+	padding: 5px 0px 5px 20px;
+	background: linear-gradient(to bottom, #FAFAFA 0%, #DDDDDD 100%);
+}
+	#Breadcrumb .parent {
+		display: inline-block;
+	}
+	#Breadcrumb .parent:after {
+		display: inline-block;
+		content: '»';
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+	#Breadcrumb .curPage {
+		font-weight: bold;
+		display: inline-block;
+	}
+
+
+/***********************************************/
+/** EthStatus (upper right thingy) *************/
+/***********************************************/
+		
+.EthStatus {
+	border-bottom: 1px solid #CCC;
+	transition: box-shadow .5s, background .5s;
+}
+.EthStatus:hover {
+	background: #EEE;
+}
+.EthStatus.open {
+	background: #DDD;
+	border-bottom: none;
+	box-shadow: -8px 8px 10px -3px rgba(0,0,0,.3);
+}
+
+	/** Glowing icon... appears red when not connected (.off) *****/
+	.EthStatus .icon {
+		top: 0px;
+		padding: 10px;
+		cursor: pointer;
+		filter: hue-rotate(0) saturate(300%) contrast(1);
+		transition: all 1s;
+	}
+	.EthStatus .icon:hover, .EthStatus.open .icon {
+		filter: hue-rotate(0deg) saturate(500%) contrast(5);
+		top: 3px;
+	}
+	.EthStatus.off .icon {
+		filter: hue-rotate(110deg) saturate(100%) contrast(1);
+		transition: all 1s;
+	}
+	.EthStatus.off .icon:hover, .EthStatus.off.open .icon {
+		filter: hue-rotate(110deg) saturate(100%) contrast(2);
+		margin-top: 0px;
+		margin-bottom: 0px;	
+	}
+
+	/** The content menu. Should fade in/out ****************/
+	.EthStatus .content {
+		position: absolute;
+		width: 300px;
+		font-size: 90%;
+		background: #EEE;
+		opacity: 0;
+		right: -1200px;
+		transition: opacity .5s, box-shadow .5s, right 0s ease-in .5s;
+	}
+	.EthStatus.open .content {
+		opacity: 1;
+		right: 0px;
+		box-shadow: -8px 8px 10px -3px rgba(0,0,0,.3);
+		transition: opacity .5s, box-shadow .5s;
+	}
+		/* Network bar shows isConnected, and latest block */
+		.EthStatus .network {
+			display: table;
+			box-sizing: border-box;
+			width: 100%;
+			padding: 5px;
+			border-bottom: 1px solid #AAA;
+			background: #DDD;
+			background: linear-gradient(to bottom, #DDD 0%, #BBB 100%);
+		}
+		.EthStatus .network > .left {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: left;
+		}
+		.EthStatus .network > .right {
+			display: table-cell;
+			vertical-align: middle;
+			text-align: right;
+		}
+			/* A little glowing circle that is green or red */
+			.EthStatus .network .connected {
+				display: inline-block;
+				margin: 0px;
+				width: 10px;
+				height: 10px;
+				margin-left: 3px;
+				border-radius: 20px;
+			}
+			.EthStatus .network .connected.false {
+				background: red;
+				box-shadow: 0px 0px 10px 0px maroon;
+			}
+			.EthStatus .network .connected.true {
+				background: lime;
+				box-shadow: 0px 0px 10px 0px green;
+			}
+			.EthStatus .network .name {
+				display: inline-block;
+				padding-left: 5px;
+			}
+
+		/* The account line shows the account address and balance */
+		.EthStatus .account {
+			display: table;
+			box-sizing: border-box;
+			width: 100%;
+			padding: 3px;
+			border-bottom: 1px solid gray;
+			font-size: 90%;
+			background: linear-gradient(to bottom, #DFD 0%, #BFB 100%);
+		}
+		.EthStatus .account.none {
+			background: linear-gradient(to bottom, #FDD 0%, #FBB 100%);
+		}
+			.EthStatus .account > .address {
+				display: table-cell;
+				text-align: left;
+			}
+			.EthStatus .account.none > .address {
+				text-align: center;
+			}
+			.EthStatus .account > .balance {
+				display: table-cell;
+				text-align: right;	
+			}
+			.EthStatus .account.none > .balance {
+				display: none;
+			}
+
 
 /* Web3 Logger in bottom right of screen */
 .Web3Logger {

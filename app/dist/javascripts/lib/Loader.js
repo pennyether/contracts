@@ -36,6 +36,8 @@
 			addScript("/javascripts/lib/NiceWeb3Logger.js"),
 			addScript("/javascripts/lib/ABIs.js"),
 			addScript("/javascripts/lib/PennyEtherWebUtil.js"),
+			addScript("/javascripts/lib/Nav.js"),
+			addScript("/javascripts/lib/EthStatus.js"),
 			addStyle("/styles/global.css")
 		]).then(()=>{
 			var Web3 = require("web3");
@@ -47,6 +49,8 @@
 			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
 			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
 			if (!window.PennyEtherWebUtil){ throw new Error("Unable to find PennyEtherWebUtil."); }
+			if (!window.Nav){ throw new Error("Unable to find Nav"); }
+			if (!window.EthStatus){ throw new Error("Unable to find EthStatus"); }
 			
 
 		    // create web3 object depending on if its from browser or not
@@ -79,7 +83,11 @@
 			// make Registry public
 		  	const registry = Registry.at("0xc1096f203834d7ef377865dc248c1b8b0adcab88");
 
-		  	// attach logger to body
+		  	// attach visual components
+		  	const ethStatus = new EthStatus(web3)
+		  	const nav = new Nav();
+		  	nav.setEthStatusElement(ethStatus.$e)
+		  	$("#Content").prepend(nav.$e);
 		  	const logger = new NiceWeb3Logger(niceWeb3);
 		  	logger.$e.appendTo(document.body);
 
@@ -123,7 +131,7 @@
 						const name = mappings[str][1];
 						return reg.addressOf([name]).then(addr => {
 							return type.at.call(type, addr);
-						},(e)=>{
+						}).catch((e)=>{
 							console.error(`Could not find address of ${name}: ${e.message}`);
 							throw e;
 						});
