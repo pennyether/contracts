@@ -107,7 +107,7 @@
 				_$acctCtnr.removeClass("none");
 
 				const acctStr = acctAddr.slice(0,6) + "..." + acctAddr.slice(-4);
-				const $link = ethUtil.getLink(acctStr, acctAddr, "address")
+				const $link = ethUtil.$getLink(acctStr, acctAddr, "address")
 				_$acctAddr.empty().append("Account: ").append($link);
 				_$acctBal.text("...");
 				ethUtil.getBalance(acctAddr).then((res)=>{
@@ -127,7 +127,7 @@
 				_$block.text("").hide();
 			} else {
 				const str = `#${latestBlock}`;
-				const $link = ethUtil.getLink(str, latestBlock, "block");
+				const $link = ethUtil.$getLink(str, latestBlock, "block");
 				_$block.show().empty().append($link);
 			}
 			_refreshBlockTimeAgo();

@@ -36,11 +36,11 @@
 			});
 		};
 
-		this.$getAddrLink = function(addr){
-			return niceWeb3.ethUtil.getLink(addr, addr, "address");
+		this.$getAddrLink = function(name, addr){
+			return niceWeb3.ethUtil.$getLink(name, addr || name, "address");
 		}
-		this.$getTxLink = function(tx){
-			return niceWeb3.ethUtil.getLink(tx, tx, "transaction");
+		this.$getTxLink = function(name, tx){
+			return niceWeb3.ethUtil.$getLink(tx, tx || name, "transaction");
 		}
 	}
 	

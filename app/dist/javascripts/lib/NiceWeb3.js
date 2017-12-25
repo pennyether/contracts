@@ -478,7 +478,7 @@
 			return bn.mul(1e18);
 		}
 		// returns a link to Etherscan
-		this.getLink = function(str, id, type){
+		this.$getLink = function(str, id, type){
 			const network = ({
 				1: "",
 				3: "ropsten.",

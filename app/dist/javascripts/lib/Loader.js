@@ -153,7 +153,10 @@
 						const type = mappings[str][0];
 						const name = mappings[str][1];
 						return reg.addressOf([name]).then(addr => {
-							return type.at.call(type, addr);
+							const instance = type.at.call(type, addr);
+							window[str] = instance;
+							console.log(`found ${str} @ ${addr}`);
+							return instance;
 						}).catch((e)=>{
 							console.error(`Could not find address of ${name}: ${e.message}`);
 							throw e;

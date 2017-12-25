@@ -1,5 +1,5 @@
-Loader.require("tr", "mc")
-.then(function(tr, mc){
+Loader.require("tr", "mc", "pac")
+.then(function(tr, mc, pac){
 	$(".paStart .gasPrice").keypress(e=>{
 		if(e.which == 13) updatePaStart();
 	});
@@ -26,8 +26,9 @@ Loader.require("tr", "mc")
 	function updatePaStart() {
 		const $e = $(".paStart");
 		const $fields = $e.find(".fields");
-		const $notice = $e.find(".notice");
+		const $notice = $e.find(".no-reward");
 		const $gasPrice = $e.find(".gasPrice");
+		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
 		const $reward = $e.find(".reward .value").text("Loading...");
 		const $cost = $e.find(".cost .value").text("Loading...");
 		const $profit = $e.find(".profit .value").text("Loading...");
@@ -45,20 +46,16 @@ Loader.require("tr", "mc")
 			var data = {
 				reward: res[0],
 				index: res[1],
-				estGas: null
+				estGas: new BigNumber(0)
 			}
 			if (data.reward.gt(0)){
-				return mc.startPennyAuction(index).estimateGas()
-					.then(estGas=>{
-						data.estGas = estGas
-						return data
-					})
+				data.estGas = new BigNumber(1200000);
 			} else {
 				return data;
 			}
 		}).then(data=>{
 			const reward = data.reward;
-			const estGas = data.estGas;
+			const estGas = new BigNumber(data.estGas);
 			const index = data.index;
 
 			if (!reward.gt(0)){
@@ -80,6 +77,12 @@ Loader.require("tr", "mc")
 					.removeClass("good bad")
 					.addClass(profit.gt(0) ? "good" : "bad");
 				$risk.text(`${ethUtil.toEthStr(risk)} (${failGasVal} gas)`);
+				$btn.removeAttr("disabled").click(()=>{
+					mc.startPennyAuction([data.index], {
+						gasPrice: gasPrice,
+						gas: estGas.plus(100000)
+					});
+				});
 			} else {
 				$reward.text("Invalid gasPrice");
 				$cost.text("Invalid gasPrice");
@@ -92,7 +95,7 @@ Loader.require("tr", "mc")
 	function updatePaRefresh() {
 		const $e = $(".paRefresh");
 		const $fields = $e.find(".fields");
-		const $notice = $e.find(".notice");
+		const $notice = $e.find(".no-reward");
 		const $gasPrice = $e.find(".gasPrice");
 		const $settings = $e.find(".settings .value").text("Loading...");
 		const $available = $e.find(".available .value").text("Loading...");
@@ -160,7 +163,7 @@ Loader.require("tr", "mc")
 	function updateTrDiv() {
 		const $e = $(".trDiv");
 		const $fields = $e.find(".fields");
-		const $notice = $e.find(".notice");
+		const $notice = $e.find(".no-reward");
 		const $gasPrice = $e.find(".gasPrice");
 		const $amount = $e.find(".amount .value").text("Loading...");
 		const $reward = $e.find(".reward .value").text("Loading...");

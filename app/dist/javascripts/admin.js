@@ -1,7 +1,6 @@
 Loader.require("reg", "tr", "mc", "pac")
 .then(function(reg, tr, mc, pac){
-
-	$("#Load").click(updateAll);
+	updateAll();
 
 	function updateAll(){
 		updateTr();

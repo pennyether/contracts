@@ -46,9 +46,9 @@ Loader.require("pac")
 
 				pac.definedAuctions([index]).then((res)=>{
 					const addr = res[0];
-					const $addr = util.$getAddrLink(res[1]);
 					const enabled = res[1] ? "Enabled" : "Disabled";
 					const name = res[2];
+					const $addr = util.$getAddrLink(res[0]);
 					const initialPrize = ethUtil.toEthStr(res[3]);
 					const bidPrice = ethUtil.toEthStr(res[4]);
 					const bidFeePct = res[5] + "%";

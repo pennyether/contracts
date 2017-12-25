@@ -85,6 +85,11 @@
 					name: "Buy",
 					url: "/tokens/buy.html"
 				}]
+			},
+			{
+				name: "Admin",
+				url: "/admin.html",
+				children: []
 			}
 		];
 
