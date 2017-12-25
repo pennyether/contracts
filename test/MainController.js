@@ -130,7 +130,7 @@ describe("MainController", function(){
 			return createDefaultTxTester()
 				.assertCallReturns([mainController, "paStartReward"], 0)
 				.assertCallReturns([mainController, "paEndReward"], 0)
-				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], 0)
+				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], 1000)
 				.start();
 		});
 		it("Not callable by nonAdmin", function(){
@@ -490,7 +490,7 @@ describe("MainController", function(){
 					value: expectedReward
 				});
 			if (expectedFees.gt(0)) {
-				tester.assertEvent(pac, "FeeCollectionSuccess", {
+				tester.assertEvent(pac, "FeesSent", {
 					time: null,
 					amount: expectedFees
 				})

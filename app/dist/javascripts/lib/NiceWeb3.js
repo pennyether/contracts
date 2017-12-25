@@ -112,8 +112,17 @@
 			// attach a bunch of useful functions...
 			// you know, that return actual promises and useful results.
 			abi.filter(def=>def.type==='function').forEach(def=>{
-				const oldCall = instance[def.name].bind(instance);
-				instance[def.name] = getCallFn(oldCall, def, instance);
+				const oldFn = instance[def.name];
+				const oldCall = oldFn.bind(instance);
+				instance[def.name] = getCallFn(oldCall, def, instance, def.constant);
+				if (oldFn.estimateGas){
+					const oldEstGas = oldFn.estimateGas.bind(oldFn);
+					instance[def.name].estimateGas = getCallFn(oldEstGas, def, instance, true);
+				}
+				if (oldFn.call){
+					const oldCall = oldFn.call.bind(oldFn);
+					instance[def.name].call = getCallFn(oldCall, def, instance, true);
+				}
 			});
 			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
 			// add instance to known instances (so can parse events)
@@ -129,7 +138,7 @@
 		//	 - with a .getTxHash() property that resolves first.
 		// See: _doPromisifiedCall()
 		// todo: handle if this is a constant function!
-		function getCallFn(oldCallFn, def, instance) {
+		function getCallFn(oldCallFn, def, instance, isConstant) {
 			const isConstructor = def.type === "constructor";
 			const abiInputs = def.inputs;
 			const isPayable = def.payable;
@@ -165,7 +174,7 @@
 					instance: instance,
 					fnName: fnName,
 					callName: callName,
-					isConstant: def.constant,
+					isConstant: isConstant,
 					inputsObj: inputsObj,
 					inputs: inputs,
 					opts: opts
