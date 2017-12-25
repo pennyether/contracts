@@ -28,21 +28,36 @@
 
 		const _siteMap = [
 			{
-				name: "Games",
-				url: "/allgames.html",
-				children: []
+				name: "Win Ether!",
+				url: "/games.html",
+				children: [{
+					name: "Penny Auctions",
+					url: "/games/pennyauctions.html"
+				},{
+					name: "Dice (soon)",
+					url: "/games/dice.html"
+				},{
+					name: "Rewards",
+					url: "/games/rewards.html"
+				}]
 			},
 			{
 				name: "About",
 				url: "/about.html",
-				children: []
+				children: [{
+					name: "Our Mission",
+					url: "/about/mission.html"
+				},{
+					name: "Fairness",
+					url: "/about/fairness.html"
+				}]
 			},
 			{
 				name: "Status",
-				url: "/status/finances",
+				url: "/status/treasury.html",
 				children: [{
-					name: "Finances",
-					url: "/status/finances.html"
+					name: "Treasury",
+					url: "/status/treasury.html"
 				},{
 					name: "System",
 					url: "/status/system.html"
@@ -54,7 +69,19 @@
 			{
 				name: "Tokens",
 				url: "/tokens/index.html",
-				children: []
+				children: [{
+					name: "Learn",
+					url: "/tokens/learn.html"
+				},{
+					name: "FAQs",
+					url: "/tokens/faqs.html"
+				},{
+					name: "Contracts",
+					url: "/tokens/contracts.html"
+				},{
+					name: "Buy",
+					url: "/tokens/buy.html"
+				}]
 			}
 		];
 

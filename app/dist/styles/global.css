@@ -104,6 +104,7 @@ body {
 	}
 	#Top .menuItem .subItem {
 		padding: 8px 25px;
+		white-space: nowrap;
 	}
 	#Top .menuItem .subItem.on {
 		font-weight: bold;

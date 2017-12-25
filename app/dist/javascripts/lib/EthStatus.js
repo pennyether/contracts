@@ -1,5 +1,5 @@
 (function(){
-	function EthStatus(web3) {
+	function EthStatus(web3, ethUtil) {
 		const _self = this;
 		const _$e = $(`
 			<div class="EthStatus">
@@ -21,19 +21,8 @@
 						<div class="address"></div>
 						<div class="balance"></div>
 					</div>
-					<div>
-						Pending Transactions:
-						<div>
-							<div>Bid on PennyAuction #2 ...</div>
-							<div>Mining for 25s</div>
-						</div>
-					</div>
-					<div>
-						Recent Transactions:
-						<div>
-							<div>Bid on PennyAuction #2 ...</div>
-							<div>Mined 40s ago (results)</div>
-						</div>
+					<div style="padding: 10px">
+						More data will go here soon...
 					</div>
 				</div>
 			</div>
@@ -55,15 +44,6 @@
 
 
 		function _checkState() {
-			function getLatestBlockNum() {
-				return new Promise((resolve, reject)=>{
-					web3.eth.getBlock("latest", function(err, res){
-						if (err) reject(err);
-						else resolve(res.number);
-					});
-				});
-			}
-
 			// returns the current state. on any error, will return
 			// the not connected state.
 			function getCurState() {
@@ -73,12 +53,12 @@
 					networkId: null,
 					latestBlock: null
 				};
-				return Promise.resolve(getLatestBlockNum()).then(blockNum=>{
+				return Promise.resolve(ethUtil.getBlock('latest')).then(block=>{
 					return {
 						isConnected: true,
 						account: web3.eth.accounts[0],
 						networkId: web3.version.network,
-						latestBlock: blockNum,
+						latestBlock: block.number,
 					}
 				}).catch(() => {
 					return notConnectedState;
@@ -139,15 +119,6 @@
 		}
 
 		function _refreshAddress(){
-			function getBalance(addr){
-				return new Promise((resolve, reject)=>{
-					web3.eth.getBalance(addr, (err,res)=>{
-						if (err) resolve(null);
-						else resolve(res);
-					});
-				})
-			}
-
 			const acctAddr = _curState.account;
 			if (!acctAddr) {
 				_$acctCtnr.addClass("none");
@@ -160,7 +131,7 @@
 				_$acctAddr.empty().append("Account: ")
 					.append(_etherscanUrl(acctStr, acctAddr, "address"));
 				_$acctBal.text("...");
-				getBalance(acctAddr).then((res)=>{
+				ethUtil.getBalance(acctAddr).then((res)=>{
 					if (res===null) {
 						_$acctBal.text("<error>");
 					} else {
