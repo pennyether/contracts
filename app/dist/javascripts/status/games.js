@@ -1,6 +1,6 @@
 Loader.require("pac")
 .then(function(pac){
-	$("#Load").click(refreshAll);
+	refreshAll();
 
 	function refreshAll(){
 		refreshPac();
@@ -46,6 +46,7 @@ Loader.require("pac")
 
 				pac.definedAuctions([index]).then((res)=>{
 					const addr = res[0];
+					const $addr = util.$getAddrLink(res[1]);
 					const enabled = res[1] ? "Enabled" : "Disabled";
 					const name = res[2];
 					const initialPrize = ethUtil.toEthStr(res[3]);
@@ -59,7 +60,7 @@ Loader.require("pac")
 
 					$defined.find(".name").text(name);
 					$defined.find(".isEnabled .value").text(enabled);
-					$defined.find(".auction .value").text(addr);
+					$defined.find(".auction .value").empty().append($addr);
 					$defined.find(".initialPrize .value").text(initialPrize);
 					$defined.find(".bidPrice .value").text(bidPrice);
 					$defined.find(".bidFeePct .value ").text(`${bidFeePct} (${bidFeeEth})`);

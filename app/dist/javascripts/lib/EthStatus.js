@@ -1,5 +1,5 @@
 (function(){
-	function EthStatus(web3, ethUtil) {
+	function EthStatus(ethUtil) {
 		const _self = this;
 		const _$e = $(`
 			<div class="EthStatus">
@@ -44,31 +44,10 @@
 
 
 		function _checkState() {
-			// returns the current state. on any error, will return
-			// the not connected state.
-			function getCurState() {
-				const notConnectedState = {
-					isConnected: false,
-					account: null,
-					networkId: null,
-					latestBlock: null
-				};
-				return Promise.resolve(ethUtil.getBlock('latest')).then(block=>{
-					return {
-						isConnected: true,
-						account: web3.eth.accounts[0],
-						networkId: web3.version.network,
-						latestBlock: block.number,
-					}
-				}).catch(() => {
-					return notConnectedState;
-				});
-			}
-
-
-			// for each property of newState, see if it's different.
-			// if so, refresh everything. otherwise just refresh blockTimeAgo.
-			getCurState().then((newState)=>{
+			// on new block, reset _timeOfLatestBlock
+			// refreshAll() if anything changes
+			// otherwise refreshBlockTimeAgo()
+			ethUtil.getCurState(true).then((newState)=>{
 				var doRefresh = false;
 				Object.keys(newState).forEach((k)=>{
 					if (newState[k] !== _curState[k]) {
@@ -128,8 +107,8 @@
 				_$acctCtnr.removeClass("none");
 
 				const acctStr = acctAddr.slice(0,6) + "..." + acctAddr.slice(-4);
-				_$acctAddr.empty().append("Account: ")
-					.append(_etherscanUrl(acctStr, acctAddr, "address"));
+				const $link = ethUtil.getLink(acctStr, acctAddr, "address")
+				_$acctAddr.empty().append("Account: ").append($link);
 				_$acctBal.text("...");
 				ethUtil.getBalance(acctAddr).then((res)=>{
 					if (res===null) {
@@ -148,7 +127,8 @@
 				_$block.text("").hide();
 			} else {
 				const str = `#${latestBlock}`;
-				_$block.show().empty().append(_etherscanUrl(str, latestBlock, "block"));
+				const $link = ethUtil.getLink(str, latestBlock, "block");
+				_$block.show().empty().append($link);
 			}
 			_refreshBlockTimeAgo();
 		}
@@ -160,20 +140,6 @@
 			}
 			const secondsAgo = Math.round(((+new Date) - _timeOfLatestBlock)/1000);
 			_$blockTimeAgo.show().text(`(${secondsAgo}s ago)`);
-		}
-
-		function _etherscanUrl(str, id, type){
-			const network = ({
-				1: "",
-				3: "ropsten.",
-				4: "rinkeby.",
-				52: "kovan."
-			})[_curState.networkId];
-			return network !== undefined
-				? $("<a></a>").attr("href",`http://${network}etherscan.io/${type}/${id}`)
-						.text(str)
-						.attr("target","_blank")
-				: $("<span></span>").text(str);
 		}
 
 		this.$e = _$e;

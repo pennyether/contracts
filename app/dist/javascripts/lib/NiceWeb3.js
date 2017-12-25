@@ -12,9 +12,11 @@
 (function() {
 	function NiceWeb3(web3, ethAbi) {
 		const _self = this;
+		const _ethUtil = new EthUtil(web3, ethAbi);
+
 		this._knownInstances = {};
 		this.web3 = web3;
-		this.ethUtil = new EthUtil(web3, ethAbi);
+		this.ethUtil = _ethUtil;
 
 		this.createContractFactory = function(contractName, abi, unlinked_binary){
 			return new NiceWeb3ContractFactory(_self, contractName, abi, unlinked_binary);
@@ -26,7 +28,7 @@
 		};
 		// gets all events in a way shitamask and infura can live with
 		this.getAllEvents = function(instance) {
-			return _self.ethUtil.sendAsync("eth_getLogs", [{
+			return _ethUtil.sendAsync("eth_getLogs", [{
 				address: instance.address,
 				fromBlock: web3.toHex(0),
 				toBlock: "latest"
@@ -47,7 +49,7 @@
 				const instance = _self._knownInstances[event.address];
 				if (!instance) { unknownEvents.push(event); return; }
 				// decode it
-				const decodedEvent = _self.ethUtil.decodeEvent(event, instance.abi);
+				const decodedEvent = _ethUtil.decodeEvent(event, instance.abi);
 				decodedEvent
 					? knownEvents.push(decodedEvent)
 					: unknownEvents.push(event);
@@ -249,8 +251,38 @@
 		const _web3 = web3;
 		const _ethAbi = ethAbi;
 		const _self = this;
+		var _curState = {};
 
 		this.NO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+		// this value is updated every 2 seconds.
+		this.getCurState = function(fresh){
+			// update the _curState value every 2 seconds
+			function updateCurrentState(){
+				const notConnectedState = {
+					isConnected: false,
+					account: null,
+					networkId: null,
+					latestBlock: null
+				};
+				return Promise.resolve(ethUtil.getBlock('latest')).then(block=>{
+					return {
+						isConnected: true,
+						account: web3.eth.accounts[0],
+						networkId: web3.version.network,
+						latestBlock: block.number,
+					}
+				}).catch(() => {
+					return notConnectedState;
+				}).then((curState)=>{
+					_curState = curState;
+					return curState;
+				});
+			};
+		
+			if (fresh) return updateCurrentState();
+			else return Promise.resolve(_curState);
+		};
 
 		// decodes event, or returns null if no matching topic in abi
 		this.decodeEvent = function(event, abi) {
@@ -277,13 +309,14 @@
 			return event;
 		};
 
+		// formats a named input value to a string
 		this.inputToString = function(name, type, val) {
 			if (name=="time") {
 				return (new Date(val.toNumber()*1000)).toString();
 			} else {
 				return `${val}`;
 			}
-		}
+		};
 
 		// does a low-level JSON RPC call with provided method/params
 		this.sendAsync = function(method, params){
@@ -434,6 +467,24 @@
 			try { var bn = new BigNumber(val); }
 			catch (e) { throw new Error(`${val} is not convertable to a BigNumber`); }
 			return bn.mul(1e18);
+		}
+		// returns a link to Etherscan
+		this.getLink = function(str, id, type){
+			const network = ({
+				1: "",
+				3: "ropsten.",
+				4: "rinkeby.",
+				52: "kovan."
+			})[_curState.networkId];
+			
+			if (network === undefined)
+				return $("<span></span>").text("<none>");
+			if (str == _self.NO_ADDRESS)
+				return $("<span></span>").text("<none>");
+
+			return $("<a></a>").attr("href",`http://${network}etherscan.io/${type}/${id}`)
+					.text(str)
+					.attr("target","_blank");
 		}
 	}
 

@@ -14,7 +14,7 @@ Loader.require("reg", "comp", "tr")
 	// 	});
 	// })
 
-	$("#Load").click(refreshAll);
+	refreshAll();
 
 	function refreshAll() {
 		refreshSettings();
@@ -36,8 +36,8 @@ Loader.require("reg", "comp", "tr")
 			const bankroll = arr[2];
 			const dailyFundLimit = arr[3];
 			const distReward = (new BigNumber(1)).div(arr[4]).mul(100).toFixed(2);
-			$("#TokenAddr .value").text(tokenAddr);
-			$("#ComptrollerAddr .value").text(compAddr);
+			$("#TokenAddr .value").empty().append(util.$getAddrLink(tokenAddr));
+			$("#ComptrollerAddr .value").empty().append(util.$getAddrLink(compAddr));
 			$("#SettingsBankroll .value").text(ethUtil.toEthStr(bankroll));
 			$("#DailyFundLimit .value").text(ethUtil.toEthStr(dailyFundLimit));
 			$("#DistributionReward .value").text(distReward + "%");

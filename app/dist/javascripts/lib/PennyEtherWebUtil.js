@@ -35,6 +35,13 @@
 				return $ctnr;
 			});
 		};
+
+		this.$getAddrLink = function(addr){
+			return niceWeb3.ethUtil.getLink(addr, addr, "address");
+		}
+		this.$getTxLink = function(tx){
+			return niceWeb3.ethUtil.getLink(tx, tx, "transaction");
+		}
 	}
 	
 	window.PennyEtherWebUtil = PennyEtherWebUtil;

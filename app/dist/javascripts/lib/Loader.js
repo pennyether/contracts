@@ -23,6 +23,22 @@
 		})
 	}
 
+	/**
+	Loads all required scripts and styles, then does the following:
+		- sets up an infura _web3 (to use when if/when metamask is broken)
+			- also _niceWeb3
+		- sets up a default web3 (metamask, fallback to infura)
+			- also niceWeb3
+		- adds to global scope:
+			- ethUtil
+			- BigNumber
+			- util
+			- NiceWeb3: Registry, PennyAuction, etc
+			- Also _Registry, _PennyAuction, (uses _niceWeb3)
+		- Sets up the Nav and EthStatus
+		- Sets up the Logger
+		- Initializes all tippies
+	*/
 	function Loader(){
 		var _self = this;
 
@@ -73,6 +89,9 @@
 		  	window.BigNumber = web3.toBigNumber().constructor;
 		  	window.util = new PennyEtherWebUtil(niceWeb3);
 
+		  	// tell ethUtil to get the current state
+		  	const statePromise = ethUtil.getCurState();
+
 		  	// make public all ContractFactories.
 		  	Object.keys(ABIs).forEach((contractName) => {
 		  		var abi = ABIs[contractName];
@@ -84,7 +103,7 @@
 		  	const registry = Registry.at("0xc1096f203834d7ef377865dc248c1b8b0adcab88");
 
 		  	// attach visual components
-		  	const ethStatus = new EthStatus(web3, ethUtil)
+		  	const ethStatus = new EthStatus(ethUtil);
 		  	const nav = new Nav();
 		  	nav.setEthStatusElement(ethStatus.$e)
 		  	$("#Content").prepend(nav.$e);
@@ -102,17 +121,21 @@
 		  	tippy('.tipRight:not(.dontTip)', {placement: "right"});
 
 		  	// done.
-		  	console.log("Loader is done setting things up.");
-		  	return registry;
+		  	return statePromise.then(()=>{
+		  		console.log("Loader is done setting things up.");
+		  		return registry;
+		  	})
 		});
 
+		// Loads items from the registry, and also ensures that ethUtil
+		//  	has a current state.
 		// Returns a fake promise with which you can pass a function.
 		// That function will be invoked with params as the instances.
 		this.require = function(){
 			var _callback = null;
 			const strs = Array.prototype.slice.call(arguments);
 
-			Promise.resolve(_self.promise).then((reg)=>{
+			const p = Promise.resolve(_self.promise).then((reg)=>{
 				const mappings = {
 					"comp": [Comptroller, "COMPTROLLER"],
 					"tr": [Treasury, "TREASURY"],
@@ -139,11 +162,15 @@
 				)
 			}).then((arr)=>{
 				console.log(`Loader finished requirements: ${strs}`)
-				if (_callback){ _callback.apply(null, arr); }
+				return arr;
 			})
 
 			return {
-				then: function(cb) { _callback = cb; }
+				then: function(cb) {
+					return Promise.resolve(p).then(arr=>{
+						cb.apply(null, arr);
+					});
+				}
 			}
 		}
 	}

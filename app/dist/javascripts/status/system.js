@@ -2,7 +2,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 .then(function(reg, comp, tr, mc, pac){
 	var reg, comp, tr, mc, pac;
 
-	$("#Load").click(refreshAll);
+	refreshAll();
 
 	function refreshAll() {
 		refreshOwner();
@@ -15,24 +15,26 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 
 	function refreshOwner() {
 		if (!reg) return;
-		util.bindToElement(reg.addressOf({_name: "OWNER"}), $("#OwnerAddr"));
+		const p = reg.addressOf(["OWNER"]).then(util.$getAddrLink);
+		util.bindToElement(p, $("#OwnerAddr"), true);
 	}
 	function refreshAdmin() {
 		if (!reg) return;
-		util.bindToElement(reg.addressOf({_name: "ADMIN"}), $("#AdminAddr"));
+		const p = reg.addressOf(["ADMIN"]).then(util.$getAddrLink);
+		util.bindToElement(p, $("#AdminAddr"), true);
 	}
 
 	function refreshComp() {
 		if (!comp) return;
-		$("#CompAddr").empty().text(comp.address);
+		$("#CompAddr").empty().append(util.$getAddrLink(comp.address));
 		Promise.all([
 			comp.token(),
 			comp.locker()
 		]).then(arr=>{
 			const tokenAddr = arr[0];
 			const lockerAddr = arr[1];
-			$("#CompTokenAddr").empty().text(tokenAddr);
-			$("#CompLockerAddr").empty().text(lockerAddr);
+			$("#CompTokenAddr").empty().append(util.$getAddrLink(tokenAddr));
+			$("#CompLockerAddr").empty().append(util.$getAddrLink(lockerAddr));
 			const token = DividendToken.at(tokenAddr);
 			util.bindToElement(comp.isSaleStarted(), $("#CompSaleStarted"));
 			util.bindToElement(token.totalSupply().then(ethUtil.toTokenStr), $("#CompTokenTotalSupply"));
@@ -43,9 +45,9 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 
 	function refreshTr() {
 		if (!tr) return;
-		$("#TrAddr").empty().text(tr.address);
-		util.bindToElement(tr.comptroller(), $("#TrComp"));
-		util.bindToElement(tr.token(), $("#TrToken"));
+		$("#TrAddr").empty().append(util.$getAddrLink(tr.address));
+		util.bindToElement(tr.comptroller().then(util.$getAddrLink), $("#TrComp"), true);
+		util.bindToElement(tr.token().then(util.$getAddrLink), $("#TrToken"), true);
 		util.bindToElement(ethUtil.getBalance(tr).then(ethUtil.toEthStr), $("#TrBalance"));
 		util.bindToElement(tr.bankroll().then(ethUtil.toEthStr), $("#TrBankroll"));
 		util.bindToElement(tr.dailyFundLimit().then(ethUtil.toEthStr), $("#TrDailyLimit"));
@@ -56,7 +58,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 	function refreshMc() {
 		if (!mc) return;
 		const toPct = (val)=>val.pow(-1).mul(100);
-		$("#McAddr").empty().text(mc.address);
+		$("#McAddr").empty().append(util.$getAddrLink(mc.address));
 		util.bindToElement(mc.version(), $("#McVersion"));
 		util.bindToElement(mc.paStartReward().then(ethUtil.toEthStr), $("#McPaStartReward"));
 		util.bindToElement(mc.paEndReward().then(ethUtil.toEthStr), $("#McPaEndReward"));
@@ -78,7 +80,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 			});
 		}
 
-		$("#PacAddr").empty().text(pac.address);
+		$("#PacAddr").empty().append(util.$getAddrLink(pac.address));
 		util.bindToElement(pac.version(), $("#PacVersion"));
 		util.bindToElement(getNumActiveAuctions(), $("#PacNumActiveAuctions"));
 		util.bindToElement(pac.numEndedAuctions(), $("#PacNumEndedAuctions"));
