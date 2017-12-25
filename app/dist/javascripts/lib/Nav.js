@@ -66,8 +66,11 @@
 			_$menu.empty();
 			_siteMap.forEach(obj=>{
 				// add menu item, set as breadcrumb (if there is none)
-				const $e = $(`<div class='menuItem'></div>`)
-					.append($("<div></div>").text(obj.name))
+				const $e = $(`<div></div>`)
+					.addClass("menuItem")
+					.append(
+						$("<a></a>").attr("href", obj.url).text(obj.name)
+					)
 					.appendTo(_$menu);
 				if (obj.url.toLowerCase() == curUrl) {
 					$e.addClass("on");
@@ -82,7 +85,10 @@
 				const $sub = $(`<div class='subMenu'></div>`);
 				children.forEach(child=>{
 					const $child = $(`<div class='subItem'></div>`)
-						.text(child.name)
+						.addClass("subItem")
+						.append(
+							$("<a></a>").attr("href", child.url).text(child.name)
+						)
 						.appendTo($sub);
 
 					if (child.url == curUrl) {

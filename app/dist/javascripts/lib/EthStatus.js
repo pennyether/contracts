@@ -13,17 +13,13 @@
 							<div class="name"></div>
 						</div>
 						<div class="right">
-							<span class="block tipLeft" title="Latest block"></span>
+							<span class="block"></span>
 							<span class="blockTimeAgo"></span>
 						</div>
 					</div>
 					<div class="account">
-						<div class="address">
-							0x92348...8324
-						</div>
-						<div class="balance">
-							4389.3491 ETH ↺
-						</div>
+						<div class="address"></div>
+						<div class="balance"></div>
 					</div>
 					<div>
 						Pending Transactions:
@@ -77,19 +73,14 @@
 					networkId: null,
 					latestBlock: null
 				};
-				if (!web3.isConnected()){
-					return Promise.resolve(notConnectedState);
-				}
-
 				return Promise.resolve(getLatestBlockNum()).then(blockNum=>{
 					return {
-						isConnected: web3.isConnected(),
+						isConnected: true,
 						account: web3.eth.accounts[0],
 						networkId: web3.version.network,
 						latestBlock: blockNum,
 					}
-				}).catch(e=>{
-					console.log("Unexpected error getting new EthStatus state.", e);
+				}).catch(() => {
 					return notConnectedState;
 				});
 			}
@@ -164,7 +155,10 @@
 				return;
 			} else {
 				_$acctCtnr.removeClass("none");
-				_$acctAddr.text(acctAddr.slice(0,6) + "..." + acctAddr.slice(-4));
+
+				const acctStr = acctAddr.slice(0,6) + "..." + acctAddr.slice(-4);
+				_$acctAddr.empty().append("Account: ")
+					.append(_etherscanUrl(acctStr, acctAddr, "address"));
 				_$acctBal.text("...");
 				getBalance(acctAddr).then((res)=>{
 					if (res===null) {
@@ -182,7 +176,8 @@
 			if (!latestBlock || !isConnected) {
 				_$block.text("").hide();
 			} else {
-				_$block.show().text(`#${latestBlock}`);
+				const str = `#${latestBlock}`;
+				_$block.show().empty().append(_etherscanUrl(str, latestBlock, "block"));
 			}
 			_refreshBlockTimeAgo();
 		}
@@ -194,6 +189,20 @@
 			}
 			const secondsAgo = Math.round(((+new Date) - _timeOfLatestBlock)/1000);
 			_$blockTimeAgo.show().text(`(${secondsAgo}s ago)`);
+		}
+
+		function _etherscanUrl(str, id, type){
+			const network = ({
+				1: "",
+				3: "ropsten.",
+				4: "rinkeby.",
+				52: "kovan."
+			})[_curState.networkId];
+			return network !== undefined
+				? $("<a></a>").attr("href",`http://${network}etherscan.io/${type}/${id}`)
+						.text(str)
+						.attr("target","_blank")
+				: $("<span></span>").text(str);
 		}
 
 		this.$e = _$e;

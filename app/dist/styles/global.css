@@ -27,6 +27,7 @@ body {
 /***********************************************/
 #Nav {
 	position: fixed;
+	z-index: 1;
 	top: 0px;
 	margin: 0px auto;
 	width: 980px;
@@ -78,6 +79,10 @@ body {
 	color: white;
 	background: green;
 }
+	#Top a {
+		color: inherit;
+		text-decoration: inherit;
+	}
 
 	#Top .menuItem .subMenu {
 		font-weight: normal;
@@ -227,13 +232,17 @@ body {
 				display: inline-block;
 				padding-left: 5px;
 			}
+			.EthStatus .network .block {
+				color: black;
+				text-decoration: underline;
+			}
 
 		/* The account line shows the account address and balance */
 		.EthStatus .account {
 			display: table;
 			box-sizing: border-box;
 			width: 100%;
-			padding: 3px;
+			padding: 4px 6px;
 			border-bottom: 1px solid gray;
 			font-size: 90%;
 			background: linear-gradient(to bottom, #DFD 0%, #BFB 100%);
@@ -244,6 +253,9 @@ body {
 			.EthStatus .account > .address {
 				display: table-cell;
 				text-align: left;
+			}
+			.EthStatus .account > .address a {
+				text-decoration: underline !important;
 			}
 			.EthStatus .account.none > .address {
 				text-align: center;

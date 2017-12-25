@@ -94,10 +94,10 @@
 		  	// attach Tippies
 		  	tippy.defaults.trigger = "click";
 		  	tippy.defaults.interactive = true;
-		  	tippy.defaults.sticky = true;
 		  	tippy.defaults.performance = true;
+		  	tippy.defaults.sticky = true;
 		  	tippy.defaults.arrow = true;
-		  	$('[title]:not(.tipLeft)').addClass("tipRight");
+		  	$('[title]:not(.tipLeft):not(.dontTip)').addClass("tipRight");
 		  	tippy('.tipLeft:not(.dontTip)', {placement: "top"});
 		  	tippy('.tipRight:not(.dontTip)', {placement: "right"});
 
