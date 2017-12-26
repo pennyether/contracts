@@ -1,5 +1,7 @@
 Loader.require("pac")
 .then(function(pac){
+	ethUtil.onStateChanged(refreshAuctions);
+
 	refreshAuctions();
 
 	function getAuctions() {
@@ -17,8 +19,6 @@ Loader.require("pac")
 	}
 
 	function refreshAuctions(){
-		const $ctnr = $(".auctions").empty();
-
 		Promise.all([
 			getAuctions(),
 			ethUtil.getAverageBlockTime()
@@ -38,20 +38,24 @@ Loader.require("pac")
 
 	function refreshAuction(auction, blocktime) {
 		const $ctnr = $(".auctions");
-		const $e = $(".auction.template")
-			.clone()
-			.show()
-			.removeClass("template")
-			.appendTo($ctnr);
+		var $e = $(".auctions").find(`#${auction.address}`);
+		if (!$e.length){
+			$e = $(".auction.template")
+				.clone()
+				.show()
+				.removeClass("template")
+				.attr("id", auction.address)
+				.appendTo($ctnr);
+		}
 
-		const $name = $e.find(".name .value").text("Loading...");
-		const $numBids = $e.find(".numBids .value").text("Loading...");
-		const $endBlock = $e.find(".endBlock .value").text("Loading...");
-		const $currentWinner = $e.find(".currentWinner .value").text("Loading...");
-		const $prize = $e.find(".prize .value").text("Loading...");
-		const $bidPrice = $e.find(".bidPrice .value").text("Loading...");
-		const $bidAddBlocks = $e.find(".bidAddBlocks .value").text("Loading...");
-		const $growing = $e.find(".growing .value").text("Loading...");
+		const $name = $e.find(".name .value");
+		const $numBids = $e.find(".numBids .value");
+		const $endBlock = $e.find(".endBlock .value");
+		const $currentWinner = $e.find(".currentWinner .value");
+		const $prize = $e.find(".prize .value");
+		const $bidPrice = $e.find(".bidPrice .value");
+		const $bidAddBlocks = $e.find(".bidAddBlocks .value");
+		const $growing = $e.find(".growing .value");
 		const $btn = $e.find(".bid button").attr("disabled","disabled");
 		return Promise.all([
 			auction.numBids(),
@@ -69,17 +73,37 @@ Loader.require("pac")
 			const bidPrice = arr[4];
 			const bidAddBlocks = arr[5];
 			const bidFeePct = arr[6];
+			const amWinner = currentWinner === ethUtil.getCurrentAccount()
 
 			const growing = (new BigNumber(100)).minus(bidFeePct);
-			const $curWinner = currentWinner === ethUtil.getCurrentAccount()
-				? util.$getAddrLink("You!", currentWinner)
-				: util.$getAddrLink(currentWinner);
+			const $curWinner = util.$getAddrLink(amWinner ? "You!" : currentWinner, currentWinner);
+			const curWinnerClass = amWinner ? "you" : "";
+
+			const numBlocks = blockEnded.minus(ethUtil.getCurrentBlockHeight());
+			if (numBlocks.lt(1)) {
+				const blocksAgo = numBlocks.mul(-1).plus(1);
+				const timeAgo = util.toTime(blocktime.mul(blocksAgo));
+				$endBlock.text(`Auction ended ${blocksAgo} blocks ago. (~${timeAgo})`).addClass("ended");
+				$e.find(".bid").hide();
+			} else {
+				const timeS = numBlocks.mul(blocktime);
+				if (timeS.lt(30)){
+					$endBlock.addClass("halfMinute")
+				} else if (timeS.lt(60)){
+					$endBlock.addClass("oneMinute");
+				} else if (timeS.lt(60*2)){
+					$endBlock.addClass("twoMinutes");
+				} else if (timeS.lt(60*2)){
+					$endBlock.addClass("fiveMinutes");
+				}
+				$endBlock.text(`In ${numBlocks} blocks (~${util.toTime(timeS)})`);
+			}
+			
 			$numBids.text(`${numBids} bids`);
-			$endBlock.data("block", blockEnded).data("blocktime", blocktime);
-			$currentWinner.empty().append($curWinner);
+			$currentWinner.empty().append($curWinner).addClass(curWinnerClass);
 			$prize.text(`${ethUtil.toEthStr(prize)}`);
 			$bidPrice.text(`${ethUtil.toEthStr(bidPrice)}`);
-			$bidAddBlocks.text(`${bidAddBlocks} blocks.`);
+			$bidAddBlocks.text(`${bidAddBlocks} blocks`);
 			$growing.text(`${growing}%`);
 			$btn.removeAttr("disabled").click(function(){
 				auction.sendTransaction({gas: 121000, value: bidPrice});
@@ -87,18 +111,4 @@ Loader.require("pac")
 			tippy($e.find(".tipLeft").toArray(), { placement: "top" });
 		})
 	}
-
-	(function updateTimes(){
-		const $elements = $(".auctions .endBlock .value");
-		const curBlock = ethUtil.getCurrentBlockHeight();
-		$elements.each(function(){
-			const $e = $(this);
-			const block = $e.data("block");
-			const blocktime = $e.data("blocktime");
-			const numBlocks = block.minus(curBlock);
-			const timeS = util.toTime(numBlocks.mul(blocktime));
-			$e.text(`In ${numBlocks} blocks (~${timeS})`);
-		})
-		setTimeout(updateTimes, 1000);
-	}());
 });

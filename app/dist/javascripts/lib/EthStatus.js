@@ -42,8 +42,12 @@
 
 		// on state change, maybe update block - always refresh all.
 		ethUtil.onStateChanged(newState => {
-			if (newState.latestBlock.number !== _curState.latestBlock.number) {
+			if (!newState.latestBlock || !_curState.latestBlock) {
 				_timeOfLatestBlock = new Date();
+			} else {
+				if (newState.latestBlock.number !== _curState.latestBlock.number) {
+					_timeOfLatestBlock = new Date();			
+				}
 			}
 			_curState = newState;
 			_refreshAll();

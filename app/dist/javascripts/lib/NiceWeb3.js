@@ -35,8 +35,10 @@
 				toBlock: "latest"
 			}]).then((events)=>{
 				const arr = _self.decodeKnownEvents(events);
-				if (arr[0].length !== events.length)
-					throw new Error("Unable to decode events", instance, events)
+				if (arr[0].length !== events.length){
+					const e = new Error("Unable to decode some events:");
+					console.error(e, {instance: instance, unknownEvents: arr[1]});
+				}
 				return arr[0];
 			});
 		};

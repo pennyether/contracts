@@ -7,15 +7,52 @@
 			#Summary {
 				padding: 10px 30px 30px 30px;
 			}
+			.field {
+				padding: 2px;
+			}
 			.field .label {
 				display: inline-block;
 				width: 160px;
 			}
 			.field .value {
 				display: inline-block;
+				padding: 4px;
 			}
-			.field {
-				padding: 4px 0px;
+			@keyframes glowRed {
+				from { background-color: red; }
+				to { background-color: inherit; }
+			}
+			@keyframes glowYellow {
+				from { background-color: yellow; }
+				to { background-color: inherit; }
+			}
+			@keyframes glowGreen {
+				from { background-color: green; }
+				to { background-color: inherit; }
+			}
+			.endBlock .fiveMinutes {
+				background-color: yellow;
+				animation: glowYellow 4s 0s infinite ease-in-out alternate;
+			}
+			.endBlock .twoMinutes {
+				background-color: yellow;
+				animation: glowYellow 2s 0s infinite ease-in-out alternate;
+			}
+			.endBlock .oneMinute {
+				background-color: red;
+				animation: glowRed 2s 0s infinite ease-in-out alternate;
+			}
+			.endBlock .halfMinute {
+				background-color: red;
+				animation: glowRed 1s 0s infinite ease-in-out alternate;
+			}
+			.endBlock .ended {
+				color: red;
+				font-weight: bold;
+			}
+			.currentWinner .you a {
+				color: green;
+				font-weight: bold;
 			}
 		</style>
 	</head>

@@ -52,7 +52,7 @@
 			}
 			if (timeS.gt(60*60)) {
 				const hours = timeS.div(60*60).floor();
-				const minutes = timeS.minus(hours.mul(60*60));
+				const minutes = timeS.minus(hours.mul(60*60)).div(60).floor();
 				return `${hours}h ${minutes}m`;
 			}
 			if (timeS.gt(60)) {
