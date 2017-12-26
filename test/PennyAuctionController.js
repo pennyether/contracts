@@ -546,6 +546,7 @@ describe('PennyAuctionController', function(){
                     .assertOnlyLog("AuctionEnded", {
                         time: null,
                         index: 0,
+                        winner: winner,
                         addr: auction0.address
                     })
                 .stopLedger()

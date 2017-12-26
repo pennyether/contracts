@@ -122,7 +122,7 @@ Loader.require("reg", "comp", "tr")
 			const balance = arr[5];
 			const totalIn = bankroll.plus(totalRevenue);
 			const totalOut = totalDistributed.plus(totalFunded).plus(totalRewarded);
-			const expectedBalance = totalIn.minus(totalOut);
+			const expectedBalance = totalIn.plus(totalOut);
 			$("#Bankroll").text(ethUtil.toEthStr(bankroll));
 			$("#TotalRevenue").text(ethUtil.toEthStr(totalRevenue));
 			$("#TotalDistributed").text(ethUtil.toEthStr(totalDistributed));

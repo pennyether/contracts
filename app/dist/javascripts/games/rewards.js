@@ -28,11 +28,11 @@ Loader.require("tr", "mc", "pac")
 		const $fields = $e.find(".fields");
 		const $notice = $e.find(".no-reward");
 		const $gasPrice = $e.find(".gasPrice");
-		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
 		const $reward = $e.find(".reward .value").text("Loading...");
 		const $cost = $e.find(".cost .value").text("Loading...");
 		const $profit = $e.find(".profit .value").text("Loading...");
 		const $risk = $e.find(".risk .value").text("Loading...");
+		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
 		const failGasVal = new BigNumber($e.find(".failGasPrice").val());
 		var gasPrice;
 
@@ -103,6 +103,7 @@ Loader.require("tr", "mc", "pac")
 		const $cost = $e.find(".cost .value").text("Loading...");
 		const $profit = $e.find(".profit .value").text("Loading...");
 		const $risk = $e.find(".risk .value").text("Loading...");
+		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
 		var gasPrice;
 
 		try {
@@ -122,7 +123,7 @@ Loader.require("tr", "mc", "pac")
 			const endReward = arr[0];
 			const feeCollectDenom = arr[1];
 			const reward = arr[2];
-			const estGas = arr[3];
+			const estGas = new BigNumber(arr[3]);
 			const gamesEnded = arr[4][0];
 			const feesCollected = arr[4][1];
 			const failGasVal = new BigNumber(arr[5]);
@@ -151,6 +152,12 @@ Loader.require("tr", "mc", "pac")
 					.removeClass("good bad")
 					.addClass(profit.gt(0) ? "good" : "bad");
 				$risk.text(`${ethUtil.toEthStr(risk)} (${failGasVal} gas)`);
+				$btn.removeAttr("disabled").click(()=>{
+					mc.refreshPennyAuctions([], {
+						gasPrice: gasPrice,
+						gas: estGas.plus(100000)
+					});
+				});
 			} else {
 				$reward.text("Invalid gasPrice");
 				$cost.text("Invalid gasPrice");

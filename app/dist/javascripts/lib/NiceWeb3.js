@@ -13,6 +13,7 @@
 	function NiceWeb3(web3, ethAbi) {
 		const _self = this;
 		const _ethUtil = new EthUtil(web3, ethAbi);
+		var _callHook = null;
 
 		this._knownInstances = {};
 		this.web3 = web3;
