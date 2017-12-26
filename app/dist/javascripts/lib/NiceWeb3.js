@@ -126,6 +126,17 @@
 					instance[def.name].call = getCallFn(oldCall, def, instance, true);
 				}
 			});
+			// attach .sendTransaction()
+			const sendTransactionDef = {
+				type: "function",
+				inputs: [],
+				payable: true,
+				name: "<send transaction>"
+			};
+			const oldSendTransaction = _web3.eth.sendTransaction.bind(_web3.eth);
+			instance.sendTransaction = getCallFn(oldSendTransaction, sendTransactionDef, instance, false)
+				.bind(instance, []);
+			// attach getAllEvents
 			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
 			// add instance to known instances (so can parse events)
 			niceWeb3.addKnownInstance(instance);
@@ -149,18 +160,20 @@
 			const callName = isConstructor 
 				? `new ${contractName}(${inputStr})`
 				: `${contractName}.${fnName}(${inputStr})`;
-			function getCurAccount(){
-				try{ return _web3.eth.accounts[0]; } catch(e){ return null; }
-			}
 
 			return function NiceWeb3ContractCall(inputsObj, opts, callback) {
 				var inputs, opts;
 				if (callback !== undefined){
 					throw new Error(`${callName} was passed a callback. Don't do that.`);
 				}
-				if (!opts) opts = {};
+				if (!opts) opts = {}
 				if (!inputsObj) inputsObj = {};
-				if (!opts.from) opts.from = getCurAccount() || _ethUtil.NO_ADDRESS;
+				if (!opts.from) {
+					opts.from = _ethUtil.getCurrentAccount(!isConstant) || _ethUtil.NO_ADDRESS;
+				}
+				if (!opts.to) {
+					opts.to = instance.address;
+				}
 				try {
 					inputs = _validateInputs(inputsObj, abiInputs);
 					opts = _validateOpts(opts, isPayable);
@@ -169,6 +182,7 @@
 						opts.data = unlinked_binary;
 					}
 				} catch (e) {
+					console.error(e);
 					throw new Error(`${callName} Validation Error: ${e.message}`);
 				}
 				const metadata = {
@@ -245,6 +259,7 @@
 						result.knownEvents = known;
 						result.unknownEvents = unknown;
 						result.metadata = metadata;
+						console.log(`$callStr completed.`, result);
 						return result;
 					},(err)=>{
 						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
@@ -333,7 +348,7 @@
 
 	// Validates options passed in against isPayable
 	function _validateOpts(opts, isPayable) {
-		const allowedNames = ["from","value","gas","gasPrice","blockNumber"];
+		const allowedNames = ["from","to","value","gas","gasPrice","blockNumber"];
 		const invalidOpts = [];
 		Object.keys(opts).forEach((name)=>{
 			if (allowedNames.indexOf(name)===-1) invalidOpts.push(name);

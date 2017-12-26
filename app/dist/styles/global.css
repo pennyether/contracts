@@ -13,7 +13,7 @@ body {
 #Content {
 	box-sizing: border-box;
 	min-height: 100%;
-	width: 980px;
+	width: 975px;
 	padding: 80px 0px 30px 0px;
 	border-right: 1px solid gray;
 	border-left: 1px solid gray;
@@ -30,8 +30,8 @@ body {
 	position: fixed;
 	z-index: 1;
 	top: 0px;
-	margin: 0px auto;
-	width: 980px;
+	margin-left: -10px;
+	width: 992px;
 	box-shadow: 0px 3px 4px 0px #888;
 }
 

@@ -77,6 +77,13 @@
 		this.getCurrentBlockHeight = function(){
 			return new BigNumber(_curState.latestBlock.number);
 		}
+		this.getCurrentAccount = function(required){
+			if (required) {
+				if (!_curState.account || _curState.account===_self.NO_ADDRESS)
+					throw new Error("There is no account, and one is required.");
+			}
+			return _curState.account;
+		}
 
 		// decodes event, or returns null if no matching topic in abi
 		this.decodeEvent = function(event, abi) {

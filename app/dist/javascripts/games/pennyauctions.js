@@ -52,6 +52,7 @@ Loader.require("pac")
 		const $bidPrice = $e.find(".bidPrice .value").text("Loading...");
 		const $bidAddBlocks = $e.find(".bidAddBlocks .value").text("Loading...");
 		const $growing = $e.find(".growing .value").text("Loading...");
+		const $btn = $e.find(".bid button").attr("disabled","disabled");
 		return Promise.all([
 			auction.numBids(),
 			auction.blockEnded(),
@@ -69,13 +70,20 @@ Loader.require("pac")
 			const bidAddBlocks = arr[5];
 			const bidFeePct = arr[6];
 
+			const growing = (new BigNumber(100)).minus(bidFeePct);
+			const $curWinner = currentWinner === ethUtil.getCurrentAccount()
+				? util.$getAddrLink("You!", currentWinner)
+				: util.$getAddrLink(currentWinner);
 			$numBids.text(`${numBids} bids`);
 			$endBlock.data("block", blockEnded).data("blocktime", blocktime);
-			$currentWinner.empty().append(util.$getAddrLink(arr[2]));
-			$prize.text(ethUtil.toEthStr(arr[3]));
-			$bidPrice.text(ethUtil.toEthStr(arr[4]));
-			$bidAddBlocks.text(arr[5].toString());
-			$growing.text((new BigNumber(1)).minus(arr[6].div(100)).mul(100).toString() + "%");
+			$currentWinner.empty().append($curWinner);
+			$prize.text(`${ethUtil.toEthStr(prize)}`);
+			$bidPrice.text(`${ethUtil.toEthStr(bidPrice)}`);
+			$bidAddBlocks.text(`${bidAddBlocks} blocks.`);
+			$growing.text(`${growing}%`);
+			$btn.removeAttr("disabled").click(function(){
+				auction.sendTransaction({gas: 121000, value: bidPrice});
+			});
 			tippy($e.find(".tipLeft").toArray(), { placement: "top" });
 		})
 	}
