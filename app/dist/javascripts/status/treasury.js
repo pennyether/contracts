@@ -28,18 +28,29 @@ Loader.require("reg", "comp", "tr")
 			tr.token(),
 			tr.comptroller(),
 			tr.bankroll(),
+			tr.distributeRewardDenom(),
 			tr.dailyFundLimit(),
-			tr.distributeRewardDenom()
+			tr.amtFundedToday(),
+			tr.dayLastFunded()
 		]).then((arr)=>{
 			const tokenAddr = arr[0];
 			const compAddr = arr[1];
 			const bankroll = arr[2];
-			const dailyFundLimit = arr[3];
-			const distReward = (new BigNumber(1)).div(arr[4]).mul(100).toFixed(2);
+			const distReward = (new BigNumber(1)).div(arr[3]).mul(100).toFixed(2);
+			const dailyFundLimit = arr[4];
+			const amtFundedToday = arr[5];
+			const dayLastFunded = arr[6];
+			console.log(`amt funded today: ${amtFundedToday.div(1e18)}`);
+			const today = ethUtil.getToday();
+			const used = dayLastFunded.equals(today) ? amtFundedToday : 0;
+			const dailyFundLimitStr = ethUtil.toEthStr(dailyFundLimit);
+			const usedStr = ethUtil.toEthStr(used);
+			const dailyLimitStr = `${dailyFundLimitStr} (${usedStr} used today.)`;
+			$("#Addr .value").empty().append(util.$getAddrLink(tr.address));
 			$("#TokenAddr .value").empty().append(util.$getAddrLink(tokenAddr));
 			$("#ComptrollerAddr .value").empty().append(util.$getAddrLink(compAddr));
 			$("#SettingsBankroll .value").text(ethUtil.toEthStr(bankroll));
-			$("#DailyFundLimit .value").text(ethUtil.toEthStr(dailyFundLimit));
+			$("#DailyFundLimit .value").text(dailyLimitStr);
 			$("#DistributionReward .value").text(distReward + "%");
 		});
 	}

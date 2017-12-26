@@ -48,6 +48,7 @@
 			addScript("https://unpkg.com/tippy.js@2.0.8/dist/tippy.all.min.js"),
 			addScript("/javascripts/lib/external/web3.min.js"),
 			addScript("/javascripts/lib/external/EthAbi.js"),
+			addScript("/javascripts/lib/EthUtil.js"),
 			addScript("/javascripts/lib/NiceWeb3.js"),
 			addScript("/javascripts/lib/NiceWeb3Logger.js"),
 			addScript("/javascripts/lib/ABIs.js"),
@@ -61,6 +62,7 @@
 			if (!window.tippy){ throw new Error("Unable to find Tippy."); }
 			if (!window.Web3) throw new Error("Unable to find web3.");
 			if (!window.ethAbi) throw new Error("Unable to find ethAbi.")
+			if (!window.EthUtil) throw new Error("Unable to find EthUtil.");
 			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
 			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
 			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
@@ -81,16 +83,17 @@
 
 		  	// these are back-up web3's, in case Metamask shits the bed.
 		  	window._web3 = _web3;
-		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi);
+		  	window._niceWeb3 = new NiceWeb3(_web3, ethAbi, EthUtil);
 
 		  	// public things.
-		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi); 
+		  	window.niceWeb3 = new NiceWeb3(web3, ethAbi, EthUtil); 
 		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
 		  	window.util = new PennyEtherWebUtil(niceWeb3);
 
-		  	// tell ethUtil to get the current state
-		  	const statePromise = ethUtil.getCurState();
+		  	// tell ethUtil to poll for state change
+		  	ethUtil.pollForStateChange();
+		  	const statePromise = ethUtil.getCurrentState(true);
 
 		  	// make public all ContractFactories.
 		  	Object.keys(ABIs).forEach((contractName) => {

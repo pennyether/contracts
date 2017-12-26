@@ -50,9 +50,8 @@ Loader.require("tr", "mc", "pac")
 			}
 			if (data.reward.gt(0)){
 				data.estGas = new BigNumber(1200000);
-			} else {
-				return data;
 			}
+			return data;
 		}).then(data=>{
 			const reward = data.reward;
 			const estGas = new BigNumber(data.estGas);

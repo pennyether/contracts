@@ -134,6 +134,7 @@
 				$sub.appendTo($e);
 			});
 
+			document.title = breadcrumb.map(x=>x.name).join(" > ");
 			_$breadcrumb.empty();
 			if (breadcrumb.length) {
 				const curPage = breadcrumb.pop();

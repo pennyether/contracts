@@ -54,9 +54,9 @@ Loader.require("pac")
 					const bidFeePct = res[5] + "%";
 					const bidFeeEth = ethUtil.toEthStr(res[5].div(100).mul(res[4]));
 					const bidAddBlocks = res[6] + " Blocks";
-					const bidAddBlocksS = res[6].mul(blockTimeS).round() + " seconds";
+					const bidAddBlocksTime = util.toTime(res[6].mul(blockTimeS).round());
 					const initialBlocks = res[7] + " Blocks";
-					const initialBlocksS = res[7].mul(blockTimeS).round() + " seconds";
+					const initialBlocksTime = util.toTime(res[7].mul(blockTimeS).round());
 
 					$defined.find(".name").text(name);
 					$defined.find(".isEnabled .value").text(enabled);
@@ -64,10 +64,10 @@ Loader.require("pac")
 					$defined.find(".initialPrize .value").text(initialPrize);
 					$defined.find(".bidPrice .value").text(bidPrice);
 					$defined.find(".bidFeePct .value ").text(`${bidFeePct} (${bidFeeEth})`);
-					$defined.find(".bidAddBlocks .value").text(`${bidAddBlocks} (~${bidAddBlocksS})`);
-					$defined.find(".initialBlocks .value").text(`${initialBlocks} (~${initialBlocksS})`);
+					$defined.find(".bidAddBlocks .value").text(`${bidAddBlocks} (~${bidAddBlocksTime})`);
+					$defined.find(".initialBlocks .value").text(`${initialBlocks} (~${initialBlocksTime})`);
 				});
-				tippy($defined.find("[title]").toArray(), { placement: "top" });
+				tippy($defined.find(".tipLeft").toArray(), { placement: "top" });
 			};
 		});
 	}

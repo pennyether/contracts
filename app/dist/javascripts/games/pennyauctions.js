@@ -19,24 +19,29 @@ Loader.require("pac")
 	function refreshAuctions(){
 		const $ctnr = $(".auctions").empty();
 
-		getAuctions().then(auctions=>{
+		Promise.all([
+			getAuctions(),
+			ethUtil.getAverageBlockTime()
+		]).then(arr => {
+			const auctions = arr[0];
+			const blocktime = arr[1];
 			// refresh auctions one by one
 			var p = Promise.resolve();
 			auctions.forEach((auction)=>{
 				p = Promise.resolve(p).then(()=>{
-					refreshAuction(auction);
+					refreshAuction(auction, blocktime);
 				});
 			});
 			return p;
 		});
 	}
 
-	function refreshAuction(auction) {
+	function refreshAuction(auction, blocktime) {
 		const $ctnr = $(".auctions");
-		const $e = $(".auctionTemplate")
+		const $e = $(".auction.template")
 			.clone()
 			.show()
-			.removeClass("auctionTemplate")
+			.removeClass("template")
 			.appendTo($ctnr);
 
 		const $name = $e.find(".name .value").text("Loading...");
@@ -56,13 +61,36 @@ Loader.require("pac")
 			auction.bidAddBlocks(),
 			auction.bidFeePct()
 		]).then(arr => {
-			$numBids.text(arr[0].toString());
-			$endBlock.text(arr[1].toString());
+			const numBids = arr[0];
+			const blockEnded = arr[1];
+			const currentWinner = arr[2];
+			const prize = arr[3];
+			const bidPrice = arr[4];
+			const bidAddBlocks = arr[5];
+			const bidFeePct = arr[6];
+
+			$numBids.text(`${numBids} bids`);
+			$endBlock.data("block", blockEnded).data("blocktime", blocktime);
 			$currentWinner.empty().append(util.$getAddrLink(arr[2]));
 			$prize.text(ethUtil.toEthStr(arr[3]));
 			$bidPrice.text(ethUtil.toEthStr(arr[4]));
 			$bidAddBlocks.text(arr[5].toString());
 			$growing.text((new BigNumber(1)).minus(arr[6].div(100)).mul(100).toString() + "%");
+			tippy($e.find(".tipLeft").toArray(), { placement: "top" });
 		})
 	}
+
+	(function updateTimes(){
+		const $elements = $(".auctions .endBlock .value");
+		const curBlock = ethUtil.getCurrentBlockHeight();
+		$elements.each(function(){
+			const $e = $(this);
+			const block = $e.data("block");
+			const blocktime = $e.data("blocktime");
+			const numBlocks = block.minus(curBlock);
+			const timeS = util.toTime(numBlocks.mul(blocktime));
+			$e.text(`In ${numBlocks} blocks (~${timeS})`);
+		})
+		setTimeout(updateTimes, 1000);
+	}());
 });

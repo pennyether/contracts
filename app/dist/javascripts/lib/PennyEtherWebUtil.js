@@ -42,6 +42,26 @@
 		this.$getTxLink = function(name, tx){
 			return niceWeb3.ethUtil.$getLink(tx, tx || name, "transaction");
 		}
+
+		this.toTime = function(timeS) {
+			try {
+				timeS = (new BigNumber(timeS)).round();
+			} catch(e) {
+				console.error("Val expected to be a number", timeS);
+				return "<unknown>";
+			}
+			if (timeS.gt(60*60)) {
+				const hours = timeS.div(60*60).floor();
+				const minutes = timeS.minus(hours.mul(60*60));
+				return `${hours}h ${minutes}m`;
+			}
+			if (timeS.gt(60)) {
+				const minutes = timeS.div(60).floor();
+				const seconds = timeS.minus(minutes.mul(60));
+				return `${minutes}m ${seconds}s`;
+			}
+			return `${timeS}s`;
+		}
 	}
 	
 	window.PennyEtherWebUtil = PennyEtherWebUtil;
