@@ -1,11 +1,9 @@
 pragma solidity ^0.4.19;
 
 /**
-	A locker is a simple wallet that collects dividends
-	from a DividendToken, and sends those to its owner.
-
-	It cannot interact with the DividendToken in any other
-	way, eg, it cannot mint or burn tokens.
+  A contract that can only do one thing:
+  	- call ".collectDividends()" on some other contract
+  	- send entire balance to an unchangeable "owner"
 */
 contract IDividendToken {
 	function collectDividends() public returns (uint _amount);
@@ -23,7 +21,7 @@ contract DividendTokenLocker {
 
 	function () payable public {}
 
-	function collectDividends()
+	function collect()
 		public
 	{
 		IDividendToken(token).collectDividends();

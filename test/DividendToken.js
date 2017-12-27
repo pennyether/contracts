@@ -12,7 +12,7 @@ const account1 = accounts[2];
 const account2 = accounts[3];
 const account3 = accounts[4];
 const account4 = accounts[5];
-const anybody = accounts[6];
+const anon = accounts[6];
 const nonAccount = accounts[7];
 var token;
 var unpayableTokenHolder;
@@ -28,7 +28,7 @@ describe('Token', function(){
             account2: account2,
             account3: account3,
             account4: account4,
-            anybody: anybody,
+            anon: anon,
             nonAccount: nonAccount,
             token: token.address,
             unpayableTokenHolder: unpayableTokenHolder.address
@@ -45,9 +45,9 @@ describe('Token', function(){
         });
     });
     describe(".mintTokens() works", async function(){
-        it("Cannot be called by anybody", async function(){
+        it("Cannot be called by anon", async function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", account1, 1000, {from: anybody}])
+                .doTx([token, "mintTokens", account1, 1000, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
@@ -58,10 +58,10 @@ describe('Token', function(){
             await assertCanMint(account4, 4000);
         });
     });
-    describe(".burnTokens works", async function(){
-        it("Cannot be called by anybody", async function(){
+    describe(".burnTokens() works", async function(){
+        it("Cannot be called by anon", async function(){
             return createDefaultTxTester()
-                .doTx([token, "burnTokens", account4, 4000, {from: anybody}])
+                .doTx([token, "burnTokens", account4, 4000, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
@@ -241,7 +241,7 @@ describe('Token', function(){
         return createDefaultTxTester()
             .doTx([token, "burnTokens", acct, amount, {from: comptroller}])
             .assertSuccess()
-            .assertOnlyLog("TokensBurnt", {
+            .assertOnlyLog("TokensBurned", {
                 account: acct,
                 amount: amount,
                 newTotalSupply: expectedTotal

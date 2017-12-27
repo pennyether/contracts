@@ -12,6 +12,9 @@ Comptroller:
 	- Mints/Burns tokens, keeps PennyEther ownership at 20%
 Token:
 	- Token that splits up deposits to token holders
+TokenLocker:
+	- Holds the tokens so they cannot be burnt
+	- Allows dividends to be collected to owner
 
 
 REGISTRY
@@ -21,8 +24,8 @@ If a contract is ever redeployed, the address should be updated here.
 Only the owner can change entries.
 
 Holds:
-	- Owner
-	- Admin
+	- Owner (Controls the registry, can initialize Treasury, can initialize Comptroller)
+	- Admin (Can alter settings of Treasury, MainController, and GameControllers)
 	- Treasury
 	- MainController
 	- GameControllers

@@ -19,7 +19,7 @@ contract DividendToken {
 	mapping (address => mapping (address => uint)) allowed;
 	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
 	event TokensMinted(address indexed account, uint amount, uint newTotalSupply);
-	event TokensBurnt(address indexed account, uint amount, uint newTotalSupply);
+	event TokensBurned(address indexed account, uint amount, uint newTotalSupply);
 
 	// How dividends work.
 	//
@@ -132,7 +132,7 @@ contract DividendToken {
 		updateCreditedPoints(_account);
 		balances[_account] -= _amount;
 		totalSupply -= _amount;
-		TokensBurnt(_account, _amount, totalSupply);
+		TokensBurned(_account, _amount, totalSupply);
 	}
 
 

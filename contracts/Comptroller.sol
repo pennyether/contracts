@@ -5,20 +5,22 @@ import "./DividendTokenLocker.sol";
 
 /*
 A Comptroller:
-
 	- Accepts ETH via .mintTokens()
 	- Refunds ETH via .burnTokens()
-	- Ensures PennyEtherTokenLocker has 20% of tokens.   
+	- Ensures PennyEtherTokenLocker has 20% of tokens. 
 
-As the owner of Token contract, it is able to call:
+As the owner of Token contract, it can call:
 	- token.mintTokens(address, amount)
 	- token.burnTokens(address, amount) 
 
-It should also be the owner of the Treasury, so it can call:
+As the owner of the owner of the Treasury, it can call:
 	- treasury.addToBankroll(amount) 
 	- treasury.removeFromBankroll(amount)
 
-The treasury can be set by the owner, once.
+Other notes:
+	- The treasury may only be set once and cannot be changed.
+	- The token locker may only be set once and cannot be changed.
+	- Once sale of tokens has started, cannot be stopped.
 */
 contract ITreasury {
 	function comptroller() public constant returns(address);
@@ -28,33 +30,33 @@ contract ITreasury {
 contract Comptroller {
 	// Location of the treasury, once set, cannot change.
 	ITreasury public treasury;
-	// Owner that can initialize the Treasury
-	// And that gets sent ETH capital
+	// Owner can call .initTreasury and .initSale
 	address public owner = msg.sender;
 	// Token contract that can mint / burn tokens
 	DividendToken public token = new DividendToken();
 	// Locker that holds PennyEther's tokens.
-	DividendTokenLocker public locker = new DividendTokenLocker(token, owner);
-	// 1 ETH gets 1000 full tokens, so 1 Wei gets that divided by WeiPerEth.
-	uint public tokensPerWei = 1000 * (10 ** uint(token.decimals())) / (1 ether);
+	DividendTokenLocker public locker;
+	// 1 ETH gets 1 full token
+	uint public tokensPerWei = 1 * (10 ** uint(token.decimals())) / (1 ether);
 	// Once set to true, cannot be set to false
 	bool public isSaleStarted;
 
+	modifier fromOwner() { require(msg.sender==owner); _; }
+
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
-	event TokensBurnt(address indexed sender, uint numTokens, uint refund);
+	event TokensBurned(address indexed sender, uint numTokens, uint refund);
 	event SaleStarted(uint date);
 
 	function Comptroller()
 		public
 	{
-		// the locker will always own at least 1 token.
-		// this way, if nobody buys tokens, locker gets all profits.
-		token.mintTokens(locker, 1);
+		// The owner owns 1e-18 token, so he starts with 100% ownership.
+		token.mintTokens(owner, 1);
 	}
 
-	// Only accept payment from Treasury
-	// This hapens in burnTokens when we call .removeFromBankroll()
+	// Comptroller will receive from Treasury upon removing bankroll.
+	// This happens in .burnTokens() when we call .removeFromBankroll()
 	function ()
 		payable
 		public
@@ -65,21 +67,31 @@ contract Comptroller {
 	/*************************************************************/
 	/************ OWNER FUNCTIONS ********************************/
 	/*************************************************************/
-	// Allows owner to initialize the treasury one time.
-	function initTreasury(address _treasury)
+	// Callable once: Allows owner to initialize token locker one time
+	function initTokenLocker(address _tokenLockerOwner)
+		fromOwner
 		public
 	{
-		require(msg.sender == owner);
+		require(locker == address(0));
+		locker = new DividendTokenLocker(token, _tokenLockerOwner);
+	}
+	// Callable once: Allows owner to initialize the treasury one time.
+	function initTreasury(address _treasury)
+		fromOwner
+		public
+	{
 		require(treasury == address(0));
 		require(ITreasury(_treasury).comptroller() == address(this));
 		treasury = ITreasury(_treasury);
 	}
-	// Allows tokens to be bought / burnt.
+	// Callable once: Allows tokens to be bought / burnt.
 	function initSale()
+		fromOwner
 		public
 	{
 		require(msg.sender == owner);
 		require(!isSaleStarted);
+		require(locker != address(0));
 		require(treasury != address(0));
 		isSaleStarted = true;
 		SaleStarted(now);
@@ -90,18 +102,19 @@ contract Comptroller {
 	/********** BUYING/BURNING TOKENS ****************************/
 	/*************************************************************/
 	// Allows the sender to buy tokens.
+	// Must send units of GWei, nothing lower.
 	function buyTokens()
 		public
 		payable
 		returns (uint _numTokens)
 	{
-		// ensure sale has started, and limit rounding errors
+		// ensure sale has started, require GWei amount.
 		require(isSaleStarted);
-		require(msg.value >= 1000000000);
-		// 20% goes to the owner
+		require(msg.value % 1000000000 == 0);
+		// 20% goes to the owner as capital
 		uint _capital = msg.value / 5;
 		require(owner.call.value(_capital)());
-		// 80% goes to the treasury bankroll
+		// the rest goes to the treasury bankroll
 		uint _bankroll = msg.value - _capital;
 		treasury.addToBankroll.value(_bankroll)();
 		// mint tokens for the sender and locker
@@ -113,28 +126,34 @@ contract Comptroller {
 		return;
 	}
 
+	// Allows the sender to burn up to _numTokens
+	//   - If the sender does not have that many tokens, will
+	//     burn their entire balance.
+	//   - If Treasury does not have sufficient balance, it will
+	//     it will burn as much as possible.
 	function burnTokens(uint _numTokens)
 		public
 	{
+		// Ensure sale has started.
+		require(isSaleStarted);
 		// If number is too large, use their whole balance.
-		require(treasury != address(0));
-		if (_numTokens > token.balanceOf(msg.sender))
+		if (_numTokens > token.balanceOf(msg.sender)) {
 			_numTokens = token.balanceOf(msg.sender);
-		// should get back 80% of wei.
-		// if treasury cannot afford, lower number of tokens to burn.
-		// units: (tokens) / (tokens * wei^-1) = wei
+		}
+		// Should get back 80% of wei.
 		uint _wei = (4 * _numTokens) / (5 * tokensPerWei);
+		// If Treasury can't afford, lower amount of tokens.
 		if (treasury.balance < _wei){
 			_wei = treasury.balance;
 			_numTokens = (5 *_wei * tokensPerWei) / 4;
 		}
-		// burn the tokens for sender, and for locker.
-		require(_wei >= 1000000000);
+		// Burn tokens, remove from bankroll, send to user.
+		// Require a minimum of 1Gwei to limit rounding errors.
+		require(_wei > 1000000000);
 		token.burnTokens(msg.sender, _numTokens);
 		token.burnTokens(locker, _numTokens / 5);
-		// remove from bankroll (this pays us), and send to user.
 		treasury.removeFromBankroll(_wei);
 		require(msg.sender.call.value(_wei)());
-		TokensBurnt(msg.sender, _numTokens, _wei);
+		TokensBurned(msg.sender, _numTokens, _wei);
 	}
 }
