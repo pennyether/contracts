@@ -16,6 +16,7 @@ if (!fs.lstatSync(buildDir).isDirectory()){
 var result = {};
 var filenames = [
     "Comptroller.json",
+    "CustodialWallet.json",
     "DividendToken.json",
     "DividendTokenLocker.json",
     "MainController.json",

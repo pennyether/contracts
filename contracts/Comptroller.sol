@@ -22,14 +22,14 @@ Other notes:
 	- The token locker may only be set once and cannot be changed.
 	- Once sale of tokens has started, cannot be stopped.
 */
-contract ITreasury {
+interface _ICompTreasury {
 	function comptroller() public constant returns(address);
 	function addToBankroll() public payable;
 	function removeFromBankroll(uint _amount) public;
 }
 contract Comptroller {
 	// Location of the treasury, once set, cannot change.
-	ITreasury public treasury;
+	_ICompTreasury public treasury;
 	// Owner can call .initTreasury and .initSale
 	address public owner = msg.sender;
 	// Token contract that can mint / burn tokens
@@ -81,8 +81,8 @@ contract Comptroller {
 		public
 	{
 		require(treasury == address(0));
-		require(ITreasury(_treasury).comptroller() == address(this));
-		treasury = ITreasury(_treasury);
+		treasury = _ICompTreasury(_treasury);
+		require(treasury.comptroller() == address(this));
 	}
 	// Callable once: Allows tokens to be bought / burnt.
 	function initSale()

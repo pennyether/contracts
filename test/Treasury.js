@@ -308,12 +308,12 @@ describe('Treasury', function(){
             });
         });
         describe(".removeFromBankroll cannot remove more than balance", async function(){
-            before("Distribute, then fund 7 * DAILY_LIMIT + 1", function(){
+            before("Distribute, then fund 14 * DAILY_LIMIT + 1", function(){
                 itCanReceiveDeposit(1e12);
                 itCanDistribute();
-                it("Funds 7*DAILY_LIMIT + 1", async function(){
+                it("Funds 14*DAILY_LIMIT + 1", async function(){
                     await testUtil.fastForward(24*60*60);
-                    for (var i=0; i<7; i++){
+                    for (var i=0; i<14; i++){
                         await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
                         await testUtil.fastForward(24*60*60);
                     }
@@ -427,7 +427,7 @@ describe('Treasury', function(){
             const bankroll = await treasury.bankroll();
             const surplus = testUtil.getBalance(treasury)
                 .minus(bankroll)
-                .minus(DAILY_LIMIT.mul(7));
+                .minus(DAILY_LIMIT.mul(14));
             const expectedReward = surplus.div(await treasury.distributeRewardDenom()).floor();
             const expectedToDistribute = surplus.minus(expectedReward);
             const prevTotalDistributed = await treasury.totalDistributed();
@@ -451,7 +451,7 @@ describe('Treasury', function(){
                     .assertDelta(dummyToken, expectedToDistribute)
                     .assertDelta(treasury, surplus.mul(-1))
                     .assertDeltaMinusTxFee(anon, expectedReward)
-                    .assertBalance(treasury, bankroll.plus(DAILY_LIMIT.mul(7)))
+                    .assertBalance(treasury, bankroll.plus(DAILY_LIMIT.mul(14)))
                 .assertCallReturns([treasury, "totalDistributed"],
                     prevTotalDistributed.plus(expectedToDistribute))
                 .doFn(assertIsBalanced)
@@ -518,6 +518,9 @@ describe('Distribution Stats', function(){
             .assertSuccess()
             .start();
     });
+    // here we test that distribution stats work by distributing
+    // and checking that the states are correct.
+    // .assertDistributes() does the real math to check Treasury's math.
     describe("Distribution stats", function(){
         it("Works for 1st deposit", async function(){
             await assertReceivesDeposit(101);
@@ -572,7 +575,6 @@ describe('Distribution Stats', function(){
     const divDates = [];
     const divAmounts = [];
     var divTotal = new BigNumber(0);
-    var curIndex = -1;
     function computeStats(d1, d2) {
         if (d2 == 0) d2 = Infinity;
         var count = 0;
@@ -586,12 +588,12 @@ describe('Distribution Stats', function(){
     }
     async function assertDistributes() {
         const txRes = await treasury.distributeToToken({from: anon});
+        console.log(`Called .distributeToToken() (${txRes.receipt.gasUsed} gas)`);
         const date = txRes.logs[0].args.time;
         const amt = txRes.logs[0].args.amount;
         divDates.push(date);
         divAmounts.push(amt);
         divTotal = divTotal.plus(amt);
-        curIndex++;
 
         function rand(start, end) {
             return start + Math.floor(Math.random()*end);

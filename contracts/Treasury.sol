@@ -10,7 +10,7 @@ pays profits to the token.
 
 It transfers out ONLY in these conditions:
 	- to token
-		- When: balance > (bankroll + 7*dailyFundLimit)
+		- When: balance > (bankroll + 14*dailyFundLimit)
 		- Amount: the surplus profits.
 	- to comptroller
 		- When: When comptroller lowers the bankroll due
@@ -23,15 +23,15 @@ It transfers out ONLY in these conditions:
 		          Note: dailyFundLimit can not be changed
 		          by more than 5% per day.
 
-To safeguard the bankroll, there is a buffer of 7 days
+To safeguard the bankroll, there is a buffer of 14 days
 of funding between the bankroll and paying out profits.
 That is, Treasury will only pay profits if the balance
-exceeds the bankroll by 7 days of funding.
+exceeds the bankroll by 14 days of funding.
 
 In a worst-case scenario where Treasury is being depleted
 by `dailyFundLimit` per day, this ensures the bankroll
 can pay back users for their burnt tokens for at least
-7 whole days.
+14 days.
 
 To incentivize a steady flow of dividends, anybody can 
 call .distributeToToken() and receive a small percentage
@@ -297,7 +297,7 @@ contract Treasury is
 		return true;
   	}
 
-  	// returns 0 unless balance > bankroll + 7*dailyFundLimit
+  	// returns 0 unless balance > bankroll + 14*dailyFundLimit
   	function getAmountToDistribute()
   		public
   		constant
@@ -309,13 +309,13 @@ contract Treasury is
   		return this.balance - _minBalance;
   	}
 
-  	// returns the bankroll plus a buffer of 7 days of funding.
+  	// returns the bankroll plus a buffer of 14 days of funding.
   	function getMinBalanceToDistribute()
   		public
   		constant
   		returns (uint)
   	{
-  		return bankroll + (7 * dailyFundLimit);
+  		return bankroll + (14 * dailyFundLimit);
   	}
 
   	// returns reward to be received if getDistributeReward() is called
@@ -327,7 +327,18 @@ contract Treasury is
   		return getAmountToDistribute() / distributeRewardDenom;
   	}
 
+  	// returns number of distributions
+  	function getNumDistributions()
+  		public
+  		constant
+  		returns (uint)
+  	{
+  		return distributionDates.length;
+  	}
+
   	// stats of distributions paid between _startDate and _endDate, inclusive
+  	// This is not really necessary, but saves you from having to do your
+  	// own iteration over distritbutionDates
   	function getDistributionStats(uint _startDate, uint _endDate)
   		public
   		constant

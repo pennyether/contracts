@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-contract __IPennyAuction {
+interface _IUbPennyAuction {
 	function bidPrice() public constant returns (uint _bidPrice);
 	function payWinner(uint _gasLimit) public returns (bool _success, uint _prizeSent);
 }
@@ -9,7 +9,7 @@ contract UnpayableBidder {
 	function doBid(address addr)
 		public
 	{
-		__IPennyAuction auction = __IPennyAuction(addr);
+		_IUbPennyAuction auction = _IUbPennyAuction(addr);
 		uint _bidPrice = auction.bidPrice();
 		require(auction.call.value(_bidPrice)());
 	}
@@ -18,7 +18,7 @@ contract UnpayableBidder {
 		public
 		returns (bool _success, uint _prizeSent)
 	{
-		__IPennyAuction auction = __IPennyAuction(addr);
+		_IUbPennyAuction auction = _IUbPennyAuction(addr);
 		return auction.payWinner(0); 
 	}
 

@@ -1,13 +1,13 @@
 pragma solidity ^0.4.0;
 
-contract __IPennyAuction {
+interface _IEpbPennyAuction {
 	function bidPrice() public constant returns (uint _bidPrice);
 	function payWinner(uint _gasLimit) public returns (bool _success, uint _prizeSent);
 }
 
 contract ExpensivePayableBidder {
 	function doBid(address addr) public {
-		__IPennyAuction auction = __IPennyAuction(addr);
+		_IEpbPennyAuction auction = _IEpbPennyAuction(addr);
 		uint _bidPrice = auction.bidPrice();
 		require(auction.call.value(_bidPrice)());
 	}
@@ -15,7 +15,7 @@ contract ExpensivePayableBidder {
 		public
 		returns (bool _success, uint _prizeSent)
 	{
-		__IPennyAuction auction = __IPennyAuction(addr);
+		_IEpbPennyAuction auction = _IEpbPennyAuction(addr);
 		return auction.payWinner(0); 
 	}
 	function fund() public payable {}
