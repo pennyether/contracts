@@ -14,42 +14,42 @@ const BigNumber = web3.toBigNumber(0).constructor;
 const SUMMARY_0        = "First Auction";
 const INITIAL_PRIZE_0  = new BigNumber(.05e18);
 const BID_PRICE_0      = new BigNumber(.001e18);
-const BID_FEE_PCT_0    = new BigNumber(60);
+const BID_INCR_0       = new BigNumber(.0001e18);
 const BID_ADD_BLOCKS_0 = new BigNumber(2);
 const INITIAL_BLOCKS_0 = new BigNumber(10);
-const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_FEE_PCT_0, BID_ADD_BLOCKS_0, INITIAL_BLOCKS_0];
-const FEE_INCR_0 = BID_PRICE_0.mul(BID_FEE_PCT_0.div(100));
-const BID_INCR_0 = BID_PRICE_0.minus(FEE_INCR_0);
+const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_INCR_0, BID_ADD_BLOCKS_0, INITIAL_BLOCKS_0];
+const FEE_INCR_0 = BID_PRICE_0.minus(BID_INCR_0);
+const PRIZE_INCR_0 = BID_PRICE_0.minus(FEE_INCR_0);
 
 const SUMMARY_1        = "Second Auction (Invalid BID_ADD_BLOCKS_1)";
 const INITIAL_PRIZE_1  = new BigNumber(.04e18);
 const BID_PRICE_1      = new BigNumber(.001e18);
-const BID_FEE_PCT_1    = new BigNumber(30);
+const BID_INCR_1       = new BigNumber(.0001e18);
 const BID_ADD_BLOCKS_1 = new BigNumber(0);
 const INITIAL_BLOCKS_1 = new BigNumber(5);
-const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_FEE_PCT_1, BID_ADD_BLOCKS_1, INITIAL_BLOCKS_1];
-const FEE_INCR_1 = BID_PRICE_1.mul(BID_FEE_PCT_1.div(100));
-const BID_INCR_1 = BID_PRICE_1.minus(FEE_INCR_1);
+const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_INCR_1, BID_ADD_BLOCKS_1, INITIAL_BLOCKS_1];
+const FEE_INCR_1 = BID_PRICE_1.minus(BID_INCR_1);
+const PRIZE_INCR_1 = BID_PRICE_1.minus(FEE_INCR_1);
 
 const SUMMARY_2        = "Third Auction";
 const INITIAL_PRIZE_2  = new BigNumber(.03e18);
 const BID_PRICE_2      = new BigNumber(.001e18);
-const BID_FEE_PCT_2    = new BigNumber(30);
+const BID_INCR_2       = new BigNumber(.0001e18);
 const BID_ADD_BLOCKS_2 = new BigNumber(2);
 const INITIAL_BLOCKS_2 = new BigNumber(35);
-const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_FEE_PCT_2, BID_ADD_BLOCKS_2, INITIAL_BLOCKS_2];
-const FEE_INCR_2 = BID_PRICE_2.mul(BID_FEE_PCT_2.div(100));
-const BID_INCR_2 = BID_PRICE_2.minus(FEE_INCR_2);
+const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_INCR_2, BID_ADD_BLOCKS_2, INITIAL_BLOCKS_2];
+const FEE_INCR_2 = BID_PRICE_2.minus(BID_INCR_2);
+const PRIZE_INCR_2 = BID_PRICE_2.minus(FEE_INCR_2);
 
 const SUMMARY_3        = "Fourth Auction (Use UnpayableBidder)";
 const INITIAL_PRIZE_3  = new BigNumber(.03e18);
 const BID_PRICE_3      = new BigNumber(.001e18);
-const BID_FEE_PCT_3    = new BigNumber(30);
+const BID_INCR_3       = new BigNumber(-.005e18);
 const BID_ADD_BLOCKS_3 = new BigNumber(2);
 const INITIAL_BLOCKS_3 = new BigNumber(5);
-const DEF_3 = [SUMMARY_3, INITIAL_PRIZE_3, BID_PRICE_3, BID_FEE_PCT_3, BID_ADD_BLOCKS_3, INITIAL_BLOCKS_3];
-const FEE_INCR_3 = BID_PRICE_3.mul(BID_FEE_PCT_3.div(100));
-const BID_INCR_3 = BID_PRICE_3.minus(FEE_INCR_3);
+const DEF_3 = [SUMMARY_3, INITIAL_PRIZE_3, BID_PRICE_3, BID_INCR_3, BID_ADD_BLOCKS_3, INITIAL_BLOCKS_3];
+const FEE_INCR_3 = BID_PRICE_3.minus(BID_INCR_3);
+const PRIZE_INCR_3 = BID_PRICE_3.minus(FEE_INCR_3);
 
 
 const accounts = web3.eth.accounts;
@@ -342,7 +342,7 @@ describe('PennyAuctionController', function(){
                         initialPrize: INITIAL_PRIZE_0,
                         bidPrice: BID_PRICE_0,
                         bidAddBlocks: BID_ADD_BLOCKS_0,
-                        bidFeePct: BID_FEE_PCT_0,
+                        bidIncr: BID_INCR_0,
                         initialBlocks: INITIAL_BLOCKS_0
                     })
                 .doFn((ctx) => {
@@ -354,7 +354,7 @@ describe('PennyAuctionController', function(){
                     .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_0)
                     .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_0)
                     .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_0)
-                    .assertCallReturns(()=>[auction, "bidFeePct"], BID_FEE_PCT_0)
+                    .assertCallReturns(()=>[auction, "bidIncr"], BID_INCR_0)
                     .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
                 .start();
         });
@@ -391,7 +391,7 @@ describe('PennyAuctionController', function(){
                         initialPrize: INITIAL_PRIZE_2,
                         bidPrice: BID_PRICE_2,
                         bidAddBlocks: BID_ADD_BLOCKS_2,
-                        bidFeePct: BID_FEE_PCT_2,
+                        bidIncr: BID_INCR_2,
                         initialBlocks: INITIAL_BLOCKS_2
                     })
                 .doFn((ctx) => {
@@ -403,7 +403,7 @@ describe('PennyAuctionController', function(){
                     .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_2)
                     .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_2)
                     .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_2)
-                    .assertCallReturns(()=>[auction, "bidFeePct"], BID_FEE_PCT_2)
+                    .assertCallReturns(()=>[auction, "bidIncr"], BID_INCR_2)
                     .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
                 .start();
         });

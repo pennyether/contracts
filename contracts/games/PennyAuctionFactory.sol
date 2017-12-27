@@ -16,7 +16,7 @@ contract PennyAuctionFactory is
         address collector,
         uint initialPrize,
         uint bidPrice,
-        uint bidFeePct,
+        int bidIncr,
         uint bidAddBlocks,
         uint initialBlocks
     );
@@ -30,7 +30,7 @@ contract PennyAuctionFactory is
     function createAuction(
         uint _initialPrize,
         uint _bidPrice,
-        uint _bidFeePct,
+        int _bidIncr,
         uint _bidAddBlocks,
         uint _initialBlocks
     )
@@ -48,7 +48,7 @@ contract PennyAuctionFactory is
             _collector: _collector,
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,
-            _bidFeePct: _bidFeePct,
+            _bidIncr: _bidIncr,
             _bidAddBlocks: _bidAddBlocks,
             _initialBlocks: _initialBlocks
         });
@@ -61,7 +61,7 @@ contract PennyAuctionFactory is
             initialPrize: _initialPrize,
             bidPrice: _bidPrice,
             bidAddBlocks: _bidAddBlocks,
-            bidFeePct: _bidFeePct,
+            bidIncr: _bidIncr,
             initialBlocks: _initialBlocks
         });
 

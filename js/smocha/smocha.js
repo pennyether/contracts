@@ -18,6 +18,7 @@ function Smocha(opts) {
 	var _curNode = createNode("root", "root", null, function(){});
 	var _logger = new Logger();			// will print pretty stuff
 	var _consoleLog = console.log;		// we override this to provide indented console logs
+	this.logger = _logger;
 
 	function _buildQueue(node) {
 		var queue = node.queue;
@@ -282,6 +283,7 @@ function Smocha(opts) {
 		].forEach((propName) => {
 			global[propName] = _obj[propName];
 		});
+		global["_smocha"] = _obj;
 	}
 	_setGlobals();
 }

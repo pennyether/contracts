@@ -8,10 +8,10 @@ const BigNumber = web3.toBigNumber(0).constructor;
 
 const INITIAL_PRIZE  = new BigNumber(.05e18);
 const BID_PRICE      = new BigNumber(.001e18);
-const BID_FEE_PCT    = new BigNumber(60);
+const BID_INCR    = new BigNumber(BID_PRICE.mul(-.1));
 const BID_ADD_BLOCKS = new BigNumber(2);
 const INITIAL_BLOCKS = new BigNumber(5);
-const AUCTION_DEF = [INITIAL_PRIZE, BID_PRICE, BID_FEE_PCT, BID_ADD_BLOCKS, INITIAL_BLOCKS];
+const AUCTION_DEF = [INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS];
 
 const accounts = web3.eth.accounts;
 
@@ -84,7 +84,7 @@ describe('PennyAuctionFactory', async function(){
                 .doTx([paf, "createAuction",
                             -1, 
                             BID_PRICE,
-                            BID_FEE_PCT,
+                            BID_INCR,
                             BID_ADD_BLOCKS,
                             INITIAL_BLOCKS,
                             {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE}
@@ -105,7 +105,7 @@ describe('PennyAuctionFactory', async function(){
                     collector: dummyTreasury,
                     initialPrize: INITIAL_PRIZE,
                     bidPrice: BID_PRICE,
-                    bidFeePct: BID_FEE_PCT,
+                    bidIncr: BID_INCR,
                     bidAddBlocks: BID_ADD_BLOCKS,
                     initialBlocks: INITIAL_BLOCKS
                 })
@@ -121,7 +121,7 @@ describe('PennyAuctionFactory', async function(){
                 .assertCallReturns([auction, "collector"], dummyTreasury)
                 .assertCallReturns([auction, "initialPrize"], INITIAL_PRIZE)
                 .assertCallReturns([auction, "bidPrice"], BID_PRICE)
-                .assertCallReturns([auction, "bidFeePct"], BID_FEE_PCT)
+                .assertCallReturns([auction, "bidIncr"], BID_INCR)
                 .assertCallReturns([auction, "bidAddBlocks"], BID_ADD_BLOCKS)
                 .assertCallReturns([auction, "blockEnded"], INITIAL_BLOCKS.plus(block))
                 .start();

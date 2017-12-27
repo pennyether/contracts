@@ -2,6 +2,8 @@ const colors = require("colors/safe");
 const util = require("util");
 
 function SmochaLogger() {
+	const _self = this;
+
 	colors.setTheme({
 		// misc
 		indent: ['dim', 'gray'],
@@ -35,6 +37,8 @@ function SmochaLogger() {
 
 	const _logOnEncounter = new Set(['describe', 'file', 'it']);
 	const _logOnRunPass = new Set(['it', 'before', 'after']);
+
+	this.silence = false;
 
 	// print args with indent.
 	function _log(indents, args, colorize, doExtraIndent) {
@@ -180,6 +184,7 @@ function SmochaLogger() {
 	}
 
 	this.log = function(node, args){
+		if (_self.silence) return;
 		_log(node.getParents().length + 1, args, true);
 	}
 }

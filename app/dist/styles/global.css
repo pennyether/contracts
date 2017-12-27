@@ -152,7 +152,7 @@ body {
 }
 .EthStatus.open {
 	background: #DDD;
-	border-bottom: none;
+	border-bottom: 1px solid #CCC;
 	box-shadow: -8px 8px 10px -3px rgba(0,0,0,.3);
 }
 

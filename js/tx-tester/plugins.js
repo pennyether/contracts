@@ -9,6 +9,15 @@ function createPlugins(testUtil, ledger) {
 		throw new Error("createPlugins() expects a ledger object.");
 	
 	const plugins = {
+		silence: function(){
+			const ctx = this;
+			const oldConsoleLog = console.log;
+			console.log = ()=>{};
+			ctx.afterDone(async () => {
+				console.log = oldConsoleLog;
+			});
+		},
+		
 		doFn: function(fn) {
 			const ctx = this;
 			return fn.call(null, ctx);

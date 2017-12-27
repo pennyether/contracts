@@ -1,53 +1,51 @@
 pragma solidity ^0.4.19;
 
 /**
-A PennyAuction to win a growing prize.
+A PennyAuction to win a prize.
 
 How it works:
 	- Initial prize is held in contract.
 	- Bid price is a fixed amount.
-	- On bid:
+	- On bid (sending bidPrice to contract):
 		- bidder becomes the current winner.
-		- a fee is taken, and the rest added to `prize`.
+		- prize is increased/decreased by bidIncr
 		- auction is extended by `bidAddBlocks` blocks.
-	- Auction is over when current block > `blockEnded`
-	- When the auction ends, the current winner wins.
+	- Auction is over when current block >= `blockEnded`
+	- When the auction has ended, .sendPrize() pays the winner.
 
 For fairness, a bid is refunded if:
 	- The incorrect amount is sent.
-	- Another bid came in after, but on the same block
 	- The bid is too late (auction has already ended)
 	- The bidder is already the current winner
+	- Another bid came in after on the same block
+		- Note: Here, default gas is used for refund. On failure, bid is kept.
 
 Accrued fees can be sent to `collector` at any time by calling .sendFees().
-
-When auction has ended, call .sendPrize() to send prize to the winner.
 */
 contract PennyAuction {
-
-	// We put these variables together to lower the gas cost of bidding.
-	// On a bid we write to all of them, and they are in the same 256 bit block.
-	//
-	// Additionally, we store GWei values instead of Wei values.
-	// uint64: 2^64 GWei is ~ 18.5 trillion Ether, so no overflow risk.
+	// We store values as GWei to reduce storage to 64 bits.
+	// int64: 2^63 GWei is ~ 9 billion Ether, so no overflow risk.
 	//
 	// For blocks, we use uint32, which has a max value of 4.3 billion
 	// At a 1 second block time, there's a risk of overflow in 120 years.
-	uint64 public prize;			// (Gwei) current prize
-	uint64 public fees;				// (Gwei) current fees collectable
+	//
+	// We put these variables together because they are all written to
+	// on each bid. This should save some writing cost.
+	int64 public prizeGwei;			// (Gwei) the current prize
 	uint32 public numBids;			// total number of bids
 	uint32 public blockEnded;		// the time at which no further bids can occur	
 	uint32 public lastBidBlock;		// block of the last bid
 	address public currentWinner;	// address of last bidder
 
-	// These values never change.
-	uint8 constant version = 1;
-	uint64 public initialPrize;		// (Gwei) amt initially staked
-	uint64 public bidPrice;			// (Gwei) cost to become the current winner
-	uint8 public bidFeePct;			// amt of bid that gets kept as fees
+	// These values never change
+	int64 public initialPrizeGwei;	// (Gwei > 0) amt initially staked
+	int64 public bidPriceGwei;		// (Gwei > 0) cost to become the current winner
+	int64 public bidIncrGwei;		// (Gwei > 0) amount added/removed to prize on bid.
 	uint32 public bidAddBlocks;	    // number of blocks auction is extended
 	address public collector;		// address that fees get sent to
 	bool public isPaid;				// whether or not the winner has been paid
+
+	uint constant version = 1;
 
 	// only allow ONE "reRentry" call on the stack at a time
 	bool private locked;
@@ -66,33 +64,38 @@ contract PennyAuction {
 		address _collector,
 		uint _initialPrize,
 		uint _bidPrice,
-		uint _bidFeePct,
+		int _bidIncr,
 		uint _bidAddBlocks,
 		uint _initialBlocks
 	)
 		public
 		payable
 	{
-		require(msg.value == _initialPrize); 	// must've sent the prize amount
-        require(_initialPrize >= 1e12);			// min value of 1 GWei
-        require(_initialPrize < 1e12 * 1e18); 	// max value of a billion ether
-        require(_initialPrize % 1e12 == 0);		// even amount of GWei
-        require(_bidPrice >= 1e12);				// min value of 1 GWei
-        require(_bidPrice < 1e12 * 1e18);		// max value of a billion ether
-        require(_bidPrice % 1e12 == 0);			// even amount of GWei
-        require(_bidFeePct <= 100);	    	 	// bid fee cannot be more than 100%.
-        require(_bidAddBlocks >= 1);	     	// minimum of 1 block
-        require(_initialBlocks >= 1);  	 	 	// minimum of 1 block
+        require(_initialPrize >= 1e9);				// min value of 1 GWei
+        require(_initialPrize < 1e6 * 1e18);		// max value of a million ether
+        require(_initialPrize % 1e9 == 0);			// even amount of GWei
+        require(_bidPrice >= 1e6);					// min value of 1 GWei
+        require(_bidPrice < 1e6 * 1e18);			// max value of a million ether
+        require(_bidPrice % 1e9 == 0);				// even amount of GWei
+        require(_bidIncr <= int(_bidPrice));		// max value of _bidPrice
+        require(_bidIncr >= -1*int(_initialPrize));	// min value of -1*initialPrize
+        require(_bidIncr % 1e9 ==0);				// even amount of GWei
+        require(_bidAddBlocks >= 1);				// minimum of 1 block
+        require(_initialBlocks >= 1);				// minimum of 1 block
+        require(msg.value == _initialPrize);		// must've sent the prize amount
 
-        // set instance variables. these never change.
+        // Set instance variables. these never change.
+        // These can be safely cast to int64 because they are each under 1e24,
+        // which divided by 1e9 is 1e15. max int64 val is ~1e19.
+        // For block numbers, uint32 is good up to ~4e12, a long time from now.
 		collector = _collector;
-        initialPrize = uint64(_initialPrize / 1e12);
-		bidPrice = uint64(_bidPrice / 1e12);
-		bidFeePct = uint8(_bidFeePct);
+        initialPrizeGwei = int64(_initialPrize / 1e9);
+        bidPriceGwei = int64(_bidPrice / 1e9);
+		bidIncrGwei = int64(_bidIncr / 1e9);
 		bidAddBlocks = uint32(_bidAddBlocks);
 
-		// initialize the auction variables
-		prize = initialPrize;
+		// Initialize the auction variables.
+		prizeGwei = initialPrizeGwei;
 		currentWinner = collector;
 		lastBidBlock = uint32(block.number);
 		blockEnded = uint32(block.number + _initialBlocks);
@@ -123,21 +126,21 @@ contract PennyAuction {
 			return;
 		}
 		// check that bid amount is correct
-		if (msg.value != bidPrice*1e12) {
+		if (msg.value != bidPrice()) {
 			errorAndRefund("Could not bid: Value sent must match bidPrice.");
 			return;
 		}
-
-		// calculate the fee amount in GWei
-		uint64 _feeIncr = (bidPrice * bidFeePct)/100;
-		uint64 _prizeIncr = bidPrice - _feeIncr;
+		// Check that this bid wouldn't result in a negative prize
+		if (prizeGwei + bidIncrGwei < 0) {
+			errorAndRefund("Could not bid: Bidding would result in a negative prize.");
+			return;
+		}
 
 		if (block.number != lastBidBlock) {
 			// this is a new bid
 			numBids++;
-			fees += _feeIncr;
-			prize += _prizeIncr;
-			blockEnded += bidAddBlocks;
+			prizeGwei += bidIncrGwei;
+			blockEnded += uint32(bidAddBlocks);
 			lastBidBlock = uint32(block.number);
 		} else {
 			// this bid is in the same block as the previous bid.
@@ -147,9 +150,8 @@ contract PennyAuction {
 				BidRefundSuccess(now, "Another bid occurred on the same block.", currentWinner);
 			} else {
 				BidRefundFailure(now, ".send() failed.", currentWinner);
+				prizeGwei += bidIncrGwei;
 				numBids++;
-				fees += _feeIncr;
-				prize += _prizeIncr;
 			}
 		}
 
@@ -187,7 +189,7 @@ contract PennyAuction {
 			return (false, 0);
 		}
 
-		uint _prize = this.prize();
+		uint _prize = prize();
 		bool _paySuccessful = false;
 		if (_gasLimit == 0) {
 			_paySuccessful = currentWinner.call.value(_prize)();
@@ -224,9 +226,8 @@ contract PennyAuction {
 		public
 	    returns (uint _feesSent)
     {
-		if (fees == 0) return;
-		_feesSent = this.fees();
-		fees = 0;
+		if (fees() == 0) return;
+		_feesSent = fees();
 		require(collector.call.value(_feesSent)());
 		FeesSent(now, collector, _feesSent);
 	}
@@ -250,9 +251,22 @@ contract PennyAuction {
 	    return blockEnded - block.number;
 	}
 
-	// override the public methods to return Wei values.
-	function initialPrize() public constant returns (uint) { return uint(initialPrize)*1e12; }
-	function fees() public constant returns (uint) { return uint(fees)*1e12; }
-	function bidPrice() public constant returns (uint) { return uint(bidPrice)*1e12; }
-	function prize() public constant returns (uint) { return uint(prize)*1e12; }
+	function initialPrize() public constant returns (uint){
+		return uint(initialPrizeGwei) * 1e9;
+	}
+	function prize() public constant returns (uint) {
+		return uint(initialPrizeGwei + (bidIncrGwei * numBids)) * 1e9;
+	}
+	function bidPrice() public constant returns (uint) {
+		return uint(bidPriceGwei) * 1e9;
+	}
+	function bidIncr() public constant returns (int) {
+		return int(bidIncrGwei) * 1e9;
+	}
+	function fees() public constant returns (uint) {
+		return isPaid ? this.balance : this.balance - prize();
+	}
+	function totalFees() public constant returns (uint) {
+		return uint((bidPriceGwei - bidIncrGwei) * numBids) * 1e9;
+	}
 }
