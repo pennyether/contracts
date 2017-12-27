@@ -111,9 +111,9 @@ contract Comptroller {
 		// ensure sale has started, require GWei amount.
 		require(isSaleStarted);
 		require(msg.value % 1000000000 == 0);
-		// 20% goes to the owner as capital
+		// 20% goes to the locker as capital
 		uint _capital = msg.value / 5;
-		require(owner.call.value(_capital)());
+		require(locker.call.value(_capital)());
 		// the rest goes to the treasury bankroll
 		uint _bankroll = msg.value - _capital;
 		treasury.addToBankroll.value(_bankroll)();

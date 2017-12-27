@@ -230,18 +230,34 @@ describe('Comptroller', function(){
                 .assertCallReturns([token, "getCollectableDividends", locker.address], expLockerDiv)
                 .start();
         });
-        it("Locker can redeem", async function(){
-            const exp = await token.getCollectableDividends(locker.address);
+    });
+    describe("DividendTokenLocker", function(){
+        it("Has expected state", function(){
             return createDefaultTxTester()
-                .startLedger([token, lockerOwner])
+                .assertCallReturns([locker, "token"], token.address)
+                .assertCallReturns([locker, "owner"], lockerOwner)
+                .start();
+        })
+        it("Cannot collect from anon", function(){
+            return createDefaultTxTester()
+                .doTx([locker, "collect", {from: anon}])
+                .assertInvalidOpCode()
+                .start();
+        });
+        it("Locker can collect", async function(){
+            const exp = await token.getCollectableDividends(locker.address);
+            const lockerBalance = await testUtil.getBalance(locker.address);
+            return createDefaultTxTester()
+                .startLedger([token, locker, lockerOwner])
                 .doTx([locker, "collect", {from: lockerOwner}])
                 .assertSuccess()
                 .stopLedger()
-                .assertDelta(token, exp.mul(-1))
-                .assertDeltaMinusTxFee(lockerOwner, exp)
+                    .assertDelta(token, exp.mul(-1))
+                    .assertDelta(locker, lockerBalance.mul(-1))
+                    .assertDeltaMinusTxFee(lockerOwner, lockerBalance.plus(exp))
                 .start();
         });
-    });
+    })
     describe(".burnTokens()", async function(){
     	it("Doesn't work if you have no tokens.", async function(){
     		return createDefaultTxTester()
@@ -299,14 +315,14 @@ describe('Comptroller', function(){
 		const prevBankroll = await treasury.bankroll();
     	const expectedBankroll = prevBankroll.plus(value.mul(.8));
 		return createDefaultTxTester()
-			.startLedger([comptroller, treasury, compOwner, acct])
+			.startLedger([comptroller, treasury, locker, acct])
             .startWatching([treasury, token])
 			.doTx([comptroller, "buyTokens", {from: acct, value: value}])
 			.assertSuccess()
 			.stopLedger()
 				.assertNoDelta(comptroller)
 				.assertDelta(treasury, value.mul(.8))
-				.assertDelta(compOwner, value.mul(.2))
+				.assertDelta(locker, value.mul(.2))
 				.assertDeltaMinusTxFee(acct, value.mul(-1))
             .stopWatching()
                 .assertOnlyEvent(treasury, "BankrollChanged", {

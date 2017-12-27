@@ -24,6 +24,7 @@ contract DividendTokenLocker {
 	function collect()
 		public
 	{
+		require(msg.sender == owner);
 		IDividendToken(token).collectDividends();
 		require(owner.call.value(this.balance)());
 	}
