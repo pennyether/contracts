@@ -103,7 +103,7 @@
 		  	});
 
 			// make Registry public
-		  	const registry = Registry.at("0xc1096f203834d7ef377865dc248c1b8b0adcab88");
+		  	const registry = Registry.at("0x3a98e0a23e4b90357ebb937bdbc9144cb7ac0dd3");
 
 		  	// attach visual components
 		  	const ethStatus = new EthStatus(ethUtil);

@@ -64,7 +64,7 @@ Loader.require("pac")
 			auction.prize(),
 			auction.bidPrice(),
 			auction.bidAddBlocks(),
-			auction.bidFeePct()
+			auction.bidIncr()
 		]).then(arr => {
 			const numBids = arr[0];
 			const blockEnded = arr[1];
@@ -72,10 +72,9 @@ Loader.require("pac")
 			const prize = arr[3];
 			const bidPrice = arr[4];
 			const bidAddBlocks = arr[5];
-			const bidFeePct = arr[6];
+			const bidIncr = arr[6];
 			const amWinner = currentWinner === ethUtil.getCurrentAccount()
 
-			const growing = (new BigNumber(100)).minus(bidFeePct);
 			const $curWinner = util.$getAddrLink(amWinner ? "You!" : currentWinner, currentWinner);
 			const curWinnerClass = amWinner ? "you" : "";
 
@@ -104,9 +103,9 @@ Loader.require("pac")
 			$prize.text(`${ethUtil.toEthStr(prize)}`);
 			$bidPrice.text(`${ethUtil.toEthStr(bidPrice)}`);
 			$bidAddBlocks.text(`${bidAddBlocks} blocks`);
-			$growing.text(`${growing}%`);
-			$btn.removeAttr("disabled").click(function(){
-				auction.sendTransaction({gas: 121000, value: bidPrice});
+			$growing.text(`${ethUtil.toEthStr(bidIncr)}`);
+			$btn.removeAttr("disabled").unbind("click").click(function(){
+				auction.sendTransaction({gas: 59000, value: bidPrice});
 			});
 			tippy($e.find(".tipLeft").toArray(), { placement: "top" });
 		})

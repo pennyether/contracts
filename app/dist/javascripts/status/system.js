@@ -15,7 +15,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 
 	function refreshOwner() {
 		if (!reg) return;
-		const p = reg.addressOf(["OWNER"]).then(util.$getAddrLink);
+		const p = reg.owner().then(util.$getAddrLink);
 		util.bindToElement(p, $("#OwnerAddr"), true);
 	}
 	function refreshAdmin() {

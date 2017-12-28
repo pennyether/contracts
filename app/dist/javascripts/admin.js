@@ -79,7 +79,7 @@ Loader.require("reg", "tr", "mc", "pac")
 					$defined.find(".summary").val(res[2]);
 					$defined.find(".initialPrize").val(ethUtil.toEth(res[3]));
 					$defined.find(".bidPrice").val(ethUtil.toEth(res[4]));
-					$defined.find(".bidFeePct").val(res[5])
+					$defined.find(".bidIncr").val(ethUtil.toEth(res[5]));
 					$defined.find(".bidAddBlocks").val(res[6]);
 					$defined.find(".initialBlocks").val(res[7]);
 					$defined.find(".change").click(function(){
@@ -106,7 +106,7 @@ Loader.require("reg", "tr", "mc", "pac")
 			_summary: $e.find(".summary").val(),
 			_initialPrize: ethUtil.toWei($e.find(".initialPrize").val()),
 			_bidPrice: ethUtil.toWei($e.find(".bidPrice").val()),
-			_bidFeePct: $e.find(".bidFeePct").val(),
+			_bidIncr: ethUtil.toWei($e.find(".bidInctr").val()),
 			_bidAddBlocks: $e.find(".bidAddBlocks").val(),
 			_initialBlocks: $e.find(".initialBlocks").val()
 		};

@@ -51,8 +51,7 @@ Loader.require("pac")
 					const $addr = util.$getAddrLink(res[0]);
 					const initialPrize = ethUtil.toEthStr(res[3]);
 					const bidPrice = ethUtil.toEthStr(res[4]);
-					const bidFeePct = res[5] + "%";
-					const bidFeeEth = ethUtil.toEthStr(res[5].div(100).mul(res[4]));
+					const bidIncr = ethUtil.toEthStr(res[5]);
 					const bidAddBlocks = res[6] + " Blocks";
 					const bidAddBlocksTime = util.toTime(res[6].mul(blockTimeS).round());
 					const initialBlocks = res[7] + " Blocks";
@@ -63,7 +62,7 @@ Loader.require("pac")
 					$defined.find(".auction .value").empty().append($addr);
 					$defined.find(".initialPrize .value").text(initialPrize);
 					$defined.find(".bidPrice .value").text(bidPrice);
-					$defined.find(".bidFeePct .value ").text(`${bidFeePct} (${bidFeeEth})`);
+					$defined.find(".bidIncr .value ").text(bidIncr);
 					$defined.find(".bidAddBlocks .value").text(`${bidAddBlocks} (~${bidAddBlocksTime})`);
 					$defined.find(".initialBlocks .value").text(`${initialBlocks} (~${initialBlocksTime})`);
 				});
