@@ -92,6 +92,7 @@
 			} else {
 				const acctStr = acctAddr.slice(0,6) + "..." + acctAddr.slice(-4);
 				const $link = ethUtil.$getLink(acctStr, acctAddr, "address")
+				_$acctCtnr.removeClass("none");
 				_$acctAddr.empty().append("Account: ").append($link);
 				_$acctBal.text("...");
 				ethUtil.getBalance(acctAddr).then((res)=>{

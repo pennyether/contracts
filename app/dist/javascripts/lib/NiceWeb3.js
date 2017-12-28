@@ -127,6 +127,12 @@
 					const oldCall = oldFn.call.bind(oldFn);
 					instance[def.name].call = getCallFn(oldCall, def, instance, true);
 				}
+				if (oldFn.getData) {
+					// this returns a promise because shitamask requires a callback.
+					// yes. a callback for a synchronous operation is REQUIRED.
+					const oldGetData = oldFn.getData.bind(oldFn);
+					instance[def.name].getData = getCallFn(oldGetData, def, instance, true, true);
+				}
 			});
 			// attach .sendTransaction()
 			const sendTransactionDef = {
@@ -151,9 +157,9 @@
 		// And returns
 		//   - a Promise resolved with a nice object.
 		//	 - with a .getTxHash() property that resolves first.
+		//   - if isImmediate is true, returns immediate value
 		// See: _doPromisifiedCall()
-		// todo: handle if this is a constant function!
-		function getCallFn(oldCallFn, def, instance, isConstant) {
+		function getCallFn(oldCallFn, def, instance, isConstant, isImmediate) {
 			const isConstructor = def.type === "constructor";
 			const abiInputs = def.inputs;
 			const isPayable = def.payable;
@@ -173,8 +179,11 @@
 				if (!opts.from) {
 					opts.from = _ethUtil.getCurrentAccount(!isConstant) || _ethUtil.NO_ADDRESS;
 				}
-				if (!opts.to) {
+				if (!opts.to && !isConstructor) {
 					opts.to = instance.address;
+				}
+				if (opts.to && isConstructor) {
+					throw new Error(`${callName} passed a 'to' field, but is a constructor.`);
 				}
 				try {
 					inputs = _validateInputs(inputsObj, abiInputs);
@@ -187,6 +196,10 @@
 					console.error(e);
 					throw new Error(`${callName} Validation Error: ${e.message}`);
 				}
+				if (isImmediate) {
+					return oldCallFn.apply(null, inputs);
+				}
+
 				const metadata = {
 					contractName: contractName,
 					instance: instance,
@@ -261,7 +274,7 @@
 						result.knownEvents = known;
 						result.unknownEvents = unknown;
 						result.metadata = metadata;
-						console.log(`$callStr completed.`, result);
+						console.log(`${callStr} completed.`, result);
 						return result;
 					},(err)=>{
 						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
@@ -342,7 +355,7 @@
 			} else if (type == "string" || type == "bytes32") {
 				if (typeof val!=='string') { throw e; }
 			} else {
-				throw new Error(`Passed unsupported input type: ${nameAsStr}.`);
+				console.warn(`NiceWeb3 Validation for input not supported: ${nameAsStr}`);
 			}
 		});
 		return providedInputsArr;

@@ -84,12 +84,12 @@
 
   			// update resultStatus
   			p.then((res)=>{
-  				console.log(`${callName} success`, res);
+  				console.log(`Success: ${callName}`, res);
 	  			$resultStatus.removeClass("pending")
 	  				.addClass("success")
 	  				.text(`Mined.`);
 	  		}, (e)=>{
-	  			console.log(`${callName} failure`, e);
+	  			console.log(`Failure: ${callName}`, e);
 	  			$resultStatus.removeClass("pending")
 	  				.addClass("error")
 	  				.text(e.message);

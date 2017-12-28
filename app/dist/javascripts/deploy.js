@@ -31,8 +31,8 @@ Loader.promise.then(function(){
 		- PennyAuctionFactory
 			- Registered.
 	*/
-	$("#FullDeploy").click(function(){
-		const $log = $("#FullDeployLog").empty();
+	$("#DeployButton").click(function(){
+		const $log = $("#DeployLog").empty();
 		const addLog = (msg) => $log.append($("<div>").text(msg));
 		
 		const adminAddr = $("#Deploy .adminAddr input").val();
@@ -44,60 +44,82 @@ Loader.promise.then(function(){
 		if (!supervisorAddr) return alert("Must provide supervisor address.");
 		if (!ownerAddr) return alert("Must provide owner address.");
 
-		var reg, tr, comp;
-		Registry.new().then(function(result){
-			addLog(`Registry created @ ${result.instance.address}`);
-			addLog(`Creating other instances...`);
+		var wallet, reg, tr, comp;
+		addLog(`Creating custodial wallet...`);
+		CustodialWallet.new({
+			_custodian: custodianAddr,
+			_supervisor: supervisorAddr,
+			_owner: ownerAddr
+		}).then((result)=>{
+			wallet = result.instance;
+			addLog(`Wallet created @ ${wallet.address}`);
+			addLog(`Creating Registry...`);
+			return Registry.new({_owner: wallet.address});
+		}).then((result)=>{
 			reg = result.instance;
-			return Promise.all([
-				reg.register({_name: "ADMIN", _addr: adminAddr}),
-				reg,
-				Treasury.new({_registry: reg.address}),
-				MainController.new({_registry: reg.address}),
-				PennyAuctionController.new({_registry: reg.address}),
-				PennyAuctionFactory.new({_registry: reg.address}),
-				Comptroller.new()
-			]);
-		}).then((deployed)=>{
-			addLog("Registering addresses...");
-			tr = deployed[2].instance;
-			comp = deployed[6].instance;
-			return Promise.all([
-				reg.register({
-					_name: "TREASURY",
-					_addr: tr.address
-				}),
-				reg.register({
-					_name: "MAIN_CONTROLLER", 
-					_addr: deployed[3].instance.address
-				}),
-				reg.register({
-					_name: "PENNY_AUCTION_CONTROLLER",
-					_addr: deployed[4].instance.address
-				}),
-				reg.register({
-					_name: "PENNY_AUCTION_FACTORY",
-					_addr: deployed[5].instance.address
-				}),
-				reg.register({
-					_name: "COMPTROLLER",
-					_addr: comp.address
-				}),
-			]);
-		}).then((arr)=>{
-			addLog("Initializing Treasury and Comptroller...");
-			return Promise.all([
-				comp.token().then((token)=>tr.initToken({_token: token})),
-				tr.initComptroller({_comptroller: comp.address})
-			]).then(()=>{
-				return comp.initTreasury({_treasury: tr.address});
+			addLog(`Registry created @ ${reg.address}`);
+			addLog(`Setting admin...`);
+			const data = reg.register.getData({
+				_name: "ADMIN",
+				_addr: adminAddr
 			});
-		}).then((arr)=>{
-			addLog("All done!");
-			alert("All done!");
-			$("#PopulateAllRegAddress").val(reg.address);
-			$("#PopulateAll").click();
+			return wallet.doCall({
+				_to: reg.address,
+				_data: data
+			}, {value: 0});
+		}).then((res)=>{
+			console.log("res", res);
+			addLog(`Set ADMIN.`);
+			addLog(`Creating all instances now...`);
 		})
+		// 	return Promise.all([
+		// 		reg.register({_name: "ADMIN", _addr: adminAddr}),
+		// 		Treasury.new({_registry: reg.address}),
+		// 		MainController.new({_registry: reg.address}),
+		// 		PennyAuctionController.new({_registry: reg.address}),
+		// 		PennyAuctionFactory.new({_registry: reg.address}),
+		// 		Comptroller.new()
+		// 	]);
+		// }).then((deployed)=>{
+		// 	addLog("Registering addresses...");
+		// 	tr = deployed[2].instance;
+		// 	comp = deployed[6].instance;
+		// 	return Promise.all([
+		// 		reg.register({
+		// 			_name: "TREASURY",
+		// 			_addr: tr.address
+		// 		}),
+		// 		reg.register({
+		// 			_name: "MAIN_CONTROLLER", 
+		// 			_addr: deployed[3].instance.address
+		// 		}),
+		// 		reg.register({
+		// 			_name: "PENNY_AUCTION_CONTROLLER",
+		// 			_addr: deployed[4].instance.address
+		// 		}),
+		// 		reg.register({
+		// 			_name: "PENNY_AUCTION_FACTORY",
+		// 			_addr: deployed[5].instance.address
+		// 		}),
+		// 		reg.register({
+		// 			_name: "COMPTROLLER",
+		// 			_addr: comp.address
+		// 		}),
+		// 	]);
+		// }).then((arr)=>{
+		// 	addLog("Initializing Treasury and Comptroller...");
+		// 	return Promise.all([
+		// 		comp.token().then((token)=>tr.initToken({_token: token})),
+		// 		tr.initComptroller({_comptroller: comp.address})
+		// 	]).then(()=>{
+		// 		return comp.initTreasury({_treasury: tr.address});
+		// 	});
+		// }).then((arr)=>{
+		// 	addLog("All done!");
+		// 	alert("All done!");
+		// 	$("#PopulateAllRegAddress").val(reg.address);
+		// 	$("#PopulateAll").click();
+		// })
 	});
 	
 	$("#PopulateAll").click(function(){

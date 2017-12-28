@@ -14,6 +14,12 @@
 			.field .value {
 				display: inline-block;
 			}
+			#DeployLog {
+				margin: 20px 5px 10px 5px;
+				padding: 5px;
+				border: 1px dotted gray;
+				background: #FAFAFA;
+			}
 		</style>
 	</head>
 	<body><div id="Content">
@@ -54,11 +60,11 @@
 					</div>
 					<div class="field">
 						<div class="label tipLeft" title="Click this to make thigns go.">Execute</div>
-						<div class="value btnDeploy">
-							<button>FULL DEPLOY</button>
+						<div class="value">
+							<button id="DeployButton">FULL DEPLOY</button>
 						</div>
 					</div>
-					<div id="FullDeployLog"></div>
+					<div id="DeployLog"></div>
 				</div>
 			</div>
 		</div>
