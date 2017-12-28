@@ -1,57 +1,48 @@
 Loader.promise.then(function(){
-
-	$("#PopulateAll").click(function(){
-		const $log = $("#PopulateLog").empty();
-		const addLog = (msg) => $log.append($("<div>").text(msg));
-
-		const regAddress = $("#PopulateAllRegAddress").val();
-		if (!regAddress) return alert("Must provide a registry address.");
-		const reg = Registry.at(regAddress);
-		$("#RegLoadAddress").val(regAddress)
-		$("#RegLoad").click();
-		Promise.resolve()
-			// comptroller
-			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
-			.then((addr)=>{
-				addLog(`Found comptroller at ${addr}`);
-				$("#CompLoadAddress").val(addr);
-				$("#CompLoad").click();
-			}, (e)=>{ addLog(`Didn't find comptroller.`); })
-			// Treasury
-			.then(()=>reg.addressOf({_name: "TREASURY"}))
-			.then((addr)=>{
-				addLog(`Found treasury at ${addr}`);
-				$("#TrLoadAddress").val(addr);
-				$("#TrLoad").click();
-			}, (e)=>{ addLog(`Didn't find treasury.`); })
-			// Main controller
-			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
-			.then((addr)=>{
-				addLog(`Found main controller at ${addr}`);
-				$("#McLoadAddress").val(addr);
-				$("#McLoad").click();
-			}, (e)=>{ addLog(`Didn't find main controller.`); })
-			// pac
-			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
-			.then((addr)=>{
-				addLog(`Found pac at ${addr}`);
-				$("#PacLoadAddress").val(addr);
-				$("#PacLoad").click();
-			}, (e)=>{ addLog(`Didn't find pac.`); })
-			// paf
-			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}))
-			.then((addr)=>{
-				addLog(`Found paf at ${addr}`);
-				$("#PafLoadAddress").val(addr);
-				$("#PafLoad").click();
-			}, (e)=>{ addLog(`Didn't find paf.`); });
+	ethUtil.onStateChanged(state=>{
+		$("#Deploy .custodianAddr input").val(state.account);	
 	});
 
+	/*
+	Full deploy requires one input:
+		- Cold owner address
+		- Admin address
+
+	By the end, it will have created:
+		- Custodial Wallet:
+			- Owner: defined at input
+			- Custodian: current user
+		- Registry
+			- Owner (permanent): custodial wallet
+		- Comptroller
+			- Owner (permanent): current user
+			- Treasury (permanent): Treasury
+			- Owner can only call initSale().
+		- TokenLocker:
+			- Owner (permanent): CustodialWallet 
+		- Treasury:
+			- Comptroller (permanent): Comptroller
+			- Token (permanent): Token
+			- Registered.
+		- MainController
+			- Registered.
+		- PennyAuctionController
+			- Registered.
+		- PennyAuctionFactory
+			- Registered.
+	*/
 	$("#FullDeploy").click(function(){
 		const $log = $("#FullDeployLog").empty();
 		const addLog = (msg) => $log.append($("<div>").text(msg));
-		const adminAddr = $("#FullDeployAdminAddress").val();
+		
+		const adminAddr = $("#Deploy .adminAddr input").val();
+		const custodianAddr = $("#Deploy .custodianAddr input").val();
+		const supervisorAddr = $("#Deploy .supervisorAddr input").val();
+		const ownerAddr = $("#Deploy .ownerAddr input").val();
 		if (!adminAddr) return alert("Must provide admin address.");
+		if (!custodianAddr) return alert("Must provide custodian address.");
+		if (!supervisorAddr) return alert("Must provide supervisor address.");
+		if (!ownerAddr) return alert("Must provide owner address.");
 
 		var reg, tr, comp;
 		Registry.new().then(function(result){
@@ -107,6 +98,53 @@ Loader.promise.then(function(){
 			$("#PopulateAllRegAddress").val(reg.address);
 			$("#PopulateAll").click();
 		})
+	});
+	
+	$("#PopulateAll").click(function(){
+		const $log = $("#PopulateLog").empty();
+		const addLog = (msg) => $log.append($("<div>").text(msg));
+
+		const regAddress = $("#PopulateAllRegAddress").val();
+		if (!regAddress) return alert("Must provide a registry address.");
+		const reg = Registry.at(regAddress);
+		$("#RegLoadAddress").val(regAddress)
+		$("#RegLoad").click();
+		Promise.resolve()
+			// comptroller
+			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found comptroller at ${addr}`);
+				$("#CompLoadAddress").val(addr);
+				$("#CompLoad").click();
+			}, (e)=>{ addLog(`Didn't find comptroller.`); })
+			// Treasury
+			.then(()=>reg.addressOf({_name: "TREASURY"}))
+			.then((addr)=>{
+				addLog(`Found treasury at ${addr}`);
+				$("#TrLoadAddress").val(addr);
+				$("#TrLoad").click();
+			}, (e)=>{ addLog(`Didn't find treasury.`); })
+			// Main controller
+			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found main controller at ${addr}`);
+				$("#McLoadAddress").val(addr);
+				$("#McLoad").click();
+			}, (e)=>{ addLog(`Didn't find main controller.`); })
+			// pac
+			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
+			.then((addr)=>{
+				addLog(`Found pac at ${addr}`);
+				$("#PacLoadAddress").val(addr);
+				$("#PacLoad").click();
+			}, (e)=>{ addLog(`Didn't find pac.`); })
+			// paf
+			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}))
+			.then((addr)=>{
+				addLog(`Found paf at ${addr}`);
+				$("#PafLoadAddress").val(addr);
+				$("#PafLoad").click();
+			}, (e)=>{ addLog(`Didn't find paf.`); });
 	});
 
 	/******** REGISTRY ***************************/

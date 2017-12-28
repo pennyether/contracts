@@ -10,27 +10,25 @@ To remove a mapping, the owner can register an address
 as 0.
 */
 contract Registry {
+    // the permanent owner of the registry
+    address public owner;
     // for each name, holds the current address
     mapping (bytes32 => address) addresses;
     event NameRegistered(bytes32 name, address addr);
 
-    modifier fromOwner(){
-        require(msg.sender == addresses["OWNER"]);
-        _;
-    }
-    
-    function Registry()
+    function Registry(address _owner)
         public
     {
-        addresses["OWNER"] = msg.sender;
+        if (_owner == address(0)) _owner = msg.sender;
+        owner = _owner;
     }
 
     // Adds the address to the mapping, so that it can be retrieved later by name.
     // Only the owner can register an address
     function register(bytes32 _name, address _addr)
         public
-        fromOwner
     {
+        require(msg.sender == owner);
         addresses[_name] = _addr;
         NameRegistered(_name, _addr);
     }

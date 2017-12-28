@@ -14,12 +14,14 @@ const INITIAL_BLOCKS = new BigNumber(5);
 const AUCTION_DEF = [INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS];
 
 const accounts = web3.eth.accounts;
+const owner = accounts[1];
+const dummyTreasury = accounts[2];
+const dummyPac = accounts[3];
+const notPac = accounts[4];
+const anon = accounts[5];
 
 describe('PennyAuctionFactory', async function(){
-    const registry = await Registry.new();
-    const dummyTreasury = accounts[1];
-    const dummyPac = accounts[2];
-    const notPac = accounts[3];
+    const registry = await Registry.new(owner, {from: anon});
     var paf;
     
     before("Can be created", async function(){
@@ -33,9 +35,9 @@ describe('PennyAuctionFactory', async function(){
         };
         await createDefaultTxTester()
             .nameAddresses(addresses)
-            .doTx([registry, "register", "TREASURY", dummyTreasury])
+            .doTx([registry, "register", "TREASURY", dummyTreasury, {from: owner}])
                 .assertSuccess()
-            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", dummyPac])
+            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", dummyPac, {from: owner}])
                 .assertSuccess()
             .assertCallReturns([paf, "getPennyAuctionController"], dummyPac)
             .assertCallReturns([paf, "getTreasury"], dummyTreasury)

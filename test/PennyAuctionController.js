@@ -71,7 +71,7 @@ describe('PennyAuctionController', function(){
     const nonAdmin = accounts[8];
 
     before("Set up registry and treasury", async function(){
-        registry = await Registry.new({from: owner});
+        registry = await Registry.new(owner, {from: nonAdmin});
         treasury = await Treasury.new(registry.address);
         pac = await PennyAuctionController.new(registry.address);
         paf = await PennyAuctionFactory.new(registry.address);

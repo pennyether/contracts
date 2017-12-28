@@ -69,6 +69,7 @@
 
 		this.onStateChanged = function(cb){
 			_stateChangeCallbacks.push(cb);
+			cb(_curState);
 		};
 
 		this.getToday = function(){

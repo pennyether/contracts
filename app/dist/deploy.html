@@ -3,21 +3,66 @@
 	<head>
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/deploy.js"></script>
+		<style>
+			.field {
+				margin: 5px;
+			}
+			.field .label {
+				display: inline-block;
+				width: 250px;
+			}
+			.field .value {
+				display: inline-block;
+			}
+		</style>
 	</head>
 	<body><div id="Content">
-		<div class="welcome">
+		<div class="title">
 			DEPLOYMENT PAGE
 		</div>
-		<div style='border: 1px solid green; background: #FAFAFA; margin: 10px; padding: 20px'>
-			<div>
-				This creates an instance of everything, registers everything, but
-				does not link between the Treasury and Comptroller.
-				<br>Admin: 0xF6190b65560FCA1bd5F84d815ab75db13E035CD3
+		<div class="section" id="Deploy">
+			<div class="head">Deploy</div>
+			<div class="body">
+				<div style='border: 1px solid green; background: #FAFAFA; margin: 10px; padding: 20px'>
+					This creates an instance of everything and links everything together.
+					<br>
+					<br>
+					<div class="field">
+						<div class="label tipLeft" title="This address will be registered as ADMIN in the registry and will be able to change system settings.">Admin Address</div>
+						<div class="value adminAddr">
+							<input type=text value="0xF6190b65560FCA1bd5F84d815ab75db13E035CD3">
+						</div>
+					</div>
+					<div class="field">
+						<div class="label tipLeft" title="This address will be able to make calls on behalf of the Custodial Wallet -- effectively owning the registry, treasury, and comptroller.">Custodian Address</div>
+						<div class="value custodianAddr">
+							<input type=text value="">
+							(current address)
+						</div>
+					</div>
+					<div class="field">
+						<div class="label tipLeft" title="This address will be able to change the Custodian address.">Supervisor Address</div>
+						<div class="value supervisorAddr">
+							<input type=text value="0x771E73C55e8aBA9CBfecBFd808F3734263Cc64dE">
+						</div>
+					</div>
+					<div class="field">
+						<div class="label tipLeft" title="This account will be able to change the Supervisor address. Hopefully will never be needed.">Owner Address</div>
+						<div class="value ownerAddr">
+							<input type=text value="0x64a7383400204cfA493dca5Cd9BB07507B22D56A">
+						</div>
+					</div>
+					<div class="field">
+						<div class="label tipLeft" title="Click this to make thigns go.">Execute</div>
+						<div class="value btnDeploy">
+							<button>FULL DEPLOY</button>
+						</div>
+					</div>
+					<div id="FullDeployLog"></div>
+				</div>
 			</div>
-			<input type=text id="FullDeployAdminAddress" placeholder="admin address">
-			<button id="FullDeploy">FULL DEPLOY</button>
-			<div id="FullDeployLog"></div>
 		</div>
+		
 		<div>
 			<input type=text id="PopulateAllRegAddress" value="0xc1096f203834d7ef377865dc248c1b8b0adcab88">
 			<button id="PopulateAll">POPULATE ALL FROM REGISTRY</button>

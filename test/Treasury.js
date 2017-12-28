@@ -21,10 +21,9 @@ describe('Treasury', function(){
     const DAILY_LIMIT = new BigNumber(1000000);
 
     before("Set up registry and treasury", async function(){
-        registry = await Registry.new();
-        await registry.register("MAIN_CONTROLLER", dummyMainController);
-        await registry.register("ADMIN", admin);
-        await registry.register("OWNER", owner);
+        registry = await Registry.new(owner, {from: anon});
+        await registry.register("MAIN_CONTROLLER", dummyMainController, {from: owner});
+        await registry.register("ADMIN", admin, {from: owner});
         treasury = await Treasury.new(registry.address);
 
         const addresses = {
@@ -206,6 +205,12 @@ describe('Treasury', function(){
                         .assertInvalidOpCode()
                         .start();
                 })
+                it("Cannot be set by admin", async function(){
+                    return createDefaultTxTester()
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                        .assertInvalidOpCode()
+                        .start();
+                })
                 it("Works", function(){
                     return createDefaultTxTester()
                         .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
@@ -216,7 +221,7 @@ describe('Treasury', function(){
                 });
                 it("Cannot be set again", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                        .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
                         .assertInvalidOpCode()
                         .start();
                 });
@@ -225,6 +230,12 @@ describe('Treasury', function(){
                 it("Cannot be set from anon", function(){
                     return createDefaultTxTester()
                         .doTx([treasury, "initToken", dummyToken, {from: anon}])
+                        .assertInvalidOpCode()
+                        .start();
+                });
+                it("Cannot be set from admin", function(){
+                    return createDefaultTxTester()
+                        .doTx([treasury, "initToken", dummyToken, {from: admin}])
                         .assertInvalidOpCode()
                         .start();
                 });
@@ -238,7 +249,7 @@ describe('Treasury', function(){
                 });
                 it("Cannot be set again", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "initToken", dummyToken, {from: admin}])
+                        .doTx([treasury, "initToken", dummyToken, {from: owner}])
                         .assertInvalidOpCode()
                         .start();
                 });
@@ -500,7 +511,7 @@ describe('Distribution Stats', function(){
     var treasury;
 
     before("Set up registry and treasury", async function(){
-        const registry = await Registry.new({from: owner});
+        const registry = await Registry.new(owner, {from: anon});
         await registry.register("ADMIN", admin, {from: owner});
         treasury = await Treasury.new(registry.address);
 

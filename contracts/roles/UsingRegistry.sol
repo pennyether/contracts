@@ -35,7 +35,7 @@ contract UsingRegistry {
 		constant
 		returns (address _addr)
 	{
-		return registry.addressOf("OWNER");
+		return registry.owner();
 	}
 
 	function getRegistry()

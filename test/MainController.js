@@ -70,7 +70,7 @@ describe("MainController", function(){
 	var paf;
 
 	before("Set it all up", async function(){
-		registry = await Registry.new({from: owner});
+		registry = await Registry.new(owner, {from: nonAdmin});
         treasury = await Treasury.new(registry.address);
         mainController = await MainController.new(registry.address);
         pac = await PennyAuctionController.new(registry.address);

@@ -10,18 +10,22 @@ describe('CustodialWallet', function(){
     const accounts = web3.eth.accounts;
     const owner1 = accounts[1];
     const owner2 = accounts[2];
-    const owner3 = accounts[3];
-    const cust1 = accounts[4];
-    const cust2 = accounts[5];
-    const cust3 = accounts[6];
-    const anon = accounts[7];
+    const supervisor1 = accounts[3];
+    const supervisor2 = accounts[4];
+    const supervisor3 = accounts[5];
+    const cust1 = accounts[6];
+    const cust2 = accounts[7];
+    const cust3 = accounts[8];
+    const anon = accounts[9];
     var cWallet;
     var dContract;
 
     const addresses = {
-    	owner1: owner1,
-    	owner2: owner2,
-    	owner3: owner3,
+        owner1: owner1,
+        owner2: owner2,
+    	supervisor1: supervisor1,
+    	supervisor2: supervisor2,
+    	supervisor3: supervisor3,
     	cust1: cust1,
     	cust2: cust2,
     	cust3: cust3,
@@ -29,7 +33,7 @@ describe('CustodialWallet', function(){
     };
 
     before("Create CustodialWallet and DumbContract", async function(){
-    	cWallet = await CustodialWallet.new(cust1, owner1);
+    	cWallet = await CustodialWallet.new(cust1, supervisor1, owner1);
     	addresses.cWallet = cWallet.address;
     	dContract = await DumbContract.new();
     	addresses.dContract = dContract.address;
@@ -41,7 +45,8 @@ describe('CustodialWallet', function(){
     it("Has correct state", function(){
     	return createDefaultTxTester()
     		.assertCallReturns([cWallet, "custodian"], cust1)
-    		.assertCallReturns([cWallet, "owner"], owner1)
+    		.assertCallReturns([cWallet, "supervisor"], supervisor1)
+            .assertCallReturns([cWallet, "owner"], owner1)
     		.start();
     });
 
@@ -98,52 +103,65 @@ describe('CustodialWallet', function(){
     			.assertInvalidOpCode()
     			.start();
     	});
+        it("Will not work from custodian", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "collect", anon, {from: cust1}])
+                .assertInvalidOpCode()
+                .start();
+        });
+        it("Will not work if no new supervisor provided", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "collect", anon, {from: supervisor1}])
+                .assertInvalidOpCode()
+                .start();
+        });
     	it("Works", async function(){
     		const AMT = testUtil.getBalance(cWallet);
     		assert(AMT.gt(0), "Must have a balance.");
     		return createDefaultTxTester()
-    			.startLedger([cust1, anon, cWallet])
-    			.doTx([cWallet, "collect", anon, {from: cust1}])
+    			.startLedger([supervisor1, anon, cWallet])
+    			.doTx([cWallet, "collect", anon, supervisor2, {from: supervisor1}])
     			.assertSuccess()
     			.stopLedger()
-    				.assertLostTxFee(cust1)
+    				.assertLostTxFee(supervisor1)
     				.assertDelta(anon, AMT)
     				.assertDelta(cWallet, AMT.mul(-1))
+                .assertCallReturns([cWallet, "supervisor"], supervisor2)
     			.start();
 
     	});
     });
 
-    describe("Changing custodians", async function(){
+    describe(".setCustodian()", async function(){
     	it("Cannot be called by anon", function(){
     		return createDefaultTxTester()
-    			.doTx([cWallet, "setCustodian", cust2, owner2, {from: anon}])
+    			.doTx([cWallet, "setCustodian", cust2, supervisor2, {from: anon}])
     			.assertInvalidOpCode()
     			.start()
     	})
-    	it("Will not change if new owner is unset", function(){
+    	it("Will not change if new supervisor is unset", function(){
     		return createDefaultTxTester()
-    			.doTx([cWallet, "setCustodian", cust2, 0, {from: owner1}])
+    			.doTx([cWallet, "setCustodian", cust2, 0, {from: supervisor2}])
     			.assertInvalidOpCode()
     			.start()
     	});
     	it("Works", function(){
     		return createDefaultTxTester()
-    			.doTx([cWallet, "setCustodian", cust2, owner2, {from: owner1}])
+    			.doTx([cWallet, "setCustodian", cust2, supervisor3, {from: supervisor2}])
     			.assertSuccess()
     			.assertCallReturns([cWallet, "custodian"], cust2)
-    			.assertCallReturns([cWallet, "owner"], owner2)
+    			.assertCallReturns([cWallet, "supervisor"], supervisor3)
     			.start();
     	});
-    	it("Will not work again with old owner", function(){
+    	it("Will not work again with old supervisor", function(){
     		return createDefaultTxTester()
-    			.doTx([cWallet, "setCustodian", cust2, owner2, {from: owner1}])
+    			.doTx([cWallet, "setCustodian", cust2, supervisor3, {from: supervisor2}])
     			.assertInvalidOpCode()
     			.start();
     	});
     });
 
-    describe(".doCall, again", function(){
+    describe(".doCall(), again", function(){
 		it("Cannot do calls from old custodian", function(){
 	    	const DATA = dContract.contract.setVals.getData(10, 20);
 	    	return createDefaultTxTester()
@@ -160,6 +178,35 @@ describe('CustodialWallet', function(){
 	    		.assertCallReturns([dContract, "val2"], 20)
 	    		.start();
 	    });
+    });
+
+    describe(".setSupervisor()", function(){
+        it("Cannot be called by anon", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "setSupervisor", supervisor1, owner2, {from: anon}])
+                .assertInvalidOpCode()
+                .start()
+        })
+        it("Will not change if new supervisor is unset", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "setSupervisor", supervisor1, 0, {from: owner1}])
+                .assertInvalidOpCode()
+                .start()
+        });
+        it("Works", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "setSupervisor", supervisor1, owner2, {from: owner1}])
+                .assertSuccess()
+                .assertCallReturns([cWallet, "supervisor"], supervisor1)
+                .assertCallReturns([cWallet, "owner"], owner2)
+                .start();
+        });
+        it("Will not work again with old owner", function(){
+            return createDefaultTxTester()
+                .doTx([cWallet, "setSupervisor", supervisor1, anon, {from: owner1}])
+                .assertInvalidOpCode()
+                .start();
+        });
     })
 
 });

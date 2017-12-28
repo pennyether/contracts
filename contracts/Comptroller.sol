@@ -31,7 +31,7 @@ contract Comptroller {
 	// Location of the treasury, once set, cannot change.
 	_ICompTreasury public treasury;
 	// Owner can call .initTreasury and .initSale
-	address public owner = msg.sender;
+	address public owner;
 	// Token contract that can mint / burn tokens
 	DividendToken public token = new DividendToken();
 	// Locker that holds PennyEther's tokens.
@@ -48,10 +48,11 @@ contract Comptroller {
 	event TokensBurned(address indexed sender, uint numTokens, uint refund);
 	event SaleStarted(uint date);
 
-	function Comptroller()
+	function Comptroller(address _owner)
 		public
 	{
-		// The owner owns 1e-18 token, so he starts with 100% ownership.
+		// Give the owner 1e-18 token, so he starts with 100% ownership.
+		owner = _owner;
 		token.mintTokens(owner, 1);
 	}
 

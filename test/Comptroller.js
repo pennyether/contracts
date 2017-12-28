@@ -28,13 +28,12 @@ describe('Comptroller', function(){
     var treasury;
 
     before("Set up registry, treasury, and create comptroller.", async function(){
-        registry = await Registry.new({from: regOwner});
+        registry = await Registry.new(regOwner, {from: anon});
         treasury = await Treasury.new(registry.address);
-        comptroller = await Comptroller.new({from: compOwner});
+        comptroller = await Comptroller.new(compOwner, {from: anon});
         token = DividendToken.at(await comptroller.token());
         await registry.register("MAIN_CONTROLLER", dummyMainController, {from: regOwner});
         await registry.register("ADMIN", admin, {from: regOwner});
-        await registry.register("OWNER", regOwner, {from: regOwner});
 
         const addresses = {
         	comptroller: comptroller.address,

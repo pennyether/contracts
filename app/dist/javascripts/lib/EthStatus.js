@@ -128,7 +128,7 @@
 
 		this.$e = _$e;
 
-		_init()
+		_init();
 		function _init(){
 			(function _poll() {
 				_refreshBlockTimeAgo();
