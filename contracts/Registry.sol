@@ -19,7 +19,6 @@ contract Registry {
     function Registry(address _owner)
         public
     {
-        if (_owner == address(0)) _owner = msg.sender;
         owner = _owner;
     }
 

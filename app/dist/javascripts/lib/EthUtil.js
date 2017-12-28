@@ -280,9 +280,9 @@
 			})[_curState.networkId];
 			
 			if (network === undefined)
-				return $("<span></span>").text("<none>");
+				return $("<span></span>").text(str);
 			if (str == _self.NO_ADDRESS)
-				return $("<span></span>").text("<none>");
+				return $("<span></span>").text(str);
 
 			return $("<a></a>").attr("href",`http://${network}etherscan.io/${type}/${id}`)
 					.text(str)

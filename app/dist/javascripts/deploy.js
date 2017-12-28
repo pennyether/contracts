@@ -44,6 +44,114 @@ Loader.promise.then(function(){
 		if (!supervisorAddr) return alert("Must provide supervisor address.");
 		if (!ownerAddr) return alert("Must provide owner address.");
 
+		function registerAddress(name, addr) {
+			if (!reg) throw new Error("No registry object.");
+			const data = reg.register.getData({
+				_name: name,
+				_addr: addr
+			});
+			return wallet.doCall({
+				_to: reg.address,
+				_data: data
+			}, {
+				value: 0,
+				gas: 200000
+			}).then(()=>{
+				return reg.addressOf([name]).then((_addr)=>{
+					if (_addr.toLowerCase() != addr.toLowerCase()) 
+						throw new Error(`${name} was not set to ${addr}. It is ${_addr}`);
+					addLog(`${name} registered to ${addr}`);
+				}, (e)=>{
+					throw new Error(`${name} was never set.`);
+				});
+			});
+		}
+
+		function initTrToken() {
+			if (!tr || !comp) throw new Error("No treasury instance.");
+			return comp.token().then((token)=>{
+				const data = tr.initToken.getData({_token: token})
+				return wallet.doCall({
+					_to: tr.address,
+					_data: data
+				}, {
+					value: 0,
+					gas: 200000
+				}).then(()=>{
+					return tr.token().then((res)=>{
+						if (res.toLowerCase() != token.toLowerCase())
+							throw new Error(`token was set to ${res} instead of ${token}`);
+						addLog(`tr.token was set to ${token}`);
+					}, (e)=>{
+						throw new Error(`tr.token was not set!`);
+					});
+				});
+			});
+		}
+
+		function initTrComptroller() {
+			if (!tr || !comp) throw new Error("No treasury instance.");
+			const compAddr = comp.address;
+			const data = tr.initComptroller.getData({_comptroller: compAddr});
+			return wallet.doCall({
+				_to: tr.address,
+				_data: data
+			},{
+				value: 0,
+				gas: 200000
+			}).then(()=>{
+				return tr.comptroller().then((res)=>{
+					if (res.toLowerCase() != compAddr.toLowerCase())
+						throw new Error(`tr.comptroller was set to ${res} instead of ${compAddr}`);
+					addLog(`tr.comptroller set to ${compAddr}`);
+				}, (e)=>{
+					throw new Error(`tr.comptroller was not set!`);
+				});
+			})
+		}
+
+		function initCompTreasury() {
+			if (!tr || !comp) throw new Error("No treasury instance.");
+			const trAddr = tr.address;
+			const data = comp.initTreasury.getData({_treasury: trAddr});
+			return wallet.doCall({
+				_to: comp.address,
+				_data: data
+			},{
+				value: 0,
+				gas: 300000
+			}).then(()=>{
+				return comp.treasury().then((res)=>{
+					if (res.toLowerCase() != trAddr.toLowerCase())
+						throw new Error(`comp.treasury was set to ${res} instead of ${trAddr}`);
+					addLog(`comp.treasury set to ${trAddr}.`);
+				}, (e)=>{
+					throw new Error(`comp.treasury was not set!`);
+				});
+			});
+		}
+
+		function initCompTokenLocker() {
+			if (!tr || !wallet) throw new Error("bleh");
+			const walletAddr = wallet.address;
+			const data = comp.initTokenLocker.getData({_tokenLockerOwner: walletAddr});
+			return wallet.doCall({
+				_to: comp.address,
+				_data: data
+			},{
+				value: 0,
+				gas: 300000
+			}).then(()=>{
+				return comp.locker().then((res)=>{
+					if (res == ethUtil.NO_ADDRESS)
+						throw new Error(`comp.locker was not set!`);
+					addLog(`comp.locker set to ${res}.`);
+				}, (e)=>{
+					throw new Error(`comp.treasury was not set!`);
+				});
+			});	
+		}
+
 		var wallet, reg, tr, comp;
 		addLog(`Creating custodial wallet...`);
 		CustodialWallet.new({
@@ -54,72 +162,69 @@ Loader.promise.then(function(){
 			wallet = result.instance;
 			addLog(`Wallet created @ ${wallet.address}`);
 			addLog(`Creating Registry...`);
-			return Registry.new({_owner: wallet.address});
+			return Promise.all([
+				wallet.owner(),
+				wallet.supervisor(),
+				wallet.custodian()
+			]).then(arr=>{
+				console.log("Wallet details:", {
+					owner: arr[0],
+					supervisor: arr[1],
+					custodian: arr[2]
+				});
+				return Registry.new({_owner: wallet.address});
+			});
 		}).then((result)=>{
 			reg = result.instance;
 			addLog(`Registry created @ ${reg.address}`);
 			addLog(`Setting admin...`);
-			const data = reg.register.getData({
-				_name: "ADMIN",
-				_addr: adminAddr
-			});
-			return wallet.doCall({
-				_to: reg.address,
-				_data: data
-			}, {value: 0});
-		}).then((res)=>{
-			console.log("res", res);
-			addLog(`Set ADMIN.`);
-			addLog(`Creating all instances now...`);
-		})
-		// 	return Promise.all([
-		// 		reg.register({_name: "ADMIN", _addr: adminAddr}),
-		// 		Treasury.new({_registry: reg.address}),
-		// 		MainController.new({_registry: reg.address}),
-		// 		PennyAuctionController.new({_registry: reg.address}),
-		// 		PennyAuctionFactory.new({_registry: reg.address}),
-		// 		Comptroller.new()
-		// 	]);
-		// }).then((deployed)=>{
-		// 	addLog("Registering addresses...");
-		// 	tr = deployed[2].instance;
-		// 	comp = deployed[6].instance;
-		// 	return Promise.all([
-		// 		reg.register({
-		// 			_name: "TREASURY",
-		// 			_addr: tr.address
-		// 		}),
-		// 		reg.register({
-		// 			_name: "MAIN_CONTROLLER", 
-		// 			_addr: deployed[3].instance.address
-		// 		}),
-		// 		reg.register({
-		// 			_name: "PENNY_AUCTION_CONTROLLER",
-		// 			_addr: deployed[4].instance.address
-		// 		}),
-		// 		reg.register({
-		// 			_name: "PENNY_AUCTION_FACTORY",
-		// 			_addr: deployed[5].instance.address
-		// 		}),
-		// 		reg.register({
-		// 			_name: "COMPTROLLER",
-		// 			_addr: comp.address
-		// 		}),
-		// 	]);
-		// }).then((arr)=>{
-		// 	addLog("Initializing Treasury and Comptroller...");
-		// 	return Promise.all([
-		// 		comp.token().then((token)=>tr.initToken({_token: token})),
-		// 		tr.initComptroller({_comptroller: comp.address})
-		// 	]).then(()=>{
-		// 		return comp.initTreasury({_treasury: tr.address});
-		// 	});
-		// }).then((arr)=>{
-		// 	addLog("All done!");
-		// 	alert("All done!");
-		// 	$("#PopulateAllRegAddress").val(reg.address);
-		// 	$("#PopulateAll").click();
-		// })
+			return Promise.all([
+				reg.owner(),
+			]).then((owner)=>{
+				return registerAddress("ADMIN", adminAddr);
+			})
+		}).then(()=>{
+			addLog(`Creating Comp, Tr, MC, PAC, and PAF.`);
+			return Promise.all([
+				Comptroller.new({_owner: wallet.address}),
+				Treasury.new({_registry: reg.address}),
+				MainController.new({_registry: reg.address}),
+				PennyAuctionController.new({_registry: reg.address}),
+				PennyAuctionFactory.new({_registry: reg.address})
+			]);
+		}).then((arr)=>{
+			comp = arr[0].instance;
+			tr = arr[1].instance;
+			addLog(`Contracts created. Registering addresses...`);
+			return Promise.all([
+				registerAddress("COMPTROLLER", comp.address),
+				registerAddress("TREASURY", tr.address),
+				registerAddress("MAIN_CONTROLLER", arr[2].instance.address),
+				registerAddress("PENNY_AUCTION_CONTROLLER", arr[3].instance.address),
+				registerAddress("PENNY_AUCTION_FACTORY", arr[4].instance.address)
+			]);
+		}).then(()=>{
+			addLog(`Done registering. Doing tr.initToken(), and tr.initComptroller()`);
+			return Promise.all([
+				initTrToken(),
+				initTrComptroller()
+			])
+		}).then(()=>{
+			addLog(`Treasury set up. Now doing comp.initTreasury() and comp.initTokenLocker()`);
+			return Promise.all([
+				initCompTreasury(),
+				initCompTokenLocker()
+			]);
+		}).then(()=>{
+			alert("THANK THE LORD - IT'S ALL DONE")
+			addLog(`All done!`);
+			$("#PopulateAllRegAddress").val(reg.address);
+			$("#PopulateAll").click();
+		}).catch((e)=>{
+			console.error("I caught this error from promise chain:", e);
+			addLog(`SOMETHING FAILED.`);
+			alert("Something died.");
+		});
 	});
 	
 	$("#PopulateAll").click(function(){
@@ -181,7 +286,7 @@ Loader.promise.then(function(){
 		const address = $("#RegLoadAddress").val();
 		const reg = Registry.at(address);
 		$("#RegAddress").text(address);
-		util.bindToElement(reg.addressOf({_name: "OWNER"}), $("#RegOwner"));
+		util.bindToElement(reg.owner(), $("#RegOwner"));
 		util.bindToElement(reg.addressOf({_name: "ADMIN"}), $("#RegAdmin"));
 		util.bindToElement(reg.addressOf({_name: "TREASURY"}), $("#RegTreasury"));
 		util.bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
@@ -220,7 +325,20 @@ Loader.promise.then(function(){
 		util.bindToElement(comp.owner(), $("#CompOwner"));
 		util.bindToElement(comp.treasury(), $("#CompTreasury"));
 		util.bindToElement(comp.token(), $("#CompToken"));
-		util.bindToElement(comp.locker(), $("#CompLocker"));
+
+		comp.locker().then((lockerAddr)=>{
+			const locker = DividendTokenLocker.at(lockerAddr);
+			$("#LockerAddress").text(lockerAddr);
+			util.bindToElement(locker.owner(), $("#LockerOwner"));
+		});
+
+		comp.owner().then((walletAddr)=>{
+			const wallet = CustodialWallet.at(walletAddr);
+			$("#WalletAddress").text(walletAddr);
+			util.bindToElement(wallet.custodian(), $("#WalletCustodian"));
+			util.bindToElement(wallet.supervisor(), $("#WalletSupervisor"));
+			util.bindToElement(wallet.owner(), $("#WalletOwner"));
+		});
 	});
 	$("#CompRegister").click(function(){
 		const compAddress = $("#CompLoadAddress").val();

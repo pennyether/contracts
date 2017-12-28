@@ -32,6 +32,7 @@ describe('Treasury', function(){
             dummyToken: dummyToken,
             dummyMainController: dummyMainController,
             dummyComptroller: dummyComptroller,
+            owner: owner,
             admin: admin,
             anon: anon,
             NO_ADDRESS: NO_ADDRESS
@@ -48,6 +49,7 @@ describe('Treasury', function(){
                 .assertCallReturns([treasury, "getAdmin"], admin)
                 .assertCallReturns([treasury, "token"], NO_ADDRESS)
                 .assertCallReturns([treasury, "comptroller"], NO_ADDRESS)
+                .assertCallReturns([treasury, "getOwner"], owner)
                 .start();
         });
         itCannotFund(1, "Cannot fund.");

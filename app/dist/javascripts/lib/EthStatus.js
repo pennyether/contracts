@@ -68,19 +68,19 @@
 				3: "Ropsten",
 				4: "Rinkeby",
 				42: "Kovan"
-			})[networkId] || `Id: ${networkId}`;
+			})[networkId] || `(Unknown Network)`;
 			
 			_$networkConnected
 				.removeClass("true")
 				.removeClass("false")
 				.addClass(isConnected ? "true" : "false");
 			if (isConnected){
-				_$e.removeClass("off");
 				_$networkName.text(networkName);	
 			} else {
-				_$e.addClass("off");
 				_$networkName.text("Not Connected!");
 			}
+			_$e.removeClass("off");
+			if (!isConnected || !_curState.account) _$e.addClass("off");
 		}
 
 		function _refreshAddress(){
