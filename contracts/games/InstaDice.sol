@@ -25,13 +25,15 @@ contract InstaDice is
 	uint128 public totalWon;
 	uint32 public curId;
 
+	// if bankroll is ever above this, we can send profits
+	uint128 public minBankroll;
+
 	// Admin controlled settings
-	uint128 public minBankroll = 0;		// amt we've funded
 	uint64 public maxBet = .3 ether;	// 
 	uint64 public minBet = .001 ether;	//
-	uint32 public feeBips = 100;		// 1%
 	uint8 public minNumber = 5;  		// they get ~20x their bet
 	uint8 public maxNumber = 99;  		// they get ~1.01x their bet
+	uint32 public feeBips = 100;		// 1%
 	
 	// Events
 	event RollWagered(uint time, uint32 id, address indexed user, uint bet, uint8 number);
@@ -39,12 +41,12 @@ contract InstaDice is
 	event RollResolved(uint time, uint32 id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
 	event PayoutSuccess(uint time, uint32 id, address indexed user, uint payout);
 	event PayoutFailure(uint time, uint32 id, address indexed user, uint payout);
-	event ProfitsSent(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
 
 	// Admin events
 	event SettingsChanged(uint time, address indexed sender);
 	event BankrollAdded(uint time, address indexed sender, uint amount, uint minBankroll, uint bankroll);
 	event BankrollRemoved(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
+	event ProfitsSent(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
 
 	function InstaDice(address _registry)
         UsingTreasury(_registry)
@@ -58,25 +60,25 @@ contract InstaDice is
 	///////////////////////////////////////////////////
 	// Changes the settings
 	function changeSettings(
-		uint64 _maxBet,
 		uint64 _minBet,
-		uint32 _feeBips,
+		uint64 _maxBet,
 		uint8 _minNumber,
-		uint8 _maxNumber
+		uint8 _maxNumber,
+		uint32 _feeBips
 	)
 		public
 		fromAdmin
 	{
+		require(_minBet <= _maxBet); 	// makes sense
 		require(_maxBet <= .625 ether);	// capped at (block reward - uncle reward)
-		require(_minBet <= maxBet); 	// makes sense
-		require(_feeBips <= 500);		// max of 5%
 		require(_minNumber >= 1);		// not advisible, but why not
 		require(_maxNumber <= 99);		// over 100 makes no sense
-		maxBet = _maxBet;
+		require(_feeBips <= 500);		// max of 5%
 		minBet = _minBet;
-		feeBips = _feeBips;
+		maxBet = _maxBet;
 		minNumber = _minNumber;
 		maxNumber = _maxNumber;
+		feeBips = _feeBips;
 		SettingsChanged(now, msg.sender);
 	}
 
@@ -86,13 +88,28 @@ contract InstaDice is
 		fromAdmin
 	{
 		require(bankroll >= _amount);
-		assert(minBankroll >= _amount);
+		require(minBankroll >= _amount);
 		minBankroll -= _amount;
 		bankroll -= _amount;
 		// send it to treasury
 		address _tr = getTreasury();
 		require(_tr.call.value(_amount)());
 		BankrollRemoved(now, _tr, _amount, minBankroll, bankroll);
+	}
+
+	// Sends the difference between bankroll and minBankroll
+	function sendProfits()
+		public
+		fromAdmin
+		returns (uint _profits)
+	{
+		_profits = getProfits();
+		if (_profits == 0) return;
+		bankroll = minBankroll;
+		// send it to treasury
+		address _tr = getTreasury();
+		require(_tr.call.value(_profits)());
+		ProfitsSent(now, _tr, _profits, minBankroll, bankroll);
 	}
 	
 
@@ -151,14 +168,43 @@ contract InstaDice is
 		require(msg.sender.call.value(msg.value)());
 		RollRefunded(now, msg.sender, _msg);
 	}
+
+	// Pays out a user for a roll, if they won and .isPaid is false.
+	// They have 256 blocks to call this, unless someone else rolls first.
+	function collectPayout(uint32 _id)
+		public
+	{
+		// resolve the roll, make sure payout > 0 and isPaid is false.
+		Roll storage r = rolls[_id];
+		uint _payout = resolveRoll(_id);
+		if (r.isPaid || _payout == 0) return;
+		
+		// set it as paid, try to send, and rollback on failure.
+		r.isPaid = true;
+		bool _success = r.user.call.value(_payout)();
+		if (_success) {
+			PayoutSuccess(now, _id, r.user, _payout);
+		} else {
+			r.isPaid = false;
+			PayoutFailure(now, _id, r.user, _payout);
+		}
+	}
 	
+	// Increase minBankroll and bankroll by whatever value is sent
+	function addBankroll()
+		public
+		payable 
+	{
+		minBankroll += uint128(msg.value);
+	    bankroll += uint128(msg.value);
+	    BankrollAdded(now, msg.sender, msg.value, minBankroll, bankroll);
+	}
+
+	////////////////////////////////////////////////////
+	////// PRIVATE FUNCTIONS ///////////////////////////
+	////////////////////////////////////////////////////
 	// Saves the result of a roll, pays user, updates bankroll.
-	// Note: This must be called within 256 blocks of a roll, or it loses.
-	//
-	// This should rarely happen, since:
-	//	- someone will bid within the next 256 blocks
-	//	- the user can immediately see if they won, and call .collect()
-	//
+	// Returns the amount of this roll won for the user
 	function resolveRoll(uint32 id)
 		private
 		returns (uint128)
@@ -197,53 +243,11 @@ contract InstaDice is
 	    }
 
 	    // Log event
-	    RollResolved(now, r.id, r.user, r.bet, r.number, r.result, _isWinner ? _payout : 0);
-	    return _isWinner ? _payout : 0;
+	    uint128 _realPayout = _isWinner ? _payout : 0;
+	    RollResolved(now, r.id, r.user, r.bet, r.number, r.result, _realPayout);
+	    return _realPayout;
 	}
 
-	// Pays out a user for a roll, if they won and .isPaid is false.
-	function collectPayout(uint32 _id)
-		public
-	{
-		// resolve the roll, make sure payout > 0 and isPaid is false.
-		Roll storage r = rolls[_id];
-		uint _payout = resolveRoll(_id);
-		if (r.isPaid || _payout == 0) return;
-		
-		// set it as paid, try to send, and rollback on failure.
-		r.isPaid = true;
-		bool _success = r.user.call.value(_payout)();
-		if (_success) {
-			PayoutSuccess(now, _id, r.user, _payout);
-		} else {
-			r.isPaid = false;
-			PayoutFailure(now, _id, r.user, _payout);
-		}
-	}
-	
-	// Increase minBankroll and bankroll by whatever value is sent
-	function addBankroll()
-		public
-		payable 
-	{
-		minBankroll += uint128(msg.value);
-	    bankroll += uint128(msg.value);
-	    BankrollAdded(now, msg.sender, msg.value, minBankroll, bankroll);
-	}
-
-	// Sends the difference between bankroll and minBankroll
-	function sendProfits()
-		public
-		returns (uint _profits)
-	{
-		_profits = getProfits();
-		if (_profits == 0) return;
-		bankroll = minBankroll;
-		// send it to treasury
-		address _tr = getTreasury();
-		require(_tr.call.value(_profits)());
-		ProfitsSent(now, _tr, _profits, minBankroll, bankroll);
-	}
 
 
 	///////////////////////////////////////////////////
