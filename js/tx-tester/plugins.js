@@ -240,7 +240,7 @@ function createPlugins(testUtil, ledger) {
 				throw new Error("You never called .startLedger()");
 			amt = await testUtil.toPromise(amt);
 
-			msg = msg || ` changed by ${wei(amt)}.`;
+			msg = msg || `changed by ${wei(amt)}.`;
 			msg = `balance of ${at(address)} ${msg}`;
 			assert.strEqual(ctx.ledger.getDelta(address), amt, msg);
 			console.log(`✓ ${msg}`);
@@ -530,6 +530,7 @@ function createPlugins(testUtil, ledger) {
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance, msg) {
 			const balance = await testUtil.getBalance(address);
+			expectedBalance = await testUtil.toPromise(expectedBalance);
 			msg = msg || `should equal ${expectedBalance}`;
 			msg = `Balance of ${at(address)} ${msg}`;
 			assert.strEqual(balance, expectedBalance, msg);

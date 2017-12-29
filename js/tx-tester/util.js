@@ -31,7 +31,6 @@ function createUtil(web3, assert){
 				await _self.expectLogCount(logs, 1);
 				await _self.expectLog(logs, eventName, args, address);
 			} catch (e) {
-				console.log(`Showing logs 3:`, util.inspect(logs, false, null));
 				throw e;
 			}
 		},

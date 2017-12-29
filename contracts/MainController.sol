@@ -31,7 +31,6 @@ contract MainController is
 
 	/* events */
 	event Error(uint time, string msg);
-	event RewardGasPriceLimitChanged(uint time);
 	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address addr);
 	event RewardPaid(uint time, address indexed recipient, string note, uint amount);
