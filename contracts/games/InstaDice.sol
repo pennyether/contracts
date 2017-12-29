@@ -1,6 +1,12 @@
 pragma solidity ^0.4.19;
 
-contract InstaDice {
+import "../roles/UsingTreasury.sol";
+import "../roles/UsingAdmin.sol";
+
+contract InstaDice is
+	UsingTreasury,
+	UsingAdmin
+{
 	struct Roll {
 		uint32 id;
 		address user;
@@ -8,42 +14,106 @@ contract InstaDice {
 		uint8 number;
 	    uint32 resultBlock;
 		uint8 result;
+		bool isPaid;
 	}
+	// keep track of all rolls
+	mapping (uint32 => Roll) public rolls;
 
-	// 114590 gas
+	// Changed on each bid
 	uint128 public bankroll;
 	uint128 public totalWagered;
 	uint128 public totalWon;
 	uint32 public curId;
 
 	// Admin controlled settings
-	uint64 public maxBet = .3 ether;
-	uint64 public minBet = .001 ether;
+	uint128 public minBankroll = 0;		// amt we've funded
+	uint64 public maxBet = .3 ether;	// 
+	uint64 public minBet = .001 ether;	//
 	uint32 public feeBips = 100;		// 1%
 	uint8 public minNumber = 5;  		// they get ~20x their bet
 	uint8 public maxNumber = 99;  		// they get ~1.01x their bet
-
-	// keep track of all rolls, and each user's balance
-	mapping (uint32 => Roll) public rolls;
-	mapping (address => uint128) public balance;
 	
 	// Events
 	event RollWagered(uint time, uint32 id, address indexed user, uint bet, uint8 number);
 	event RollRefunded(uint time, address indexed user, string msg);
 	event RollResolved(uint time, uint32 id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
-	event UserCollected(uint time, address indexed user, uint amount);
+	event PayoutSuccess(uint time, uint32 id, address indexed user, uint payout);
+	event PayoutFailure(uint time, uint32 id, address indexed user, uint payout);
+	event ProfitsSent(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
 
-	modifier validateBet(uint8 _number) {
+	// Admin events
+	event SettingsChanged(uint time, address indexed sender);
+	event BankrollAdded(uint time, address indexed sender, uint amount, uint minBankroll, uint bankroll);
+	event BankrollRemoved(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
+
+	function InstaDice(address _registry)
+        UsingTreasury(_registry)
+        UsingAdmin(_registry)
+        public
+	{}
+
+
+	///////////////////////////////////////////////////
+	////// ADMIN FUNCTIONS ////////////////////////////
+	///////////////////////////////////////////////////
+	// Changes the settings
+	function changeSettings(
+		uint64 _maxBet,
+		uint64 _minBet,
+		uint32 _feeBips,
+		uint8 _minNumber,
+		uint8 _maxNumber
+	)
+		public
+		fromAdmin
+	{
+		require(_maxBet <= .625 ether);	// capped at (block reward - uncle reward)
+		require(_minBet <= maxBet); 	// makes sense
+		require(_feeBips <= 500);		// max of 5%
+		require(_minNumber >= 1);		// not advisible, but why not
+		require(_maxNumber <= 99);		// over 100 makes no sense
+		maxBet = _maxBet;
+		minBet = _minBet;
+		feeBips = _feeBips;
+		minNumber = _minNumber;
+		maxNumber = _maxNumber;
+		SettingsChanged(now, msg.sender);
+	}
+
+	// Decreases minBankroll and bankroll by _amount
+	function removeBankroll(uint128 _amount)
+		public
+		fromAdmin
+	{
+		require(bankroll >= _amount);
+		assert(minBankroll >= _amount);
+		minBankroll -= _amount;
+		bankroll -= _amount;
+		// send it to treasury
+		address _tr = getTreasury();
+		require(_tr.call.value(_amount)());
+		BankrollRemoved(now, _tr, _amount, minBankroll, bankroll);
+	}
+	
+
+	///////////////////////////////////////////////////
+	////// PUBLIC FUNCTIONS ///////////////////////////
+	///////////////////////////////////////////////////
+
+	// Resolve the previous roll, then insert this one.
+	// The result will be immediately available via .getRollResult() / .getRollPayout()
+	// Upon the next roll, user will automatically be sent payout
+	// Or they can call .collectPayout() manually.
+	modifier validateWager(uint8 _number) {
 		if (_number < minNumber) errorAndRefund("Roll number too small.");
 		else if (_number > maxNumber) errorAndRefund("Roll number too large.");
 		else if (msg.value < minBet) errorAndRefund("Bet too small.");
 		else if (msg.value > maxBet) errorAndRefund("Bet too large.");
 		else _;
 	}
-	
 	function roll(uint8 _number)
 		public
-		validateBet(_number)
+		validateWager(_number)
 		payable
 	{
 	    // make sure we have the bankroll to pay if they win
@@ -65,14 +135,13 @@ contract InstaDice {
 	        resultBlock: uint32(block.number+1),
 	        user: msg.sender,
 	        number: _number,
-	        result: 0
+	        result: 0,
+	        isPaid: false
 	    });
 
 	    // bankroll loses the _payout, but gains the bet
 	    totalWagered += _bet;
 	    bankroll = bankroll - _payout + uint128(msg.value);
-	    // userRollCount[msg.sender]++;
-	    // userRolls[msg.sender].push(curId);
 	    RollWagered(now, curId, msg.sender, _bet, _number);
 	}
 	// refunds user the full value, and logs an error
@@ -83,18 +152,26 @@ contract InstaDice {
 		RollRefunded(now, msg.sender, _msg);
 	}
 	
-	// Saves the result of a roll, and updates bankroll or user's balance.
+	// Saves the result of a roll, pays user, updates bankroll.
 	// Note: This must be called within 256 blocks of a roll, or it loses.
 	//
 	// This should rarely happen, since:
 	//	- someone will bid within the next 256 blocks
 	//	- the user can immediately see if they won, and call .collect()
 	//
-	function resolveRoll(uint32 id) private {
+	function resolveRoll(uint32 id)
+		private
+		returns (uint128)
+	{
 	    Roll storage r = rolls[id];
 
 	    // if invalid roll, or result is already set, return.
-	    if (r.id==0 || r.result!=0) return;
+	    if (r.id == 0) return;
+	    if (r.result != 0){ 
+	    	return r.result <= r.number
+	    		? getPayout(r.bet, r.number)
+	    		: 0;
+	    }
 	    
 	    // get the result, isWinner, and payout
 	    uint8 _result = getResultFromBlock(r.resultBlock);
@@ -104,56 +181,76 @@ contract InstaDice {
 	    // update roll result so we know it's been resolved
 	    r.result = _result;
 
-	    // If they won, update stats and balance.
-	    // Otherwise, increase our bankroll.
+	    // If they won, try to pay them. (.send() to limit gas)
+	    // If they lost, increment our bankroll
 	    if (_isWinner) {
+	    	r.isPaid = true;
 	    	totalWon += _payout;
-	        balance[r.user] += _payout;
+	        if (r.user.send(_payout)) {
+	        	PayoutSuccess(now, id, r.user, _payout);
+	        } else {
+	        	r.isPaid = false;
+	        	PayoutFailure(now, id, r.user, _payout);
+	        }
 	    } else {
 	        bankroll += _payout;
 	    }
 
 	    // Log event
 	    RollResolved(now, r.id, r.user, r.bet, r.number, r.result, _isWinner ? _payout : 0);
+	    return _isWinner ? _payout : 0;
 	}
 
-	// Pays out user their balance, including their last roll.
-	function collect()
+	// Pays out a user for a roll, if they won and .isPaid is false.
+	function collectPayout(uint32 _id)
 		public
 	{
-		if (rolls[curId].user == msg.sender) {
-			resolveRoll(curId);
+		// resolve the roll, make sure payout > 0 and isPaid is false.
+		Roll storage r = rolls[_id];
+		uint _payout = resolveRoll(_id);
+		if (r.isPaid || _payout == 0) return;
+		
+		// set it as paid, try to send, and rollback on failure.
+		r.isPaid = true;
+		bool _success = r.user.call.value(_payout)();
+		if (_success) {
+			PayoutSuccess(now, _id, r.user, _payout);
+		} else {
+			r.isPaid = false;
+			PayoutFailure(now, _id, r.user, _payout);
 		}
-		uint _amount = balance[msg.sender];
-		balance[msg.sender] = 0;
-		require(msg.sender.call.value(_amount)());
-		UserCollected(now, msg.sender, _amount);
 	}
 	
+	// Increase minBankroll and bankroll by whatever value is sent
 	function addBankroll()
 		public
 		payable 
 	{
+		minBankroll += uint128(msg.value);
 	    bankroll += uint128(msg.value);
+	    BankrollAdded(now, msg.sender, msg.value, minBankroll, bankroll);
 	}
 
-	// Returns a number between 1 and 100 (inclusive)
-	// If blockNumber is too far past, returns 101.
-	function getResultFromBlock(uint32 _blockNumber)
-		constant
-		private
-		returns (uint8 _result)
+	// Sends the difference between bankroll and minBankroll
+	function sendProfits()
+		public
+		returns (uint _profits)
 	{
-		uint _hash = uint(block.blockhash(_blockNumber));
-    	// TEMPORARY FOR LOCAL TESTING
-    	_hash = uint(keccak256(_blockNumber));
-    	//////////////////////////////
-    	// If hash is 0, force a result of 101 (a loss)
-    	return _hash == 0
-    		? 101
-    		: uint8((_hash % 100) + 1);
+		_profits = getProfits();
+		if (_profits == 0) return;
+		bankroll = minBankroll;
+		// send it to treasury
+		address _tr = getTreasury();
+		require(_tr.call.value(_profits)());
+		ProfitsSent(now, _tr, _profits, minBankroll, bankroll);
 	}
 
+
+	///////////////////////////////////////////////////
+	////// PUBLIC CONSTANTS ///////////////////////////
+	///////////////////////////////////////////////////
+
+	// Return the result, or compute it and return it.
 	function getRollResult(uint32 _id)
 		public
 		constant
@@ -172,37 +269,45 @@ contract InstaDice {
 		constant
 		returns (uint _amount)
 	{
+		require(_id <= curId && _id > 0);
 		Roll storage r = rolls[_id];
 		return getRollResult(_id) <= r.number
 			? getPayout(r.bet, r.number)
 			: 0;
 	}
 
-	// Return's a user's balance, including the result of the latest roll.
-	function getBalance(address _user)
+	function getProfits()
 		public
 		constant
 		returns (uint _amount)
 	{
-		// if last roll is theirs, and is not resolved, compute result.
-		if (rolls[curId].user == _user && rolls[curId].result == 0) {
-			_amount = getRollPayout(curId);
-		}
-		return balance[_user] + _amount;
+		// Balance should always be >= bankroll.
+		if (bankroll <= minBankroll) return;
+		return bankroll - minBankroll;
 	}
 
-	// Finds the user's most recent roll.
-	// function getMostRecentRoll(address _user)
-	// 	public
-	// 	constant
-	// 	returns (uint32 _id)
-	// {
 
-	// }
+	///////////////////////////////////////////////////
+	////// PRIVATE CONSTANTS //////////////////////////
+	///////////////////////////////////////////////////
+
+	// Returns a number between 1 and 100 (inclusive)
+	// If blockNumber is too far past, returns 101.
+	function getResultFromBlock(uint32 _blockNumber)
+		private
+		constant
+		returns (uint8 _result)
+	{
+		//uint _hash = uint(block.blockhash(_blockNumber));
+		uint _hash = uint(keccak256(_blockNumber));
+    	return _hash == 0
+    		? 101
+    		: uint8((_hash % 100) + 1);
+	}
 	
 	// Given a _bet amount and a roll _number, returns possible payout.
 	function getPayout(uint64 _bet, uint8 _number)
-	    public
+	    private
 	    constant
 	    returns (uint128 _wei)
 	{

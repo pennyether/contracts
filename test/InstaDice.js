@@ -1,3 +1,4 @@
+const Registry = artifacts.require("Registry");
 const InstaDice = artifacts.require("InstaDice");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
@@ -13,10 +14,17 @@ describe('InstaDice', function(){
     const player1 = accounts[2];
     const player2 = accounts[3];
     const player3 = accounts[4];
+    const dummyTreasury = accounts[5];
+    const admin = accounts[6]
     var dice;
+    var registry;
 
     before("Set up registry, treasury, and create comptroller.", async function(){
-        dice = await InstaDice.new({from: owner});
+        registry = await Registry.new(owner);
+        await registry.register("ADMIN", admin, {from: owner});
+        await registry.register("TREASURY", dummyTreasury, {from: owner});
+        console.log(`Registry: ${registry.address}`);
+        dice = await InstaDice.new(registry.address, {from: owner});
         FEE_BIPS = await dice.feeBips();
         console.log(`FEE_BIPS: ${FEE_BIPS}`)
 
@@ -57,8 +65,14 @@ describe('InstaDice', function(){
         it("Player1 can roll again", function(){
             return assertCanRoll(player1, .01e18, 50);
         });
+        it("Player1 can collect", function(){
+            return assertCanCollectPayout(2);
+        })
         it("Player2 can roll", function(){
-            return assertCanRoll(player2, .01e18, 20);
+            return assertCanRoll(player2, .01e18, 80);
+        });
+        it("Player2 can collect", function(){
+            return assertCanCollectPayout(3);
         });
         it("Player2 can roll again", function(){
             return assertCanRoll(player2, .01e18, 80);
@@ -91,6 +105,35 @@ describe('InstaDice', function(){
             .start();
     }
 
+    async function assertCanCollectPayout(id) {
+        const roll = await getRoll(id);
+        const isResolved = roll.result.gt(0);
+        const result = await dice.getRollResult(id);
+        const didWin = !result.gt(roll.number);
+        const expPayout = didWin && !roll.isPaid
+            ? getPayout(roll.number, roll.bet)
+            : new BigNumber(0);
+        const logCount = (!isResolved ? 1 : 0) + (expPayout.gt(0) ? 1 : 0);
+
+        const txTester = createDefaultTxTester()
+            .startLedger([dice, roll.user])
+            .doTx([dice, "collectPayout", id])
+            .assertSuccess()
+            .stopLedger()
+                .assertDelta(dice, expPayout.mul(-1))
+                .assertDelta(roll.user, expPayout)
+            .assertLogCount(logCount)
+            
+        if (!isResolved) {
+            txTester.assertLog("RollResolved");
+        }
+        if (expPayout.gt(0)) {
+            txTester.assertLog("PayoutSuccess");
+        }
+
+        return txTester.start();
+    }
+
     async function assertCanRoll(player, bet, number) {
         bet = new BigNumber(bet);
         number = new BigNumber(number);
@@ -100,43 +143,51 @@ describe('InstaDice', function(){
         const curBankroll = await dice.bankroll();
         const totalWon = await dice.totalWon();
         const totalWagered = await dice.totalWagered();
-        const curUserBalance = await dice.getBalance(player);
-        var expUserBalance;
 
         const expId = curId.plus(1);
         const expBlock = testUtil.getBlockNumber()+1;
         const expPayout = getPayout(number, bet);
         const expTotalWagered = totalWagered.plus(bet);
         var expBankroll = curBankroll.minus(expPayout).plus(bet);
+        var expUserWinnings = new BigNumber(0);
+        var expNumLogs = 1;
 
         // if there is a previous roll, we want to test that it resolves correctly.      
         const prevRoll = await getRoll(curId);
         const hasPrevRoll = prevRoll.id.gt(0) && prevRoll.result.equals(0);
+        var expPrevPayout = new BigNumber(0);
+        var expPrevResult;
         if (hasPrevRoll) {
-            var expPrevResult = await dice.getRollResult(curId);
-            var prevUserBalance = await dice.balance(prevRoll.user);
-            var expPrevPayout = expPrevResult.gt(prevRoll.number)
+            expNumLogs++;
+            const prevPayout = getPayout(prevRoll.number, prevRoll.bet);
+            expPrevResult = await dice.getRollResult(curId);
+            expPrevPayout = expPrevResult.gt(prevRoll.number)
                 ? new BigNumber(0)
-                : getPayout(prevRoll.number, prevRoll.bet);
-            var expPrevUserBalance = prevUserBalance.plus(expPrevPayout);
+                : prevPayout;
             const wonStr = expPrevPayout.equals(0) ? "lost" : "won";
             console.log(`Previous roll ${wonStr} with result ${expPrevResult} and payout of ${expPrevPayout}.`);
 
             if (expPrevPayout.equals(0)) {
-                const prevPayout = await dice.getPayout(prevRoll.bet, prevRoll.number);
                 console.log(`Expecting bankroll to be higher by ${prevPayout}`);
                 expBankroll = expBankroll.plus(prevPayout);
+            } else {
+                expNumLogs++;
+                if (prevRoll.user == player) {
+                    expUserWinnings = expPrevPayout;
+                    console.log(`Current player won the last bet.`);
+                }
             }
         }
 
+        // assert things about the current wager
         txTester
             .startLedger([player, dice])
             .doTx([dice, "roll", number, {value: bet, from: player}])
             .assertSuccess()
             .stopLedger()
-                .assertDelta(dice, bet)
-                .assertDeltaMinusTxFee(player, bet.mul(-1))
-            .assertLogCount(hasPrevRoll ? 2 : 1)
+                .assertDelta(dice, bet.minus(expPrevPayout))
+                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expUserWinnings))
+            .assertLogCount(expNumLogs)
             .assertLog("RollWagered", {
                 time: null,
                 id: expId,
@@ -144,38 +195,49 @@ describe('InstaDice', function(){
                 bet: bet,
                 number: number
             })
-            .assertCallReturns([dice, "getPayout", bet, number], expPayout)
             .assertCallReturns([dice, "totalWagered"], expTotalWagered)
             .assertCallReturns([dice, "rolls", expId],
                 [expId, player, bet, number, expBlock+1, 0])
 
+        // assert things about the previous resolved roll
         if (hasPrevRoll){
-            txTester
-                .assertLog("RollResolved", {
+            txTester.assertLog("RollResolved", {
+                time: null,
+                id: curId,
+                user: prevRoll.user,
+                bet: prevRoll.bet,
+                number: prevRoll.number,
+                result: expPrevResult,
+                payout: expPrevPayout
+            });
+
+            if (expPrevPayout.gt(0)) {
+                txTester.assertLog("PayoutSuccess", {
                     time: null,
                     id: curId,
                     user: prevRoll.user,
-                    bet: prevRoll.bet,
-                    number: prevRoll.number,
-                    result: expPrevResult,
                     payout: expPrevPayout
-                })
-                .assertCallReturns([dice, "balance", prevRoll.user], expPrevUserBalance)
-                .assertCallReturns([dice, "rolls", curId],
-                    [curId, prevRoll.user, prevRoll.bet, prevRoll.number, prevRoll.block, expPrevResult])
+                }).assertCallReturns([dice, "rolls", curId],
+                    [curId, prevRoll.user, prevRoll.bet, prevRoll.number, prevRoll.block, expPrevResult, true]
+                );
+            } else {
+                txTester.assertCallReturns([dice, "rolls", curId],
+                    [curId, prevRoll.user, prevRoll.bet, prevRoll.number, prevRoll.block, expPrevResult, false]
+                );
+            }
         }
 
-        
+        // make sure bankroll is correct
         txTester
             .assertCallReturns([dice, "bankroll"], expBankroll)
             .doFn(async function(){
-                const result = await dice.getRollResult(curId.plus(1));
-                const payout = await dice.getRollPayout(curId.plus(1));
-                expUserBalance = curUserBalance.plus(payout);
+                const result = await dice.getRollResult(expId);
+                const payout = await dice.getRollPayout(expId);
                 console.log(`This roll will have a result of ${result}, winning ${payout}.`);
+                const balance = testUtil.getBalance(dice);
+                const bankroll = await dice.bankroll();
+                assert(!bankroll.gt(balance), "Bankroll should never be more than balance.");
             })
-            .assertCallReturns([dice, "getBalance", player], ()=>expUserBalance,
-                "Balance should reflect win/loss of current roll");
 
         return txTester.start();
     }
@@ -206,7 +268,8 @@ describe('InstaDice', function(){
             bet: arr[2],
             number: arr[3],
             block: arr[4],
-            result: arr[5]
+            result: arr[5],
+            isPaid: arr[6],
         };
     }
 
