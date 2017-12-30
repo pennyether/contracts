@@ -46,7 +46,6 @@ contract Comptroller {
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
 	event TokensBurned(address indexed sender, uint numTokens, uint refund);
-	event TokenLockerInit(address tokenLocker, address tokenLockerOwner);
 	event TreasuryInit(address treasury);
 	event SaleStarted(uint time);
 

@@ -29,21 +29,39 @@
 
 		<div class="section">
 			<div class="head">
-				<span title="The owner can upgrade any versioned contracts.">
-					Owner
+				<span title="This Wallet owns the Registry and Comptroller.">
+					Owner Wallet
 				</span>
 			</div>
 			<div class="body">
 				<div>
 					Address:
-					<span id="OwnerAddr"></span>
-				</div>
+					<span id="WalletAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The account that can make calls on behalf of the Wallet.">
+						Custodian:
+					</span>
+					<span id="WalletCustodian"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="A cold address that can change the custodian, and can dispense any Ether accrued.">
+						Supervisor:
+					</span>
+					<span id="WalletSupervisor"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="A cold address that can change the supervisor.">
+						Owner:
+					</span>
+					<span id="WalletOwner"></span>
+				</div><br>
 			</div>
 		</div>
 
 		<div class="section">
 			<div class="head">
-				<span title="The admin can alter some minor settings of PennyEther, such as reward values and game settings.">
+				<span title="The admin can alter some minor settings of PennyEther, such as reward values and game settings. This address is a registry entry and is changeable by the Wallet.">
 					Admin
 				</span>
 			</div>
@@ -57,7 +75,7 @@
 
 		<div class="section">
 			<div class="head">
-				<span title="The Comptroller is in charge of burning and minting tokens.">
+				<span title="The Comptroller is in charge of burning and minting tokens. This contract can never be changed.">
 					Comptroller
 				</span>
 			</div>
@@ -65,6 +83,18 @@
 				<div>
 					Address:
 					<span id="CompAddr"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The owner gets sent all capital, and can call .initSale() and .initTreasury(). The owner also owns the TokenLocker and can collect its dividends.">
+						Owner:
+					</span>
+					<span id="CompOwner"></span>
+				</div><br>
+				<div>
+					<span class="tipLeft" title="The Comptroller can tell the Treasury to add or remove bankroll. Once set, this cannot be changed.">
+						Treasury:
+					</span>
+					<span id="CompTreasury"></span>
 				</div><br>
 				<div>
 					<span class="tipLeft" title="Whether or not tokens can be purchased. Once set to true, cannot be set to false.">
@@ -102,7 +132,7 @@
 
 		<div class="section">
 			<div class="head">
-				<span title="The treasury holds the bankroll of PennyEther, receives revenue, and pays dividends.">
+				<span title="The treasury holds the bankroll of PennyEther, receives revenue, and pays dividends. This contract can never be changed.">
 					Treasury
 				</span>
 			</div>

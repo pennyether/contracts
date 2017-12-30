@@ -143,27 +143,6 @@ Loader.promise.then(function(reg){
 			});
 		}
 
-		function initCompTokenLocker() {
-			if (!tr || !wallet) throw new Error("bleh");
-			const walletAddr = wallet.address;
-			const data = comp.initTokenLocker.getData({_tokenLockerOwner: walletAddr});
-			return wallet.doCall({
-				_to: comp.address,
-				_data: data
-			},{
-				value: 0,
-				gas: 300000
-			}).then(()=>{
-				return comp.locker().then((res)=>{
-					if (res == ethUtil.NO_ADDRESS)
-						throw new Error(`comp.locker was not set!`);
-					addLog(`comp.locker set to ${res}.`);
-				}, (e)=>{
-					throw new Error(`comp.treasury was not set!`);
-				});
-			});	
-		}
-
 		var wallet, reg, tr, comp;
 		addLog(`Creating custodial wallet...`);
 		CustodialWallet.new({
@@ -230,11 +209,8 @@ Loader.promise.then(function(reg){
 				initTrComptroller()
 			])
 		}).then(()=>{
-			addLog(`Treasury set up. Now doing comp.initTreasury() and comp.initTokenLocker()`);
-			return Promise.all([
-				initCompTreasury(),
-				initCompTokenLocker()
-			]);
+			addLog(`Treasury set up. Now doing comp.initTreasury()`);
+			return initCompTreasury();
 		}).then(()=>{
 			alert("THANK THE LORD - IT'S ALL DONE")
 			addLog(`All done!`);
