@@ -40,7 +40,7 @@
 			return niceWeb3.ethUtil.$getLink(name, addr || name, "address");
 		}
 		this.$getTxLink = function(name, tx){
-			return niceWeb3.ethUtil.$getLink(tx, tx || name, "transaction");
+			return niceWeb3.ethUtil.$getLink(name, tx || name, "tx");
 		}
 
 		this.toTime = function(timeS) {

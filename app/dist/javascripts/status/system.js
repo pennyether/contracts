@@ -1,6 +1,6 @@
-Loader.require("reg", "comp", "tr", "mc", "pac")
-.then(function(reg, comp, tr, mc, pac){
-	var reg, comp, tr, mc, pac;
+Loader.require("reg", "comp", "tr", "mc", "pac", "dice")
+.then(function(reg, comp, tr, mc, pac, dice){
+	var reg, comp, tr, mc, pac, dice;
 
 	refreshAll();
 
@@ -9,8 +9,9 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 		refreshAdmin();
 		refreshComp();
 		refreshTr();
-		refreshPac();
 		refreshMc();
+		refreshPac();
+		refreshDice();
 	}
 
 	function refreshWallet() {
@@ -99,5 +100,12 @@ Loader.require("reg", "comp", "tr", "mc", "pac")
 		util.bindToElement(pac.totalFees().then(ethUtil.toEthStr), $("#PacTotalFees"));
 		util.bindToElement(pac.totalBids(), $("#PacTotalBids"));
 		util.bindToElement(util.$getLogs(pac), $("#PacLogs"), true);
+	}
+
+	function refreshDice() {
+		if (!dice) return;
+		$("#DiceAddr").empty().append(util.$getAddrLink(dice.address));
+		util.bindToElement(dice.getAdmin(), $("#DiceAdmin"));
+		util.bindToElement(dice.version(), $("#DiceVersion"));
 	}
 });

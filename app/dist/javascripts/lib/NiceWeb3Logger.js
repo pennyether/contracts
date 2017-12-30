@@ -73,7 +73,8 @@
   			p.getTxHash.then((txHash)=>{
   				$hashStatus.removeClass("pending")
   					.addClass("success")
-  					.text(`${txHash}`);
+  					.empty()
+  					.append(util.$getTxLink(txHash));
   				$result.show();
   				$resultStatus.text("Mining...");
   			},(e)=>{

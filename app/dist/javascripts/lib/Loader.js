@@ -143,7 +143,8 @@
 					"comp": [Comptroller, "COMPTROLLER"],
 					"tr": [Treasury, "TREASURY"],
 					"mc": [MainController, "MAIN_CONTROLLER"],
-					"pac": [PennyAuctionController, "PENNY_AUCTION_CONTROLLER"]
+					"pac": [PennyAuctionController, "PENNY_AUCTION_CONTROLLER"],
+					"dice": [InstaDice, "INSTADICE"]
 				};
 				strs.forEach(str => {
 					if (!mappings[str] && str!=="reg")
