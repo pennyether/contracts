@@ -1,7 +1,40 @@
-Loader.promise.then(function(){
+Loader.promise.then(function(reg){
+	function init(){
+		$("#PopulateAllRegAddress").val(reg.address);
+		$("#PopulateAll").click();
+		$("#TrRegistryAddress").val(reg.address);
+		$("#McRegistryAddress").val(reg.address);
+		$("#PacRegistryAddress").val(reg.address);
+		$("#PafRegistryAddress").val(reg.address);
+		$("#DiceRegistryAddress").val(reg.address);
+	}
+
 	ethUtil.onStateChanged(state=>{
 		$("#Deploy .custodianAddr input").val(state.account);	
 	});
+
+	// Registers an address to <reg> from <wallet>
+	function registerAddress(reg, wallet, name, addr) {
+		if (!reg) throw new Error("No registry object.");
+		const data = reg.register.getData({
+			_name: name,
+			_addr: addr
+		});
+		return wallet.doCall({
+			_to: reg.address,
+			_data: data
+		}, {
+			value: 0,
+			gas: 200000
+		}).then(()=>{
+			return reg.addressOf([name]).then((_addr)=>{
+				if (_addr.toLowerCase() != addr.toLowerCase()) 
+					throw new Error(`${name} was not set to ${addr}. It is ${_addr}`);
+			}, (e)=>{
+				throw new Error(`${name} was never set.`);
+			});
+		});
+	}
 
 	/*
 	Full deploy requires one input:
@@ -30,6 +63,8 @@ Loader.promise.then(function(){
 			- Registered.
 		- PennyAuctionFactory
 			- Registered.
+		- InstaDice
+			- Registered.
 	*/
 	$("#DeployButton").click(function(){
 		const $log = $("#DeployLog").empty();
@@ -43,29 +78,6 @@ Loader.promise.then(function(){
 		if (!custodianAddr) return alert("Must provide custodian address.");
 		if (!supervisorAddr) return alert("Must provide supervisor address.");
 		if (!ownerAddr) return alert("Must provide owner address.");
-
-		function registerAddress(name, addr) {
-			if (!reg) throw new Error("No registry object.");
-			const data = reg.register.getData({
-				_name: name,
-				_addr: addr
-			});
-			return wallet.doCall({
-				_to: reg.address,
-				_data: data
-			}, {
-				value: 0,
-				gas: 200000
-			}).then(()=>{
-				return reg.addressOf([name]).then((_addr)=>{
-					if (_addr.toLowerCase() != addr.toLowerCase()) 
-						throw new Error(`${name} was not set to ${addr}. It is ${_addr}`);
-					addLog(`${name} registered to ${addr}`);
-				}, (e)=>{
-					throw new Error(`${name} was never set.`);
-				});
-			});
-		}
 
 		function initTrToken() {
 			if (!tr || !comp) throw new Error("No treasury instance.");
@@ -177,31 +189,39 @@ Loader.promise.then(function(){
 		}).then((result)=>{
 			reg = result.instance;
 			addLog(`Registry created @ ${reg.address}`);
-			addLog(`Setting admin...`);
+			addLog(`Registering ADMIN and WALLET...`);
 			return Promise.all([
-				reg.owner(),
-			]).then((owner)=>{
-				return registerAddress("ADMIN", adminAddr);
-			})
+				registerAddress(reg, wallet, "ADMIN", adminAddr),
+				registerAddress(reg, wallet, "WALLET", wallet.address)
+			]);
 		}).then(()=>{
+			addLog(`Addresses registered.`);
 			addLog(`Creating Comp, Tr, MC, PAC, and PAF.`);
 			return Promise.all([
 				Comptroller.new({_owner: wallet.address}),
 				Treasury.new({_registry: reg.address}),
 				MainController.new({_registry: reg.address}),
 				PennyAuctionController.new({_registry: reg.address}),
-				PennyAuctionFactory.new({_registry: reg.address})
+				PennyAuctionFactory.new({_registry: reg.address}),
+				InstaDice.new({_registry: reg.address})
 			]);
 		}).then((arr)=>{
 			comp = arr[0].instance;
 			tr = arr[1].instance;
 			addLog(`Contracts created. Registering addresses...`);
 			return Promise.all([
-				registerAddress("COMPTROLLER", comp.address),
-				registerAddress("TREASURY", tr.address),
-				registerAddress("MAIN_CONTROLLER", arr[2].instance.address),
-				registerAddress("PENNY_AUCTION_CONTROLLER", arr[3].instance.address),
-				registerAddress("PENNY_AUCTION_FACTORY", arr[4].instance.address)
+				registerAddress(reg, wallet, "COMPTROLLER", comp.address)
+					.then(()=>{ addLog(`Comptroller Registered.`); }),
+				registerAddress(reg, wallet, "TREASURY", tr.address)
+					.then(()=>{ addLog(`Treasury Registered.`); }),
+				registerAddress(reg, wallet, "MAIN_CONTROLLER", arr[2].instance.address)
+					.then(()=>{ addLog(`MainController Registered.`); }),
+				registerAddress(reg, wallet, "PENNY_AUCTION_CONTROLLER", arr[3].instance.address)
+					.then(()=>{ addLog(`PAC Registered.`); }),
+				registerAddress(reg, wallet, "PENNY_AUCTION_FACTORY", arr[4].instance.address)
+					.then(()=>{ addLog(`PAF Registered.`); }),
+				registerAddress(reg, wallet, "INSTADICE", arr[5].instance.address)
+					.then(()=>{ addLog(`InstaDice Registered.`); })
 			]);
 		}).then(()=>{
 			addLog(`Done registering. Doing tr.initToken(), and tr.initComptroller()`);
@@ -237,46 +257,100 @@ Loader.promise.then(function(){
 		$("#RegLoadAddress").val(regAddress)
 		$("#RegLoad").click();
 		Promise.resolve()
+			// wallet
+			.then(()=>reg.addressOf({_name: "WALLET"}))
+			.then((addr)=>{
+				$("#WalletLoadAddress").val(addr);
+				$("#WalletLoad").click();
+				addLog(`Found wallet at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find Wallet.`); })
 			// comptroller
 			.then(()=>reg.addressOf({_name: "COMPTROLLER"}))
 			.then((addr)=>{
-				addLog(`Found comptroller at ${addr}`);
 				$("#CompLoadAddress").val(addr);
 				$("#CompLoad").click();
-			}, (e)=>{ addLog(`Didn't find comptroller.`); })
+				addLog(`Found comptroller at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find comptroller.`); })
 			// Treasury
 			.then(()=>reg.addressOf({_name: "TREASURY"}))
 			.then((addr)=>{
-				addLog(`Found treasury at ${addr}`);
 				$("#TrLoadAddress").val(addr);
 				$("#TrLoad").click();
-			}, (e)=>{ addLog(`Didn't find treasury.`); })
+				addLog(`Found treasury at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find treasury.`); })
 			// Main controller
 			.then(()=>reg.addressOf({_name: "MAIN_CONTROLLER"}))
 			.then((addr)=>{
-				addLog(`Found main controller at ${addr}`);
 				$("#McLoadAddress").val(addr);
 				$("#McLoad").click();
-			}, (e)=>{ addLog(`Didn't find main controller.`); })
+				addLog(`Found main controller at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find main controller.`); })
 			// pac
 			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}))
 			.then((addr)=>{
-				addLog(`Found pac at ${addr}`);
 				$("#PacLoadAddress").val(addr);
 				$("#PacLoad").click();
-			}, (e)=>{ addLog(`Didn't find pac.`); })
+				addLog(`Found pac at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find pac.`); })
 			// paf
 			.then(()=>reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}))
 			.then((addr)=>{
-				addLog(`Found paf at ${addr}`);
 				$("#PafLoadAddress").val(addr);
 				$("#PafLoad").click();
-			}, (e)=>{ addLog(`Didn't find paf.`); });
+				addLog(`Found paf at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find paf.`); })
+			// dice
+			.then(()=>reg.addressOf({_name: "INSTADICE"}))
+			.then((addr)=>{
+				$("#DiceLoadAddress").val(addr);
+				$("#DiceLoad").click();
+				addLog(`Found Dice at ${addr}`);
+			})
+			.catch((e)=>{ addLog(`Didn't find dice.`); })
 	});
+
+
+	/******** REGISTRY ***************************/
+	$("#WalletLoad").click(function(){
+		const walletAddr = $("#WalletLoadAddress").val();
+		if (!walletAddr) return alert("Enter an address to load from");
+		const wallet = CustodialWallet.at(walletAddr);
+		$("#WalletAddress").text(walletAddr);
+		util.bindToElement(wallet.custodian(), $("#WalletCustodian"));
+		util.bindToElement(wallet.supervisor(), $("#WalletSupervisor"));
+		util.bindToElement(wallet.owner(), $("#WalletOwner"));
+	});
+	$("#WalletRegister").click(function(){
+		const walletAddr = $("#WalletLoadAddress").val();
+		if (!walletAddr) return alert("No wallet address set (use Load input)");
+		const regAddress = $("#RegLoadAddress").val();
+		if (!regAddress) return alert("No registry address set.");
+
+		const wallet = CustodialWallet.at(walletAddr);
+		const reg = Registry.at(regAddress);
+		registerAddress(reg, wallet, "WALLET", walletAddr)
+			.then(()=>{
+				alert(`Registered.`);
+			})
+			.catch(function(e){
+				console.error(e);
+				alert(`Failed to register: ${e.message}`);
+			});
+	});
+	/******** REGISTRY ***************************/
+
 
 	/******** REGISTRY ***************************/
 	$("#RegCreate").click(function(){
-		Registry.new().then(function(result){
+		const owner = $("#RegCreateOwner").val();
+		if (!owner) return alert("Owner required");
+		Registry.new({_owner: owner}).then(function(result){
 			const reg = result.instance;
 			$("#RegLoadAddress").val(reg.address);
 			$("#RegLoad").click();
@@ -292,28 +366,32 @@ Loader.promise.then(function(){
 		util.bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
 		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}), $("#RegPac"));
 		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}), $("#RegPaf"));
+		util.bindToElement(reg.addressOf({_name: "DICE"}), $("#RegDice"));
 	});
 	$("#RegSetAdmin").click(function(){
-		const regAddress = $("#RegLoadAddress").val();
-		const adminAddress = $("#RegSetAdminAddress").val();
-		if (!regAddress) return alert("No registry address set.");
-		if (!adminAddress) return alert("Must set an admin address.");
+		alert("Not set up to work with Custodial Admin");
+		// const regAddress = $("#RegLoadAddress").val();
+		// const adminAddress = $("#RegSetAdminAddress").val();
+		// if (!regAddress) return alert("No registry address set.");
+		// if (!adminAddress) return alert("Must set an admin address.");
 
-		const reg = Registry.at(regAddress);
-		reg.register({_name: "ADMIN", _addr: adminAddress})
-			.then((res)=>{
-				alert("Admin has been set.");
-				$("#RegLoad").click();
-			})
-			.catch((err)=>{ 
-				alert("Unable to set admin. Are you the owner?");
-			});
+		// const reg = Registry.at(regAddress);
+		// reg.register({_name: "ADMIN", _addr: adminAddress})
+		// 	.then((res)=>{
+		// 		alert("Admin has been set.");
+		// 		$("#RegLoad").click();
+		// 	})
+		// 	.catch((err)=>{ 
+		// 		alert("Unable to set admin. Are you the owner?");
+		// 	});
 	});
 	/******** REGISTRY ***************************/
 
 	/******** COMPTROLLER ************************/
 	$("#CompCreate").click(function(){
-		Comptroller.new().then(function(result){
+		const ownerAddr = $("#CompCreateOwner").val()
+		if (!ownerAddr) return alert("Owner address required.");
+		Comptroller.new({_owner: ownerAddra}).then(function(result){
 			$("#CompLoadAddress").val(result.instance.address);
 			$("#CompLoad").click();
 		});
@@ -331,27 +409,20 @@ Loader.promise.then(function(){
 			$("#LockerAddress").text(lockerAddr);
 			util.bindToElement(locker.owner(), $("#LockerOwner"));
 		});
-
-		comp.owner().then((walletAddr)=>{
-			const wallet = CustodialWallet.at(walletAddr);
-			$("#WalletAddress").text(walletAddr);
-			util.bindToElement(wallet.custodian(), $("#WalletCustodian"));
-			util.bindToElement(wallet.supervisor(), $("#WalletSupervisor"));
-			util.bindToElement(wallet.owner(), $("#WalletOwner"));
-		});
 	});
 	$("#CompRegister").click(function(){
-		const compAddress = $("#CompLoadAddress").val();
-		const regAddress = $("#RegLoadAddress").val();
-		if (!compAddress) return alert("No address set (use Load input)");
-		if (!regAddress) return alert("No address set for registry.");
-		Registry.at(regAddress)
-		.register({_name: "COMPTROLLER", _addr: compAddress})
-		.then(function(){
-			alert("Comptroller has been registered.");
-		}).catch(function(e){
-			alert(`Failed to register: ${e.message}`);
-		});
+		alert("Not set up to work with Custodial Wallet");
+		// const compAddress = $("#CompLoadAddress").val();
+		// const regAddress = $("#RegLoadAddress").val();
+		// if (!compAddress) return alert("No address set (use Load input)");
+		// if (!regAddress) return alert("No address set for registry.");
+		// Registry.at(regAddress)
+		// .register({_name: "COMPTROLLER", _addr: compAddress})
+		// .then(function(){
+		// 	alert("Comptroller has been registered.");
+		// }).catch(function(e){
+		// 	alert(`Failed to register: ${e.message}`);
+		// });
 	});
 
 	$("#CompInitTreasury").click(function(){
@@ -406,47 +477,50 @@ Loader.promise.then(function(){
 		util.bindToElement(tr.token(), $("#TrToken"));
 	});
 	$("#TrRegister").click(function(){
-		const trAddress = $("#TrLoadAddress").val();
-		if (!trAddress) return alert("No address set (use Load input)");
-		const tr = Treasury.at(trAddress);
-		tr.getRegistry().then((regAddress)=>{
-			const reg = Registry.at(regAddress);
-			return reg.register({_name: "TREASURY", _addr: trAddress});
-		}).then(function(){
-			alert("Treasury has been registered.");
-		}).catch(function(e){
-			alert(`Failed to register: ${e.message}`);
-		});
+		alert("Not set up to work with Custodial Wallet");
+		// const trAddress = $("#TrLoadAddress").val();
+		// if (!trAddress) return alert("No address set (use Load input)");
+		// const tr = Treasury.at(trAddress);
+		// tr.getRegistry().then((regAddress)=>{
+		// 	const reg = Registry.at(regAddress);
+		// 	return reg.register({_name: "TREASURY", _addr: trAddress});
+		// }).then(function(){
+		// 	alert("Treasury has been registered.");
+		// }).catch(function(e){
+		// 	alert(`Failed to register: ${e.message}`);
+		// });
 	});
 	$("#TrInitComptroller").click(function(){
-		const trAddress = $("#TrLoadAddress").val();
-		const compAddress = $("#TrInitCompAddress").val();
-		if (!trAddress) return alert("No Treasury address set.");
-		if (!compAddress) return alert("No comp address set.");
-		const tr = Treasury.at(trAddress);
-		tr.initComptroller({_comptroller: compAddress})
-			.then(function(){
-				alert("initComptroller successful.");
-				$("#TrLoad").click();
-			})
-			.catch(function(){
-				alert("Unable to initComptroller. Are you the admin?");
-			});
+		alert("Not set up to work with Custodial Wallet");
+		// const trAddress = $("#TrLoadAddress").val();
+		// const compAddress = $("#TrInitCompAddress").val();
+		// if (!trAddress) return alert("No Treasury address set.");
+		// if (!compAddress) return alert("No comp address set.");
+		// const tr = Treasury.at(trAddress);
+		// tr.initComptroller({_comptroller: compAddress})
+		// 	.then(function(){
+		// 		alert("initComptroller successful.");
+		// 		$("#TrLoad").click();
+		// 	})
+		// 	.catch(function(){
+		// 		alert("Unable to initComptroller. Are you the admin?");
+		// 	});
 	});
 	$("#TrInitToken").click(function(){
-		const trAddress = $("#TrLoadAddress").val();
-		const tokenAddress = $("#TrInitTokenAddress").val();
-		if (!trAddress) return alert("No Treasury address set.");
-		if (!tokenAddress) return alert("No token address set.");
-		const tr = Treasury.at(trAddress);
-		tr.initToken({_token: tokenAddress})
-			.then(function(){
-				alert("initToken successful.");
-				$("#TrLoad").click();
-			})
-			.catch(function(){
-				alert("Unable to initToken. Are you the admin?");
-			});
+		alert("Not set up to work with Custodial Wallet");
+		// const trAddress = $("#TrLoadAddress").val();
+		// const tokenAddress = $("#TrInitTokenAddress").val();
+		// if (!trAddress) return alert("No Treasury address set.");
+		// if (!tokenAddress) return alert("No token address set.");
+		// const tr = Treasury.at(trAddress);
+		// tr.initToken({_token: tokenAddress})
+		// 	.then(function(){
+		// 		alert("initToken successful.");
+		// 		$("#TrLoad").click();
+		// 	})
+		// 	.catch(function(){
+		// 		alert("Unable to initToken. Are you the admin?");
+		// 	});
 	});
 	/******** TREASURY ***************************/
 
@@ -469,17 +543,18 @@ Loader.promise.then(function(){
 		util.bindToElement(mc.getPennyAuctionController(), $("#McPac"));
 	});
 	$("#McRegister").click(function(){
-		const mcAddress = $("#McLoadAddress").val();
-		if (!mcAddress) return alert("No address set (use Load input)");
-		const mc = MainController.at(mcAddress);
-		mc.getRegistry().then((regAddress)=>{
-			const reg = Registry.at(regAddress);
-			return reg.register({_name: "MAIN_CONTROLLER", _addr: mcAddress});
-		}).then(function(){
-			alert("Main Controller has been registered.");
-		}).catch(function(e){
-			alert(`Failed to register: ${e.message}`);
-		});
+		alert("Not set up to work with Custodial Wallet");
+		// const mcAddress = $("#McLoadAddress").val();
+		// if (!mcAddress) return alert("No address set (use Load input)");
+		// const mc = MainController.at(mcAddress);
+		// mc.getRegistry().then((regAddress)=>{
+		// 	const reg = Registry.at(regAddress);
+		// 	return reg.register({_name: "MAIN_CONTROLLER", _addr: mcAddress});
+		// }).then(function(){
+		// 	alert("Main Controller has been registered.");
+		// }).catch(function(e){
+		// 	alert(`Failed to register: ${e.message}`);
+		// });
 	});
 	/******** MAIN CONTROLLER ********************/
 
@@ -501,17 +576,18 @@ Loader.promise.then(function(){
 		util.bindToElement(pac.getPennyAuctionFactory(), $("#PacPaf"));
 	});
 	$("#PacRegister").click(function(){
-		const pacAddress = $("#PacLoadAddress").val();
-		if (!pacAddress) return alert("No address set (use Load input)");
-		const pac = PennyAuctionController.at(pacAddress);
-		pac.getRegistry().then((regAddress)=>{
-			const reg = Registry.at(regAddress);
-			return reg.register({_name: "PENNY_AUCTION_CONTROLLER", _addr: pacAddress});
-		}).then(function(){
-			alert("Penny Auction Controller has been registered.");
-		}).catch(function(e){
-			alert(`Failed to register: ${e.message}`);
-		});
+		alert("Not set up to work with Custodial Wallet");
+		// const pacAddress = $("#PacLoadAddress").val();
+		// if (!pacAddress) return alert("No address set (use Load input)");
+		// const pac = PennyAuctionController.at(pacAddress);
+		// pac.getRegistry().then((regAddress)=>{
+		// 	const reg = Registry.at(regAddress);
+		// 	return reg.register({_name: "PENNY_AUCTION_CONTROLLER", _addr: pacAddress});
+		// }).then(function(){
+		// 	alert("Penny Auction Controller has been registered.");
+		// }).catch(function(e){
+		// 	alert(`Failed to register: ${e.message}`);
+		// });
 	});
 	/******** Penny Auction Controller ********************/
 
@@ -533,19 +609,59 @@ Loader.promise.then(function(){
 		util.bindToElement(paf.getPennyAuctionController(), $("#PafPac"));
 	});
 	$("#PafRegister").click(function(){
-		const pafAddress = $("#PafLoadAddress").val();
-		if (!pafAddress) return alert("No address set (use Load input)");
-		const paf = PennyAuctionFactory.at(pafAddress);
-		paf.getRegistry().then((regAddress)=>{
-			const reg = Registry.at(regAddress);
-			return reg.register({_name: "PENNY_AUCTION_FACTORY", _addr: pafAddress});
-		}).then(function(){
-			alert("Penny Auction Factory has been registered.");
+		alert("Not set up to work with Custodial Wallet");
+		// const pafAddress = $("#PafLoadAddress").val();
+		// if (!pafAddress) return alert("No address set (use Load input)");
+		// const paf = PennyAuctionFactory.at(pafAddress);
+		// paf.getRegistry().then((regAddress)=>{
+		// 	const reg = Registry.at(regAddress);
+		// 	return reg.register({_name: "PENNY_AUCTION_FACTORY", _addr: pafAddress});
+		// }).then(function(){
+		// 	alert("Penny Auction Factory has been registered.");
+		// }).catch(function(e){
+		// 	alert(`Failed to register: ${e.message}`);
+		// });
+	});
+	/******** Penny Auction Controller ********************/
+
+
+	/******** Penny Auction Factory ********************/
+	$("#DiceCreate").click(function(){
+		const regAddress = $("#DiceRegistryAddress").val();
+		if (!regAddress) return alert("No registry address set");
+		InstaDice.new({_registry: regAddress}).then(function(result){
+			$("#DiceLoadAddress").val(result.instance.address);
+			$("#DiceLoad").click();
+		});
+	});
+	$("#DiceLoad").click(function(){
+		const address = $("#DiceLoadAddress").val();
+		if (!address || address == "0x") return;
+		const dice = InstaDice.at(address);
+		$("#DiceAddress").text(address);
+		util.bindToElement(dice.version(), $("#DiceVersion"));
+		util.bindToElement(dice.getTreasury(), $("#DiceTreasury"));
+	});
+	$("#DiceRegister").click(function(){
+		const diceAddr = $("#DiceLoadAddress").val();
+		if (!diceAddr) return alert("No address set (use Load input)");
+
+		const dice = InstaDice.at(diceAddr);
+		var reg, wallet;
+		dice.getRegistry().then((regAddress)=>{
+			reg = Registry.at(regAddress);
+			return reg.addressOf({_name: "WALLET"});
+		}).then(function(walletAddress){
+			wallet = CustodialWallet.at(walletAddress);
+			console.log("Loaded wallet and registry. Registering now.");
+		}).then(()=>{
+			return registerAddress(reg, wallet, "INSTADICE", diceAddr);
 		}).catch(function(e){
+			console.error(e);
 			alert(`Failed to register: ${e.message}`);
 		});
 	});
-	/******** Penny Auction Controller ********************/	
+	/******** Penny Auction Controller ********************/
 
-
+	init();
 });

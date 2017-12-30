@@ -34,6 +34,8 @@ contract InstaDice is
 	uint8 public minNumber = 5;  		// they get ~20x their bet
 	uint8 public maxNumber = 99;  		// they get ~1.01x their bet
 	uint32 public feeBips = 100;		// 1%
+
+	uint8 constant public version = 1;
 	
 	// Events
 	event RollWagered(uint time, uint32 id, address indexed user, uint bet, uint8 number);
@@ -302,8 +304,8 @@ contract InstaDice is
 		constant
 		returns (uint8 _result)
 	{
-		//uint _hash = uint(block.blockhash(_blockNumber));
-		uint _hash = uint(keccak256(_blockNumber));
+		uint _hash = uint(block.blockhash(_blockNumber));
+		//uint _hash = uint(keccak256(_blockNumber));
     	return _hash == 0
     		? 101
     		: uint8((_hash % 100) + 1);

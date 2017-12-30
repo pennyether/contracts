@@ -19,6 +19,7 @@ var filenames = [
     "CustodialWallet.json",
     "DividendToken.json",
     "DividendTokenLocker.json",
+    "InstaDice.json",
     "MainController.json",
     "PennyAuction.json",
     "PennyAuctionController.json",
