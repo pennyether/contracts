@@ -46,14 +46,17 @@ contract Comptroller {
 	// events
 	event TokensBought(address indexed sender, uint value, uint numTokens);
 	event TokensBurned(address indexed sender, uint numTokens, uint refund);
-	event SaleStarted(uint date);
+	event TokenLockerInit(address tokenLocker, address tokenLockerOwner);
+	event TreasuryInit(address treasury);
+	event SaleStarted(uint time);
 
 	function Comptroller(address _owner)
 		public
 	{
 		// Give the owner 1e-18 token, so he starts with 100% ownership.
 		owner = _owner;
-		token.mintTokens(owner, 1);
+		locker = new DividendTokenLocker(token, _owner);
+		token.mintTokens(locker, 1);
 	}
 
 	// Comptroller will receive from Treasury upon removing bankroll.
@@ -68,14 +71,6 @@ contract Comptroller {
 	/*************************************************************/
 	/************ OWNER FUNCTIONS ********************************/
 	/*************************************************************/
-	// Callable once: Allows owner to initialize token locker one time
-	function initTokenLocker(address _tokenLockerOwner)
-		fromOwner
-		public
-	{
-		require(locker == address(0));
-		locker = new DividendTokenLocker(token, _tokenLockerOwner);
-	}
 	// Callable once: Allows owner to initialize the treasury one time.
 	function initTreasury(address _treasury)
 		fromOwner
@@ -84,6 +79,7 @@ contract Comptroller {
 		require(treasury == address(0));
 		treasury = _ICompTreasury(_treasury);
 		require(treasury.comptroller() == address(this));
+		TreasuryInit(treasury);
 	}
 	// Callable once: Allows tokens to be bought / burnt.
 	function initSale()
@@ -92,7 +88,6 @@ contract Comptroller {
 	{
 		require(msg.sender == owner);
 		require(!isSaleStarted);
-		require(locker != address(0));
 		require(treasury != address(0));
 		isSaleStarted = true;
 		SaleStarted(now);

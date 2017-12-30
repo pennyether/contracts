@@ -13,7 +13,6 @@ describe('Comptroller', function(){
     const accounts = web3.eth.accounts;
     const regOwner = accounts[1];
     const compOwner = accounts[2];
-    const lockerOwner = accounts[3];
     const admin = accounts[4];
     const dummyMainController = accounts[5];
     const account1 = accounts[6];
@@ -21,6 +20,8 @@ describe('Comptroller', function(){
     const account3 = accounts[8];
     const anon = accounts[9];
     const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const FIRST_DIV_AMT = new BigNumber(1e12);
+    const SECOND_DIV_AMT = new BigNumber(2e12);
     var comptroller;
     var token;
     var locker;
@@ -32,17 +33,18 @@ describe('Comptroller', function(){
         treasury = await Treasury.new(registry.address);
         comptroller = await Comptroller.new(compOwner, {from: anon});
         token = DividendToken.at(await comptroller.token());
+        locker = DividendTokenLocker.at(await comptroller.locker());
         await registry.register("MAIN_CONTROLLER", dummyMainController, {from: regOwner});
         await registry.register("ADMIN", admin, {from: regOwner});
 
         const addresses = {
         	comptroller: comptroller.address,
         	token: token.address,
+            locker: locker.address,
             registry: registry.address,
             treasury: treasury.address,
             regOwner: regOwner,
             compOwner: compOwner,
-            lockerOwner, lockerOwner,
             admin: admin,
             dummyMainController: dummyMainController,
             account1: account1,
@@ -72,11 +74,11 @@ describe('Comptroller', function(){
     	before("Is initalized correctly", function(){
     		return createDefaultTxTester()
     			.assertCallReturns([comptroller, "owner"], compOwner)
-    			.assertCallReturns([comptroller, "locker"], NO_ADDRESS)
+    			.assertCallReturns([comptroller, "locker"], locker.address)
     			.assertCallReturns([comptroller, "token"], token.address)
     			.assertCallReturns([comptroller, "tokensPerWei"], 1)
     			.assertCallReturns([comptroller, "treasury"], NO_ADDRESS)
-                .assertCallReturns([token, "balanceOf", compOwner], 1)
+                .assertCallReturns([token, "balanceOf", locker.address], 1)
     			.start();
     	})
     	it(".buyTokens() doesn't work (sale not started)", function(){
@@ -118,44 +120,15 @@ describe('Comptroller', function(){
                     .start();
             });
 		});
-        describe(".initTokenLocker", function(){
-            it("Not callable by anon", function(){
-                return createDefaultTxTester()
-                    .doTx([comptroller, "initTokenLocker", lockerOwner, {from: anon}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-            it("works", function(){
-                return createDefaultTxTester()
-                    .doTx([comptroller, "initTokenLocker", lockerOwner, {from: compOwner}])
-                    .assertSuccess()
-                    .doFn(async function(){
-                        const addr = await comptroller.locker();
-                        locker = DividendTokenLocker.at(addr);
-                        await createDefaultTxTester()
-                            .nameAddresses({locker: locker.address}, false)
-                            .start();
-                    })
-                    .assertCallReturns(()=>[locker, "owner"], lockerOwner)
-                    .start();
-            });
-            it("not callable again", function(){
-                return createDefaultTxTester()
-                    .doTx([comptroller, "initTokenLocker", lockerOwner, {from: compOwner}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-        })
     });
     describe("Before sale", function(){
         it("Owner gets all dividends before is started", function(){
-            const AMT = new BigNumber(1e12);
             return createDefaultTxTester()
                 .startLedger([token])
-                .doTx([token, "sendTransaction", {value: AMT, from: anon}])
+                .doTx([token, "sendTransaction", {value: FIRST_DIV_AMT, from: anon}])
                 .stopLedger()
-                .assertDelta(token, AMT)
-                .assertCallReturns([token, "getCollectableDividends", compOwner], AMT)
+                .assertDelta(token, FIRST_DIV_AMT)
+                .assertCallReturns([token, "getCollectableDividends", locker.address], FIRST_DIV_AMT)
                 .start();
         })
         it("Nobody can buy tokens", async function(){
@@ -206,13 +179,12 @@ describe('Comptroller', function(){
     	});
     });
     describe("Dividends work", async function(){
-        const AMT = new BigNumber(1e12);
         before("Deposit some to token", function(){
             return createDefaultTxTester()
                 .startLedger([token])
-                .doTx([token, "sendTransaction", {value: AMT, from: anon}])
+                .doTx([token, "sendTransaction", {value: SECOND_DIV_AMT, from: anon}])
                 .stopLedger()
-                .assertDelta(token, AMT)
+                .assertDelta(token, SECOND_DIV_AMT)
                 .start();
         });
         it("Everyone gets their share", async function(){
@@ -220,9 +192,10 @@ describe('Comptroller', function(){
             const acct1Tokens = await token.balanceOf(account1);
             const acct2Tokens = await token.balanceOf(account2);
             const lockerTokens = await token.balanceOf(locker.address);
-            const expAcct1Div = acct1Tokens.div(totalTokens).mul(AMT).floor();
-            const expAcct2Div = acct2Tokens.div(totalTokens).mul(AMT).floor();
-            const expLockerDiv = lockerTokens.div(totalTokens).mul(AMT).floor();
+            const expAcct1Div = acct1Tokens.div(totalTokens).mul(SECOND_DIV_AMT).floor();
+            const expAcct2Div = acct2Tokens.div(totalTokens).mul(SECOND_DIV_AMT).floor();
+            const expLockerDiv = lockerTokens.div(totalTokens).mul(SECOND_DIV_AMT)
+                                    .plus(FIRST_DIV_AMT).floor();
             return createDefaultTxTester()
                 .assertCallReturns([token, "getCollectableDividends", account1], expAcct1Div)
                 .assertCallReturns([token, "getCollectableDividends", account2], expAcct2Div)
@@ -234,7 +207,7 @@ describe('Comptroller', function(){
         it("Has expected state", function(){
             return createDefaultTxTester()
                 .assertCallReturns([locker, "token"], token.address)
-                .assertCallReturns([locker, "owner"], lockerOwner)
+                .assertCallReturns([locker, "owner"], compOwner)
                 .start();
         })
         it("Cannot collect from anon", function(){
@@ -244,16 +217,16 @@ describe('Comptroller', function(){
                 .start();
         });
         it("Locker can collect", async function(){
-            const exp = await token.getCollectableDividends(locker.address);
+            const expDivs = await token.getCollectableDividends(locker.address);
             const lockerBalance = await testUtil.getBalance(locker.address);
             return createDefaultTxTester()
-                .startLedger([token, locker, lockerOwner])
-                .doTx([locker, "collect", {from: lockerOwner}])
+                .startLedger([token, locker, compOwner])
+                .doTx([locker, "collect", {from: compOwner}])
                 .assertSuccess()
                 .stopLedger()
-                    .assertDelta(token, exp.mul(-1))
+                    .assertDelta(token, expDivs.mul(-1))
                     .assertDelta(locker, lockerBalance.mul(-1))
-                    .assertDeltaMinusTxFee(lockerOwner, lockerBalance.plus(exp))
+                    .assertDeltaMinusTxFee(compOwner, lockerBalance.plus(expDivs))
                 .start();
         });
     })
