@@ -1,9 +1,10 @@
-Loader.require("pac")
-.then(function(pac){
+Loader.require("pac", "dice")
+.then(function(pac, dice){
 	refreshAll();
 
 	function refreshAll(){
 		refreshPac();
+		refreshDice();
 	};
 
 	function refreshPac() {
@@ -69,5 +70,34 @@ Loader.require("pac")
 				tippy($defined.find(".tipLeft").toArray(), { placement: "top" });
 			};
 		});
+	}
+
+	function refreshDice() {
+		util.bindToElement(dice.version(), $("#DiceVersion"));
+		util.bindToElement(ethUtil.getBalance(dice.address).then(ethUtil.toEthStr), $("#DiceBalance"));
+		util.bindToElement(dice.minBankroll().then(ethUtil.toEthStr), $("#DiceMinBankroll"));
+		util.bindToElement(dice.bankroll().then(ethUtil.toEthStr), $("#DiceBankroll"));
+		util.bindToElement(dice.curId(), $("#DiceTotalRolls"));
+		
+		Promise.all([
+			dice.totalWagered(),
+			dice.totalWon()
+		]).then(arr=>{
+			const totalWagered = arr[0];
+			const totalWon = arr[1];
+			const totalProfit = totalWagered.minus(totalWon);
+			$("#DiceTotalWagered").text(ethUtil.toEthStr(totalWagered));
+			$("#DiceTotalWon").text(ethUtil.toEthStr(totalWon));
+			$("#DiceTotalProfit").text(ethUtil.toEthStr(totalProfit));
+		})
+
+		const feePctPromise = dice.feeBips().then((num)=>{
+			return num.div(100).toFixed(3) + "%";
+		})
+		util.bindToElement(feePctPromise, $("#DiceHouseFee"));
+		util.bindToElement(dice.minBet().then(ethUtil.toEthStr), $("#DiceMinBet"));
+		util.bindToElement(dice.maxBet().then(ethUtil.toEthStr), $("#DiceMaxBet"));
+		util.bindToElement(dice.minNumber(), $("#DiceMinNumber"));
+		util.bindToElement(dice.maxNumber(), $("#DiceMaxNumber"));
 	}
 });

@@ -139,7 +139,95 @@
 		<div id="Status" class="section">
 			<div class="head">Dice</div>
 			<div class="body">
-				
+				<div class="subsection">
+					<div class="head">Stats</div>
+					<div class="body stats">
+						<div>
+							<span class="tipLeft" title="This contract can be upgraded. This identifies which version is currently in use.">
+								Version:
+							</span>
+							<span id="DiceVersion"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The amount of Ether held in this contract.">
+								Balance:
+							</span>
+							<span id="DiceBalance"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="Any balance above this amount can be sent to the Treasury as profits.">
+								Min Bankroll:
+							</span>
+							<span id="DiceMinBankroll"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The bankroll of InstaDice. Will not allow bets that could cause this to go below zero. This value can be increased/decreased by the Admin.">
+								Bankroll:
+							</span>
+							<span id="DiceBankroll"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The total amount of rolls.">
+								Total Rolls:
+							</span>
+							<span id="DiceTotalRolls"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The total amount wagered.">
+								Total Wagered:
+							</span>
+							<span id="DiceTotalWagered"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The total amount won by players.">
+								Total Won:
+							</span>
+							<span id="DiceTotalWon"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The house take: (Total Wagered) - (Total Won)">
+								Total Profit:
+							</span>
+							<span id="DiceTotalProfit"></span>
+						</div>
+					</div>
+				</div>
+				<div class="subsection">
+					<div class="head">Settings</div>
+					<div class="body stats">
+						<div>
+							<span class="tipLeft" title="The house fee.">
+								House Fee:
+							</span>
+							<span id="DiceHouseFee"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The minimum allowed bet (ignoring bankroll constraints).">
+								Min Bet:
+							</span>
+							<span id="DiceMinBet"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The maximum allowed bet (ignoring bankroll constraints).">
+								Max Bet:
+							</span>
+							<span id="DiceMaxBet"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The minimum allowed 'roll number' (ignoring bankroll constraints).">
+								Min Number:
+							</span>
+							<span id="DiceMinNumber"></span>
+						</div><br>
+						<div>
+							<span class="tipLeft" title="The maximum allowed 'roll number' (ignoring bankroll constraints).">
+								Max Number:
+							</span>
+							<span id="DiceMaxNumber"></span>
+						</div><br>
+						<div id="DiceLogs"></div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div></body>
