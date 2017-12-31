@@ -193,7 +193,9 @@
 				.bind(instance, []);
 			// attach getAllEvents
 			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
-			instance.getEvents = (name, filter)=>niceWeb3.getEvents(instance, name, filter);
+			instance.getEvents = function(name, filter, fromBlock, toBlock) {
+				return niceWeb3.getEvents(instance, name, filter, fromBlock, toBlock);
+			}
 			// add instance to known instances (so can parse events)
 			niceWeb3.addKnownInstance(instance);
 			//console.log(`Created ${contractName} @ ${instance.address}`);
@@ -309,7 +311,10 @@
 						const receipt = arr[0];
 						const tx = arr[1];
 						if (receipt.status == 0 || receipt.status == "0x0") {
-							throw new Error(`Transaction failed (out of gas, or other error)`);
+							const e = new Error(`Transaction failed (out of gas, or other error)`);
+							e.receipt = receipt;
+							e.tx = tx;
+							throw e;
 						}
 
 						const result = {};

@@ -86,34 +86,13 @@
 			</div>
 			<div class="body">
 				Place a bet above to see your results instantly!
-				<div class="result template">
-					<div class="status">
-						<div class="waiting"></div>
-						<div class="mining"></div>
-						<div class="error"></div>
-					</div>
-					<div class="summary">
-						Date, Block, Wager, Number
-					</div>
+				<div class="currentRolls">
 				</div>
-				<div class="pendingRolls"></div>
-				<div class="trackedRolls"></div>
 			</div>
 		</div>
 		<div class="subsection">
 			<div class="head">
-				<div class="left">Your recent roll history</div>
-				<div class="right">
-					Last
-					<select>
-						<option>256</option>
-						<option>128</option>
-						<option>64</option>
-						<option>32</option>
-						<option>16</option>
-					</select>
-					Blocks
-				</div>
+				Your recent roll history
 			</div>
 			<div class="body">
 				<div class="recentRolls"></div>
@@ -122,8 +101,14 @@
 
 		<style>
 			@keyframes glowGreen {
-				from { background-color: #0C0; }
-				to { background-color: #DFD; }
+				from {
+					background-color: #0C0;
+					box-shadow: 0px 0px 10px 0px green;
+				}
+				to {
+					background-color: #DFD;
+					box-shadow: 0px 0px 3px 0px gray;
+				}
 			}
 			.roll {
 				margin: 20px;
@@ -131,6 +116,24 @@
 				border-radius: 5px;
 				box-shadow: 0px 0px 10px 0px gray;
 			}
+			.roll.pending {
+				/*display: inline-block;*/
+				background-color: #DFD;
+				animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
+			}
+			.roll.failed {
+				border: 1px solid #F88;
+				box-shadow: 0px 0px 10px 0px red;	
+			}
+			.roll.won {
+				box-shadow: 0px 0px 10px 0px green;
+				border-color: green;
+			}
+			.roll.refunded {
+				box-shadow: 0px 0px 10px 0px #bbbb52;
+				border-color: #bbbb52;	
+			}
+
 			.roll .info {
 				box-sizing: border-box;
 				display: table;
@@ -160,39 +163,83 @@
 			.roll .status {
 				padding: 5px;
 			}
-				.roll .pending {
-					display: inline-block;
-					padding: 2px 4px;
-					border-radius: 3px;
-					background-color: #DFD;
-					animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
-				}
 				.roll .reason {
 					font-weight: bold;
 					color: gray;
 				}
 
-			.roll.won {
-				box-shadow: 0px 0px 10px 0px green;
-				border-color: green;
+			.roll .result {
+				display: table;
 			}
-			.roll.refunded {
-				box-shadow: 0px 0px 10px 0px #bbbb52;
-				border-color: #bbbb52;	
+				.roll .result > .left {
+					display: table-cell;
+					vertical-align: middle;
+					padding: 10px;
+				}
+				.roll .result > .middle {
+					display: table-cell;
+					vertical-align: middle;
+					padding: 10px;
+				}
+				.roll .result > .right {
+					display: table-cell;
+					font-size: 90%;
+					vertical-align: middle;
+					text-align: center;
+					padding: 10px;
+					width: 100%;
+				}
+
+			.roll .rollicon {
+				background: #EEE;
+				padding: 3px;
+				border-radius: 10px;
+				box-shadow: 2px 2px 2px 0px gray;
+				min-width: 60px;
+				text-align: center;
+			}
+			.roll.won .rollicon {
+				background: #EFE;
+			}
+			.roll .rollicon .rollnumber {
+				margin-top: -5px;
+				font-size: 300%;
+			}
+			.roll .rollicon .label {
+				margin-top: -5px;
+				font-size: 70%;
+				text-align: center;
 			}
 
-			.roll .result {
-				padding: 5px;
+			.roll .won {
+				font-weight: bold;
+				font-style: italic;
 			}
-				.roll .result .rollnumber {
-					
-				}
-				.roll .won .rollnumber {
-					font-weight: bold;
-					color: green;
-				}
+			.roll .lost {
+				white-space: nowrap;
+			}
+			.roll .lostMsg {
+				font-style: italic;
+				color: gray;
+			}
+			.roll .warning {
+				display: inline-block;
+				border: 1px solid #FDD;
+				background: #EEE;
+				padding: 3px;
+				font-size: 80%;
+				border-radius: 5px;
+				color: #666;
+			}
+			.roll .claim {
+				font-size: 150%;
+				color: green;
+				font-weight: bold;
+				padding: 3px;
+				margin: 10px;
+			}
 		</style>
-		<div class="roll template">
+		<div class="roll template" style="display: none;">
 			<div class="info">
 				<div class="header">
 					<span class="betLabel">Bet:</span>
@@ -207,38 +254,59 @@
 				</div>
 			</div>
 			<div class="status">
-				<div class="pending">
-					Your wager is making it's way to the blockchain...
+				<div class="prepending">
+					Waiting for a transaction id...
 				</div>
-				<div class="refund">
+				<div class="pending">
+					Your wager is making it's way to the blockchain.
+					<span class="pendingTxLink"></span>
+				</div>
+				<div class="failed">
+					The transaction failed: <span class="reason"></span>
+				</div>
+				<div class="refunded">
 					Your wager was refunded because: <span class="reason">Not enough payroll.</span>
 				</div>
 			</div>
 			<div class="result">
-				<div class="rollnumber">
-					<span class="rollnumber tipLeft" title="Rollnumber was sha3(blockhash, 58) % 100 + 1 = 0xAF...AF % 100 + 1 = ...167 % 100 + 1 = 67 + 1 = 68">Roll was 76.</span>
+				<div class="left">
+					<div class="rollicon">
+						<div class="rollnumber"></div>
+						<div class="label">roll</div>
+					</div>
 				</div>
-				<div class="lost">
-					<span class="msg">Sorry. You lost. Try again!</span>
+				<div class="middle">
+					<div class="won">
+						WINNER!
+					</div>
+					<div class="lost">
+						Sorry, you lost.
+					</div>
 				</div>
-				<div class="won">
-					<div class="claim">
-						<!-- if id==curId -->
-						<button>Claim Payout</button> or wait for someone else to roll.
-						<div class="blocksLeft">
-							You have <span class="">200 blocks</span> remaining before this roll cannot be claimed.
+				<div class="right">
+					<div class="waiting">
+						<div>
+							You'll receive your winnings on the next roll.
+							<br>If you'd like, you can claim your winnings now:
+							<br><button class="claim">Claim Winnings</button>
+						</div>
+						<div class="warning">
+							Note: If nobody rolls within <span class="blocksLeft"></span>, you will lose your winnings unless you claim them.
 						</div>
 					</div>
-					<div class="mustClaim">
-						<button>Claim Payout</button>
-						<div class="blocksLeft">
-							You have <span class="">200 blocks</span> remaining before this roll cannot be claimed.
+					<div class="unresolved">
+						<div class="warning">
+							Your roll was unable to be automatically paid. You have <span class="blocksLeft"></span> to claim your winnings.
 						</div>
-						<!-- if id!=curId and .result==0 -->
+						<button class="claim">Claim Winnings</button>
 					</div>
 					<div class="paid">
-						Your winnings have been paid!
-						<!-- if isPaid -->
+						Your winnings have been paid.
+					</div>
+					<div class="paymentFailure">
+						Your bet won, but payment failed. Perhaps you bid from wallet with an expensive or non-existant fallback function?  You can claim your winnings (as any user) by clicking here.
+					</div>
+					<div class="lostMsg">
 					</div>
 				</div>
 			</div>

@@ -24,6 +24,8 @@ contract InstaDice is
 	uint128 public totalWagered;
 	uint128 public totalWon;
 	uint32 public curId;
+	// maybe changed 
+	uint32[] public unresolvedRolls;
 
 	// if bankroll is ever above this, we can send profits
 	uint128 public minBankroll;
@@ -145,7 +147,7 @@ contract InstaDice is
 	    }
 	    
 	    // resolve the last roll
-	    resolveRoll(curId);
+	    resolveRoll(curId, true);
 	    
 	    // add this as the current roll
 	    curId++;
@@ -173,13 +175,13 @@ contract InstaDice is
 	}
 
 	// Pays out a user for a roll, if they won and .isPaid is false.
-	// They have 256 blocks to call this, unless someone else rolls first.
+	// This must be called for unresolved rolls within 256 blocks.
 	function payoutRoll(uint32 _id)
 		public
 	{
 		// resolve the roll, make sure payout > 0 and isPaid is false.
 		Roll storage r = rolls[_id];
-		uint _payout = resolveRoll(_id);
+		uint _payout = resolveRoll(_id, false);
 		if (r.isPaid || _payout == 0) return;
 		
 		// set it as paid, try to send, and rollback on failure.
@@ -191,6 +193,23 @@ contract InstaDice is
 			r.isPaid = false;
 			PayoutFailure(now, _id, r.user, _payout);
 		}
+	}
+
+	// Resolves a number of unresolved rolls, shifting them all over.
+	function resolveUnresolvedRolls(uint _num)
+		public
+		returns (uint)
+	{
+		uint _len = unresolvedRolls.length;
+		if (_len == 0) return;
+		if (_len > _num) _num = _len;
+		for (uint _i = 0; _i < _num; _i++) {
+			resolveRoll(unresolvedRolls[_i], false);
+			if (_i + _num < _len)
+				unresolvedRolls[_i] = unresolvedRolls[_i + _num];
+		}
+		unresolvedRolls.length -= _num;
+		return _num;
 	}
 	
 	// Increase minBankroll and bankroll by whatever value is sent
@@ -207,15 +226,25 @@ contract InstaDice is
 	////// PRIVATE FUNCTIONS ///////////////////////////
 	////////////////////////////////////////////////////
 	// Saves the result of a roll, pays user, updates bankroll.
-	// Returns the amount of this roll won for the user
-	function resolveRoll(uint32 id)
+	// Returns the amount of this roll won for the user.
+	// Note: Cannot resolve rolls on the same block.
+	//       They are moved to an array to be cleaned up later.
+	function resolveRoll(uint32 _id, bool _addUnresolvable)
 		private
 		returns (uint128)
 	{
-	    Roll storage r = rolls[id];
+	    Roll storage r = rolls[_id];
 
-	    // return if: invalid roll, block too early, or already resolved
-	    if (r.id == 0 || r.block == block.number) return;
+	    // return if invalid roll
+	    if (r.id == 0) return;
+	    // can't resolve right now -- push to unresolvable
+	    if (r.block == block.number) {
+	    	if (_addUnresolvable) {
+	    		unresolvedRolls.push(_id);
+	    	}
+	    	return;
+	    }
+	    // already resolved. return the result.
 	    if (r.result != 0){ 
 	    	return r.result <= r.number
 	    		? computePayout(r.bet, r.number)
@@ -223,12 +252,13 @@ contract InstaDice is
 	    }
 	    
 	    // get the result, isWinner, and payout
-	    uint8 _result = computeResult(r.block, r.id);
+	    uint8 _result = computeResult(r.block, _id);
 	    bool _isWinner = _result <= r.number;
 	    uint128 _payout = computePayout(r.bet, r.number);
 
 	    // update roll result so we know it's been resolved
 	    r.result = _result;
+	    RollResolved(now, _id, r.user, r.bet, r.number, r.result, _isWinner ? _payout : 0);
 
 	    // If they won, try to pay them. (.send() to limit gas)
 	    // If they lost, increment our bankroll
@@ -236,19 +266,16 @@ contract InstaDice is
 	    	r.isPaid = true;
 	    	totalWon += _payout;
 	        if (r.user.send(_payout)) {
-	        	PayoutSuccess(now, id, r.user, _payout);
+	        	PayoutSuccess(now, _id, r.user, _payout);
 	        } else {
 	        	r.isPaid = false;
-	        	PayoutFailure(now, id, r.user, _payout);
+	        	PayoutFailure(now, _id, r.user, _payout);
 	        }
+	        return _payout;
 	    } else {
 	        bankroll += _payout;
+	        return;
 	    }
-
-	    // Log event
-	    uint128 _realPayout = _isWinner ? _payout : 0;
-	    RollResolved(now, r.id, r.user, r.bet, r.number, r.result, _realPayout);
-	    return _realPayout;
 	}
 
 
