@@ -239,9 +239,65 @@ describe('InstaDice', function(){
         });
     });
 
-    describe("Uncollectable dice player", async function(){
-        // Todo, make a contract that can place dice
-        // but is expensive to pay.
+    // This causes ganache to die. Need to test this manually.
+    describe.skip("Unresolveable rolls", async function(){
+        before("Last bid is already resolved", async function(){
+            const curId = await dice.curId();
+            const roll = await getRoll(curId);
+            assert(roll.result.gt(0), "Latest roll should already have a result.");
+        });
+        it("Roll many times on the same block", async function(){
+            const wagers = [
+                [1e16, 50, player1],
+                [2e16, 50, player2],
+                [1e16, 20, player3],
+                [2e16, 80, player1]
+            ];
+            const txs = [];
+            const tester = createDefaultTxTester()
+                .startLedger([dice, player1, player2, player3])
+                .doFn(() => {
+                    testUtil.stopMining();
+                    console.log(`Stopped mining.`);
+                });
+
+            wagers.forEach((p, i)=>{
+                tester
+                    .doFn(() => {
+                        txs.push(dice.roll(p[1], {value: p[0], from: p[2]}));
+                        console.log(`Submitted transacion for roll ${i+1}.`);
+                    })
+                    .wait(100);
+            });
+                
+            tester
+                .doFn(() => {
+                    console.log("Mining block now...");
+                    testUtil.mineBlocks(1);
+                    testUtil.startMining();
+                    console.log(txs);
+                    return Promise.all(txs).then((txResArr)=>{
+                        const tx1res = txResArr[0];
+                        const block = web3.eth.getBlock(tx1res.receipt.blockNumber);
+                        if (block.transactions.length != txs.length)
+                            throw new Error(`Block has ${block.transactions.length} txs, expected ${txs.length}.`);
+                        txResArr.forEach((txRes,i)=>{
+                            if (block.transactions[0]!=txRes.tx)
+                                throw new Error(`Incorrect order: tx[${i}] was not in block.transactios[${i}]`);
+                        });
+                        
+                        // fix logs bug (all logs included in all receipts/logs)
+                        txResArr.forEach((txRes)=>{
+                            const hash = txRes.tx;
+                            txRes.receipt.logs = txRes.receipt.logs.filter((l)=>l.transactionHash == hash);
+                            txRes.logs = txRes.logs.filter((l)=>l.transactionHash == hash);
+                        })
+                        console.log("All txs executed on same block, in expected order.");
+                    });
+                })
+
+            return tester.start();
+        })
     })
 
     async function getExpectedProfits() {
@@ -308,7 +364,7 @@ describe('InstaDice', function(){
         const result = computeResult(blockHash, id);
         const didWin = !result.gt(roll.number);
         const expPayout = didWin && !roll.isPaid
-            ? computePayout(roll.number, roll.bet)
+            ? computePayout(roll.bet, roll.number)
             : new BigNumber(0);
         const logCount = (!isResolved ? 1 : 0) + (expPayout.gt(0) ? 1 : 0);
         console.log(`IsResolved: ${isResolved}, expPayout: ${expPayout}`);
@@ -344,7 +400,7 @@ describe('InstaDice', function(){
 
         const expId = curId.plus(1);
         const expBlock = testUtil.getBlockNumber()+1;
-        const expPayout = computePayout(number, bet);
+        const expPayout = computePayout(bet, number);
         const expTotalWagered = totalWagered.plus(bet);
         var expBankroll = curBankroll.minus(expPayout).plus(bet);
         var expUserWinnings = new BigNumber(0);
@@ -358,7 +414,7 @@ describe('InstaDice', function(){
         if (hasPrevRoll) {
             expNumLogs++;
             const blockHash = (await testUtil.getBlock(prevRoll.block)).hash;
-            const prevPayout = computePayout(prevRoll.number, prevRoll.bet);
+            const prevPayout = computePayout(prevRoll.bet, prevRoll.number);
             expPrevResult = computeResult(blockHash, prevRoll.id);
             expPrevPayout = expPrevResult.gt(prevRoll.number)
                 ? new BigNumber(0)
@@ -504,7 +560,7 @@ describe('InstaDice', function(){
         return bn.mod(100).plus(1);
     }
 
-    function computePayout(number, bet) {
+    function computePayout(bet, number) {
         return (new BigNumber(100)).div(number).mul(bet).mul(10000-FEE_BIPS).div(10000).round();
     }
 });

@@ -24,8 +24,10 @@ contract InstaDice is
 	uint128 public totalWagered;
 	uint128 public totalWon;
 	uint32 public curId;
-	// maybe changed 
-	uint32[] public unresolvedRolls;
+
+	// a queue of unresolved rolls.
+	uint32 public unresolvedRollsPtr;
+	uint[] public unresolvedRolls;
 
 	// if bankroll is ever above this, we can send profits
 	uint128 public minBankroll;
@@ -146,10 +148,10 @@ contract InstaDice is
 	    	return;
 	    }
 	    
-	    // resolve the last roll
-	    resolveRoll(curId, true);
+	    // resolve the last roll, or add it to unresolvedRolls
+	    resolveRoll(curId);
 	    
-	    // add this as the current roll
+	    // increment curId, add a new roll
 	    curId++;
 	    rolls[curId] = Roll({
 	        id: curId,
@@ -162,6 +164,7 @@ contract InstaDice is
 	    });
 
 	    // bankroll loses the _payout, but gains the bet
+	    // bankroll will be freed up when roll is resolved.
 	    totalWagered += _bet;
 	    bankroll = bankroll - _payout + uint128(msg.value);
 	    RollWagered(now, curId, msg.sender, _bet, _number);
@@ -179,9 +182,11 @@ contract InstaDice is
 	function payoutRoll(uint32 _id)
 		public
 	{
-		// resolve the roll, make sure payout > 0 and isPaid is false.
+		// do not resolve if its unresolvable.
 		Roll storage r = rolls[_id];
-		uint _payout = resolveRoll(_id, false);
+		if (r.block == block.number) return;
+		// resolve, and quit if it's paid or nothing to payout.
+		uint _payout = resolveRoll(_id);
 		if (r.isPaid || _payout == 0) return;
 		
 		// set it as paid, try to send, and rollback on failure.
@@ -195,21 +200,29 @@ contract InstaDice is
 		}
 	}
 
-	// Resolves a number of unresolved rolls, shifting them all over.
+	// Resolves a number of unresolved rolls
 	function resolveUnresolvedRolls(uint _num)
 		public
-		returns (uint)
+		returns (uint32 _numResolved)
 	{
-		uint _len = unresolvedRolls.length;
+		// only resolve up to the current length
+		uint _len = (unresolvedRolls.length - unresolvedRollsPtr);
 		if (_len == 0) return;
-		if (_len > _num) _num = _len;
+		if (_num > _len) _num = _len;
+
+		uint32 _rollId;
 		for (uint _i = 0; _i < _num; _i++) {
-			resolveRoll(unresolvedRolls[_i], false);
-			if (_i + _num < _len)
-				unresolvedRolls[_i] = unresolvedRolls[_i + _num];
+			// quit loop if we can't resolve this one.
+			_rollId = uint32(unresolvedRolls[unresolvedRollsPtr + _i]);
+			if (rolls[_rollId].block == block.number) break;
+			// resolve, delete, and increment count.
+			resolveRoll(_rollId);
+			delete unresolvedRolls[unresolvedRollsPtr + _i];
+			_numResolved++;
 		}
-		unresolvedRolls.length -= _num;
-		return _num;
+		// update our pointer and return.
+		unresolvedRollsPtr += _numResolved;
+		return _numResolved;
 	}
 	
 	// Increase minBankroll and bankroll by whatever value is sent
@@ -229,7 +242,7 @@ contract InstaDice is
 	// Returns the amount of this roll won for the user.
 	// Note: Cannot resolve rolls on the same block.
 	//       They are moved to an array to be cleaned up later.
-	function resolveRoll(uint32 _id, bool _addUnresolvable)
+	function resolveRoll(uint32 _id)
 		private
 		returns (uint128)
 	{
@@ -239,12 +252,10 @@ contract InstaDice is
 	    if (r.id == 0) return;
 	    // can't resolve right now -- push to unresolvable
 	    if (r.block == block.number) {
-	    	if (_addUnresolvable) {
-	    		unresolvedRolls.push(_id);
-	    	}
+	    	unresolvedRolls.push(_id);
 	    	return;
 	    }
-	    // already resolved. return the result.
+	    // already resolved. return the payout owed.
 	    if (r.result != 0){ 
 	    	return r.result <= r.number
 	    		? computePayout(r.bet, r.number)
@@ -314,6 +325,14 @@ contract InstaDice is
 		return getRollResult(_id) <= r.number
 			? computePayout(r.bet, r.number)
 			: 0;
+	}
+
+	function getNumUnresolvedRolls()
+		public
+		constant
+		returns (uint)
+	{
+		return unresolvedRolls.length - unresolvedRollsPtr;
 	}
 
 	function getProfits()

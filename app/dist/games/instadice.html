@@ -4,9 +4,6 @@
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/games/instadice.js"></script>
 		<style>
-			#Summary {
-				padding: 10px 30px 30px 30px;
-			}
 			.field {
 				padding: 2px;
 			}
@@ -25,6 +22,146 @@
 				padding: 2px 4px;
 				font-size: 80%;
 			}
+
+			@keyframes glowGreen {
+				from {
+					background-color: #0C0;
+					box-shadow: 0px 0px 10px 1px green;
+				}
+				to {
+					background-color: #DFD;
+					box-shadow: 0px 0px 3px 0px gray;
+				}
+			}
+			.roll {
+				margin: 20px;
+				border: 1px solid gray;
+				border-radius: 5px;
+				box-shadow: 0px 0px 10px 0px gray;
+			}
+			.roll.pending {
+				background-color: #DFD;
+				animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
+			}
+			.roll.failed {
+				border: 1px solid #F88;
+				box-shadow: 0px 0px 10px 0px red;	
+			}
+			.roll.won {
+				box-shadow: 0px 0px 10px 0px green;
+				border-color: green;
+			}
+			.roll.refunded {
+				box-shadow: 0px 0px 10px 0px #bbbb52;
+				border-color: #bbbb52;	
+			}
+
+			.roll .info {
+				box-sizing: border-box;
+				display: table;
+				width: 100%;
+				background: #EEE;
+				padding: 3px 4px;
+				border-bottom: 1px solid gray;
+				border-radius: inherit;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+				.roll .header {
+					display: table-cell;
+					text-align: left;
+					font-size: 90%;
+					text-shadow: 1px 1px 0px white;
+				}
+				.roll .betValue, .roll .numberValue, .roll .payoutValue {
+					font-weight: bold;
+					padding-right: 5px;
+				}
+				.roll .mined {
+					display: table-cell;
+					text-align: right;
+					font-size: 80%;
+					color: #555;
+				}
+			.roll .status {
+				padding: 5px;
+			}
+				.roll .reason {
+					font-weight: bold;
+					color: gray;
+				}
+
+			.roll .result {
+				display: table;
+			}
+				.roll .result > .left {
+					display: table-cell;
+					vertical-align: middle;
+					padding: 10px;
+				}
+				.roll .result > .middle {
+					display: table-cell;
+					vertical-align: middle;
+					padding: 10px;
+				}
+				.roll .result > .right {
+					display: table-cell;
+					font-size: 90%;
+					vertical-align: middle;
+					text-align: center;
+					padding: 10px;
+					width: 100%;
+				}
+
+			.roll .rollicon {
+				background: #EEE;
+				padding: 3px;
+				border-radius: 10px;
+				border: 1px solid #EEE;
+				box-shadow: 2px 2px 2px 0px gray;
+				min-width: 60px;
+				text-align: center;
+			}
+			.roll.won .rollicon {
+				background: #EFE;
+			}
+			.roll .rollicon .rollnumber {
+				margin-top: -5px;
+				font-size: 300%;
+			}
+			.roll .rollicon .label {
+				margin-top: -5px;
+				font-size: 70%;
+				text-align: center;
+			}
+
+			.roll .won {
+				font-weight: bold;
+				font-style: italic;
+			}
+			.roll .lost {
+				white-space: nowrap;
+			}
+			.roll .lostMsg {
+				font-style: italic;
+				color: gray;
+			}
+			.roll .warning {
+				display: inline-block;
+				border: 1px solid #FDD;
+				background: #EEE;
+				padding: 3px;
+				font-size: 80%;
+				border-radius: 5px;
+				color: #666;
+			}
+			.roll .claim {
+				font-size: 150%;
+				color: green;
+				font-weight: bold;
+				padding: 3px;
+				margin: 10px;
+			}
 		</style>
 	</head>
 	<body>
@@ -32,8 +169,100 @@
 		<div class="section title">
 			InstaDice
 		</div>
+		<style>
+			.featureBox {
+				box-sizing: border-box;
+				width: 100%;
+				display: table;
+				background: linear-gradient(to bottom, #BCB 0%, #4A4 100%);
+				padding: 15px 0px;
+				margin: 0px 0px 25px 0px;
+			}
+			.featureBox > .left {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .middle {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .right {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox .block {
+				margin: 0px 40px;
+				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
+			}
+			@keyframes featureGlow {
+				from { text-shadow: 0px 0px 10px lime; }
+				to { text-shadow: 0px 0px 4px green; }
+			}
+			.featureBox .title {
+				text-align: center;
+				font-weight: bold;
+				font-size: 180%;
+				color: #FAFAFA;
+				padding-bottom: 4px;
+				text-shadow: 0px 0px 5px green;
+				animation: featureGlow 3s 0s infinite ease-in-out alternate;
+			}
+			.featureBox .feature {
+				display: inline-block;
+				font-size: 90%;
+				margin: 4px 0px;
+				font-weight: bold;
+
+			}
+			.featureBox .tipLeft::before {
+				background: #ACA;
+			}
+		</style>
 		<div id="Summary">
-			Estoll the benefits of InstaDice here.
+			<div class="featureBox">
+				<div class="left">
+					<div class="block">
+						<div class="title">Fast</div>
+						<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
+							No deposit, no sign-up
+						</div><br>
+						<div class="feature tipLeft" title="See your results as soon as your transaction is in the blockchain. Typically around 15 seconds.">
+							See your results instantly
+						</div><br>
+						<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
+							Responsive UI
+						</div>
+					</div>
+				</div>
+				<div class="middle">
+					<div class="block">
+						<div class="title">Fair</div>
+						<div class="feature tipLeft" title="Our random numbers come from the blockchain, not from a third party.">
+							Results based on blockhash
+						</div><br>
+						<div class="feature tipLeft" title="You can read over our fully annotated source code.">
+							Fully transparent contract
+						</div>
+					</div>
+				</div>
+				<div class="right">
+					<div class="block">
+						<div class="title">The Best</div>
+						<div class="feature tipLeft" title="Our house fee is just 1%.">
+							The best odds
+						</div><br>
+						<div class="feature tipLeft" title="No more waiting multiple blocks for your results. As soon as your wager is confirmed on the blockchain, you can see the results!">
+							The fastest results
+						</div><br>
+						<div class="feature tipLeft" title="We strive to keep the gas cost low. A typical roll is 122,000 gas, far lower than our competitors.">
+							The lowest gas cost
+						</div><br>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="subsection">
 			<div class="head">
@@ -99,146 +328,7 @@
 			</div>
 		</div>
 
-		<style>
-			@keyframes glowGreen {
-				from {
-					background-color: #0C0;
-					box-shadow: 0px 0px 10px 0px green;
-				}
-				to {
-					background-color: #DFD;
-					box-shadow: 0px 0px 3px 0px gray;
-				}
-			}
-			.roll {
-				margin: 20px;
-				border: 1px solid gray;
-				border-radius: 5px;
-				box-shadow: 0px 0px 10px 0px gray;
-			}
-			.roll.pending {
-				/*display: inline-block;*/
-				background-color: #DFD;
-				animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
-			}
-			.roll.failed {
-				border: 1px solid #F88;
-				box-shadow: 0px 0px 10px 0px red;	
-			}
-			.roll.won {
-				box-shadow: 0px 0px 10px 0px green;
-				border-color: green;
-			}
-			.roll.refunded {
-				box-shadow: 0px 0px 10px 0px #bbbb52;
-				border-color: #bbbb52;	
-			}
-
-			.roll .info {
-				box-sizing: border-box;
-				display: table;
-				width: 100%;
-				background: #EEE;
-				padding: 3px 4px;
-				border-bottom: 1px solid gray;
-				border-radius: inherit;
-				border-bottom-left-radius: 0;
-				border-bottom-right-radius: 0;
-			}
-				.roll .header {
-					display: table-cell;
-					text-align: left;
-					font-size: 90%;
-					text-shadow: 1px 1px 0px white;
-				}
-				.roll .betValue, .roll .numberValue, .roll .payoutValue {
-					font-weight: bold;
-					padding-right: 5px;
-				}
-				.roll .mined {
-					display: table-cell;
-					text-align: right;
-					font-size: 80%;
-				}
-			.roll .status {
-				padding: 5px;
-			}
-				.roll .reason {
-					font-weight: bold;
-					color: gray;
-				}
-
-			.roll .result {
-				display: table;
-			}
-				.roll .result > .left {
-					display: table-cell;
-					vertical-align: middle;
-					padding: 10px;
-				}
-				.roll .result > .middle {
-					display: table-cell;
-					vertical-align: middle;
-					padding: 10px;
-				}
-				.roll .result > .right {
-					display: table-cell;
-					font-size: 90%;
-					vertical-align: middle;
-					text-align: center;
-					padding: 10px;
-					width: 100%;
-				}
-
-			.roll .rollicon {
-				background: #EEE;
-				padding: 3px;
-				border-radius: 10px;
-				box-shadow: 2px 2px 2px 0px gray;
-				min-width: 60px;
-				text-align: center;
-			}
-			.roll.won .rollicon {
-				background: #EFE;
-			}
-			.roll .rollicon .rollnumber {
-				margin-top: -5px;
-				font-size: 300%;
-			}
-			.roll .rollicon .label {
-				margin-top: -5px;
-				font-size: 70%;
-				text-align: center;
-			}
-
-			.roll .won {
-				font-weight: bold;
-				font-style: italic;
-			}
-			.roll .lost {
-				white-space: nowrap;
-			}
-			.roll .lostMsg {
-				font-style: italic;
-				color: gray;
-			}
-			.roll .warning {
-				display: inline-block;
-				border: 1px solid #FDD;
-				background: #EEE;
-				padding: 3px;
-				font-size: 80%;
-				border-radius: 5px;
-				color: #666;
-			}
-			.roll .claim {
-				font-size: 150%;
-				color: green;
-				font-weight: bold;
-				padding: 3px;
-				margin: 10px;
-			}
-		</style>
+		
 		<div class="roll template" style="display: none;">
 			<div class="info">
 				<div class="header">
@@ -258,7 +348,7 @@
 					Waiting for a transaction id...
 				</div>
 				<div class="pending">
-					Your wager is making it's way to the blockchain.
+					Your wager is making its way to the blockchain.
 					<span class="pendingTxLink"></span>
 				</div>
 				<div class="failed">
@@ -286,7 +376,7 @@
 				<div class="right">
 					<div class="waiting">
 						<div>
-							You'll receive your winnings on the next roll.
+							You'll receive your winnings when anyone rolls.
 							<br>If you'd like, you can claim your winnings now:
 							<br><button class="claim">Claim Winnings</button>
 						</div>

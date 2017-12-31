@@ -16,7 +16,7 @@ Loader.require("dice")
 		bet = (new BigNumber($bet.val())).mul(1e18);
 		number = new BigNumber($number.val());
 		trackResult(
-			dice.roll({_number: number}, {value: bet, gas: 138000}),
+			dice.roll({_number: number}, {value: bet, gas: 147000}),
 			bet,
 			number
 		);
@@ -184,12 +184,20 @@ Loader.require("dice")
 
     const _msgs = [
     	"Don't give up so easily...",
+    	"Don't give up so easily...",
+    	"Don't give up so easily...",
+    	"Don't give up so easily...",
+    	"Don't give up so easily...",
+    	"Better luck next time",
+    	"Better luck next time",
+    	"Better luck next time",
+    	"Better luck next time",
     	"Better luck next time",
     	"You can shake it off",
-    	"Never say 'die'",
     	"Stay strong",
     	"Believe in yourself",
     	"Follow your dreams",
+    	"You'll win next time... maybe.",
     	"You're just a tiny bit unlucky",
     	"Let's pretend like this never happened.",
     	"By tomorrow, you'll forget all about this.",
@@ -198,6 +206,9 @@ Loader.require("dice")
     	"At least you still have your health.",
     	"Some things just weren't meant to be.",
     	"It's not the end of the world",
+    	"Just do it!!!",
+    	"Are you gonna do something about it?",
+    	"It's not such a big deal.",
     ];
     function getLoseMsg(num) {
     	return _msgs[num % _msgs.length];
@@ -291,6 +302,7 @@ Loader.require("dice")
 		const $won = $result.find(".won").hide();
 		const $lost = $result.find(".lost").hide();
 		const $rollnumber = $result.find(".rollnumber");
+		const $button = $result.find(".claim");
 		
 		const result = computeResult(roll.created.blockHash, roll.id);
 		const didWin = !result.gt(number);
@@ -298,6 +310,7 @@ Loader.require("dice")
 		if (didWin) {
 			$e.addClass("won");
 			$won.show();
+			$button.click(()=>{ dice.payoutRoll([roll.id], {gas: 55000}); })
 		} else {
 			$e.addClass("lost");
 			$lost.show();
@@ -321,7 +334,8 @@ Loader.require("dice")
 				$paymentFailure.show();
 			}
 		} else {
-			$lostMsg.show().text(getLoseMsg(roll.id));
+			const rand = (new BigNumber(roll.created.txId)).mod(1000).toNumber();
+			$lostMsg.show().text(getLoseMsg(rand));
 		}
 		avgBlockTime.then((blocktime)=>{
 			const blocksLeft = 255 - (curBlockNum - roll.created.blockNumber);
