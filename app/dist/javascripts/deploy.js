@@ -342,7 +342,7 @@ Loader.promise.then(function(reg){
 		util.bindToElement(reg.addressOf({_name: "MAIN_CONTROLLER"}), $("#RegMc"));
 		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_CONTROLLER"}), $("#RegPac"));
 		util.bindToElement(reg.addressOf({_name: "PENNY_AUCTION_FACTORY"}), $("#RegPaf"));
-		util.bindToElement(reg.addressOf({_name: "DICE"}), $("#RegDice"));
+		util.bindToElement(reg.addressOf({_name: "INSTADICE"}), $("#RegDice"));
 	});
 	$("#RegSetAdmin").click(function(){
 		alert("Not set up to work with Custodial Admin");
@@ -631,7 +631,8 @@ Loader.promise.then(function(reg){
 			wallet = CustodialWallet.at(walletAddress);
 			console.log("Loaded wallet and registry. Registering now.");
 		}).then(()=>{
-			return registerAddress(reg, wallet, "INSTADICE", diceAddr);
+			return registerAddress(reg, wallet, "INSTADICE", diceAddr)
+				.then(()=>{ alert("Successfully set."); });
 		}).catch(function(e){
 			console.error(e);
 			alert(`Failed to register: ${e.message}`);

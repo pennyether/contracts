@@ -93,23 +93,40 @@
 				return (abi.type === 'event' && 
 					event.topics[0].startsWith(_ethAbi.encodeSignature(abi)));
 			});
-			if (!def){ return null; }
-			// update the event to have nice names.
-			event.name = def['name'];
-			try {
-				event.args = _ethAbi.decodeEvent(def, event.data, event.topics, false);
-			} catch (e){
-				console.log("Failed to decode event:", event, "With abi:", def);
+			if (!def){
+				console.error("No matching event name for this topic.", event.topics[0], abi);
 				return null;
 			}
-			event.argStrs = {};
-			def.inputs.forEach((i) => {
-				event.argStrs[i.name] = _self.inputToString(i.name, i.type, event.args[i.name]);
-			});
-			delete event.data;
-			delete event.topics;
+			// update the event to have nice names.
+			event.name = def['name'];
+			event.blockNumber = (new BigNumber(event.blockNumber)).toNumber();
+			event.logIndex = (new BigNumber(event.logIndex)).toNumber();
+			event.transactionIndex = (new BigNumber(event.transactionIndex)).toNumber();
+			try {
+				event.args = _ethAbi.decodeEvent(def, event.data, event.topics, false);
+				delete event.data;
+			} catch (e){
+				console.error("Failed to decode event:", event, "With abi:", def);
+				return null;
+			}
 			return event;
 		};
+
+		this.getEventSignature = function(eventDef) {
+			const name = eventDef.name;
+			const types = eventDef.inputs.map(input=>input.type);
+			const str = `${name}(${types.join(',')})`;
+			return web3.sha3(str);
+		}
+		this.toBytesStr = function(num, bytes) {
+            const targetLen = Math.ceil(bytes * 2);
+            var hexStr = num.toString(16);
+            if (hexStr.startsWith("0x")) hexStr = hexStr.slice(2);
+            if (hexStr.length > targetLen)
+                throw new Error(`Cannot convert ${num} to bytes${bytes}, it's too large.`);
+            const zeroes = (new Array(targetLen-hexStr.length+1)).join("0");
+            return `${zeroes}${hexStr}`;
+		}
 
 		// formats a named input value to a string
 		this.inputToString = function(name, type, val) {

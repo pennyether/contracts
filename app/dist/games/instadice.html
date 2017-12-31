@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="/javascripts/lib/Loader.js"></script>
+		<script src="/javascripts/games/instadice.js"></script>
+		<style>
+			#Summary {
+				padding: 10px 30px 30px 30px;
+			}
+			.field {
+				padding: 2px;
+			}
+			.field .label {
+				display: inline-block;
+				width: 160px;
+			}
+			.field .value {
+				display: inline-block;
+				padding: 4px;
+			}
+			.field .note {
+				color: gray;
+				background: #EEE;
+				border-radius: 3px;
+				padding: 2px 4px;
+				font-size: 80%;
+			}
+		</style>
+	</head>
+	<body>
+	<div id="Content">
+		<div class="section title">
+			InstaDice
+		</div>
+		<div id="Summary">
+			Estoll the benefits of InstaDice here.
+		</div>
+		<div class="subsection">
+			<div class="head">
+				Place your bet
+			</div>
+			<div class="body">
+				<div class="field wager">
+					<div class="label tipLeft" title="How much you want to wager.">
+						Your Wager:
+					</div>
+					<div class="value">
+						<input type="text" size=5 value=".01" id="Bet"> ETH
+						<span class="note">Min: .01, Max: .05</span>
+					</div>
+				</div>
+				<div class="field number">
+					<div class="label tipLeft" title="The roll will be between 1 and 100. If it's less than or equal to your number, you win!">
+						Roll Number:
+					</div>
+					<div class="value">
+						<input type=text size=3 value="50" id="Number">
+						<span class="note">Min: 5, Max: 99</span>
+					</div>
+				</div>
+				<div class="field payout">
+					<div class="label tipLeft" title="Your odds of winning">
+						Odds:
+					</div>
+					<div class="value" id="Odds"></div>
+				</div>
+				<div class="field payout">
+					<div class="label tipLeft" title="How much you stand to win.">
+						Payout:
+					</div>
+					<div class="value" id="Payout"></div>
+				</div>
+				<div class="field bet">
+					<div class="label tipLeft" title="Place your bet, and see your result as soon as it's confirmed!">
+						Bet
+					</div>
+					<div class="value">
+						<button id="PlaceBet">Place your bet!</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="subsection">
+			<div class="head">
+				See Your Results
+			</div>
+			<div class="body">
+				Place a bet above to see your results instantly!
+				<div class="result template">
+					<div class="status">
+						<div class="waiting"></div>
+						<div class="mining"></div>
+						<div class="error"></div>
+					</div>
+					<div class="summary">
+						Date, Block, Wager, Number
+					</div>
+				</div>
+				<div class="pendingRolls"></div>
+				<div class="trackedRolls"></div>
+			</div>
+		</div>
+		<div class="subsection">
+			<div class="head">
+				<div class="left">Your recent roll history</div>
+				<div class="right">
+					Last
+					<select>
+						<option>256</option>
+						<option>128</option>
+						<option>64</option>
+						<option>32</option>
+						<option>16</option>
+					</select>
+					Blocks
+				</div>
+			</div>
+			<div class="body">
+				<div class="recentRolls"></div>
+			</div>
+		</div>
+
+		<style>
+			@keyframes glowGreen {
+				from { background-color: #0C0; }
+				to { background-color: #DFD; }
+			}
+			.roll {
+				margin: 20px;
+				border: 1px solid gray;
+				border-radius: 5px;
+				box-shadow: 0px 0px 10px 0px gray;
+			}
+			.roll .info {
+				box-sizing: border-box;
+				display: table;
+				width: 100%;
+				background: #EEE;
+				padding: 3px 4px;
+				border-bottom: 1px solid gray;
+				border-radius: inherit;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+				.roll .header {
+					display: table-cell;
+					text-align: left;
+					font-size: 90%;
+					text-shadow: 1px 1px 0px white;
+				}
+				.roll .betValue, .roll .numberValue, .roll .payoutValue {
+					font-weight: bold;
+					padding-right: 5px;
+				}
+				.roll .mined {
+					display: table-cell;
+					text-align: right;
+					font-size: 80%;
+				}
+			.roll .status {
+				padding: 5px;
+			}
+				.roll .pending {
+					display: inline-block;
+					padding: 2px 4px;
+					border-radius: 3px;
+					background-color: #DFD;
+					animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
+				}
+				.roll .reason {
+					font-weight: bold;
+					color: gray;
+				}
+
+			.roll.won {
+				box-shadow: 0px 0px 10px 0px green;
+				border-color: green;
+			}
+			.roll.refunded {
+				box-shadow: 0px 0px 10px 0px #bbbb52;
+				border-color: #bbbb52;	
+			}
+
+			.roll .result {
+				padding: 5px;
+			}
+				.roll .result .rollnumber {
+					
+				}
+				.roll .won .rollnumber {
+					font-weight: bold;
+					color: green;
+				}
+		</style>
+		<div class="roll template">
+			<div class="info">
+				<div class="header">
+					<span class="betLabel">Bet:</span>
+					<span class="betValue"></span>
+					<span class="numberLabel">Number:</span>
+					<span class="numberValue"></span>
+					<span class="payoutLabel">Payout:</span>
+					<span class="payoutValue"></span>
+				</div>
+				<div class="mined">
+					Mined in block #348943 (Sat, Dec 30, 5:58:20 pm)
+				</div>
+			</div>
+			<div class="status">
+				<div class="pending">
+					Your wager is making it's way to the blockchain...
+				</div>
+				<div class="refund">
+					Your wager was refunded because: <span class="reason">Not enough payroll.</span>
+				</div>
+			</div>
+			<div class="result">
+				<div class="rollnumber">
+					<span class="rollnumber tipLeft" title="Rollnumber was sha3(blockhash, 58) % 100 + 1 = 0xAF...AF % 100 + 1 = ...167 % 100 + 1 = 67 + 1 = 68">Roll was 76.</span>
+				</div>
+				<div class="lost">
+					<span class="msg">Sorry. You lost. Try again!</span>
+				</div>
+				<div class="won">
+					<div class="claim">
+						<!-- if id==curId -->
+						<button>Claim Payout</button> or wait for someone else to roll.
+						<div class="blocksLeft">
+							You have <span class="">200 blocks</span> remaining before this roll cannot be claimed.
+						</div>
+					</div>
+					<div class="mustClaim">
+						<button>Claim Payout</button>
+						<div class="blocksLeft">
+							You have <span class="">200 blocks</span> remaining before this roll cannot be claimed.
+						</div>
+						<!-- if id!=curId and .result==0 -->
+					</div>
+					<div class="paid">
+						Your winnings have been paid!
+						<!-- if isPaid -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</body>
+</html>

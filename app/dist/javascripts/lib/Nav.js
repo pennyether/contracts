@@ -34,8 +34,8 @@
 					name: "Penny Auctions",
 					url: "/games/pennyauctions.html"
 				},{
-					name: "Dice (soon)",
-					url: "/games/dice.html"
+					name: "InstaDice",
+					url: "/games/instadice.html"
 				},{
 					name: "Rewards",
 					url: "/games/rewards.html"

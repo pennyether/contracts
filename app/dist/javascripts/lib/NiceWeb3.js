@@ -39,9 +39,47 @@
 					const e = new Error("Unable to decode some events:");
 					console.error(e, {instance: instance, unknownEvents: arr[1]});
 				}
+				const ret = arr[0];
 				return arr[0];
 			});
 		};
+		// gets all events matching a topic
+		this.getEvents = function(instance, name, filter, fromBlock, toBlock) {
+			filter = filter || {};
+			const def = instance.abi.find((def)=>def.type=="event" && def.name==name);
+			if (!def) throw new Error(`${instance._getName()} has no "${name}" event.`);
+			// first topic is the signature of the event
+			const topics = [ethUtil.getEventSignature(def, name)];
+			const indexedInputs = def.inputs.filter(input=>input.indexed);
+			// ensure each filter provided is an indexedInput
+			Object.keys(filter).forEach(inputName=>{
+				if (!indexedInputs.find(input=>input.name==inputName))
+					throw new Error(`${instance._getName()} ${name} event has no index on ${inputName}.`);
+			});
+			// for each indexed input, add to topics array as null or our value
+			indexedInputs.forEach(input=>{
+				const topicValue = filter.hasOwnProperty(input.name)
+					? "0x"+ethUtil.toBytesStr(filter[input.name], 32)
+					: null;
+				topics.push(topicValue);
+			});
+			
+			// do it.
+			return _ethUtil.sendAsync("eth_getLogs", [{
+				address: instance.address,
+				fromBlock: fromBlock ? web3.toHex(fromBlock) : web3.toHex(0),
+				toBlock: toBlock ? web3.toHex(toBlock) : "latest",
+				topics: topics
+			}]).then((events)=>{
+				const arr = _self.decodeKnownEvents(events);
+				if (arr[0].length !== events.length){
+					const e = new Error("Unable to decode some events:");
+					console.error(e, {instance: instance, unknownEvents: arr[1]});
+				}
+				const ret = arr[0];
+				return arr[0];
+			});
+		}
 		// will decode events where the address matches a known instance
 		// and that instance has the topic in its ABI
 		this.decodeKnownEvents = function(events) {
@@ -53,6 +91,14 @@
 				if (!instance) { unknownEvents.push(event); return; }
 				// decode it
 				const decodedEvent = _ethUtil.decodeEvent(event, instance.abi);
+				// convert any BigNumbers into our BigNumber
+				if (decodedEvent) {
+					Object.keys(decodedEvent.args).forEach((key)=>{
+						const val = decodedEvent.args[key];
+						if (val && val.toNumber)
+							decodedEvent.args[key] = new BigNumber(val);
+					});
+				}
 				decodedEvent
 					? knownEvents.push(decodedEvent)
 					: unknownEvents.push(event);
@@ -104,7 +150,6 @@
 		// Returns a NiceContract instance, which is:
 		//	- a regular web3 contract instance
 		//	- all transactional calls return promises
-		//	- all constant calls... um... fail I guess.
 		//	- can decode events, provided the addresses matchh
 		this.at = function(address) {
 			if (typeof address!=='string' || address.length!==42)
@@ -112,7 +157,10 @@
 			// create standard web3 instance
 			const _contractFactory = _self.contract;
 			const instance = _contractFactory.at.call(_contractFactory, address);
-			instance.niceContractFactory = _self;
+			// add on useful things
+			instance.type = _self;
+			instance._getName = () => _self.contractName;
+			instance._getFullName = () => `${_self.contractName}@${instance.address}`;
 			// attach a bunch of useful functions...
 			// you know, that return actual promises and useful results.
 			abi.filter(def=>def.type==='function').forEach(def=>{
@@ -120,18 +168,17 @@
 				const oldCall = oldFn.bind(instance);
 				instance[def.name] = getCallFn(oldCall, def, instance, def.constant);
 				if (oldFn.estimateGas){
-					const oldEstGas = oldFn.estimateGas.bind(oldFn);
-					instance[def.name].estimateGas = getCallFn(oldEstGas, def, instance, true);
+					const oldCall = oldFn.estimateGas.bind(oldFn);
+					instance[def.name].estimateGas = getCallFn(oldCall, def, instance, true);
 				}
 				if (oldFn.call){
 					const oldCall = oldFn.call.bind(oldFn);
 					instance[def.name].call = getCallFn(oldCall, def, instance, true);
 				}
 				if (oldFn.getData) {
-					// this returns a promise because shitamask requires a callback.
-					// yes. a callback for a synchronous operation is REQUIRED.
-					const oldGetData = oldFn.getData.bind(oldFn);
-					instance[def.name].getData = getCallFn(oldGetData, def, instance, true, true);
+					// returns an immediate result, not a promise
+					const oldCall = oldFn.getData.bind(oldFn);
+					instance[def.name].getData = getCallFn(oldCall, def, instance, true, true);
 				}
 			});
 			// attach .sendTransaction()
@@ -146,6 +193,7 @@
 				.bind(instance, []);
 			// attach getAllEvents
 			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
+			instance.getEvents = (name, filter)=>niceWeb3.getEvents(instance, name, filter);
 			// add instance to known instances (so can parse events)
 			niceWeb3.addKnownInstance(instance);
 			//console.log(`Created ${contractName} @ ${instance.address}`);
@@ -260,7 +308,7 @@
 					(arr)=>{
 						const receipt = arr[0];
 						const tx = arr[1];
-						if (receipt.status === 0) {
+						if (receipt.status == 0 || receipt.status == "0x0") {
 							throw new Error(`Transaction failed (out of gas, or other error)`);
 						}
 
@@ -349,7 +397,7 @@
 				if (typeof val!=='string') { throw e; }
 				else if (!val.startsWith("0x")) { throw e; }
 				else if (val.length != 42) { throw e; }
-			} else if (type == "uint256") {
+			} else if (type.startsWith("uint") || type.startsWith("int")) {
 				try { const bn = new BigNumber(val); }
 				catch(_e){ throw e; }
 			} else if (type == "string" || type == "bytes32") {

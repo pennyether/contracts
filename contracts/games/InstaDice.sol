@@ -12,7 +12,7 @@ contract InstaDice is
 		address user;
 		uint64 bet;
 		uint8 number;
-	    uint32 resultBlock;
+	    uint32 block;
 		uint8 result;
 		bool isPaid;
 	}
@@ -39,7 +39,7 @@ contract InstaDice is
 	
 	// Events
 	event RollWagered(uint time, uint32 id, address indexed user, uint bet, uint8 number);
-	event RollRefunded(uint time, address indexed user, string msg);
+	event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
 	event RollResolved(uint time, uint32 id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
 	event PayoutSuccess(uint time, uint32 id, address indexed user, uint payout);
 	event PayoutFailure(uint time, uint32 id, address indexed user, uint payout);
@@ -124,10 +124,11 @@ contract InstaDice is
 	// Upon the next roll, user will automatically be sent payout
 	// Or they can call .collectPayout() manually.
 	modifier validateWager(uint8 _number) {
-		if (_number < minNumber) errorAndRefund("Roll number too small.");
-		else if (_number > maxNumber) errorAndRefund("Roll number too large.");
-		else if (msg.value < minBet) errorAndRefund("Bet too small.");
-		else if (msg.value > maxBet) errorAndRefund("Bet too large.");
+		uint _bet = msg.value;
+		if (_number < minNumber) errorAndRefund("Roll number too small.", _bet, _number);
+		else if (_number > maxNumber) errorAndRefund("Roll number too large.", _bet, _number);
+		else if (_bet < minBet) errorAndRefund("Bet too small.", _bet, _number);
+		else if (_bet > maxBet) errorAndRefund("Bet too large.", _bet, _number);
 		else _;
 	}
 	function roll(uint8 _number)
@@ -137,9 +138,9 @@ contract InstaDice is
 	{
 	    // make sure we have the bankroll to pay if they win
 	    uint64 _bet = uint64(msg.value);
-	    uint128 _payout = getPayout(_bet, _number);
+	    uint128 _payout = computePayout(_bet, _number);
 	    if (_payout > bankroll + msg.value) {
-	    	errorAndRefund("Bankroll too small.");
+	    	errorAndRefund("Bankroll too small.", _bet, _number);
 	    	return;
 	    }
 	    
@@ -151,7 +152,7 @@ contract InstaDice is
 	    rolls[curId] = Roll({
 	        id: curId,
 	        bet: _bet,
-	        resultBlock: uint32(block.number+1),
+	        block: uint32(block.number),
 	        user: msg.sender,
 	        number: _number,
 	        result: 0,
@@ -164,16 +165,16 @@ contract InstaDice is
 	    RollWagered(now, curId, msg.sender, _bet, _number);
 	}
 	// refunds user the full value, and logs an error
-	function errorAndRefund(string _msg)
+	function errorAndRefund(string _msg, uint _bet, uint8 _number)
 		private
 	{
 		require(msg.sender.call.value(msg.value)());
-		RollRefunded(now, msg.sender, _msg);
+		RollRefunded(now, msg.sender, _msg, _bet, _number);
 	}
 
 	// Pays out a user for a roll, if they won and .isPaid is false.
 	// They have 256 blocks to call this, unless someone else rolls first.
-	function collectPayout(uint32 _id)
+	function payoutRoll(uint32 _id)
 		public
 	{
 		// resolve the roll, make sure payout > 0 and isPaid is false.
@@ -213,18 +214,18 @@ contract InstaDice is
 	{
 	    Roll storage r = rolls[id];
 
-	    // if invalid roll, or result is already set, return.
-	    if (r.id == 0) return;
+	    // return if: invalid roll, block too early, or already resolved
+	    if (r.id == 0 || r.block == block.number) return;
 	    if (r.result != 0){ 
 	    	return r.result <= r.number
-	    		? getPayout(r.bet, r.number)
+	    		? computePayout(r.bet, r.number)
 	    		: 0;
 	    }
 	    
 	    // get the result, isWinner, and payout
-	    uint8 _result = getResultFromBlock(r.resultBlock);
+	    uint8 _result = computeResult(r.block, r.id);
 	    bool _isWinner = _result <= r.number;
-	    uint128 _payout = getPayout(r.bet, r.number);
+	    uint128 _payout = computePayout(r.bet, r.number);
 
 	    // update roll result so we know it's been resolved
 	    r.result = _result;
@@ -257,6 +258,9 @@ contract InstaDice is
 	///////////////////////////////////////////////////
 
 	// Return the result, or compute it and return it.
+	// Note: providers may compute the result incorrectly
+	//       due to a delay in updating block.blockhash().
+	//       This will cause a result of 101.
 	function getRollResult(uint32 _id)
 		public
 		constant
@@ -265,11 +269,14 @@ contract InstaDice is
 		require(_id <= curId && _id > 0);
 		Roll storage r = rolls[_id];
 		return r.result == 0
-			? getResultFromBlock(r.resultBlock)
+			? computeResult(r.block, _id)
 			: r.result;
 	}
 
 	// Returns how much payout resulted from a roll
+	// Note: providers may compute the result incorrectly
+	//       due to a delay in updating block.blockhash().
+	//       This will cause a result of 0.
 	function getRollPayout(uint32 _id)
 		public
 		constant
@@ -278,7 +285,7 @@ contract InstaDice is
 		require(_id <= curId && _id > 0);
 		Roll storage r = rolls[_id];
 		return getRollResult(_id) <= r.number
-			? getPayout(r.bet, r.number)
+			? computePayout(r.bet, r.number)
 			: 0;
 	}
 
@@ -299,20 +306,18 @@ contract InstaDice is
 
 	// Returns a number between 1 and 100 (inclusive)
 	// If blockNumber is too far past, returns 101.
-	function getResultFromBlock(uint32 _blockNumber)
+	function computeResult(uint32 _blockNumber, uint32 _id)
 		private
 		constant
 		returns (uint8 _result)
 	{
-		uint _hash = uint(block.blockhash(_blockNumber));
-		//uint _hash = uint(keccak256(_blockNumber));
-    	return _hash == 0
-    		? 101
-    		: uint8((_hash % 100) + 1);
+		bytes32 _blockHash = block.blockhash(_blockNumber);
+		if (_blockHash == 0) { return 101; }
+		return uint8(uint(keccak256(_blockHash, _id)) % 100 + 1);
 	}
 	
 	// Given a _bet amount and a roll _number, returns possible payout.
-	function getPayout(uint64 _bet, uint8 _number)
+	function computePayout(uint64 _bet, uint8 _number)
 	    private
 	    constant
 	    returns (uint128 _wei)
