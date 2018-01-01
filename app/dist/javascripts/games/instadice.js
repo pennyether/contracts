@@ -208,6 +208,7 @@ Loader.require("dice")
 			id: null,
 			bet: bet,
 			number: number,
+			payout: computePayout(bet, number)
 		};
 		var $e = $getRoll(roll).prependTo(_$currentRollsCtnr);
 
@@ -377,6 +378,7 @@ Loader.require("dice")
     	Object.values(_$lockedRolls).forEach($e=>$e.detach());
     	_$recentRollsCtnr.empty();
     	rolls.forEach((roll)=>{
+    		if (_$currentRolls[roll.id]) { return; }
     		const $roll = _$lockedRolls[roll.txId]
     			? _$lockedRolls[roll.txId]
     			: $getRoll(roll, curBlockNum);
