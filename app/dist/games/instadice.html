@@ -4,6 +4,107 @@
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/games/instadice.js"></script>
 		<style>
+
+			/*********************************************/
+			/******** TITLE AND FEATURES *****************/
+			/*********************************************/
+			#Title {
+				padding: 20px 0px 20px 0px;
+				background: white;
+				text-align: center;
+			}
+				#Title .sup {
+					font-size: 180%;
+					/*font-weight: bold;*/
+					letter-spacing: .25em;
+					animation: featureGlow 2s 0s infinite ease-in-out alternate;
+				}
+				#Title .sub {
+					font-size: 90%;
+					letter-spacing: .2em;
+				}
+
+			.featureBox {
+				box-sizing: border-box;
+				width: 100%;
+				display: table;
+				background: linear-gradient(to bottom, #BCB 0%, #4A4 100%);
+				padding: 15px 0px;
+				margin: 0px;
+			}
+			.featureBox > .left {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .middle {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .right {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox .block {
+				display: inline-block;
+				margin: 0px 40px;
+				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
+			}
+			@keyframes featureGlow {
+				from { text-shadow: 0px 0px 10px lime; }
+				to { text-shadow: 0px 0px 4px green; }
+			}
+			.featureBox .title {
+				text-align: center;
+				font-weight: bold;
+				font-size: 180%;
+				color: #FAFAFA;
+				padding-bottom: 4px;
+				text-shadow: 0px 0px 5px green;
+				animation: featureGlow 3s 0s infinite ease-in-out alternate;
+			}
+			.featureBox .feature {
+				display: inline-block;
+				font-size: 90%;
+				margin: 4px 0px;
+				font-weight: bold;
+
+			}
+			.featureBox .tipLeft::before {
+				background: #ACA;
+			}
+
+			.featureBox .stats {
+				text-align: center;
+				margin-top: 20px;
+				white-space: nowrap;
+			}
+			.featureBox .stats .stat {
+				display: inline-block;
+				text-align: center;
+				padding: 3px 5px;
+				border-radius: 5px;
+				background: rgba(200,200,200,.5);
+				border: 1px inset rgba(200,200,200,.5);
+			}
+			.featureBox .stats .stat .value {
+				font-size: 120%;
+				color: blue;
+				margin-bottom: -5px;
+				text-shadow: 0px 0px 5px white;
+			}
+			.featureBox .stats .stat .label {
+				display: inline-block;
+				font-size: 70%;
+				color: #666;
+			}
+			.featureBox .stats .wagered {
+				margin-left: 50px;
+				margin-right: 50px;
+			}
+
 			.field {
 				padding: 2px;
 			}
@@ -23,6 +124,163 @@
 				font-size: 80%;
 			}
 
+			/*********************************************/
+			/******** BET UI *****************************/
+			/*********************************************/
+			.betterCtnr {
+				background: linear-gradient(to bottom, #4A4 0%, #6C6 100%);
+				background: #4A4;
+				padding-top: 20px;
+				padding-bottom: 20px;
+			}
+			.better {
+				display: table;
+				position: relative;
+				box-sizing: border-box;
+				background: linear-gradient(to bottom, rgba(255,255,255,.9) 0%, rgba(255,255,255,.4) 100%);
+				border-radius: 10px;
+				border: 1px outset #CCC;
+				padding: 10px;
+				width: 800px;
+				margin: 0px auto;
+			}
+				.better .loader {
+					background: rgba(0, 0, 0, .3);
+				}
+				.better .loader .text {
+					font-size: 100%;
+					padding: 20px;
+					background: #DDD;
+					border: 1px solid gray;
+				}
+			.better > .left {
+				display: table-cell;
+				vertical-align: middle;
+			}
+			.better > .right {
+				display: table-cell;
+				vertical-align: middle;
+				width: 100%;
+			}
+			.wager,
+			.number {
+				display: table;
+				vertical-align: middle;
+				margin: 10px 0px;
+			}
+				.wager .value,
+				.number .value {
+					display: table-cell;
+					text-align: center;
+					margin: 5px 0px;
+				}
+					.better .topLabel {
+						color: #444;
+						width: 140px;
+						font-size: 100%;
+						font-weight: bold;
+					}
+					.better .bottomLabel {
+						font-size: 80%;
+						color: #444;
+					}
+				.better .slider {
+					display: table-cell;
+					vertical-align: middle;
+				}
+
+			.better .input {
+				display: block;
+				box-sizing: border-box;
+				width: 100%;
+				background: transparent;
+				padding: 0px 0px 0px 15px;
+				text-align: center;
+				font-size: 300%;
+				border: none;
+				color: green;
+				margin-top: -5px;
+				margin-bottom: -5px;
+			}
+			.better .input:focus {
+				outline: none;
+			}
+			.better .range {
+				width: 300px;
+				height: 40px;
+				cursor: pointer;
+			}
+
+			.better .summary {
+				text-align: center;
+			}
+			.better .summary .label {
+				font-weight: bold;
+			}
+			.better .summary .payout {
+				color: green;
+				font-size: 200%;
+			}
+			.better .summary .multiple {
+				font-size: 120%;
+				font-weight: bold;
+			}
+			.better .summary .odds {
+				color: gray;
+				font-weight: bold;
+			}
+			@keyframes buttonGlow {
+				from {
+					background-color: #0C0;
+					box-shadow: 0px 0px 10px 0px green;
+				}
+				to {
+					background-color: #3F3;
+					box-shadow: 0px 0px 10px 0px lime;
+				}
+			}
+			#RollButton {
+				margin-top: 10px;
+				font-size: 250%;
+				background: blue;
+				color: white;
+				padding: 0px 30px;
+				cursor: pointer;
+				border: none;
+				border-radius: 3px;
+				animation: buttonGlow 3s 0s infinite ease-in-out alternate;
+			}
+
+			.better .invalid {
+				text-align: center;
+			}
+			.better .invalid .msg {
+				display: inline-block;
+				font-size: 80%;
+				font-weight: bold;
+				width: 200px;
+				background: rgba(250,250,250,.8);
+				padding: 4px 5px;
+				border: 1px solid gray;
+				border-radius: 5px
+			}
+
+			/*********************************************/
+			/******** ROLLS ******************************/
+			/*********************************************/
+			.currentRolls {
+				margin-top: 40px;
+			}
+			.currentRolls .clear {
+				font-size: 80%;
+				color: blue;
+				cursor: pointer;
+				display: none;
+			}
+			.recentRolls {
+				margin-top: 40px;
+			}
+
 			@keyframes glowGreen {
 				from {
 					background-color: #0C0;
@@ -39,7 +297,8 @@
 				border-radius: 5px;
 				box-shadow: 0px 0px 10px 0px gray;
 			}
-			.roll.pending {
+			.roll.pending,
+			.roll.prepending {
 				background-color: #DFD;
 				animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
 			}
@@ -89,6 +348,12 @@
 				.roll .reason {
 					font-weight: bold;
 					color: gray;
+				}
+				.roll .status .prepending,
+				.roll .status .pending,
+				.roll .status .refunded,
+				.roll .status .failed {
+					padding: 4px;
 				}
 
 			.roll .result {
@@ -166,62 +431,11 @@
 	</head>
 	<body>
 	<div id="Content">
-		<div class="section title">
-			InstaDice
-		</div>
-		<style>
-			.featureBox {
-				box-sizing: border-box;
-				width: 100%;
-				display: table;
-				background: linear-gradient(to bottom, #BCB 0%, #4A4 100%);
-				padding: 15px 0px;
-				margin: 0px 0px 25px 0px;
-			}
-			.featureBox > .left {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox > .middle {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox > .right {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox .block {
-				margin: 0px 40px;
-				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
-			}
-			@keyframes featureGlow {
-				from { text-shadow: 0px 0px 10px lime; }
-				to { text-shadow: 0px 0px 4px green; }
-			}
-			.featureBox .title {
-				text-align: center;
-				font-weight: bold;
-				font-size: 180%;
-				color: #FAFAFA;
-				padding-bottom: 4px;
-				text-shadow: 0px 0px 5px green;
-				animation: featureGlow 3s 0s infinite ease-in-out alternate;
-			}
-			.featureBox .feature {
-				display: inline-block;
-				font-size: 90%;
-				margin: 4px 0px;
-				font-weight: bold;
-
-			}
-			.featureBox .tipLeft::before {
-				background: #ACA;
-			}
-		</style>
 		<div id="Summary">
+			<div id="Title">
+				<div class="sup">InstaDice</div>
+				<div class="sub">ethereum's only instant dice game</div>
+			</div>
 			<div class="featureBox">
 				<div class="left">
 					<div class="block">
@@ -229,8 +443,8 @@
 						<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
 							No deposit, no sign-up
 						</div><br>
-						<div class="feature tipLeft" title="See your results as soon as your transaction is in the blockchain. Typically around 15 seconds.">
-							See your results instantly
+						<div class="feature tipLeft" title="See the result as soon as your transaction is in the blockchain. Typically just 15 seconds.">
+							See roll results instantly
 						</div><br>
 						<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
 							Responsive UI
@@ -247,6 +461,20 @@
 							Fully transparent contract
 						</div>
 					</div>
+					<div class="stats">
+						<div class="stat rolls">
+							<div class="value">0</div>
+							<div class="label">rolls</div>
+						</div>
+						<div class="stat wagered">
+							<div class="value">0</div>
+							<div class="label">ETH wagered</div>
+						</div>
+						<div class="stat won">
+							<div class="value">0</div>
+							<div class="label">ETH won</div>
+						</div>
+					</div>
 				</div>
 				<div class="right">
 					<div class="block">
@@ -254,7 +482,7 @@
 						<div class="feature tipLeft" title="Our house fee is just 1%.">
 							The best odds
 						</div><br>
-						<div class="feature tipLeft" title="No more waiting multiple blocks for your results. As soon as your wager is confirmed on the blockchain, you can see the results!">
+						<div class="feature tipLeft" title="No more waiting multiple blocks for your results. As soon as your wager is confirmed on the blockchain, you'll see the results!">
 							The fastest results
 						</div><br>
 						<div class="feature tipLeft" title="We strive to keep the gas cost low. A typical roll is 122,000 gas, far lower than our competitors.">
@@ -264,67 +492,75 @@
 				</div>
 			</div>
 		</div>
-		<div class="subsection">
-			<div class="head">
-				Place your bet
-			</div>
-			<div class="body">
-				<div class="field wager">
-					<div class="label tipLeft" title="How much you want to wager.">
-						Your Wager:
-					</div>
-					<div class="value">
-						<input type="text" size=5 value=".01" id="Bet"> ETH
-						<span class="note">Min: .01, Max: .05</span>
+
+		<div class="betterCtnr" id="BetterCtnr">
+			<div class="better">
+				<div class="loader" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%">
+					<div style="display: table; width: 100%; height: 100%;">
+						<div style="display: table-cell; vertical-align: middle; text-align: center">
+							<div class="text" style="display: inline-block;">Loading...</div>
+						</div>
 					</div>
 				</div>
-				<div class="field number">
-					<div class="label tipLeft" title="The roll will be between 1 and 100. If it's less than or equal to your number, you win!">
-						Roll Number:
+				<div class="left">
+					<div class="wager">
+						<div class="value">
+							<div class="topLabel">Wager</div>
+							<input class="input" type="number" value=".1" step=".01" min=".01" max=".60">
+							<div class="bottomLabel">ETH</div>
+						</div>
+						<div class="slider">
+							<input class="range" type="range" value="10" min="1" max="60" increment="1">
+						</div>
 					</div>
-					<div class="value">
-						<input type=text size=3 value="50" id="Number">
-						<span class="note">Min: 5, Max: 99</span>
-					</div>
-				</div>
-				<div class="field payout">
-					<div class="label tipLeft" title="Your odds of winning">
-						Odds:
-					</div>
-					<div class="value" id="Odds"></div>
-				</div>
-				<div class="field payout">
-					<div class="label tipLeft" title="How much you stand to win.">
-						Payout:
-					</div>
-					<div class="value" id="Payout"></div>
-				</div>
-				<div class="field bet">
-					<div class="label tipLeft" title="Place your bet, and see your result as soon as it's confirmed!">
-						Bet
-					</div>
-					<div class="value">
-						<button id="PlaceBet">Place your bet!</button>
+					<div class="number">
+						<div class="value">
+							<div class="topLabel">Win on</div>
+							<input class="input" type="number" min="1" max="99" value="50">
+							<div class="bottomLabel">or under</div>
+						</div>
+						<div class="slider">
+							<input class="range" type="range" value="50" min="1" max="99" increment="1">
+						</div>
 					</div>
 				</div>
-			</div>
-		</div>
-		<div class="subsection">
-			<div class="head">
-				See Your Results
-			</div>
-			<div class="body">
-				Place a bet above to see your results instantly!
-				<div class="currentRolls">
+				<div class="right">
+					<div class="summary">
+						<div class="valid">
+							<div class="label">Win</div>
+							<div class="payout">.83748 ETH</div>
+							<div class="multiple">(4.58x return)</div>
+							<div class="odds">50% odds</div>
+							<button class="button" id="RollButton">Roll!</button>
+						</div>
+						<div class="invalid">
+							<div class="msg">Bet is not a number.</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="subsection">
+
+		<div class="subsection currentRolls">
 			<div class="head">
-				Your recent roll history
+				Current Rolls
+				<span class="clear">(clear)</span>
 			</div>
 			<div class="body">
-				<div class="recentRolls"></div>
+				<div class="empty">
+					Place a bet above to see your results instantly!
+				</div>
+				<div class="rolls">
+				</div>
+			</div>
+		</div>
+
+		<div class="subsection recentRolls">
+			<div class="head">
+				Your Roll History
+			</div>
+			<div class="body">
+				<div class="rolls"></div>
 			</div>
 		</div>
 

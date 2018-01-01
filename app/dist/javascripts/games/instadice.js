@@ -1,26 +1,161 @@
 Loader.require("dice")
 .then(function(dice){
-	ethUtil.onStateChanged(refreshRecentRolls);
-
-	const avgBlockTime = ethUtil.getAverageBlockTime();
-
-	const $bet = $("#Bet");
-	const $number = $("#Number");
-	const $odds = $("#Odds");
-	const $payout = $("#Payout");
-	const $results = $("#Results");
-
 	//dice.addBankroll([], {value: 1e18});
 
-	const $btn = $("#PlaceBet").click(function(){
-		bet = (new BigNumber($bet.val())).mul(1e18);
-		number = new BigNumber($number.val());
-		trackResult(
-			dice.roll({_number: number}, {value: bet, gas: 147000}),
-			bet,
-			number
-		);
+	ethUtil.onStateChanged((state)=>{
+		refreshAllRolls(state);
 	});
+
+
+	/******************************************************/
+	/*** BET PLACING UI ***********************************/
+	/******************************************************/
+	const $loader = $(".better .loader");
+	const $wagerText = $(".better .wager .input");
+	const $wagerRange = $(".better .wager .range");
+	const $numberText = $(".better .number .input");
+	const $numberRange = $(".better .number .range");
+	const $valid = $(".better .valid");
+	const $invalid = $(".better .invalid");
+	const $msg = $(".better .invalid .msg");
+	const $payout = $(".better .payout");
+	const $multiple = $(".better .multiple");
+	const $odds = $(".better .odds");
+
+	// link the ranges to texts, and vice versa
+	$(".better .input").focus(function(){
+		$(this).select();
+	});
+	$wagerText.on("input", function(){
+		const n = Number($(this).val());
+		if (Number.isNaN(n)) return;
+		$wagerRange.val(n*100);
+		refreshPayout();
+	});
+	$wagerRange.on("input", function(){
+		const n = Number($(this).val());
+		if (Number.isNaN(n)) return;
+		$wagerText.val(n/100);
+		refreshPayout();
+	});
+	$numberText.on("input", function(){
+		const n = Number($(this).val());
+		if (Number.isNaN(n)) return;
+		$numberRange.val(n);
+		refreshPayout();
+	});
+	$numberRange.on("input", function(){
+		const n = Number($(this).val());
+		if (Number.isNaN(n)) return;
+		$numberText.val(n);
+		refreshPayout();
+	});
+
+	var _minBet;
+	var _maxBet;
+	var _minNumber;
+	var _maxNumber;
+	var _bankroll;
+	function refreshBetUiSettings() {
+		$loader.show();
+		Promise.all([
+			dice.minBet(),
+			dice.maxBet(),
+			dice.minNumber(),
+			dice.maxNumber(),
+			dice.bankroll()
+		]).then(arr=>{
+			_minBet = arr[0];
+			_maxBet = arr[1];
+			_minNumber = arr[2];
+			_maxNumber = arr[3];
+			_bankroll = arr[4];
+			$wagerText
+				.attr("min", _minBet.div(1e18).toNumber())
+				.attr("max", _maxBet.div(1e18).toNumber());
+			$wagerRange
+				.attr("min", _minBet.div(1e16).toNumber())
+				.attr("max", _maxBet.div(1e16).toNumber());
+			$numberText
+				.attr("min", _minNumber.toNumber())
+				.attr("max", _maxNumber.toNumber());
+			$numberRange
+				.attr("min", _minNumber.toNumber())
+				.attr("max", _maxNumber.toNumber());
+
+			$loader.hide();
+			refreshPayout();
+		});
+		// refresh every 10 minutes in case min/max has changed
+		setTimeout(refreshBetUiSettings, 300000);
+	}
+	refreshBetUiSettings();
+
+	function refreshPayout() {
+		if (_minBet == null) { return; }
+		$valid.hide();
+		$invalid.hide();
+
+		var bet = $wagerText.val();
+		var number = $numberText.val();
+		try { bet = (new BigNumber(bet)).mul(1e18) }
+		catch (e) { bet = null; }
+		try { number = new BigNumber(number); }
+		catch (e) { number = null; }
+
+		if (bet == null) {
+			$invalid.show();
+			$msg.text("Wager must be a number");
+			return;
+		}
+
+		const betStr = ethUtil.toEthStr(bet);
+		const minBetStr = ethUtil.toEthStr(_minBet);
+		const maxBetStr = ethUtil.toEthStr(_maxBet);
+		if (bet.lt(_minBet)) {
+			$invalid.show();
+			$msg.text(`Wager of ${betStr} is below the minimum of ${minBetStr}`);
+			return;
+		}
+		if (bet.gt(_maxBet)) {
+			$invalid.show();
+			$msg.text(`Wager of ${betStr} is above the maximum of ${maxBetStr}`);
+			return;	
+		}
+
+		if (number == null) {
+			$invalid.show();
+			$msg.text("Roll Number must be a number.")
+			return;
+		}
+		if (number.lt(_minNumber)) {
+			$invalid.show();
+			$msg.text(`Roll Number of ${number} is below the minimum of ${minNumber}`);
+			return;
+		}
+		if (number.gt(_maxNumber)) {
+			$invalid.show();
+			$msg.text(`Roll Number of ${number} is above the maximum of ${maxNumber}`);
+			return;	
+		}
+		
+		const payout = computePayout(bet, number);
+		if (payout.gt(_bankroll)) {
+			$invalid.show();
+			$msg.empty().append(
+				`Currently the maximum payout allowed is ${ethUtil.toEthStr(_bankroll)}.
+				<br><br>
+				Try lowering your bet or increasing your odds.`
+			);
+			return;
+		}
+		const multiple = payout.div(bet).toFixed(2);
+		$valid.show();
+		$payout.text(ethUtil.toEthStr(payout));
+		$multiple.text(`${multiple}x return`);
+		$odds.text(`${number}% win odds`);
+	}
+	refreshPayout();
 
 	function computeResult(blockHash, id) {
         const hash = web3.sha3(blockHash + ethUtil.toBytesStr(id, 4), {encoding: "hex"});
@@ -30,34 +165,89 @@ Loader.require("dice")
     function computePayout(bet, number) {
 		return bet.mul(100).div(number).mul(.99)
     }
-	(function pollForChanges(){
-		var bet = $bet.val();
-		var number = $number.val();
+
+	$("#RollButton").click(function(){
+		var bet = $wagerText.val();
+		var number = $numberText.val();
 		try { bet = (new BigNumber(bet)).mul(1e18) }
 		catch (e) { bet = null; }
 		try { number = new BigNumber(number); }
 		catch (e) { number = null; }
 
-		if (bet == null || bet.equals(0)){
-			$odds.text("Invalid bet.");
-			$payout.text("Invalid bet.");
-			$btn.attr("disabled", "disabled");
-		}else if (number == null){
-			$odds.text("Invalid number");
-			$payout.text("Invalid number.");
-			$btn.attr("disabled", "disabled");
-		} else {
-			$odds.text(`${number} %`);
-			const payout = computePayout(bet, number);
-			const multiple = payout.div(bet).toFixed(2);
-			$payout.text(`${ethUtil.toEthStr(payout)} (${multiple}x)`);
-			$btn.removeAttr("disabled");
+		if (bet == null || number == null) {
+			alert("Invalid bet or number.");
+			return;
 		}
 
-		setTimeout(pollForChanges, 50);
-	}());
+		trackResult(
+			dice.roll({_number: number}, {value: bet, gas: 147000}),
+			bet,
+			number
+		);
+		doScrolling("#BetterCtnr", 400);
+    })
+
+	// When they place a bet, show it and add it to _$currentRolls
+	var _$currentRolls = {};
+	const _$currentRollsCtnr = $(".currentRolls .rolls");
+	const _$emptyCurrentRolls = $(".currentRolls .empty");
+	const _$clearCurrentRolls = $(".currentRolls .clear").click(function(){
+		_$currentRolls = {};
+		_$emptyCurrentRolls.show();
+		_$clearCurrentRolls.hide();
+	});
+	function trackResult(p, bet, number) {
+		_$emptyCurrentRolls.hide();
+		_$clearCurrentRolls.show();
+
+		var roll = {
+			state: "prepending",
+			id: null,
+			bet: bet,
+			number: number,
+		};
+		var $e = $getRoll(roll).prependTo(_$currentRollsCtnr);
+
+		p.getTxHash.then((txId)=>{
+			roll.state = "pending";
+			roll.txId = txId;
+			const $new = $getRoll(roll);
+			$e.replaceWith($new);
+			$e = $new;
+		});
+		p.then((res)=>{
+			res.knownEvents.forEach((event)=>{
+				if (event.name=="RollWagered" || event.name=="RollRefunded") {
+					dice.curId().then((curId)=>{
+						var roll = getRollFromWageredOrRefunded(event, curId);
+						const $new = $getRoll(roll);
+						$e.replaceWith($new);
+						_$currentRolls[roll.id] = $new;
+					})
+				}
+			});
+		},(e)=>{
+			// (blockNumber, blockHash, txId, time)
+			roll.state = "failed"
+			roll.failReason = e.message;
+			if (e.receipt) {
+				roll.created = {
+					blockHash: e.receipt.blockHash,
+					blockNumber: e.receipt.blockNumber,
+					txId: e.receipt.transactionHash,
+					time: new BigNumber((+new Date())/1000)
+				};
+			}
+			const $new = $getRoll(roll);
+			$e.replaceWith($new);
+			$e = $new;
+		});
+	}
 
 
+	/******************************************************/
+	/*** COLLATING ROLLS FROM EVENTS **********************/
+	/******************************************************/
 	function getRollFromWageredOrRefunded(event, curId){
 		const roll = {}
 		roll.id = event.name=="RollWagered" ? event.args.id : null;
@@ -86,7 +276,15 @@ Loader.require("dice")
 		return roll;
 	}
 
-	function refreshRecentRolls(state) {
+	// Collate the events into an object for each roll:
+	// - state (prepending, pending, refunded, waiting, unresolved, resolved, paid, paymentfailed)
+	// - id, bet, number, result, isWinner
+	// - refundReason, failReason
+	// - created (blockNumber, blockHash, txId, txIndex, time)
+	// - resolved (blockNumber, txId, time)
+	// - paid (blockNumber, txId, time)
+	// - paymentfailure (blockNumber, txId, time)
+	function refreshAllRolls(state) {
 		Promise.all([
 			dice.curId(),
 			dice.getEvents("RollWagered", {user: state.account}, state.latestBlock.number - 256),
@@ -101,21 +299,8 @@ Loader.require("dice")
 			const rollsResolved = arr[3];
 			const rollsPaid = arr[4];
 			const rollsUnpayable = arr[5];
-
-			// collate the events into an object for each roll:
-			// - state (refunded, waiting, unresolved, resolved, paid, paymentfailed)
-			// - id (transactionId if Refunded)
-			// - txId
-			// - bet, number
-			// - result
-			// - isWinner
-			// - refundReason
-			// - err
-			// - created (blockNumber, blockHash, txId, txIndex, time)
-			// - resolved (blockNumber, txId, time)
-			// - paid (blockNumber, txId, time)
-			// - paymentfailure (blockNumber, txId, time)
 			const rolls = {};
+
 			rollsWagered.concat(rollsRefunded).forEach((event)=>{
 				const roll = getRollFromWageredOrRefunded(event, curId);
 				rolls[roll.id || event.transactionHash] = roll;
@@ -164,16 +349,16 @@ Loader.require("dice")
 					? -1
 					: 1;
 			}).reverse();
-			refreshRolls(allRolls, state.latestBlock.number);
+			refreshCurrentRolls(allRolls, state.latestBlock.number);
 		});
     }
 
-    // maps roll.id -> true/false
-    const _$currentRolls = {};
-    function refreshRolls(rolls, curBlockNum) {
-    	$(".recentRolls").empty();
+    // any for any roll that is in _$currentRolls, refresh it.
+    const _$recentRollsCtnr = $(".recentRolls .rolls");
+    function refreshCurrentRolls(rolls, curBlockNum) {
+    	_$recentRollsCtnr.empty();
     	rolls.forEach((roll)=>{
-    		$getRoll(roll, curBlockNum).appendTo(".recentRolls");
+    		$getRoll(roll, curBlockNum).appendTo(_$recentRollsCtnr);
     		if (_$currentRolls[roll.id]) {
     			const $new = $getRoll(roll, curBlockNum);
     			_$currentRolls[roll.id].replaceWith($new);
@@ -182,7 +367,12 @@ Loader.require("dice")
     	})
     }
 
-    const _msgs = [
+
+	/******************************************************/
+	/*** DISPLAY A ROLL  **********************************/
+	/******************************************************/
+	const avgBlockTime = ethUtil.getAverageBlockTime();
+	const _msgs = [
     	"Don't give up so easily...",
     	"Don't give up so easily...",
     	"Don't give up so easily...",
@@ -214,17 +404,6 @@ Loader.require("dice")
     	return _msgs[num % _msgs.length];
     }
 
-    // - state (prepending, pending, failed, refunded, waiting, unresolved, resolved, paid, paymentfailed)
-	// - id (transactionId if Refunded)
-	// - bet, number
-	// - result
-	// - isWinner
-	// - refundReason
-	// - failReason
-	// - created (blockNumber, blockHash, txId, time)
-	// - resolved (blockNumber, txId)
-	// - paid (blockNumber, txId)
-	// - paymentfailure (blockNumber, txId)
     function $getRoll(roll, curBlockNum) {
     	const $e = $(".roll.template")
     		.clone()
@@ -345,50 +524,56 @@ Loader.require("dice")
     	return $e;
     }
 
-	function trackResult(p, bet, number) {
-		var roll = {
-			state: "prepending",
-			id: null,
-			bet: bet,
-			number: number,
-		};
-		var $e = $getRoll(roll).prependTo(".currentRolls");
+	/******************************************************/
+	/*** LIVE STATS ***************************************/
+	/******************************************************/
+	// t: 0 to 1, returns 0 to 1
+    function easeInOut(t) {
+    	return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1
+    }
+    function easeNumber(from, to, duration, cb) {
+    	var cancel = false;
+    	const diff = to - from;
+    	const steps = 50;
+    	for (var i=1; i<=steps; i++){
+    		let n = i/steps;
+			setTimeout(function(){
+				if (cancel) return;
+    			cb(from + easeInOut(n) * diff);
+    		}, duration * n);
+		}
+		return ()=>{ cancel = true; }
+    }
 
-		p.getTxHash.then((txId)=>{
-			roll.state = "pending";
-			roll.txId = txId;
-			const $new = $getRoll(roll);
-			$e.replaceWith($new);
-			$e = $new;
-		});
-		p.then((res)=>{
-			res.knownEvents.forEach((event)=>{
-				if (event.name=="RollWagered" || event.name=="RollRefunded") {
-					dice.curId().then((curId)=>{
-						var roll = getRollFromWageredOrRefunded(event, curId);
-						const $new = $getRoll(roll);
-						$e.replaceWith($new);
-						_$currentRolls[roll.id] = $new;
-					})
-				}
-			});
-		},(e)=>{
-			// (blockNumber, blockHash, txId, time)
-			roll.state = "failed"
-			roll.failReason = e.message;
-			if (e.receipt) {
-				roll.created = {
-					blockHash: e.receipt.blockHash,
-					blockNumber: e.receipt.blockNumber,
-					txId: e.receipt.transactionHash,
-					time: new BigNumber((+new Date())/1000)
-				};
-			}
-			const $new = $getRoll(roll);
-			$e.replaceWith($new);
-			$e = $new;
-		});
-	}
-
+    const _prevEases = []
+    function refreshStats() {
+    	const $rolls = $("#Summary .rolls .value");
+    	const $wagered = $("#Summary .wagered .value");
+    	const $won = $("#Summary .won .value");
+    	Promise.all([
+    		dice.curId(),
+    		dice.totalWagered(),
+    		dice.totalWon()
+    	]).then(arr=>{
+    		const curRolls = Number($rolls.text());
+    		const curWagered = Number($wagered.text());
+    		const curWon = Number($won.text());
+    		const newRolls = arr[0].toNumber();
+    		const newWagered = arr[1].div(1e18).toNumber();
+    		const newWon = arr[2].div(1e18).toNumber();
+    		_prevEases.forEach(e => { if (e) e(); });
+    		_prevEases[0] = easeNumber(curRolls, newRolls, 3000, (n)=>{
+    			$rolls.text(Math.round(n));
+    		})
+    		_prevEases[1] = easeNumber(curWagered, newWagered, 3000, (n)=>{
+    			$wagered.text(n.toFixed(2));
+    		});
+    		_prevEases[2] = easeNumber(curWon, newWon, 3000, (n)=>{
+    			$won.text(n.toFixed(2));
+    		})
+    	})
+    	setTimeout(refreshStats, 30000);
+    }
+    refreshStats();
 
 });
