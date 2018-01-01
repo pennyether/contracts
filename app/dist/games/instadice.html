@@ -215,19 +215,20 @@
 				text-align: center;
 			}
 			.better .summary .label {
-				font-weight: bold;
+				/*color: #01ca01;*/
 			}
 			.better .summary .payout {
-				color: green;
+				color: #01ca01;
 				font-size: 200%;
 			}
 			.better .summary .multiple {
-				font-size: 120%;
+				font-size: 100%;
 				font-weight: bold;
+				color: #333;
 			}
 			.better .summary .odds {
+				font-size: 90%;
 				color: gray;
-				font-weight: bold;
 			}
 			@keyframes rollButtonGlow {
 				from {
@@ -240,7 +241,7 @@
 				}
 			}
 			#RollButton {
-				margin-top: 10px;
+				margin-top: 15px;
 				font-size: 250%;
 				background: blue;
 				color: white;
@@ -411,6 +412,10 @@
 				font-style: italic;
 				color: gray;
 			}
+			.roll .paid a {
+				color: green;
+				text-decoration: none;
+			}
 			.roll .warning {
 				display: inline-block;
 				border: 1px solid #AAA;
@@ -550,7 +555,7 @@
 				<div class="right">
 					<div class="summary">
 						<div class="valid">
-							<div class="label">Win</div>
+							<div class="label">Payout</div>
 							<div class="payout">.83748 ETH</div>
 							<div class="multiple">(4.58x return)</div>
 							<div class="odds">50% odds</div>

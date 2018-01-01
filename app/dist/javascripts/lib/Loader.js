@@ -110,8 +110,8 @@
 		  	const nav = new Nav();
 		  	nav.setEthStatusElement(ethStatus.$e)
 		  	$("#Content").prepend(nav.$e);
-		  	const logger = new NiceWeb3Logger(niceWeb3);
-		  	logger.$e.appendTo(document.body);
+		  	// const logger = new NiceWeb3Logger(niceWeb3);
+		  	// logger.$e.appendTo(document.body);
 
 		  	// attach Tippies
 		  	tippy.defaults.trigger = "click";

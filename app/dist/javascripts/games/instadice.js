@@ -180,6 +180,7 @@ Loader.require("dice")
 			return;
 		}
 
+		$(this).blur();
 		trackResult(
 			dice.roll({_number: number}, {value: bet, gas: 147000}),
 			bet,
@@ -261,6 +262,7 @@ Loader.require("dice")
 				: curId.equals(roll.id) ? "waiting" : "unresolved"
 		roll.bet = event.args.bet;
 		roll.number = event.args.number;
+		roll.payout = computePayout(roll.bet, roll.number);
 		roll.result = event.name=="RollWagered"
 			? computeResult(event.blockHash, event.args.id)
 			: null;
@@ -437,21 +439,20 @@ Loader.require("dice")
     	const bet = roll.bet;
     	const number = roll.number;
     	const txId = roll.txId;
-    	const payout = computePayout(bet, number);
-    	const multiple = payout.div(bet).toFixed(2);
-    	const payoutStr = ethUtil.toEthStr(payout);
+    	const multiple = roll.payout.div(bet).toFixed(2);
+    	const payoutStr = ethUtil.toEthStr(roll.payout);
     	$e.find(".betValue").text(ethUtil.toEthStr(bet));
     	$e.find(".numberValue").text(`${number} or lower`);
     	$e.find(".payoutValue").text(`${payoutStr} (${multiple}x)`);
     	if (roll.state == "prepending") {
     		$prepending.show();
-    		return;
+    		return $e;
     	}
     	if (roll.state == "pending") {
     		$pending.show();
     		$e.find(".pendingTxLink")
     			.append(util.$getTxLink("See it on Etherscan", roll.txId));
-    		return;
+    		return $e;
     	}
 
     	if (roll.created) {
@@ -551,7 +552,7 @@ Loader.require("dice")
 				$unresolved.show();
 			} else if (roll.state == "paid") {
 				$paid.empty()
-					.append(util.$getTxLink("Your winnings have been paid.", roll.paid.txId))
+					.append(util.$getTxLink(`✓ Your winnings of ${payoutStr} have been paid.`, roll.paid.txId))
 					.show();
 			} else if (roll.state == "paymentfailure") {
 				$paymentFailure.show();
