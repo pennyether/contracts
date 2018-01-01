@@ -4,6 +4,7 @@ Loader.require("dice")
 
 	ethUtil.onStateChanged((state)=>{
 		refreshAllRolls(state);
+		refreshStats();
 	});
 
 
@@ -195,6 +196,7 @@ Loader.require("dice")
 		_$currentRolls = {};
 		_$emptyCurrentRolls.show();
 		_$clearCurrentRolls.hide();
+		_$currentRollsCtnr.empty();
 	});
 	function trackResult(p, bet, number) {
 		_$emptyCurrentRolls.hide();
@@ -252,9 +254,11 @@ Loader.require("dice")
 		const roll = {}
 		roll.id = event.name=="RollWagered" ? event.args.id : null;
 		roll.txId = event.transactionHash;
-		roll.state = event.name=="RollWagered"
-			? curId.equals(roll.id) ? "waiting" : "unresolved"
-			: "refunded";
+		roll.state = event.name=="RollRefunded"
+			? "refunded"
+			: roll.id.gt(curId)
+				? "syncing"
+				: curId.equals(roll.id) ? "waiting" : "unresolved"
 		roll.bet = event.args.bet;
 		roll.number = event.args.number;
 		roll.result = event.name=="RollWagered"
@@ -350,21 +354,32 @@ Loader.require("dice")
 					: 1;
 			}).reverse();
 			refreshCurrentRolls(allRolls, state.latestBlock.number);
+			refreshRecentRolls(allRolls, state.latestBlock.number);
 		});
     }
 
-    // any for any roll that is in _$currentRolls, refresh it.
-    const _$recentRollsCtnr = $(".recentRolls .rolls");
+    // for any roll that is in _$currentRolls, refresh it.
     function refreshCurrentRolls(rolls, curBlockNum) {
-    	_$recentRollsCtnr.empty();
     	rolls.forEach((roll)=>{
-    		$getRoll(roll, curBlockNum).appendTo(_$recentRollsCtnr);
     		if (_$currentRolls[roll.id]) {
     			const $new = $getRoll(roll, curBlockNum);
     			_$currentRolls[roll.id].replaceWith($new);
     			_$currentRolls[roll.id] = $new;
     		}
     	})
+    }
+
+    const _$recentRollsCtnr = $(".recentRolls .rolls");
+    const _$lockedRolls = {};
+    function refreshRecentRolls(rolls, curBlockNum) {
+    	Object.values(_$lockedRolls).forEach($e=>$e.detach());
+    	_$recentRollsCtnr.empty();
+    	rolls.forEach((roll)=>{
+    		const $roll = _$lockedRolls[roll.txId]
+    			? _$lockedRolls[roll.txId]
+    			: $getRoll(roll, curBlockNum);
+    		$roll.appendTo(_$recentRollsCtnr);
+    	});
     }
 
 
@@ -417,6 +432,7 @@ Loader.require("dice")
     	const $failed = $e.find(".status .failed").hide();
     	const $result = $e.find(".result").hide();
     	const $mined = $e.find(".mined").hide();
+    	$e.addClass(roll.state);
     	
     	const bet = roll.bet;
     	const number = roll.number;
@@ -429,13 +445,13 @@ Loader.require("dice")
     	$e.find(".payoutValue").text(`${payoutStr} (${multiple}x)`);
     	if (roll.state == "prepending") {
     		$prepending.show();
-    		return $e.addClass("prepending");
+    		return;
     	}
     	if (roll.state == "pending") {
     		$pending.show();
     		$e.find(".pendingTxLink")
     			.append(util.$getTxLink("See it on Etherscan", roll.txId));
-    		return $e.addClass("pending");
+    		return;
     	}
 
     	if (roll.created) {
@@ -464,13 +480,11 @@ Loader.require("dice")
 
     	if (roll.state == "refunded") {
     		const msg = roll.refundReason;
-    		$e.addClass("refunded");
     		$refund.show();
     		$refund.find(".reason").text(msg);
     		return $e;
     	}
     	if (roll.state == "failed") {
-    		$e.addClass("failed");
     		$failed.show();
     		$failed.find(".reason").text(roll.failReason);
     		return $e;
@@ -482,20 +496,48 @@ Loader.require("dice")
 		const $lost = $result.find(".lost").hide();
 		const $rollnumber = $result.find(".rollnumber");
 		const $button = $result.find(".claim");
+		const $claimStatus = $result.find(".claimStatus");
 		
 		const result = computeResult(roll.created.blockHash, roll.id);
 		const didWin = !result.gt(number);
 		$rollnumber.text(result);
 		if (didWin) {
-			$e.addClass("won");
 			$won.show();
-			$button.click(()=>{ dice.payoutRoll([roll.id], {gas: 55000}); })
+			$button.click(()=>{
+				var claimTxId;
+				// lock this roll so it doesn't get updated.
+				_$lockedRolls[roll.txId] = $e;
+				$e.addClass("claiming");
+				const p = dice.payoutRoll([roll.id], {gas: 55000});
+				// disable button, show stuff.
+				$button.attr("disabled","disabled");
+				$claimStatus.show();
+				$claimStatus.text("Waiting for txId...");
+				// update text
+				p.getTxHash.then(function(txId){
+					claimTxId = txId;
+					$claimStatus.empty()
+						.append(util.$getTxLink("Your claim is being mined.", txId))
+				});
+				// on success unlock, on failure, let them retry.
+				p.then(function(){
+					delete _$lockedRolls[roll.txId];
+					$claimStatus.text("Transaction complete. Please wait a moment.");
+				}, function(e){
+					$e.removeClass("claiming");
+					$button.removeAttr("disabled");
+					$claimStatus.empty()
+						.append(`There was an error claiming: `)
+						.append(util.$getTxLink(e.message, claimTxId))
+						.append("<br>You should retry with more gas, or contact support");
+				});
+			})
 		} else {
-			$e.addClass("lost");
 			$lost.show();
 		}
 
 		const $waiting = $result.find(".waiting").hide();
+		const $syncing = $result.find(".syncing").hide();
 		const $unresolved = $result.find(".unresolved").hide();
 		const $paid = $result.find(".paid").hide();
 		const $paymentFailure = $result.find(".paymentFailure").hide();
@@ -503,6 +545,8 @@ Loader.require("dice")
 		if (didWin){
 			if (roll.state == "waiting") {
 				$waiting.show();
+			} else if (roll.state == "syncing") {
+				$syncing.show();
 			} else if (roll.state == "unresolved") {
 				$unresolved.show();
 			} else if (roll.state == "paid") {
@@ -571,8 +615,7 @@ Loader.require("dice")
     		_prevEases[2] = easeNumber(curWon, newWon, 3000, (n)=>{
     			$won.text(n.toFixed(2));
     		})
-    	})
-    	setTimeout(refreshStats, 30000);
+    	});
     }
     refreshStats();
 

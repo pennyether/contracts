@@ -17,7 +17,7 @@
 					font-size: 180%;
 					/*font-weight: bold;*/
 					letter-spacing: .25em;
-					animation: featureGlow 2s 0s infinite ease-in-out alternate;
+					animation: textShadowGlow 2s 0s infinite ease-in-out alternate;
 				}
 				#Title .sub {
 					font-size: 90%;
@@ -52,7 +52,7 @@
 				margin: 0px 40px;
 				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
 			}
-			@keyframes featureGlow {
+			@keyframes textShadowGlow {
 				from { text-shadow: 0px 0px 10px lime; }
 				to { text-shadow: 0px 0px 4px green; }
 			}
@@ -63,7 +63,7 @@
 				color: #FAFAFA;
 				padding-bottom: 4px;
 				text-shadow: 0px 0px 5px green;
-				animation: featureGlow 3s 0s infinite ease-in-out alternate;
+				animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
 			}
 			.featureBox .feature {
 				display: inline-block;
@@ -229,7 +229,7 @@
 				color: gray;
 				font-weight: bold;
 			}
-			@keyframes buttonGlow {
+			@keyframes rollButtonGlow {
 				from {
 					background-color: #0C0;
 					box-shadow: 0px 0px 10px 0px green;
@@ -248,7 +248,7 @@
 				cursor: pointer;
 				border: none;
 				border-radius: 3px;
-				animation: buttonGlow 3s 0s infinite ease-in-out alternate;
+				animation: rollButtonGlow 3s 0s infinite ease-in-out alternate;
 			}
 
 			.better .invalid {
@@ -281,7 +281,7 @@
 				margin-top: 40px;
 			}
 
-			@keyframes glowGreen {
+			@keyframes rollPending {
 				from {
 					background-color: #0C0;
 					box-shadow: 0px 0px 10px 1px green;
@@ -300,7 +300,7 @@
 			.roll.pending,
 			.roll.prepending {
 				background-color: #DFD;
-				animation: glowGreen 1.5s 0s infinite ease-in-out alternate;
+				animation: rollPending 1.5s 0s infinite ease-in-out alternate;
 			}
 			.roll.failed {
 				border: 1px solid #F88;
@@ -413,12 +413,21 @@
 			}
 			.roll .warning {
 				display: inline-block;
-				border: 1px solid #FDD;
+				border: 1px solid #AAA;
 				background: #EEE;
 				padding: 3px;
 				font-size: 80%;
 				border-radius: 5px;
 				color: #666;
+			}
+			.roll.unresolved .warning {
+				background: #FEE;
+				color: red;
+				border: 1px solid #FDD;
+			}
+			@keyframes boxShadowGlow {
+				from { box-shadow: 0px 0px 4px lime; }
+				to { box-shadow: 0px 0px 4px green; }
 			}
 			.roll .claim {
 				font-size: 150%;
@@ -426,6 +435,20 @@
 				font-weight: bold;
 				padding: 3px;
 				margin: 10px;
+				cursor: pointer;
+				border: none;
+				border-radius: 3px;
+				animation: boxShadowGlow 2s 0s infinite ease-in-out alternate;
+			}
+			.roll.unresolved .claim {
+				background: green;
+				color: white;
+			}
+			.roll.claiming .claim {
+				background: #DDD;
+				color: gray;
+				cursor: not-allowed;
+				animation: none;
 			}
 		</style>
 	</head>
@@ -615,9 +638,15 @@
 							You'll receive your winnings when anyone rolls.
 							<br>If you'd like, you can claim your winnings now:
 							<br><button class="claim">Claim Winnings</button>
+							<div class="claimStatus"></div>
 						</div>
 						<div class="warning">
 							Note: If nobody rolls within <span class="blocksLeft"></span>, you will lose your winnings unless you claim them.
+						</div>
+					</div>
+					<div class="syncing">
+						<div class="warning">
+							Your provider is currently updating. Please wait a moment to see more details.
 						</div>
 					</div>
 					<div class="unresolved">
@@ -625,12 +654,16 @@
 							Your roll was unable to be automatically paid. You have <span class="blocksLeft"></span> to claim your winnings.
 						</div>
 						<button class="claim">Claim Winnings</button>
+						<div class="claimStatus"></div>
 					</div>
 					<div class="paid">
 						Your winnings have been paid.
 					</div>
 					<div class="paymentFailure">
-						Your bet won, but payment failed. Perhaps you bid from wallet with an expensive or non-existant fallback function?  You can claim your winnings (as any user) by clicking here.
+						Your bet won, but payment failed. This is likely due to sending to an address that has an expensive fallback function. Try sending more gas:
+						<br><br>
+						<button class="claim">Claim Winnings</button>
+						<div class="claimStatus"></div>
 					</div>
 					<div class="lostMsg">
 					</div>
