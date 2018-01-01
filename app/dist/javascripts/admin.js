@@ -1,11 +1,12 @@
-Loader.require("reg", "tr", "mc", "pac")
-.then(function(reg, tr, mc, pac){
+Loader.require("reg", "tr", "mc", "pac", "dice")
+.then(function(reg, tr, mc, pac, dice){
 	updateAll();
 
 	function updateAll(){
 		updateTr();
 		updateMc();
 		updatePac();
+		updateDice();
 	}
 
 	function updateTr() {
@@ -136,4 +137,35 @@ Loader.require("reg", "tr", "mc", "pac")
 			alert(`Failed to enable auction ${index}.`);
 		})
 	}
+
+
+	function updateDice() {
+		if (!dice) return alert("dice not loaded.");
+		util.bindToElement(dice.getAdmin(), $("#DiceAdmin"));
+		util.bindToInput(dice.feeBips(), $("#DiceFeeBips"));
+		util.bindToInput(dice.minBet().then(ethUtil.toEth), $("#DiceMinBet"));
+		util.bindToInput(dice.maxBet().then(ethUtil.toEth), $("#DiceMaxBet"));
+		util.bindToInput(dice.minNumber(), $("#DiceMinNumber"));
+		util.bindToInput(dice.maxNumber(), $("#DiceMaxNumber"));
+	}
+	$("#DiceChangeSettings").click(function(){
+		if (!dice) return alert("dice not loaded.");
+		const feeBips = $("#DiceFeeBips").val();
+		const minBet = ethUtil.toWei($("#DiceMinBet").val());
+		const maxBet = ethUtil.toWei($("#DiceMaxBet").val());
+		const minNumber = $("#DiceMinNumber").val();
+		const maxNumber = $("#DiceMaxNumber").val();
+		dice.changeSettings({
+			_minBet: minBet,
+			_maxBet: maxBet,
+			_minNumber: minNumber,
+			_maxNumber: maxNumber,
+			_feeBips: feeBips
+		}).then(function(){
+			alert("Values updated.");
+			updateDice();
+		}).catch(function(){
+			alert("Unsuccessful - are you the admin?");
+		});
+	})
 });
