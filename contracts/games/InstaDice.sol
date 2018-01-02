@@ -123,11 +123,6 @@ contract InstaDice is
 	////// PUBLIC FUNCTIONS ///////////////////////////
 	///////////////////////////////////////////////////
 
-	// Rolls the bet, using the amount of wei as the number
-	function () public payable {
-		roll(uint8(msg.value % 100));
-	}
-
 	// Resolve the previous roll, then insert this one.
 	// The result will be immediately available via .getRollResult() / .getRollPayout()
 	// Upon the next roll, user will automatically be sent payout

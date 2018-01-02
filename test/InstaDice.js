@@ -124,8 +124,8 @@ describe('InstaDice', function(){
             it("Player1 can roll again", function(){
                 return assertCanRoll(player1, .01e18, 50);
             });
-            it("Player2 can roll, using fallback", function(){
-                return assertCanRoll(player2, .01e18, 80, true);
+            it("Player2 can roll", function(){
+                return assertCanRoll(player2, .01e18, 80);
             });
             it("Player2 can roll again", function(){
                 return assertCanRoll(player2, .01e18, 80);
@@ -388,10 +388,9 @@ describe('InstaDice', function(){
         return txTester.start();
     }
 
-    async function assertCanRoll(player, bet, number, useFallback) {
+    async function assertCanRoll(player, bet, number) {
         bet = new BigNumber(bet);
         number = new BigNumber(number);
-        if (useFallback) bet = bet.plus(number);
         const txTester = createDefaultTxTester();
 
         const curId = await dice.curId();
@@ -434,14 +433,11 @@ describe('InstaDice', function(){
                 }
             }
         }
-        const txParams = useFallback
-            ? [dice, "sendTransaction", {value: bet, from: player}]
-            : [dice, "roll", number, {value: bet, from: player}]
 
         // assert things about the current wager
         txTester
             .startLedger([player, dice])
-            .doTx(txParams)
+            .doTx([dice, "roll", number, {value: bet, from: player}])
             .assertSuccess()
             .stopLedger()
                 .assertDelta(dice, bet.minus(expPrevPayout))

@@ -4,9 +4,107 @@
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/games/pennyauctions.js"></script>
 		<style>
-			#Summary {
-				padding: 10px 30px 30px 30px;
+			/*********************************************/
+			/******** TITLE AND FEATURES *****************/
+			/*********************************************/
+			#Title {
+				padding: 20px 0px 20px 0px;
+				background: white;
+				text-align: center;
 			}
+				#Title .sup {
+					font-size: 180%;
+					/*font-weight: bold;*/
+					letter-spacing: .25em;
+					animation: textShadowGlow 2s 0s infinite ease-in-out alternate;
+				}
+				#Title .sub {
+					font-size: 90%;
+					letter-spacing: .2em;
+				}
+
+			.featureBox {
+				box-sizing: border-box;
+				width: 100%;
+				display: table;
+				background: linear-gradient(to bottom, #BBC 0%, #68D 100%);
+				padding: 15px 0px;
+				margin: 0px;
+			}
+			.featureBox > .left {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .middle {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox > .right {
+				display: table-cell;
+				vertical-align: top;
+				width: 33%;
+			}
+			.featureBox .block {
+				display: inline-block;
+				margin: 0px 40px;
+				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
+			}
+			@keyframes textShadowGlow {
+				from { text-shadow: 0px 0px 10px cyan; }
+				to { text-shadow: 0px 0px 4px #68D; }
+			}
+			.featureBox .title {
+				text-align: center;
+				font-weight: bold;
+				font-size: 180%;
+				color: #FAFAFA;
+				letter-spacing: .1em;
+				padding-bottom: 4px;
+				text-shadow: 0px 0px 5px cyan;
+				animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
+			}
+			.featureBox .feature {
+				display: inline-block;
+				font-size: 90%;
+				margin: 4px 0px;
+				font-weight: bold;
+
+			}
+			.featureBox .tipLeft::before {
+				background: rgba(0,0,0,.1)
+			}
+
+			.featureBox .stats {
+				text-align: center;
+				margin-top: 20px;
+				white-space: nowrap;
+			}
+			.featureBox .stats .stat {
+				display: inline-block;
+				text-align: center;
+				padding: 3px 5px;
+				border-radius: 5px;
+				background: rgba(200,200,200,.5);
+				border: 1px inset rgba(200,200,200,.5);
+			}
+			.featureBox .stats .stat .value {
+				font-size: 120%;
+				color: blue;
+				margin-bottom: -5px;
+				text-shadow: 0px 0px 5px white;
+			}
+			.featureBox .stats .stat .label {
+				display: inline-block;
+				font-size: 70%;
+				color: #666;
+			}
+			.featureBox .stats .wagered {
+				margin-left: 50px;
+				margin-right: 50px;
+			}
+
 			.field {
 				padding: 2px;
 			}
@@ -58,6 +156,184 @@
 	</head>
 	<body>
 	<div id="Content">
+		<div id="Summary">
+			<div id="Title">
+				<div class="sup">Penny Auctions</div>
+				<div class="sub">the world's fairest penny auctions</div>
+			</div>
+			<div class="featureBox">
+				<div class="left">
+					<div class="block">
+						<div class="title">Fast</div>
+						<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
+							No deposit, no sign-up.
+						</div><br>
+						<div class="feature tipLeft" title="Just send some Ether to an auction. If nobody bids after you, you'll win the prize!">
+							Easy to play!
+						</div><br>
+						<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
+							Responsive UI.
+						</div>
+					</div>
+				</div>
+				<div class="middle">
+					<div class="block">
+						<div class="title">Fair</div>
+						<div class="feature tipLeft" title="Insider bidding is impossible. Each bid goes into the pockets of the distributed PennyEther token holders.">
+							Shill bidding is impossible.
+						</div><br>
+						<div class="feature tipLeft" title="Bids are refunded anytime there's an error, saving you gas and Ether.">
+							Bids are refunded on error.
+						</div><br>
+						<div class="feature tipLeft" title="The ETH prize is held in a smart contract, and will only ever leave to pay the winner.">
+							Prize is already staked.
+						</div>
+					</div>
+				</div>
+				<div class="right">
+					<div class="block">
+						<div class="title">Exciting</div>
+						<div class="feature tipLeft" title="We always have Penny Auctions running. Catch them at the right time and win!">
+							Always running.
+						</div><br>
+						<div class="feature tipLeft" title="For some auctions, each bid increases the prize.">
+							Growing prizes.
+						</div><br>
+						<div class="feature tipLeft" title="Watch as bids are updated live.">
+							Bids are updated live.
+						</div><br>
+					</div>
+				</div>
+			</div>
+			<style>
+
+				.instructions {
+					margin: 20px auto;
+					width: 700px;
+					border-radius: 10px;
+					background: linear-gradient(to right, #FFF 0%, #EEE 8%, #EEE 92%, #FFF 100%);
+				}
+				.howTo {
+					padding: 5px 0px 3px 0px;
+					margin: 0px 100px;
+					text-align: center;
+					text-transform: uppercase;
+					font-size: 90%;
+					text-shadow: 1px 1px 1px white;
+					color: #68D;
+					border-bottom: 2px ridge rgba(255,255,255,.3);
+					letter-spacing: .3em;
+				}
+				.oneTwoThree {
+					display: table;
+					width: 100%;
+					margin-top: 5px;
+				}
+				.oneTwoThree .oneCell,
+				.oneTwoThree .twoCell,
+				.oneTwoThree .threeCell {
+					display: table-cell;
+					width: 33%;
+					vertical-align: middle;
+					text-align: center;
+					padding: 5px;
+				}
+				.oneTwoThree .inline {
+					display: inline-block;
+				}
+
+				.one,
+				.two,
+				.three {
+					display: table;
+					width: 100%;
+					text-align: left;
+					opacity: .7;
+					cursor: pointer;
+					filter: saturate(0%);
+					transition: filter .5s, opacity .5s;
+				}
+				.one:hover,
+				.two:hover,
+				.three:hover {
+					filter: saturate(200%);
+					transition: filter .5s, opacity .5s;
+				}
+				.oneTwoThree .left,
+				.oneTwoThree .right {
+					display: table-cell;
+					vertical-align: top;
+				}
+
+				.one .left img { height: 35px; }
+				.two .left { font-size: 200%; padding-right: 5px; }
+				.three .left { font-size: 200%; padding-right: 8px; }
+
+				.oneTwoThree .title {
+					font-weight: bold;
+					letter-spacing: .1em;
+					color: blue;
+				}
+				.oneTwoThree .info {
+					font-size: 90%;
+					color: #68A;
+				}
+				.oneTwoThree .question {
+					vertical-align: middle;
+					font-size: 80%;
+					display: inline-block;
+					color: white;
+					background: rgba(0,0,0,.1);
+					margin-top: -2px;
+					margin-left: -2px;
+					padding: 0px 4px 0px 5px;
+					border-radius: 13px;
+					font-family: serif;
+				}
+
+			</style>
+			<div class="instructions">
+				<div class="howTo">How to play</div>
+				<div class="oneTwoThree">
+					<div class="oneCell">
+						<div class="inline">
+							<div class="one tipTop" title="Bid with confidence. Your bid is refunded if: 1) You bid the wrong amount. 2) You are already the current winner. 3) The auction has already ended. 4) Somebody bids after you in the same block.">
+								<div class="left">
+									<img class="icon" src="/images/ethereum.png"/>
+								</div>
+								<div class="right">
+									<div class="title">Bid <span class="question">i</span></div>
+									<div class="info">Send bid amount</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="twoCell">
+						<div class="inline">
+							<div class="two tipTop" title="Wait for the auction time to expire.">
+								<div class="left">⌛</div>
+								<div class="right">
+									<div class="title">Wait <span class="question">i</span></div>
+									<div class="info">If nobody else bids...</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="threeCell">
+						<div class="inline">
+							<div class="three tipTop" title="The prize will be sent to you soon, or you can claim it immediately!">
+								<div class="left">💸</div>
+								<div class="right">
+									<div class="title">Win! <span class="question">i</span></div>
+									<div class="info">Claim the prize</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div class="section title">
 			Live Penny Auctions
 		</div>

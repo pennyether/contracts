@@ -119,9 +119,10 @@
 		  	tippy.defaults.performance = true;
 		  	tippy.defaults.sticky = true;
 		  	tippy.defaults.arrow = true;
-		  	$('[title]:not(.tipLeft):not(.dontTip)').addClass("tipRight");
+		  	$('[title]:not(.tipLeft):not(.dontTip):not(.tipTop)').addClass("tipRight");
 		  	tippy('.tipLeft:not(.dontTip)', {placement: "top"});
 		  	tippy('.tipRight:not(.dontTip)', {placement: "right"});
+		  	tippy('.tipTop:not(.dontTip)', {placement: "top"});
 
 		  	// done.
 		  	return statePromise.then(()=>{
