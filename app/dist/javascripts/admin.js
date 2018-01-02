@@ -138,15 +138,23 @@ Loader.require("reg", "tr", "mc", "pac", "dice")
 		})
 	}
 
-
+	/*
+DiceNumUnresolved
+	*/
 	function updateDice() {
 		if (!dice) return alert("dice not loaded.");
+		util.bindToElement(ethUtil.getBalance(dice.address).then(ethUtil.toEthStr), $("#DiceBalance"));
+		util.bindToElement(dice.getNumUnresolvedRolls(), $("#DiceNumUnresolved"));
+		util.bindToElement(dice.getProfits().then(ethUtil.toEthStr), $("#DiceSendProfits"));
+		util.bindToElement(dice.bankroll().then(ethUtil.toEthStr), $("#DiceBankroll"));
+		util.bindToElement(dice.minBankroll().then(ethUtil.toEthStr), $("#DiceMinBankroll"));
 		util.bindToElement(dice.getAdmin(), $("#DiceAdmin"));
 		util.bindToInput(dice.feeBips(), $("#DiceFeeBips"));
 		util.bindToInput(dice.minBet().then(ethUtil.toEth), $("#DiceMinBet"));
 		util.bindToInput(dice.maxBet().then(ethUtil.toEth), $("#DiceMaxBet"));
 		util.bindToInput(dice.minNumber(), $("#DiceMinNumber"));
 		util.bindToInput(dice.maxNumber(), $("#DiceMaxNumber"));
+		
 	}
 	$("#DiceChangeSettings").click(function(){
 		if (!dice) return alert("dice not loaded.");
@@ -166,6 +174,41 @@ Loader.require("reg", "tr", "mc", "pac", "dice")
 			updateDice();
 		}).catch(function(){
 			alert("Unsuccessful - are you the admin?");
+		});
+	});
+	$("#btnDiceSendProfits").click(function(){
+		dice.sendProfits([]).then(function(){
+			alert("Profits sent.");
+			updateDice();
+		}).catch(function(){
+			alert("Unsuccessful - are you the admin?");
+		})
+	})
+	$("#btnDiceRemoveBankroll").click(function(){
+		const num = ethUtil.toWei($("#DiceRemoveBankroll").val());
+		dice.removeBankroll([num]).then(function(){
+			alert("Bankroll removed.");
+			updateDice();
+		}).catch(function(){
+			alert("Unsuccessful - are you the admin?");
+		})
+	});
+	$("#btnDiceAddBankroll").click(function(){
+		const num = ethUtil.toWei($("#DiceAddBankroll").val());
+		dice.addBankroll([], {value: num}).then(function(){
+			alert("Bankroll added.");
+			updateDice();
+		}).catch(function(){
+			alert("Unsuccessful.");
+		})
+	});
+	$("#btnDiceResolve").click(function(){
+		const num = new BigNumber($("#DiceResolveRolls").val());
+		dice.resolveUnresolvedRolls([num]).then(function(){
+			alert("Resolved.");
+			updateDice();
+		}).catch(function(){
+			alert("Unsuccessful.");	
 		});
 	})
 });

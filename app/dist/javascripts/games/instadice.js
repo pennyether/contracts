@@ -1,6 +1,7 @@
 Loader.require("dice")
 .then(function(dice){
 	//dice.addBankroll([], {value: 1e18});
+	//dice.resolveUnresolvedRolls([100]);
 
 	ethUtil.onStateChanged((state)=>{
 		refreshAllRolls(state);
@@ -292,6 +293,7 @@ Loader.require("dice")
 	// - paid (blockNumber, txId, time)
 	// - paymentfailure (blockNumber, txId, time)
 	function refreshAllRolls(state) {
+		if (!state.account) return;
 		Promise.all([
 			dice.curId(),
 			dice.getEvents("RollWagered", {user: state.account}, state.latestBlock.number - 256),
@@ -364,26 +366,27 @@ Loader.require("dice")
     // for any roll that is in _$currentRolls, refresh it.
     function refreshCurrentRolls(rolls, curBlockNum) {
     	rolls.forEach((roll)=>{
-    		if (_$currentRolls[roll.id]) {
-    			const $new = $getRoll(roll, curBlockNum);
-    			_$currentRolls[roll.id].replaceWith($new);
-    			_$currentRolls[roll.id] = $new;
-    		}
+    		if (!_$currentRolls[roll.id]) return;
+    		if (_$lockedRolls[roll.id]) return;
+    		const $new = $getRoll(roll, curBlockNum);
+			_$currentRolls[roll.id].replaceWith($new);
+			_$currentRolls[roll.id] = $new;
     	})
     }
 
     const _$recentRollsCtnr = $(".recentRolls .rolls");
     const _$lockedRolls = {};
     function refreshRecentRolls(rolls, curBlockNum) {
-    	Object.values(_$lockedRolls).forEach($e=>$e.detach());
-    	_$recentRollsCtnr.empty();
-    	rolls.forEach((roll)=>{
-    		if (_$currentRolls[roll.id]) { return; }
-    		const $roll = _$lockedRolls[roll.txId]
-    			? _$lockedRolls[roll.txId]
+    	// create $rolls, detach _$locked ones
+    	const $rolls = rolls.map((roll)=>{
+    		if (_$currentRolls[roll.id]) return;
+    		return _$lockedRolls[roll.id]
+    			? _$lockedRolls[roll.id].detach()
     			: $getRoll(roll, curBlockNum);
-    		$roll.appendTo(_$recentRollsCtnr);
-    	});
+    	}).filter(x=>!!x);
+    	// append them all
+    	_$recentRollsCtnr.empty();
+    	$rolls.forEach($r=>$r.appendTo(_$recentRollsCtnr));
     }
 
 
@@ -509,7 +512,7 @@ Loader.require("dice")
 			$button.click(()=>{
 				var claimTxId;
 				// lock this roll so it doesn't get updated.
-				_$lockedRolls[roll.txId] = $e;
+				_$lockedRolls[roll.id] = $e;
 				$e.addClass("claiming");
 				const p = dice.payoutRoll([roll.id], {gas: 55000});
 				// disable button, show stuff.
@@ -524,8 +527,10 @@ Loader.require("dice")
 				});
 				// on success unlock, on failure, let them retry.
 				p.then(function(){
-					delete _$lockedRolls[roll.txId];
-					$claimStatus.text("Transaction complete. Please wait a moment.");
+					delete _$lockedRolls[roll.id];
+					$claimStatus.empty()
+						.append(util.$getTxLink("Transaction complete.", claimTxId))
+						.append(" Please wait a moment.");
 				}, function(e){
 					$e.removeClass("claiming");
 					$button.removeAttr("disabled");

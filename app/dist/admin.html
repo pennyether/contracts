@@ -104,26 +104,64 @@
 				<div>
 					Admin: <span id="DiceAdmin"></span>
 				</div>
+				<h4>Status</h4>
+				<div>
+					<div>
+						<span>Balance:</span>
+						<span id="DiceBalance"></span>
+					</div>
+					<div>
+						<span>Bankroll:</span>
+						<span id="DiceBankroll"></span>
+					</div>
+					<div>
+						<span>MinBankroll:</span>
+						<span id="DiceMinBankroll"></span>
+					</div>
+					<div>
+						<span class="tipLeft" title="Unresolved rolls happen when more than one bid occurs on the same block. When this happens, the bankroll is tied up until the roll is resolved.">Unresolved Rolls:</span>
+						<span id="DiceNumUnresolved"></span>
+					</div>
+				</div>
+				<div>
+					<h4>Financials</h4>
+					<div>
+						<span class="tipLeft" title="Sends any amount over bankroll to Treasury">Send Profits: </span>
+						<span id="DiceSendProfits" placeholder="eth"></span> <button id="btnDiceSendProfits">Send Profits</button> (admin only)
+					</div>
+					<div>
+						<span class="tipLeft" title="Increases bankroll and minBankroll">Add Bankroll: </span>
+						<input type=text id="DiceAddBankroll" placeholder="eth"> ETH <button id="btnDiceAddBankroll">Add Bankroll</button> (anybody)
+					</div>
+					<div>
+						<span class="tipLeft" title="Removes from bankroll and send to treasury.">Remove Bankroll: </span>
+						<input type=text id="DiceRemoveBankroll" placeholder="eth"> ETH <button id="btnDiceRemoveBankroll">Remove Bankroll</button> (admin only)
+					</div>
+					<div>
+						<span class="tipLeft" title="Removes from bankroll and send to treasury. Anyone can do this.">Resolve Unresolved Rolls:</span>
+						<input type=text id="DiceResolveRolls" placeholder="number of rolls" value=100> rolls. <button id="btnDiceResolve">Resolve</button> (anybody)
+					</div>
+				</div>
 				<h4>Settings</h4>
 				<div>
 					<div>
-						<span>Fee Bips (100 = 1%)</span>
+						<span>Fee Bips (100 = 1%):</span>
 						<input type=text id="DiceFeeBips" placeholder="bips">
 					</div>
 					<div>
-						<span>Min Bet (ETH)</span>
+						<span>Min Bet (ETH):</span>
 						<input type=text id="DiceMinBet" placeholder="eth">
 					</div>
 					<div>
-						<span>Max Bet (ETH)</span>
+						<span>Max Bet (ETH):</span>
 						<input type=text id="DiceMaxBet" placeholder="eth">
 					</div>
 					<div>
-						<span>Min Number</span>
+						<span>Min Number:</span>
 						<input type=text id="DiceMinNumber" placeholder="1-100">
 					</div>
 					<div>
-						<span>Max Number</span>
+						<span>Max Number:</span>
 						<input type=text id="DiceMaxNumber" placeholder="1-100">
 					</div>
 					<button id="DiceChangeSettings">CHANGE SETTINGS</button>

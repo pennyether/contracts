@@ -427,6 +427,7 @@
 				padding: 3px;
 				font-size: 80%;
 				border-radius: 5px;
+				margin: 5px 0px;
 				color: #666;
 			}
 			.roll.unresolved .warning {
@@ -645,12 +646,11 @@
 					<div class="waiting">
 						<div>
 							You'll receive your winnings when anyone rolls.
-							<br>If you'd like, you can claim your winnings now:
-							<br><button class="claim">Claim Winnings</button>
+							<div class="warning">
+								Note: If nobody rolls within <span class="blocksLeft"></span>, you will lose your winnings unless you claim them.
+							</div>
+							<button class="claim">Claim Winnings</button>
 							<div class="claimStatus"></div>
-						</div>
-						<div class="warning">
-							Note: If nobody rolls within <span class="blocksLeft"></span>, you will lose your winnings unless you claim them.
 						</div>
 					</div>
 					<div class="syncing">
