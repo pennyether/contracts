@@ -179,13 +179,13 @@
 				<div class="middle">
 					<div class="block">
 						<div class="title">Fair</div>
-						<div class="feature tipLeft" title="Insider bidding is impossible. Each bid goes into the pockets of the distributed PennyEther token holders.">
+						<div class="feature tipLeft" title="Insider bidding is impossible. Each bid gets distributed to all PennyEther token holders.">
 							Shill bidding is impossible.
 						</div><br>
-						<div class="feature tipLeft" title="Bids are refunded anytime there's an error, saving you gas and Ether.">
-							Bids are refunded on error.
+						<div class="feature tipLeft" title="If a bid doesn't result in you becoming the current winner, it is refunded.">
+							Some bids are refunded.
 						</div><br>
-						<div class="feature tipLeft" title="The ETH prize is held in a smart contract, and will only ever leave to pay the winner.">
+						<div class="feature tipLeft" title="The prize is held in a smart contract, and will only ever leave to pay the winner.">
 							Prize is already staked.
 						</div>
 					</div>
@@ -220,6 +220,7 @@
 					text-transform: uppercase;
 					font-size: 90%;
 					text-shadow: 1px 1px 1px white;
+					font-weight: bold;
 					color: #68D;
 					border-bottom: 2px ridge rgba(255,255,255,.3);
 					letter-spacing: .3em;
@@ -248,16 +249,18 @@
 					display: table;
 					width: 100%;
 					text-align: left;
-					opacity: .7;
+					opacity: .6;
 					cursor: pointer;
 					filter: saturate(0%);
-					transition: filter .5s, opacity .5s;
+					transition: filter .6s, opacity .6s;
 				}
 				.one:hover,
 				.two:hover,
 				.three:hover {
+					opacity: 1;
 					filter: saturate(200%);
-					transition: filter .5s, opacity .5s;
+					transition: filter .6s, opacity .6s;
+					text-shadow: 1px 1px 3px #CCC;
 				}
 				.oneTwoThree .left,
 				.oneTwoThree .right {
@@ -297,7 +300,7 @@
 				<div class="oneTwoThree">
 					<div class="oneCell">
 						<div class="inline">
-							<div class="one tipTop" title="Bid with confidence. Your bid is refunded if: 1) You bid the wrong amount. 2) You are already the current winner. 3) The auction has already ended. 4) Somebody bids after you in the same block.">
+							<div class="one dontTip tipTop" title="" data-tippy-html="#BidTip" data-tippy-animation="scale">
 								<div class="left">
 									<img class="icon" src="/images/ethereum.png"/>
 								</div>
@@ -310,7 +313,7 @@
 					</div>
 					<div class="twoCell">
 						<div class="inline">
-							<div class="two tipTop" title="Wait for the auction time to expire.">
+							<div class="two dontTip tipTop" data-tippy-html="#WaitTip" data-tippy-animation="scale">
 								<div class="left">⌛</div>
 								<div class="right">
 									<div class="title">Wait <span class="question">i</span></div>
@@ -321,7 +324,7 @@
 					</div>
 					<div class="threeCell">
 						<div class="inline">
-							<div class="three tipTop" title="The prize will be sent to you soon, or you can claim it immediately!">
+							<div class="three dontTip tipTop" data-tippy-html="#WinTip" data-tippy-animation="scale">
 								<div class="left">💸</div>
 								<div class="right">
 									<div class="title">Win! <span class="question">i</span></div>
@@ -333,6 +336,85 @@
 				</div>
 			</div>
 		</div>
+		<style>
+			.bidTip .title,
+			.waitTip .title,
+			.winTip .title {
+				margin: 10px 0px;
+				text-align: center;
+				font-weight: bold;
+			}
+
+			.bidTip {
+				padding-left: 10px;
+				padding-bottom: 10px;
+				width: 330px;
+				text-align: left;
+			}
+			.bidTip .info {
+				margin: 10px 0px;
+			}
+			.bidTip .aboveList {
+				font-size: 85%;
+			}
+			.bidTip .item {
+				font-size: 85%;
+				margin: 3px 0px 3px 10px;
+			}
+
+			.waitTip {
+				padding-left: 10px;
+				padding-bottom: 10px;
+				width: 350px;
+				text-align: left;
+			}
+			.waitTip .item {
+				font-size: 90%;
+				margin: 3px 0px 3px 10px;
+			}
+
+			.winTip {
+				padding-left: 10px;
+				padding-bottom: 10px;
+				width: 290px;
+				text-align: left;
+			}
+			.winTip .wait {
+				font-size: 80%;
+				font-weight: normal;
+			}
+		</style>
+		<div id="BidTip" style="display:none;">
+			<div class="bidTip">
+				<div class="title">Bid with confidence.</div>
+				<div class="info">If your bid doesn't result in you becoming the current winner, it is refunded. You'll get your remaining gas back, too.</div>
+				<div class="aboveList">This could happen if:</div>
+				<div class="item">• You bid the wrong amount.</div>
+				<div class="item">• The auction has already ended.</div>
+				<div class="item">• Someone bids after you in the same block.</div>
+				<div class="item">• You are already the current winner.</div>
+			</div>
+		</div>
+		<div id="WaitTip" style="display: none;">
+			<div class="waitTip">
+				<div class="title">Wait for the auction to expire.</div>
+				<div class="item">• Each bid adds a few blocks to the auction time.</div>
+				<div class="item">• If nobody else bids, you win!</div>
+			</div>
+		</div>
+		<div id="WinTip" style="display:none;">
+			<div class="winTip">
+				<div class="title">Claim your prize immediately.</div>
+				<div class="wait">
+					Or, you can wait and the prize will automatically be sent to you by PennyEther, free of charge.
+				</div>
+			</div>
+		</div>
+		<script>
+			Loader.promise.then(function(){
+				tippy(".tipTop");
+			});
+		</script>
 
 		<div class="section title">
 			Live Penny Auctions
