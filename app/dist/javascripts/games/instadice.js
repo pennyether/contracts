@@ -59,7 +59,6 @@ Loader.require("dice")
 	var _maxNumber;
 	var _bankroll;
 	function refreshBetUiSettings() {
-		$loader.show();
 		Promise.all([
 			dice.minBet(),
 			dice.maxBet(),
@@ -67,6 +66,7 @@ Loader.require("dice")
 			dice.maxNumber(),
 			dice.bankroll()
 		]).then(arr=>{
+			$loader.hide();
 			_minBet = arr[0];
 			_maxBet = arr[1];
 			_minNumber = arr[2];
@@ -85,11 +85,10 @@ Loader.require("dice")
 				.attr("min", _minNumber.toNumber())
 				.attr("max", _maxNumber.toNumber());
 
-			$loader.hide();
 			refreshPayout();
 		});
-		// refresh every 10 minutes in case min/max has changed
-		setTimeout(refreshBetUiSettings, 300000);
+		// refresh every 60 seconds in case min/max has changed
+		setTimeout(refreshBetUiSettings, 60000);
 	}
 	refreshBetUiSettings();
 
@@ -199,6 +198,7 @@ Loader.require("dice")
 		_$emptyCurrentRolls.show();
 		_$clearCurrentRolls.hide();
 		_$currentRollsCtnr.empty();
+		ethUtil.getCurrentState().then(refreshAllRolls);
 	});
 	function trackResult(p, bet, number) {
 		_$emptyCurrentRolls.hide();
@@ -551,6 +551,7 @@ Loader.require("dice")
 		const $paymentFailure = $result.find(".paymentFailure").hide();
 		const $lostMsg = $result.find(".lostMsg").hide();
 		if (didWin){
+			$e.addClass("won");
 			if (roll.state == "waiting") {
 				$waiting.show();
 			} else if (roll.state == "syncing") {
@@ -559,12 +560,14 @@ Loader.require("dice")
 				$unresolved.show();
 			} else if (roll.state == "paid") {
 				$paid.empty()
-					.append(util.$getTxLink(`✓ Your winnings of ${payoutStr} have been paid.`, roll.paid.txId))
+					.append(`✓ Your winnings of ${payoutStr} `)
+					.append(util.$getTxLink(`have been paid.`, roll.paid.txId))
 					.show();
 			} else if (roll.state == "paymentfailure") {
 				$paymentFailure.show();
 			}
 		} else {
+			$e.addClass("lost");
 			const rand = (new BigNumber(roll.created.txId)).mod(1000).toNumber();
 			$lostMsg.show().text(getLoseMsg(rand));
 		}
