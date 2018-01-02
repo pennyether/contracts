@@ -5,6 +5,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac", "dice")
 	refreshAll();
 
 	function refreshAll() {
+		refreshRegistry();
 		refreshWallet();
 		refreshAdmin();
 		refreshComp();
@@ -14,6 +15,9 @@ Loader.require("reg", "comp", "tr", "mc", "pac", "dice")
 		refreshDice();
 	}
 
+	function refreshRegistry() {
+		$("#RegistryAddr").empty().append(util.$getAddrLink(reg.address));
+	}
 	function refreshWallet() {
 		if (!reg) return;
 		//address owner supervisor

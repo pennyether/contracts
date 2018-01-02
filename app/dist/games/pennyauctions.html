@@ -433,10 +433,11 @@
 
 		<style>
 		.auction {
+			width: 400px; 
 			background: linear-gradient(to top, #BBB 0%, #EEE 100%);
 			border-radius: 10px;
 			border: 1px solid #DDD;
-			margin-left: 20px
+			margin-left: 10px 30px;
 		}
 		.auction .top td,
 		.auction .middle td {
@@ -447,8 +448,9 @@
 			border-left: 1px solid gray;
 		}
 		.auction td {
+			white-space: nowrap;
 			text-align: center;
-			padding-top: 10px;
+			padding: 10px 5px 5px 5px;
 		}
 		.auction td .label {
 			position: absolute;
@@ -459,16 +461,20 @@
 			padding: 2px 4px 2px 2px;
 			color: white;
 			letter-spacing: .10em;
+			cursor: pointer;
 			border-bottom-right-radius: 4px;
 			box-shadow: 1px 1px 3px #AAA;
 			text-transform: uppercase;
 			opacity: .55;
 		}
-		.auction td .label.prize {
+		.auction td .prizeLabel {
 			border-top-left-radius: 10px;
 		}
 		.auction .field {
 			padding: 4px;
+		}
+		.auction .prize {
+			min-width: 120px;
 		}
 		.auction .prize .value {
 			display: inline-block;
@@ -482,11 +488,12 @@
 			vertical-align: middle;
 		}
 		.auction .timeLeft {
-			display: inline-block;
-			font-size: 120%;
+			display: block;
+			font-size: 100%;
+			margin-top: -5px;
 			vertical-align: middle;
 		}
-		.auction .bidFee {
+		.auction .bidPrice {
 			display: inline-block;
 			font-size: 200%;
 			letter-spacing: -.08em;
@@ -499,15 +506,18 @@
 			padding: 10px 40px;
 			margin-bottom: 15px;
 			cursor: pointer;
+			color: white;
+			background: linear-gradient(to bottom, #68C 0%, #46C 100%);
 		}
 		.auction .eth {
 			display: inline-block;
 			font-size: 80%;
 			font-weight: bold;
 			color: gray;
+			margin-left: -3px;
 			text-transform: uppercase;
 		}
-		.auction .tipLeft:before {
+		.auction .infoLeft:before {
 			text-transform: none;
 			background: #AAA;
 		}
@@ -518,108 +528,67 @@
 			color: blue;
 			cursor: pointer;
 		}
-		</style>
-		<div style="margin: 40px 0px">
-			<div class="auction" style="width: 350px;">
-				<table width="100%" cellpadding="0" cellspacing="0">
-					<tr class="top">
-						<td>
-							<div class="label prize tipLeft" title="The prize that the winner will receive.">Auction Prize</div>
-							<div class="field prize">
-								<div class="value">.05</div>
-								<div class="eth">eth</div>
-							</div>
-						</td>
-						<td colspan=2>
-							<div class="label tipLeft" title="The number of blocks remaining until the auction ends. An estimate of the amount of time is provided.">Blocks Remaining</div>
-							<div class="field">
-								<div class="blocksLeft">5</div>
-								<div class="timeLeft">(~3:22)</div>
-							</div>
-						</td>
-					</tr>
-					<tr class="middle">
-						<td>
-							<div class="label tipLeft" title="The amount it costs to become the current winner.">Bid Fee</div>
-							<div class="field">
-								<div class="bidFee">.0001</div>
-								<div class="eth">eth</div>
-							</div>
-						</td>
-						<td>
-							<div class="label tipLeft" title="The winner that will receive the prize if the auction ends.">Current Winner</div>
-							<div class="field currentWinner">
-								<div class="value">0x38432908</div>
-							</div>
-						</td>
-						<td>
-							<div class="bidHistoryIcon">☰</div>
-						</td>
-					</tr>
-					<tr class="bottom">
-						<td colspan=3>
-							<div class="bid dontTip tipHover" title="A bid will subtract .001 ETH from the prize, and extend the auction by 5 blocks.">
-								<button>Bid</button>
-							</div>
-						</td>
-					</tr>
-				</table>	
-			</div>
-		</div>
 
-		<div class="section title">
-			Live Penny Auctions
-		</div>
-		<div id="Summary">
-			Estoll the benefits of Penny Auctions here.
+		.auction .flash {
+			animation: flashGreenBackground 5s 0s 1 ease-out;
+		}
+
+		@keyframes flashGreenBackground {
+		  from { }
+		  3% { background: green; }
+		  to { }
+		}
+		</style>
+
+		<div class="auction template" style="display: none;">
+			<table width="100%" cellpadding="0" cellspacing="0">
+				<tr class="top">
+					<td>
+						<div class="label prizeLabel dontTip infoLeft" title="The prize that the winner will receive.">Auction Prize</div>
+						<div class="field prize">
+							<div class="value">.05</div>
+							<div class="eth">eth</div>
+						</div>
+					</td>
+					<td colspan=2 width="100%" class="blocksLeftCtnr">
+						<div class="label dontTip infoLeft" title="The number of blocks remaining until the auction ends. The amount of time left is estimated.">Blocks Remaining</div>
+						<div class="field">
+							<div class="blocksLeft">5</div>
+							<div class="timeLeft">(~3:22)</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="middle">
+					<td>
+						<div class="label dontTip infoLeft" title="The amount it costs to become the current winner.">Bid Fee</div>
+						<div class="field">
+							<div class="bidPrice">.0001</div>
+							<div class="eth">eth</div>
+						</div>
+					</td>
+					<td>
+						<div class="label dontTip infoLeft" title="The winner that will receive the prize if the auction ends.">Current Winner</div>
+						<div class="field currentWinner">
+							<div class="value">0x38432908</div>
+						</div>
+					</td>
+					<td>
+						<div class="bidHistoryIcon">☰</div>
+					</td>
+				</tr>
+				<tr class="bottom">
+					<td colspan=3>
+						<div class="bid dontTip" data-tippy-trigger="mouseenter" title=" ">
+							<button>Bid</button>
+						</div>
+					</td>
+				</tr>
+			</table>	
 		</div>
 		<div class="subsection">
-			<div class="auction template" style="display: none;">
-				<div class="field prize">
-					<div class="label tipLeft dontTip" title="The Prize that goes to the winner.">Prize:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field bidPrice">
-					<div class="label tipLeft dontTip" title="How much it costs to become the current winner.">Bid Price:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field endBlock">
-					<div class="label tipLeft dontTip" title="How many blocks are remaining until the auction is over. Each additional bid extends the auction.">Ends:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field currentWinner">
-					<div class="label tipLeft dontTip" title="The current winner.">Current Winner:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field numBids">
-					<div class="label tipLeft dontTip" title="How many times this auction has been bid on.">Num Bids:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field bidAddBlocks">
-					<div class="label tipLeft dontTip" title="How many blocks will be added.">Bid Adds:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field growing">
-					<div class="label tipLeft dontTip" title="The amount the prizes increases per bid.">Prize Increase:</div>
-					<div class="value"></div>
-				</div>
-				<div class="field bid">
-					<div class="label tipLeft dontTip" title="Bid now to become the current winner!">Bid
-					</div>
-					<div class="value">
-						<button>Click here to Bid!</button>
-					</div>
-				</div>
-			</div>
-			<div class="auctions"></div>
-		</div>
-		<div class="subsection">
-			<div class="head">
-				Completed Auctions
-			</div>
+			<div class="head">Current Auctions</div>
 			<div class="body">
-				<div class="completedAuction template">
-				</div>
+				<div class="auctions"></div>
 			</div>
 		</div>
 	</div>

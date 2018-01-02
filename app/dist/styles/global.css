@@ -354,7 +354,8 @@ body {
 
 /* Anything with a tooltip gets a little i next to it */
 	.tipRight::after,
-	.tipLeft::before {
+	.tipLeft::before,
+	.infoLeft::before {
 		content: "i";
 		font-family: serif;
 		font-weight: bold;
