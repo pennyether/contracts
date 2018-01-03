@@ -25,8 +25,8 @@
 			return niceWeb3.getAllEvents(instance).then((events)=>{
 				const $ctnr = $("<div class='logs'></div>");
 				events.reverse().forEach((e)=>{
-					const argsStr = Object.keys(e.argStrs)
-						.map((name)=>`${name}: ${e.argStrs[name]}`)
+					const argsStr = Object.keys(e.args)
+						.map((name)=>`${name}: ${e.args[name]}`)
 						.join(", ");
 					$("<div></div>")
 						.text(`${e.name} - ${argsStr}`)

@@ -21,6 +21,20 @@ Loader.require("pac")
 		});
 	}
 
+	function getEndedAuctionContracts() {
+		return pac.numEndedAuctions().then(num=>{
+			const auctions = [];
+			for (var i=0; i<num; i++){
+				auctions.push(pac.endedAuctions([i]));
+			}
+			return Promise.all(auctions);
+		}).then(addrs=>{
+			return addrs
+				.filter(addr => addr != ethUtil.NO_ADDRESS)
+				.map(addr => PennyAuction.at(addr));
+		});	
+	}
+
 	function getOrCreateAuction(cAuction) {
 		if (_auctions[cAuction.address]) {
 			return _auctions[cAuction.address];
@@ -61,6 +75,7 @@ Loader.require("pac")
 			.removeClass("template")
 			.attr("id", auction.address)
 		const _auction = auction;
+		var _initialized;
 		var _blocktime;
 		var _bidPrice;
 		var _bidIncr;
@@ -68,17 +83,8 @@ Loader.require("pac")
 		var _estTimeLeft;
 		var _estTimeLeftAt;
 		var _prevBlocksLeft = null;
-
-		// initialize this auction
-		const _initialized = Promise.all([
-			_auction.bidPrice(),
-			_auction.bidIncr(),
-			_auction.bidAddBlocks(),
-		]).then(arr=>{
-			_bidPrice = arr[0];
-			_bidIncr = arr[1];
-			_bidAddBlocks = arr[2];
-		});
+		var _prevAmWinner = null;
+		var _prevPrize = null;
 
 		// initialize dom elements
 		const _$prize = _$e.find(".prize .value");
@@ -89,13 +95,6 @@ Loader.require("pac")
 		const _$currentWinner = _$e.find(".currentWinner .value");
 		const _$btn = _$e.find(".bid button")
 			.click(()=>{ _self.bid(); });
-
-		// initialize tips
-		tippy(_$e.find("[title]").toArray(), {
-			placement: "top",
-			trigger: "mouseenter",
-			dynamicTitle: true
-		});
 
 		this.setBlocktime = function(blocktime) {
 			_blocktime = blocktime;
@@ -115,7 +114,9 @@ Loader.require("pac")
 			}
 
 			_$e.removeClass("halfMinute oneMinute twoMinutes fiveMinutes");
-			if (newTimeLeft <= 30){
+			if (newTimeLeft <= 0){
+
+			} else if (newTimeLeft <= 30){
 				_$e.addClass("halfMinute");
 			} else if (newTimeLeft <= 60){
 				_$e.addClass("oneMinute");
@@ -127,6 +128,11 @@ Loader.require("pac")
 		}
 
 		this.refresh = function() {
+			function flashClass(className) {
+				_$e.removeClass(className);
+				setTimeout(()=>_$e.addClass(className), 50);
+			}
+
 			return Promise.all([
 				_initialized,
 				_auction.prize(),
@@ -138,43 +144,40 @@ Loader.require("pac")
 				const blockEnded = arr[3];
 
 				// update most recent estimate of time left
-				const numBlocksLeft = blockEnded.minus(ethUtil.getCurrentBlockHeight());
-				_estTimeLeft = _blocktime.mul(numBlocksLeft).toNumber();
+				const blocksLeft = blockEnded.minus(ethUtil.getCurrentBlockHeight());
+				_estTimeLeft = _blocktime.mul(blocksLeft).toNumber();
 				_estTimeLeftAt = (+new Date()/1000);
+				_self.updateTimeLeft();
 
 				// compute useful things, and update
+				_$e.removeClass("winner");
+				const isNewBlock = _prevBlocksLeft && blocksLeft < _prevBlocksLeft;
 				const amWinner = currentWinner === ethUtil.getCurrentAccount()
+				const isNewWinner = !_prevAmWinner && amWinner;
+				const isNewLoser = _prevAmWinner && !amWinner;
+				const isNewPrize = _prevPrize && !_prevPrize.equals(prize);
 				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
-				const isEnded = numBlocksLeft.lt(1);
+				const isEnded = blocksLeft.lt(1);
+				_prevPrize = prize;
+				_prevAmWinner = amWinner;
+				_prevBlocksLeft = blocksLeft;
+
+				// update DOM and classes
+				if (amWinner) _$e.addClass("winner");
+				_$currentWinner.empty().append($curWinner);
+				_$prize.text(`${ethUtil.toEth(prize)}`);
 				if (isEnded) {
+					_$e.addClass("ended");
 					_$btn.attr("disabled", "disabled");
 					_$blocksLeft.text("Ended");
 				} else {
-					if (_prevBlocksLeft != null && numBlocksLeft < _prevBlocksLeft) {
-						_$blocksLeftCtnr.removeClass("flash");
-						setTimeout(function(){
-							_$blocksLeftCtnr.addClass("flash");
-						}, 50);
-					}
-					_prevBlocksLeft = numBlocksLeft;
-					_$blocksLeft.text(numBlocksLeft);
+					_$blocksLeft.text(blocksLeft);
+					if (isNewLoser) flashClass("new-loser");
+					if (isNewBlock) flashClass("new-block");
+					if (isNewWinner) flashClass("new-winner");
 				}
-				_self.updateTimeLeft();
-
-				// update tips
-				const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
-				const bidIncrStr = _bidIncr.equals(0)
-					? ""
-					: _bidIncr.gt(0)
-						? `A bid will add ${bidIncrEthStr} to the prize`
-						: `A bid will subtract ${bidIncrEthStr} from the prize`;
-				_$e.find(".bid").attr("title",
-					`${bidIncrStr}. The auction will be extended by ${_bidAddBlocks} blocks.`);
-				
-				_$currentWinner.empty().append($curWinner);
-				_$prize.text(`${ethUtil.toEth(prize)}`);
-				_$bidPrice.text(`${ethUtil.toEth(_bidPrice)}`);
+				if (isNewPrize) flashClass("new-prize");
 			});
 		}
 
@@ -183,6 +186,37 @@ Loader.require("pac")
 		}
 
 		this.$e = _$e;
+
+		// initialize this auction
+		_initialized = Promise.all([
+			_auction.bidPrice(),
+			_auction.bidIncr(),
+			_auction.bidAddBlocks(),
+		]).then(arr=>{
+			_bidPrice = arr[0];
+			_bidIncr = arr[1];
+			_bidAddBlocks = arr[2];
+
+			// update DOM
+			_$bidPrice.text(`${ethUtil.toEth(_bidPrice)}`);
+
+			// update tips
+			const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
+			const bidIncrStr = _bidIncr.equals(0)
+				? ""
+				: _bidIncr.gt(0)
+					? `A bid will add ${bidIncrEthStr} to the prize`
+					: `A bid will subtract ${bidIncrEthStr} from the prize`;
+			_$e.find(".bid").attr("title",
+				`${bidIncrStr}. The auction will be extended by ${_bidAddBlocks} blocks.`);
+
+			// initialize tips
+			tippy(_$e.find("[title]").toArray(), {
+				placement: "top",
+				trigger: "mouseenter",
+				dynamicTitle: true
+			});
+		});
 	}
 
 	function refreshAuction(auction, blocktime) {

@@ -456,7 +456,7 @@
 			position: absolute;
 			top: 0px;
 			left: 0px;
-			background: gray;
+			background: #BBB;
 			font-size: 60%;
 			padding: 2px 4px 2px 2px;
 			color: white;
@@ -465,7 +465,6 @@
 			border-bottom-right-radius: 4px;
 			box-shadow: 1px 1px 3px #AAA;
 			text-transform: uppercase;
-			opacity: .55;
 		}
 		.auction td .prizeLabel {
 			border-top-left-radius: 10px;
@@ -475,6 +474,13 @@
 		}
 		.auction .prize {
 			min-width: 120px;
+		}
+		.auction .currentWinner {
+			min-width: 120px;
+		}
+		.auction.winner .currentWinnerCell {
+			background: rgba(0,255,128,.2);
+			box-shadow: 0px 0px 8px 0px rgba(0,128,0,.7);
 		}
 		.auction .prize .value {
 			display: inline-block;
@@ -503,11 +509,13 @@
 		}
 		.auction .bid button {
 			font-size: 200%;
-			padding: 10px 40px;
+			padding: 5px 40px;
 			margin-bottom: 15px;
 			cursor: pointer;
 			color: white;
-			background: linear-gradient(to bottom, #68C 0%, #46C 100%);
+			border: none;
+			border-radius: 5px;
+			animation: buttonGlow 2s 0s infinite ease-in-out alternate;
 		}
 		.auction .eth {
 			display: inline-block;
@@ -523,34 +531,76 @@
 		}
 		.auction .bidHistoryIcon {
 			font-size: 200%;
-			margin-top: -15px;
+			margin-top: -10px;
 			padding: 0px 5px;
 			color: blue;
 			cursor: pointer;
 		}
 
-		.auction .flash {
-			animation: flashGreenBackground 5s 0s 1 ease-out;
+		.auction.new-prize .prizeCell {
+			border-top-left-radius: 10px;
+			animation: flashGrayBackground 5s 0s 1 ease-out;
+		}
+		.auction.new-block .blocksLeftCell {
+			border-top-right-radius: 10px;
+			animation: flashGrayBackground 5s 0s 1 ease-out;
+		}
+		.auction.new-winner .currentWinnerCell {
+			animation: flashGreenBackground 5s 0s 1 ease-out;	
+		}
+		.auction.new-loser .currentWinnerCell {
+			animation: flashRedBackground 5s 0s 1 ease-out;		
 		}
 
+		@keyframes flashGrayBackground {
+		  from { }
+		  3% { background: gray; }
+		  to { }
+		}
+		@keyframes flashBlueBackground {
+		  from { }
+		  3% { background: blue; }
+		  to { }
+		}
 		@keyframes flashGreenBackground {
 		  from { }
-		  3% { background: green; }
+		  3% {
+		  	background: #0F8;
+		  	box-shadow: 0px 0px 15px 5px green;
+		  }
 		  to { }
+		}
+		@keyframes flashRedBackground {
+		  from { }
+		  3% {
+		  	background: red;
+		  	box-shadow: 0px 0px 8px 1px red;
+		  }
+		  to { }
+		}
+		@keyframes buttonGlow {
+			from {
+				background: #4AC;
+				box-shadow: 0px 0px 10px #5BE;
+			}
+			to {
+				background: blue;
+				box-shadow: 0px 0px 10px blue;
+			}
 		}
 		</style>
 
 		<div class="auction template" style="display: none;">
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<tr class="top">
-					<td>
+					<td class="prizeCell">
 						<div class="label prizeLabel dontTip infoLeft" title="The prize that the winner will receive.">Auction Prize</div>
 						<div class="field prize">
 							<div class="value">.05</div>
 							<div class="eth">eth</div>
 						</div>
 					</td>
-					<td colspan=2 width="100%" class="blocksLeftCtnr">
+					<td colspan=2 width="100%" class="blocksLeftCell">
 						<div class="label dontTip infoLeft" title="The number of blocks remaining until the auction ends. The amount of time left is estimated.">Blocks Remaining</div>
 						<div class="field">
 							<div class="blocksLeft">5</div>
@@ -566,7 +616,7 @@
 							<div class="eth">eth</div>
 						</div>
 					</td>
-					<td>
+					<td class="currentWinnerCell">
 						<div class="label dontTip infoLeft" title="The winner that will receive the prize if the auction ends.">Current Winner</div>
 						<div class="field currentWinner">
 							<div class="value">0x38432908</div>
