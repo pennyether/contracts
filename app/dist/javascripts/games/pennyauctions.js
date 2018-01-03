@@ -1,13 +1,21 @@
 Loader.require("pac")
 .then(function(pac){
-	ethUtil.onStateChanged(refreshAuctions);
+	ethUtil.onStateChanged(refreshAllAuctions);
 
-	refreshAuctions();
+	const _activeAuctions = {};
+	const _endedAuctions = {};
+	const _$activeAuctions = $(".activeAuctions");
+	const _$endedAuctions = $(".endedAuctions");
 
-	const _auctions = {};
+	// returns all Auction objects
+	function getAllAuctions() {
+		return Object
+			.values(_activeAuctions)
+			.concat(Object.values(_endedAuctions));
+	}
 
-	// gets all auction contracts
-	function getAuctionContracts() {
+	// get active auction contracts.
+	function getActiveAuctionContracts() {
 		return pac.numDefinedAuctions().then(num=>{
 			const auctions = [];
 			for (var i=0; i<num; i++){
@@ -21,11 +29,13 @@ Loader.require("pac")
 		});
 	}
 
+	// get up to 10 last ended auction contracts
 	function getEndedAuctionContracts() {
-		return pac.numEndedAuctions().then(num=>{
+		return pac.numEndedAuctions().then(len=>{
+			const max = Math.min(len, 10);
 			const auctions = [];
-			for (var i=0; i<num; i++){
-				auctions.push(pac.endedAuctions([i]));
+			for (var i=1; i<=max; i++){
+				auctions.push(pac.endedAuctions([len-i]));
 			}
 			return Promise.all(auctions);
 		}).then(addrs=>{
@@ -35,35 +45,45 @@ Loader.require("pac")
 		});	
 	}
 
-	function getOrCreateAuction(cAuction) {
-		if (_auctions[cAuction.address]) {
-			return _auctions[cAuction.address];
-		}
-		const auction = new Auction(cAuction);
-		auction.$e.appendTo(".auctions");
-		_auctions[cAuction.address] = auction;
-		return auction;
+	// add each cAuction to aMap, delete any aMap auction not present.
+	function getOrCreateAuctions(aMap, cAuctions, $e) {
+		// remove any auctions in array that are not in cAuctions
+		Object.keys(aMap).forEach(addr => {
+			if (!cAuctions.some(c=>c.address)){
+				aMap[addr].$e.remove();
+				delete aMap[addr];
+			}
+		});
+		// for each cAuction, getOrCreate it.
+		return cAuctions.map((c)=>{
+			if (aMap[c.address]) return aMap[c.address];
+			const auction = new Auction(c);
+			auction.$e.appendTo($e);
+			aMap[c.address] = auction;
+			return auction;
+		});
 	}
 
-	function refreshAuctions(){
+	function refreshAllAuctions(){
 		Promise.all([
-			getAuctionContracts(),
+			getActiveAuctionContracts(),
+			getEndedAuctionContracts(),
 			ethUtil.getAverageBlockTime()
 		]).then(arr => {
-			const cAuctions = arr[0];
-			const blocktime = arr[1];
-			// getOrCreateAuction()
-			var p = Promise.resolve();
-			cAuctions.map(getOrCreateAuction).forEach((a)=>{
+			const activeAuctionCs = arr[0];
+			const endedAuctionCs = arr[1];
+			const blocktime = arr[2];
+			getOrCreateAuctions(_activeAuctions, activeAuctionCs, _$activeAuctions);
+			getOrCreateAuctions(_endedAuctions, endedAuctionCs, _$endedAuctions);
+			getAllAuctions().forEach((a)=>{
 				a.setBlocktime(blocktime);
-				p = Promise.resolve(p).then(a.refresh);
-			})
-			return p;
+				a.refresh();
+			});
 		});
 	}
 
 	(function refreshTimes(){
-		Object.values(_auctions).forEach(a=>a.updateTimeLeft());
+		getAllAuctions().forEach(a=>a.updateTimeLeft(2));
 		setTimeout(refreshTimes, 1000);
 	}());
 
@@ -95,6 +115,14 @@ Loader.require("pac")
 		const _$currentWinner = _$e.find(".currentWinner .value");
 		const _$btn = _$e.find(".bid button")
 			.click(()=>{ _self.bid(); });
+		const _$moreInfo = _$e.find(".moreInfo").show();
+
+		this.refreshMoreInfo = function(){
+			const _$logs = _$moreInfo.find(".logs").text("loading...");
+			util.$getLogs(_auction).then($e=>{
+				_$logs.empty().append($e);
+			});
+		}
 
 		this.setBlocktime = function(blocktime) {
 			_blocktime = blocktime;
@@ -106,24 +134,24 @@ Loader.require("pac")
 			const timeElapsed = (+new Date()/1000) - _estTimeLeftAt;
 			const newTimeLeft = Math.round(_estTimeLeft - timeElapsed);
 			if (newTimeLeft < 0) {
-				const newTimeLeftStr = util.toTime(-1*newTimeLeft);
+				const newTimeLeftStr = util.toTime(-1*newTimeLeft, 2);
 				_$timeLeft.text(`${newTimeLeftStr} ago`);
 			} else {
-				const newTimeLeftStr = util.toTime(newTimeLeft);
+				const newTimeLeftStr = util.toTime(newTimeLeft, 3);
 				_$timeLeft.text(newTimeLeftStr);
 			}
 
-			_$e.removeClass("halfMinute oneMinute twoMinutes fiveMinutes");
-			if (newTimeLeft <= 0){
+			_$e.removeClass("half-minute one-minute two-minutes five-minutes");
+			if (_prevBlocksLeft <= 0) return;
 
-			} else if (newTimeLeft <= 30){
-				_$e.addClass("halfMinute");
+			if (newTimeLeft <= 30){
+				_$e.addClass("half-minute");
 			} else if (newTimeLeft <= 60){
-				_$e.addClass("oneMinute");
+				_$e.addClass("one-minute");
 			} else if (newTimeLeft <= 120){
-				_$e.addClass("twoMinutes");
+				_$e.addClass("two-minutes");
 			} else if (newTimeLeft <= 300){
-				_$e.addClass("fiveMinutes");
+				_$e.addClass("five-minutes");
 			}
 		}
 
@@ -169,7 +197,7 @@ Loader.require("pac")
 				_$prize.text(`${ethUtil.toEth(prize)}`);
 				if (isEnded) {
 					_$e.addClass("ended");
-					_$btn.attr("disabled", "disabled");
+					_$btn.attr("disabled", "disabled").addClass("disabled");
 					_$blocksLeft.text("Ended");
 				} else {
 					_$blocksLeft.text(blocksLeft);
@@ -216,64 +244,13 @@ Loader.require("pac")
 				trigger: "mouseenter",
 				dynamicTitle: true
 			});
+			tippy(_$e.find(".infoIcon")[0], {
+				html: _$moreInfo.show()[0],
+				trigger: "click",
+				onShow: function(){
+					_self.refreshMoreInfo();
+				}
+			});
 		});
-	}
-
-	function refreshAuction(auction, blocktime) {
-		const $ctnr = $(".auctions");
-		var $e = $(".auctions").find(`#${auction.address}`);
-		if (!$e.length){
-			$e = $(".auction.template")
-				.clone()
-				.show()
-				.removeClass("template")
-				.attr("id", auction.address)
-				.appendTo($ctnr);
-		}
-		/*
-			<table width="100%" cellpadding="0" cellspacing="0">
-				<tr class="top">
-					<td>
-						<div class="label prize tipLeft" title="The prize that the winner will receive.">Auction Prize</div>
-						<div class="field prize">
-							<div class="value">.05</div>
-							<div class="eth">eth</div>
-						</div>
-					</td>
-					<td colspan=2>
-						<div class="label tipLeft" title="The number of blocks remaining until the auction ends. An estimate of the amount of time is provided.">Blocks Remaining</div>
-						<div class="field">
-							<div class="blocksLeft">5</div>
-							<div class="timeLeft">(~3:22)</div>
-						</div>
-					</td>
-				</tr>
-				<tr class="middle">
-					<td>
-						<div class="label tipLeft" title="The amount it costs to become the current winner.">Bid Fee</div>
-						<div class="field">
-							<div class="bidPrice">.0001</div>
-							<div class="eth">eth</div>
-						</div>
-					</td>
-					<td>
-						<div class="label tipLeft" title="The winner that will receive the prize if the auction ends.">Current Winner</div>
-						<div class="field currentWinner">
-							<div class="value">0x38432908</div>
-						</div>
-					</td>
-					<td>
-						<div class="bidHistoryIcon">☰</div>
-					</td>
-				</tr>
-				<tr class="bottom">
-					<td colspan=3>
-						<div class="bid dontTip tipHover" title="A bid will subtract .001 ETH from the prize, and extend the auction by 5 blocks.">
-							<button>Bid</button>
-						</div>
-					</td>
-				</tr>
-			</table>	
-		*/
 	}
 });

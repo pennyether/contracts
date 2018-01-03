@@ -364,11 +364,11 @@ Loader.require("dice")
     }
 
     // for any roll that is in _$currentRolls, refresh it.
-    function refreshCurrentRolls(rolls, curBlockNum) {
+    function refreshCurrentRolls(rolls) {
     	rolls.forEach((roll)=>{
     		if (!_$currentRolls[roll.id]) return;
     		if (_$lockedRolls[roll.id]) return;
-    		const $new = $getRoll(roll, curBlockNum);
+    		const $new = $getRoll(roll);
 			_$currentRolls[roll.id].replaceWith($new);
 			_$currentRolls[roll.id] = $new;
     	})
@@ -376,13 +376,13 @@ Loader.require("dice")
 
     const _$recentRollsCtnr = $(".recentRolls .rolls");
     const _$lockedRolls = {};
-    function refreshRecentRolls(rolls, curBlockNum) {
+    function refreshRecentRolls(rolls) {
     	// create $rolls, detach _$locked ones
     	const $rolls = rolls.map((roll)=>{
     		if (_$currentRolls[roll.id]) return;
     		return _$lockedRolls[roll.id]
     			? _$lockedRolls[roll.id].detach()
-    			: $getRoll(roll, curBlockNum);
+    			: $getRoll(roll);
     	}).filter(x=>!!x);
     	// append them all
     	_$recentRollsCtnr.empty();
@@ -426,7 +426,7 @@ Loader.require("dice")
     	return _msgs[num % _msgs.length];
     }
 
-    function $getRoll(roll, curBlockNum) {
+    function $getRoll(roll) {
     	const $e = $(".roll.template")
     		.clone()
     		.removeClass("template")
@@ -473,15 +473,13 @@ Loader.require("dice")
 			    minute: "2-digit",
 			    second: "2-digit"
 			};  
-			const rollStr = id ? `Roll #${id},` : ``;
+			const $rollLink = id ? util.$getTxLink(`Roll #${id}`, txId) : ``;
 	    	const dateStr = (new Date(roll.created.time.toNumber()*1000))
 	    		.toLocaleString(window.navigator.language, options);
-	    	const $txLink = util.$getTxLink(blockNum, txId);
 	    	$e.find(".mined").empty()
 	    		.show()
-	    		.append(`${rollStr} Block `)
-	    		.append($txLink)
-	    		.append(` (${dateStr})`);
+	    		.append($rollLink)
+	    		.append(` ${dateStr} `);
 	    }
 
     	if (roll.state == "refunded") {
@@ -572,6 +570,7 @@ Loader.require("dice")
 			$lostMsg.show().text(getLoseMsg(rand));
 		}
 		avgBlockTime.then((blocktime)=>{
+			const curBlockNum = ethUtil.getCurrentBlockHeight();
 			const blocksLeft = 255 - (curBlockNum - roll.created.blockNumber);
 			const timeLeft = util.toTime(blocktime.mul(blocksLeft))
 			$result.find(".blocksLeft").text(`${blocksLeft} blocks (~${timeLeft})`);

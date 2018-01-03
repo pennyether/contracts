@@ -433,19 +433,32 @@
 
 		<style>
 		.auction {
+			display: inline-block;
 			width: 400px; 
 			background: linear-gradient(to top, #BBB 0%, #EEE 100%);
 			border-radius: 10px;
 			border: 1px solid #DDD;
-			margin-left: 10px 30px;
+			margin: 10px 30px;
+		}
+		.auction.ended {
+			opacity: .4;
 		}
 		.auction .top td,
-		.auction .middle td {
+		.auction .middle td,
+		.auction .bottom td {
 			position: relative;
 			border-bottom: 1px solid gray;
+			z-index: 2;
+		}
+		.auction .bottom td {
+			border-bottom: none;
+			z-index: 1;
 		}
 		.auction td:not(:first-child) {
 			border-left: 1px solid gray;
+		}
+		.auction td.statusCell {
+			border-left: 1px solid #AAA;
 		}
 		.auction td {
 			white-space: nowrap;
@@ -465,6 +478,10 @@
 			border-bottom-right-radius: 4px;
 			box-shadow: 1px 1px 3px #AAA;
 			text-transform: uppercase;
+		}
+		.auction .label.infoLeft:before {
+			text-transform: none;
+			background: #AAA;
 		}
 		.auction td .prizeLabel {
 			border-top-left-radius: 10px;
@@ -494,10 +511,28 @@
 			vertical-align: middle;
 		}
 		.auction .timeLeft {
-			display: block;
+			display: inline-block;
 			font-size: 100%;
 			margin-top: -5px;
 			vertical-align: middle;
+			padding: 1px 4px;
+			border-radius: 3px;
+		}
+		.auction.half-minute .timeLeft {
+			font-weight: bold;
+			animation: halfMinute 1s 0s infinite ease-in-out alternate;
+		}
+		.auction.one-minute .timeLeft {
+			font-weight: bold;
+			background: red;
+			color: white;
+		}
+		.auction.two-minutes .timeLeft {
+			font-weight: bold;
+			color: red;
+		}
+		.auction.five-minutes .timeLeft {
+			color: red;
 		}
 		.auction .bidPrice {
 			display: inline-block;
@@ -510,12 +545,19 @@
 		.auction .bid button {
 			font-size: 200%;
 			padding: 5px 40px;
-			margin-bottom: 15px;
 			cursor: pointer;
 			color: white;
 			border: none;
 			border-radius: 5px;
 			animation: buttonGlow 2s 0s infinite ease-in-out alternate;
+		}
+		.auction .bid button.disabled {
+			background: gray;
+			animation: none;
+			cursor: not-allowed;
+		}
+		.auction .bid button:focus {
+			outline: none;
 		}
 		.auction .eth {
 			display: inline-block;
@@ -525,16 +567,15 @@
 			margin-left: -3px;
 			text-transform: uppercase;
 		}
-		.auction .infoLeft:before {
-			text-transform: none;
-			background: #AAA;
-		}
-		.auction .bidHistoryIcon {
+		.auction .infoIcon {
 			font-size: 200%;
 			margin-top: -10px;
 			padding: 0px 5px;
 			color: blue;
 			cursor: pointer;
+		}
+		.auction .statusCell {
+			font-size: 80%;
 		}
 
 		.auction.new-prize .prizeCell {
@@ -557,11 +598,6 @@
 		  3% { background: gray; }
 		  to { }
 		}
-		@keyframes flashBlueBackground {
-		  from { }
-		  3% { background: blue; }
-		  to { }
-		}
 		@keyframes flashGreenBackground {
 		  from { }
 		  3% {
@@ -579,18 +615,30 @@
 		  to { }
 		}
 		@keyframes buttonGlow {
+			from { background: rgb(25,200,50); }
+			to { background: green; }
+		}
+
+		@keyframes halfMinute {
 			from {
-				background: #4AC;
-				box-shadow: 0px 0px 10px #5BE;
+				background: red;
+				color: white;
 			}
 			to {
-				background: blue;
-				box-shadow: 0px 0px 10px blue;
+				background: white;
+				color: red;
 			}
 		}
+
 		</style>
 
 		<div class="auction template" style="display: none;">
+			<div class="moreInfo" style="display: none;">
+				<div>
+					Stuff goes in here.
+					<div class="logs"></div>
+				</div>
+			</div>
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<tr class="top">
 					<td class="prizeCell">
@@ -601,9 +649,9 @@
 						</div>
 					</td>
 					<td colspan=2 width="100%" class="blocksLeftCell">
-						<div class="label dontTip infoLeft" title="The number of blocks remaining until the auction ends. The amount of time left is estimated.">Blocks Remaining</div>
+						<div class="label dontTip infoLeft" title="The number of blocks remaining until the auction ends. The amount of time left is estimated based on recent blocktimes.">Blocks Remaining</div>
 						<div class="field">
-							<div class="blocksLeft">5</div>
+							<div class="blocksLeft">5</div><br>
 							<div class="timeLeft">(~3:22)</div>
 						</div>
 					</td>
@@ -623,14 +671,18 @@
 						</div>
 					</td>
 					<td>
-						<div class="bidHistoryIcon">☰</div>
+						<div class="infoIcon">ⓘ</div>
 					</td>
 				</tr>
 				<tr class="bottom">
-					<td colspan=3>
+					<td>
 						<div class="bid dontTip" data-tippy-trigger="mouseenter" title=" ">
 							<button>Bid</button>
 						</div>
+					</td>
+					<td colspan=2 class="statusCell">
+						<div class="label dontTip infoLeft" title="This displays the auction status.">Status</div>
+						<div class="status">Auction is live!</div>
 					</td>
 				</tr>
 			</table>	
@@ -638,7 +690,13 @@
 		<div class="subsection">
 			<div class="head">Current Auctions</div>
 			<div class="body">
-				<div class="auctions"></div>
+				<div class="activeAuctions"></div>
+			</div>
+		</div>
+		<div class="subsection">
+			<div class="head">Ended Auctions</div>
+			<div class="body">
+				<div class="endedAuctions"></div>
 			</div>
 		</div>
 	</div>

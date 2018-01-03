@@ -98,6 +98,7 @@
 						if (val && val.toNumber)
 							decodedEvent.args[key] = new BigNumber(val);
 					});
+					delete decodedEvent.args["_eventName"];
 				}
 				decodedEvent
 					? knownEvents.push(decodedEvent)
