@@ -185,7 +185,6 @@
 	  		// states: signing, tx-id-error, pending, tx-error
 	  		const callName = p.metadata.callName;
 	  		const $e = _$txTemplate.clone().show().prependTo(_$txs);
-	  		console.log($e);
 			const $table = $e.find(".table");
 				const $contractName = $table.find(".contractName");
 				const $fnName = $table.find(".fnName");
