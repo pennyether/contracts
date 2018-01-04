@@ -108,6 +108,7 @@ Loader.require("pac")
 
 		// initialize dom elements
 		const _$status = _$e.find(".status");
+		const _$statusCell = _$e.find(".statusCell");
 		const _$prize = _$e.find(".prize .value");
 		const _$blocksLeftCtnr = _$e.find(".blocksLeftCtnr");
 		const _$blocksLeft = _$e.find(".blocksLeft");
@@ -194,6 +195,9 @@ Loader.require("pac")
 
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
+				if (isNewLoser) {
+					_$status.text("Someone else bid. You are no longer the current winner.")
+				}
 				_$currentWinner.empty().append($curWinner);
 				_$prize.text(`${ethUtil.toEth(prize)}`);
 				if (isEnded) {
@@ -217,7 +221,82 @@ Loader.require("pac")
 			} catch (e) {
 				_$status.text(`Error: ${e.message}`);	
 			}
-			console.log(p);
+			var bidTxId;
+
+			_$statusCell
+				.removeClass("prepending pending refunded error current-winner").
+				addClass("prepending");
+			_$status.text("Waiting for signature...");
+
+			// update status to prepending
+			p.getTxHash.then(function(txId){
+				bidTxId = txId;
+				const $txLink = util.$getTxLink("Your Bid is being mined.", bidTxId);
+				_$statusCell.removeClass("prepending").addClass("pending");
+				_$status.empty().append($txLink);
+			});
+
+			p.then(function(res){
+				_$statusCell.removeClass("pending");
+				// see if they got refunded, or if bid occurred
+				const block = res.receipt.blockNumber;
+				const bidOccurred = res.events.find(e=>e.name=="BidOccurred");
+				const bidRefunded = res.events.find(e=>e.name=="BidRefundSuccess");
+				if (!bidRefunded && !bidOccurred){
+					_$statusCell.addClass("error");
+					_$status.append(`<br>WARNING: Your transaction did not produce any logs. Please try refreshing the page.`);
+					return;
+				}
+				if (bidRefunded) {
+					_$statusCell.addClass("refunded");
+					const $txLink = util.$getTxLink("Your Bid was refunded.", bidTxId);
+					_$status.empty().append($txLink).append(`<br>${bidRefunded.args.msg}`);
+					return;
+				}
+				// Their bid was accepted and not immediately refunded.
+				const $txLink = util.$getTxLink("Your bid was submitted.", bidTxId);
+				_$status.empty().append($txLink);
+				// Get all events related to the user for this block, and update
+				//  status based on the most recent event.
+				Promise.all([
+					_auction.getEvents("BidOccurred", {bidder: ethUtil.getCurrentAccount()}, block, block),
+					_auction.getEvents("BidRefundSuccess", {bidder: ethUtil.getCurrentAccount()}, block, block),
+					_auction.getEvents("BidRefundError", {bidder: ethUtil.getCurrentAccount()}, block, block)
+				]).then(events=>{
+					events = events[0].concat(events[1]).concat(events[2]);
+					events.sort((a,b)=>a.logIndex > b.logIndex ? -1 : 1);
+					const finalEvent = events[0];
+					if (finalEvent.name=="BidOccurred") {
+						_$statusCell.addClass("current-winner");
+						_$status.append(`<br>You are now the current winner!`);
+						return;
+					}
+					if (finalEvent.name=="BidRefundSuccess") {
+						_$statusCell.addClass("refunded");
+						const $refundLink = util.$getTxLink("Your Bid was refunded.", bidTxId);
+						_$status.empty()
+							.append($refundLink)
+							.append(`<br>Your bid was refunded: ${e[0].args.msg}`);
+						return;
+					}
+					if (finalEvent.name=="BidRefundFailure") {
+						_$statusCell.addClass("error");
+						const $refundLink = util.$getTxLink("Your Bid was not refunded.", bidTxId);
+						_$status.empty()
+							.append($refundLink)
+							.append(`<br>Your bid could not be refunded: ${e[0].args.msg}`);
+						return;
+					}
+				});
+			}, function(e){
+				_$statusCell.removeClass("prepending pending").addClass("error");
+				if (bidTxId) {
+					const $txLink = util.$getTxLink("Your Bid failed.");
+					_$status.empty().append($txLink).append(`<br>${e.message}`);
+				} else {
+					_$status.text(`Error: ${e.message}`);	
+				}
+			});
 		}
 
 		this.$e = _$e;

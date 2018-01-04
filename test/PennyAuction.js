@@ -169,16 +169,16 @@ function testWithParams(name, params) {
 
             describe("Bidding", async function(){
                 it("fails when passing too little", async function() {
-                    await ensureNotBiddable(bidder1, BID_PRICE.plus(1), "Could not bid: Value sent must match bidPrice.");
+                    await ensureNotBiddable(bidder1, BID_PRICE.plus(1), "Value sent must match bidPrice.");
                 });
                 it("fails when passing too much", async function(){
-                    await ensureNotBiddable(bidder1, BID_PRICE.minus(1), "Could not bid: Value sent must match bidPrice.");
+                    await ensureNotBiddable(bidder1, BID_PRICE.minus(1), "Value sent must match bidPrice.");
                 });
                 it("works correctly", async function(){
                     await ensureBiddable(bidder1);    
                 });
                 it("currentWinner cannot bid", async function(){
-                    await ensureNotBiddable(bidder1, BID_PRICE, "Could not bid: You are already the current winner.");
+                    await ensureNotBiddable(bidder1, BID_PRICE, "You are already the current winner.");
                 });
             });
 
@@ -399,7 +399,7 @@ function testWithParams(name, params) {
                     it("Next bid should fail", async function(){
                         const curPrize = await auction.prize();
                         console.log(`${curPrize} prize remaining. Bidding now should fail.`);
-                        const errMsg = "Could not bid: Bidding would result in a negative prize.";
+                        const errMsg = "Bidding would result in a negative prize.";
                         await ensureNotBiddable(nonBidder, BID_PRICE, errMsg);    
                     });
                 });
@@ -420,7 +420,7 @@ function testWithParams(name, params) {
                     
                 });
                 it("should not accept bids", async function(){
-                    await ensureNotBiddable(nonBidder, BID_PRICE, "Could not bid: Auction has already ended.");
+                    await ensureNotBiddable(nonBidder, BID_PRICE, "Auction has already ended.");
                 });
                 it("should have correct state", async function(){
                     await createDefaultTxTester()
@@ -498,7 +498,7 @@ function testWithParams(name, params) {
                     await ensureNotPayable("The prize has already been paid.");
                 });
                 it("should not accept bids", async function(){
-                    await ensureNotBiddable(nonBidder, BID_PRICE, "Could not bid: Auction has already ended.");
+                    await ensureNotBiddable(nonBidder, BID_PRICE, "Auction has already ended.");
                 });
                 it("should allow remaining fees to be redeemed", async function(){
                     await ensureFeesSendable();

@@ -75,83 +75,6 @@
 			.featureBox .tipLeft::before {
 				background: rgba(0,0,0,.1)
 			}
-
-			.featureBox .stats {
-				text-align: center;
-				margin-top: 20px;
-				white-space: nowrap;
-			}
-			.featureBox .stats .stat {
-				display: inline-block;
-				text-align: center;
-				padding: 3px 5px;
-				border-radius: 5px;
-				background: rgba(200,200,200,.5);
-				border: 1px inset rgba(200,200,200,.5);
-			}
-			.featureBox .stats .stat .value {
-				font-size: 120%;
-				color: blue;
-				margin-bottom: -5px;
-				text-shadow: 0px 0px 5px white;
-			}
-			.featureBox .stats .stat .label {
-				display: inline-block;
-				font-size: 70%;
-				color: #666;
-			}
-			.featureBox .stats .wagered {
-				margin-left: 50px;
-				margin-right: 50px;
-			}
-
-			.field {
-				padding: 2px;
-			}
-			.field .label {
-				display: inline-block;
-				width: 160px;
-			}
-			.field .value {
-				display: inline-block;
-				padding: 4px;
-			}
-			@keyframes glowRed {
-				from { background-color: red; }
-				to { background-color: inherit; }
-			}
-			@keyframes glowYellow {
-				from { background-color: yellow; }
-				to { background-color: inherit; }
-			}
-			@keyframes glowGreen {
-				from { background-color: green; }
-				to { background-color: inherit; }
-			}
-			.endBlock .fiveMinutes {
-				background-color: yellow;
-				animation: glowYellow 4s 0s infinite ease-in-out alternate;
-			}
-			.endBlock .twoMinutes {
-				background-color: yellow;
-				animation: glowYellow 2s 0s infinite ease-in-out alternate;
-			}
-			.endBlock .oneMinute {
-				background-color: red;
-				animation: glowRed 2s 0s infinite ease-in-out alternate;
-			}
-			.endBlock .halfMinute {
-				background-color: red;
-				animation: glowRed 1s 0s infinite ease-in-out alternate;
-			}
-			.endBlock .ended {
-				color: red;
-				font-weight: bold;
-			}
-			.currentWinner .you a {
-				color: green;
-				font-weight: bold;
-			}
 		</style>
 	</head>
 	<body>
@@ -457,14 +380,33 @@
 		.auction td:not(:first-child) {
 			border-left: 1px solid gray;
 		}
-		.auction td.statusCell {
-			border-left: 1px solid #AAA;
-		}
 		.auction td {
-			white-space: nowrap;
 			text-align: center;
 			padding: 10px 5px 5px 5px;
 		}
+		.auction td.prizeCell,
+		.auction td.bidPriceCell {
+			white-space: nowrap;
+		}
+		.auction td.statusCell {
+			border-left: 1px solid #AAA;
+			border-bottom-right-radius: 10px;
+		}
+			.auction td.statusCell.prepending {
+				animation: statusPrepending 1s 0s infinite ease-in-out alternate;
+			}
+			.auction td.statusCell.pending {
+				animation: statusPending 1s 0s infinite ease-in-out alternate;
+			}
+			.auction td.statusCell.refunded {
+				background: rgba(255, 255, 0, .25);
+			}
+			.auction td.statusCell.error {
+				background: rgba(255, 0, 0, .3);
+			}
+			.auction td.statusCell.current-winner {
+				background: rgba(0, 255, 0, .4);
+			}
 		.auction td .label {
 			position: absolute;
 			top: 0px;
@@ -629,6 +571,14 @@
 				color: red;
 			}
 		}
+		@keyframes statusPrepending {
+			from { background: rgba(0,0,255,.05); }
+			to { background: rgba(0,0,255,.3); }
+		}
+		@keyframes statusPending {
+			from { background: rgba(0,255,0,.1); }
+			to { background: rgba(0,200,0,.6); }
+		}
 
 		</style>
 
@@ -657,7 +607,7 @@
 					</td>
 				</tr>
 				<tr class="middle">
-					<td>
+					<td class="bidPriceCell">
 						<div class="label dontTip infoLeft" title="The amount it costs to become the current winner.">Bid Fee</div>
 						<div class="field">
 							<div class="bidPrice">.0001</div>
@@ -682,7 +632,7 @@
 					</td>
 					<td colspan=2 class="statusCell">
 						<div class="label dontTip infoLeft" title="This displays the auction status.">Status</div>
-						<div class="status"></div>
+						<div class="status">The auction is live. Place your bid!</div>
 					</td>
 				</tr>
 			</table>	
