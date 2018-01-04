@@ -107,6 +107,7 @@ Loader.require("pac")
 		var _prevPrize = null;
 
 		// initialize dom elements
+		const _$status = _$e.find(".status");
 		const _$prize = _$e.find(".prize .value");
 		const _$blocksLeftCtnr = _$e.find(".blocksLeftCtnr");
 		const _$blocksLeft = _$e.find(".blocksLeft");
@@ -210,7 +211,13 @@ Loader.require("pac")
 		}
 
 		this.bid = function(){
-			_auction.sendTransaction({gas: 59000, value: _bidPrice});
+			var p;
+			try {
+				p = _auction.sendTransaction({gas: 59000, value: _bidPrice});
+			} catch (e) {
+				_$status.text(`Error: ${e.message}`);	
+			}
+			console.log(p);
 		}
 
 		this.$e = _$e;

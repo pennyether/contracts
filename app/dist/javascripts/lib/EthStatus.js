@@ -45,11 +45,12 @@
 						</div>
 					</div>
 					<div style="display: none;">
-						<div class="statusTip">
-							<div class="title"></div>
-							<div class="error"></div>
-							<div class="gas"></div>
-							<div class="events"></div>
+						<div class="statusTipCtnr">
+							<div class="statusTip">
+								<div class="title"></div>
+								<div class="error" style="display: none;"></div>
+								<div class="summary" style="display: none;"></div>
+							</div>
 						</div>
 						<div class="argsTip">Tip for args</div>
 						<div class="optsTip">Tip for opts</div>
@@ -77,7 +78,6 @@
 			_$noTxs.show();
 			_$notifications.hide();
 		}).hide();
-		console.log(_$txs);
 
 		// Keep track of latest block. Init to empty block.
 		var _curState = {latestBlock: {}};
@@ -192,8 +192,10 @@
 				const $fnArgs = $table.find(".fnArgs");
 				const $opts = $table.find(".opts");
 			const $status = $e.find(".status");
-			const $events = $e.find(".events");
-			const $statusTip = $e.find(".statusTip");
+			const $statusTip = $e.find(".statusTipCtnr");
+				const $statusTitle = $statusTip.find(".title");
+				const $statusError = $statusTip.find(".error");
+				const $statusSummary = $statusTip.find(".summary");
 			const $fnTip = $e.find(".fnTip");
 			const $argsTip = $e.find(".argsTip");
 			const $optsTip = $e.find(".optsTip");
@@ -222,15 +224,16 @@
 
   			$e.addClass("signing")
   			$status.text("Signing");
-  			$statusTip.text("Your transaction is awaiting signature by your provider.");
+  			$statusTitle.text("Waiting for your transaction to be submitted.");
   			p.getTxHash.then((txHash)=>{
   				const $link = util.$getTxLink("Pending", txHash);
   				$status.empty().append($link);
-  				$statusTip.text("Your transaction is being mined into the blockchain.");
+  				$statusTitle.text("Your transaction is being mined.");
   				$e.removeClass("signing").addClass("pending");
   			},(e)=>{
   				$status.empty().append("Signing Error");	// todo: tooltip
-  				$statusTip.html(`Your provider threw an error:<br><br>${e.message}`);
+  				$statusTitle.html(`Your provider threw an error:`);
+  				$statusError.text(e.message);
   				$e.removeClass("signing").addClass("tx-id-error");
   			});
   			p.then((res)=>{
@@ -250,16 +253,24 @@
   				const gasUsed = res.receipt.gasUsed;
   				const $link = util.$getTxLink(`Confirmed`, txId);
   				const events = res.events;
+
   				$status.empty().append($link);
   				$e.removeClass("waiting pending");
   				if (isError) {
-  					$statusTip.text(`Your transaction was mined, but resulted in an error: ${err.message}. Click to view your transaction on Etherscan.`);
+  					$statusTitle.text(`Your transaction was mined, but resulted in an error:`);
+  					$statusError.text(err.message);
   					$e.addClass("tx-error");
   				} else {
-  					$statusTip.text(`Your transaction was mined. Click to view it in on Etherscan.`);
+  					$statusTitle.text(`Your transaction was mined.`);
   					$e.addClass("tx-success");
   				}
-  				$events.show().text(`${events.length} events`);
+  				// show summary
+  				$statusSummary.show().text(`Mined on block ${block}, used ${gasUsed} gas.`);
+  				if (events.length) {
+  					const eventsStr = events.map((e)=>e.name).join(", ");
+  					const $events = $("<div></div>").text(`${events.length} events: ${eventsStr}`);
+  					$statusSummary.append($events);
+  				}
   			}
 
 	  		// open EthStatus, flash item
