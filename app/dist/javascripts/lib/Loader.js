@@ -106,7 +106,7 @@
 		  	const registry = Registry.at("0x3a98e0a23e4b90357ebb937bdbc9144cb7ac0dd3");
 
 		  	// attach visual components
-		  	const ethStatus = new EthStatus(ethUtil);
+		  	const ethStatus = new EthStatus(ethUtil, niceWeb3);
 		  	const nav = new Nav();
 		  	nav.setEthStatusElement(ethStatus.$e)
 		  	$("#Content").prepend(nav.$e);

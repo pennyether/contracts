@@ -221,7 +221,7 @@ Loader.require("dice")
 			$e = $new;
 		});
 		p.then((res)=>{
-			res.knownEvents.forEach((event)=>{
+			res.events.forEach((event)=>{
 				if (event.name=="RollWagered" || event.name=="RollRefunded") {
 					dice.curId().then((curId)=>{
 						var roll = getRollFromWageredOrRefunded(event, curId);

@@ -34,13 +34,7 @@
 				fromBlock: web3.toHex(0),
 				toBlock: "latest"
 			}]).then((events)=>{
-				const arr = _self.decodeKnownEvents(events);
-				if (arr[0].length !== events.length){
-					const e = new Error("Unable to decode some events:");
-					console.error(e, {instance: instance, unknownEvents: arr[1]});
-				}
-				const ret = arr[0];
-				return arr[0];
+				return _self.decodeKnownEvents(events);
 			});
 		};
 		// gets all events matching a topic
@@ -71,24 +65,17 @@
 				toBlock: toBlock ? web3.toHex(toBlock) : "latest",
 				topics: topics
 			}]).then((events)=>{
-				const arr = _self.decodeKnownEvents(events);
-				if (arr[0].length !== events.length){
-					const e = new Error("Unable to decode some events:");
-					console.error(e, {instance: instance, unknownEvents: arr[1]});
-				}
-				const ret = arr[0];
-				return arr[0];
+				return _self.decodeKnownEvents(events);
 			});
 		}
 		// will decode events where the address matches a known instance
 		// and that instance has the topic in its ABI
 		this.decodeKnownEvents = function(events) {
-			const knownEvents = [];
-			const unknownEvents = [];
-			events.forEach((event)=>{
+			return events.map((event)=>{
 				// return if its not known
+				event.decoded = false;
 				const instance = _self._knownInstances[event.address];
-				if (!instance) { unknownEvents.push(event); return; }
+				if (!instance) { return event; }
 				// decode it
 				const decodedEvent = _ethUtil.decodeEvent(event, instance.abi);
 				// convert any BigNumbers into our BigNumber
@@ -99,12 +86,10 @@
 							decodedEvent.args[key] = new BigNumber(val);
 					});
 					delete decodedEvent.args["_eventName"];
+					decodedEvent.decoded = true;
 				}
-				decodedEvent
-					? knownEvents.push(decodedEvent)
-					: unknownEvents.push(event);
+				return decodedEvent ? decodedEvent : event;
 			})
-			return [knownEvents, unknownEvents];
 		};
 
 		// allows for someone to watch all calls from instances
@@ -183,15 +168,14 @@
 				}
 			});
 			// attach .sendTransaction()
-			const sendTransactionDef = {
-				type: "function",
-				inputs: [],
-				payable: true,
-				name: "<send transaction>"
-			};
-			const oldSendTransaction = _web3.eth.sendTransaction.bind(_web3.eth);
-			instance.sendTransaction = getCallFn(oldSendTransaction, sendTransactionDef, instance, false)
-				.bind(instance, []);
+			var sendTransactionDef = abi.find(def=>def.type=="fallback");
+			if (sendTransactionDef){
+				sendTransactionDef.inputs = [];
+				sendTransactionDef.name = "<fallback>";
+				const oldSendTransaction = _web3.eth.sendTransaction.bind(_web3.eth);
+				instance.sendTransaction = getCallFn(oldSendTransaction, sendTransactionDef, instance, false)
+					.bind(instance, []);
+			}
 			// attach getAllEvents
 			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
 			instance.getEvents = function(name, filter, fromBlock, toBlock) {
@@ -255,6 +239,7 @@
 					contractName: contractName,
 					instance: instance,
 					fnName: fnName,
+					abiDef: def,
 					callName: callName,
 					isConstant: isConstant,
 					inputsObj: inputsObj,
@@ -311,25 +296,23 @@
 					(arr)=>{
 						const receipt = arr[0];
 						const tx = arr[1];
-						if (receipt.status == 0 || receipt.status == "0x0") {
-							const e = new Error(`Transaction failed (out of gas, or other error)`);
-							e.receipt = receipt;
-							e.tx = tx;
-							throw e;
-						}
-
 						const result = {};
 						if (receipt.contractAddress){
 							result.instance = _self.at(receipt.contractAddress)
 						}
-						[known, unknown] = niceWeb3.decodeKnownEvents(receipt.logs);
+						result.events = niceWeb3.decodeKnownEvents(receipt.logs);
 						result.receipt = receipt;
 						result.transaction = tx;
-						result.knownEvents = known;
-						result.unknownEvents = unknown;
 						result.metadata = metadata;
 						console.log(`${callStr} completed.`, result);
-						return result;
+
+						if (receipt.status == 0 || receipt.status == "0x0") {
+							const e = new Error(`Transaction failed (out of gas, or other error)`);
+							e.result = result;
+							throw e;
+						} else {
+							return result;
+						}						
 					},(err)=>{
 						throw new Error(`${callStr} Failed to get receipt: ${err.message}`);
 					}

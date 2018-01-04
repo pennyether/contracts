@@ -158,6 +158,7 @@ body {
 
 	/** Glowing icon... appears red when not connected (.off) *****/
 	.EthStatus .icon {
+		position: relative;
 		top: 0px;
 		padding: 10px;
 		cursor: pointer;
@@ -166,7 +167,6 @@ body {
 	}
 	.EthStatus .icon:hover, .EthStatus.open .icon {
 		filter: hue-rotate(0deg) saturate(500%) contrast(5);
-		top: 3px;
 	}
 	.EthStatus.off .icon {
 		filter: hue-rotate(110deg) saturate(100%) contrast(1);
@@ -178,10 +178,24 @@ body {
 		margin-bottom: 0px;	
 	}
 
+	.EthStatus .notifications {
+		position: absolute;
+		font-size: 70%;
+		padding: 0px 3px;
+		bottom: 5px;
+		right: 5px;
+		background: gray;
+		color: white;
+		border-radius: 10px
+	}
+	.EthStatus .notifications.new {
+		animation: flashGreenBackground 5s 0s 1 ease-out;
+	}
+
 	/** The content menu. Should fade in/out ****************/
 	.EthStatus .content {
 		position: absolute;
-		width: 300px;
+		width: 350px;
 		font-size: 90%;
 		background: #EEE;
 		opacity: 0;
@@ -271,6 +285,98 @@ body {
 			.EthStatus .account.none > .balance {
 				display: none;
 			}
+
+		.EthStatus .pendingTxs .head,
+		.EthStatus .recentTxs .head {
+			text-align: left;
+    		padding: 8px 4px 2px 5px;
+    		font-size: 80%;
+    		font-weight: bold;
+    		border-bottom: 1px solid #CCC;
+		}
+		.EthStatus .no-txs {
+			padding: 8px;
+			font-size: 80%;
+			color: gray;
+			text-align: center;
+		}
+		.EthStatus .clear {
+			color: blue;
+			cursor: pointer;
+			opacity: .5;
+			font-size: 80%;
+		}
+		.EthStatus .tx {
+			font-size: 80%;
+    		margin: 5px 0px;
+    		background: #DDD;
+    		padding: 4px 2px;
+		}
+		.EthStatus .tx .tipped {
+			border-bottom: 1px dotted gray;
+		}
+		.EthStatus .tx .table {
+			display: table;
+			width: 100%;
+		}
+			.EthStatus .tx .left {
+				display: table-cell;
+				text-align: left;
+				padding: 2px 4px;
+			}
+			.EthStatus .tx .right {
+				display: table-cell;
+				text-align: right;
+			}
+			.EthStatus .tx .right div {
+				display: inline-block;
+				margin-left: -.3em;
+			}
+			.EthStatus .tx .contractName:after {
+				content: ".";
+			}
+		.EthStatus .tx .status {
+			display: inline-block;
+			padding: 2px 4px;
+			font-weight: bold;
+			border-radius: 4px;
+		}
+		.EthStatus .tx.signing .status {
+			animation: txStatusGlowYellow 2s 0s infinite ease-in-out alternate;
+		}
+		.EthStatus .tx.pending .status {
+			color: white;
+			animation: txStatusGlowBlue 2s 0s infinite ease-in-out alternate;
+		}
+		.EthStatus .tx.tx-id-error .status,
+		.EthStatus .tx.tx-error .status {
+			color: white;
+			background: red;
+		}
+		.EthStatus .tx.tx-success .status{
+			color: white;
+			background: green;
+		}
+
+		.EthStatus .tx.new {
+			animation: flashGreenBackground 5s 0s 1 ease-out;
+		}
+		@keyframes flashGreenBackground {
+		  from { }
+		  3% {
+		  	background: #0F8;
+		  	box-shadow: 0px 0px 15px 5px green;
+		  }
+		  to { }
+		}
+		@keyframes txStatusGlowYellow {
+			from {background: yellow;}
+			to {background: #e2e201;}
+		}
+		@keyframes txStatusGlowBlue {
+			from {background: #55F;}
+			to {background: #00A;}
+		}
 
 
 /* Web3 Logger in bottom right of screen */
