@@ -342,11 +342,11 @@ body {
 		border-radius: 4px;
 	}
 	.EthStatus .tx.signing .status {
-		animation: txStatusGlowYellow 2s 0s infinite ease-in-out alternate;
+		animation: txStatusGlowYellow 1s 0s infinite ease-in-out alternate;
 	}
 	.EthStatus .tx.pending .status {
 		color: white;
-		animation: txStatusGlowBlue 2s 0s infinite ease-in-out alternate;
+		animation: txStatusGlowBlue 1s 0s infinite ease-in-out alternate;
 	}
 	.EthStatus .tx.tx-id-error .status,
 	.EthStatus .tx.tx-error .status {

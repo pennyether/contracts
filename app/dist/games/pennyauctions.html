@@ -344,12 +344,9 @@
 			</div>
 		</div>
 		<script>
+			// attach tips for html feature stuff
 			Loader.promise.then(function(){
 				tippy(".tipTop");
-				tippy(".tipHover", {
-					trigger: "mouseenter",
-					placement: "top"
-				})
 			});
 		</script>
 
@@ -378,7 +375,7 @@
 			z-index: 1;
 		}
 		.auction td:not(:first-child) {
-			border-left: 1px solid gray;
+			border-left: 1px solid #999;
 		}
 		.auction td {
 			text-align: center;
@@ -388,32 +385,13 @@
 		.auction td.bidPriceCell {
 			white-space: nowrap;
 		}
-		.auction td.statusCell {
-			border-left: 1px solid #AAA;
-			border-bottom-right-radius: 10px;
-		}
-			.auction td.statusCell.prepending {
-				animation: statusPrepending 1s 0s infinite ease-in-out alternate;
-			}
-			.auction td.statusCell.pending {
-				animation: statusPending 1s 0s infinite ease-in-out alternate;
-			}
-			.auction td.statusCell.refunded {
-				background: rgba(255, 255, 0, .25);
-			}
-			.auction td.statusCell.error {
-				background: rgba(255, 0, 0, .3);
-			}
-			.auction td.statusCell.current-winner {
-				background: rgba(0, 255, 0, .4);
-			}
 		.auction td .label {
 			position: absolute;
 			top: 0px;
 			left: 0px;
 			background: #BBB;
 			font-size: 60%;
-			padding: 2px 4px 2px 2px;
+			padding: 1px 4px 1px 0px;
 			color: white;
 			letter-spacing: .10em;
 			cursor: pointer;
@@ -516,8 +494,34 @@
 			color: blue;
 			cursor: pointer;
 		}
+
 		.auction .statusCell {
 			font-size: 80%;
+			border-bottom-right-radius: 10px;
+		}
+			.auction .statusCell.prepending {
+				animation: statusPrepending 1s 0s infinite ease-in-out alternate;
+			}
+			.auction .statusCell.pending {
+				animation: statusPending 1s 0s infinite ease-in-out alternate;
+			}
+			.auction .statusCell.refunded {
+				background: rgba(255, 255, 0, .25);
+			}
+			.auction .statusCell.error {
+				background: rgba(255, 0, 0, .3);
+			}
+			.auction .statusCell.current-winner {
+				background: rgba(0, 255, 128, .2);
+			}
+		.auction .statusCell .LoadingBar {
+			height: 5px;
+			border: 1px solid rgba(0,0,0,.2);
+			width: 80%;
+			margin: 5px auto;
+		}
+		.auction .statusCell .LoadingBar .loaded {
+			background: rgba(0,128,0,.7);
 		}
 
 		.auction.new-prize .prizeCell {

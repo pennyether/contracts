@@ -42,6 +42,9 @@
 		this.$getTxLink = function(name, tx){
 			return niceWeb3.ethUtil.$getLink(name, tx || name, "tx");
 		}
+		this.$getLoadingBar = function(timeMs, speed) {
+			return new LoadingBar(timeMs, speed);
+		}
 
 		this.toTime = function(timeS, numUnits) {
 			try {
@@ -75,6 +78,49 @@
 			}
 			return `${timeS}s`;
 		}
+	}
+
+	// loading bar that always looks like it'll take timeMs to complete.
+	// speed tunes how fast the bar will load (but also the rate at which it slows)
+	// exponential functions are such a mathematical gem.
+	function LoadingBar(timeMs, speed) {
+		const _$e = $(`
+			<div class='LoadingBar' style='font-size: 0px; height: 5px;'>
+				<div class='loaded' style='height: 100%; position: relative; left: 0px; width: 0%'>&nbsp;</div>
+			</div>
+		`);
+		const _$loaded = _$e.find(".loaded");
+		const _startTime = (+new Date());
+		const _speed = 1-speed;
+		var _timeout;
+
+		function _update() {
+			const t = (+new Date()) - _startTime;
+			var pct = (1 - Math.pow(_speed, t/timeMs)) * 100
+			_$loaded.css("width", pct.toFixed(2) + "%");
+			_timeout = setTimeout(_update, 30);
+		}
+
+		this.finish = function(durationMs){
+			return new Promise((res,rej)=>{
+				clearTimeout(_timeout);
+				const startTime = (+new Date());
+				const startPct = Number(_$loaded[0].style.width.slice(0, -1));
+				console.log("startPct", startPct);
+				(function update(){
+					const t = Math.min(1, (+new Date() - startTime)/durationMs);
+					const newPct = startPct + (100 - startPct)*t;
+					_$loaded.css("width", `${newPct.toFixed(2)}%`);
+					if (t == 1) res();
+					else setTimeout(update, 50);
+				}());
+			});
+		}
+		this.$e = _$e;
+
+		if (_speed <= 0 || _speed >= 1)
+			throw new Error("Speed must be between 0 and 1");
+		_update();
 	}
 	
 	window.PennyEtherWebUtil = PennyEtherWebUtil;

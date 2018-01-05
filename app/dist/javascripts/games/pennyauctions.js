@@ -109,6 +109,7 @@ Loader.require("pac")
 		// initialize dom elements
 		const _$status = _$e.find(".status");
 		const _$statusCell = _$e.find(".statusCell");
+		const _$currentWinnerCell = _$e.find(".currentWinnerCell");
 		const _$prize = _$e.find(".prize .value");
 		const _$blocksLeftCtnr = _$e.find(".blocksLeftCtnr");
 		const _$blocksLeft = _$e.find(".blocksLeft");
@@ -160,7 +161,7 @@ Loader.require("pac")
 		this.refresh = function() {
 			function flashClass(className) {
 				_$e.removeClass(className);
-				setTimeout(()=>_$e.addClass(className), 50);
+				setTimeout(()=>_$e.addClass(className), 30);
 			}
 
 			return Promise.all([
@@ -196,7 +197,26 @@ Loader.require("pac")
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
 				if (isNewLoser) {
-					_$status.text("Someone else bid. You are no longer the current winner.")
+					_$currentWinnerCell.attr("title", "You are no longer the current winner!");
+					const t = tippy(_$currentWinnerCell[0], {
+						placement: "top",
+						trigger: "manual",
+						animation: "fade",
+						onHidden: function(){ t.destroy(); }
+					}).tooltips[0];
+					t.show();
+					setTimeout(function(){ t.hide(); }, 3000);
+				}
+				if (isNewWinner) {
+					_$currentWinnerCell.attr("title", "You are the current winner!");
+					const t = tippy(_$currentWinnerCell[0], {
+						placement: "top",
+						trigger: "manual",
+						animation: "fade",
+						onHidden: function(){ t.destroy(); }
+					}).tooltips[0];
+					t.show();
+					setTimeout(function(){ t.hide(); }, 3000);
 				}
 				_$currentWinner.empty().append($curWinner);
 				_$prize.text(`${ethUtil.toEth(prize)}`);
@@ -206,11 +226,19 @@ Loader.require("pac")
 					_$blocksLeft.text("Ended");
 				} else {
 					_$blocksLeft.text(blocksLeft);
-					if (isNewLoser) flashClass("new-loser");
-					if (isNewBlock) flashClass("new-block");
-					if (isNewWinner) flashClass("new-winner");
+					setTimeout(function(){
+						if (isNewLoser){
+							_$e.removeClass("new-winner");
+							flashClass("new-loser");
+						}
+						if (isNewWinner) {
+							_$e.removeClass("new-loser");
+							flashClass("new-winner");
+						}
+						if (isNewBlock) flashClass("new-block");
+						if (isNewPrize) flashClass("new-prize");
+					}, 100);
 				}
-				if (isNewPrize) flashClass("new-prize");
 			});
 		}
 
@@ -224,19 +252,29 @@ Loader.require("pac")
 			var bidTxId;
 
 			_$statusCell
-				.removeClass("prepending pending refunded error current-winner").
-				addClass("prepending");
+				.removeClass("prepending pending refunded error current-winner")
+				.addClass("prepending");
 			_$status.text("Waiting for signature...");
 
 			// update status to prepending
+			var loadingBar;
 			p.getTxHash.then(function(txId){
 				bidTxId = txId;
 				const $txLink = util.$getTxLink("Your Bid is being mined.", bidTxId);
 				_$statusCell.removeClass("prepending").addClass("pending");
-				_$status.empty().append($txLink);
+				loadingBar = util.$getLoadingBar(_blocktime*1000, .75);
+				loadingBar.$e.attr("title", "This is an estimate of time remaining, based on the average blocktime.");
+				tippy(loadingBar.$e[0], {
+					trigger: "mouseenter",
+					placement: "top",
+					animation: "fade"
+				});
+				_$status.empty().append($txLink).append(loadingBar.$e);
 			});
 
 			p.then(function(res){
+				return loadingBar.finish(500).then(()=>res);
+			}).then(function(res){
 				_$statusCell.removeClass("pending");
 				// see if they got refunded, or if bid occurred
 				const block = res.receipt.blockNumber;
@@ -254,21 +292,22 @@ Loader.require("pac")
 					return;
 				}
 				// Their bid was accepted and not immediately refunded.
-				const $txLink = util.$getTxLink("Your bid was submitted.", bidTxId);
+				const $txLink = util.$getTxLink("Your bid succeeded!", bidTxId);
 				_$status.empty().append($txLink);
 				// Get all events related to the user for this block, and update
 				//  status based on the most recent event.
 				Promise.all([
 					_auction.getEvents("BidOccurred", {bidder: ethUtil.getCurrentAccount()}, block, block),
 					_auction.getEvents("BidRefundSuccess", {bidder: ethUtil.getCurrentAccount()}, block, block),
-					_auction.getEvents("BidRefundError", {bidder: ethUtil.getCurrentAccount()}, block, block)
+					_auction.getEvents("BidRefundFailure", {bidder: ethUtil.getCurrentAccount()}, block, block)
 				]).then(events=>{
 					events = events[0].concat(events[1]).concat(events[2]);
 					events.sort((a,b)=>a.logIndex > b.logIndex ? -1 : 1);
 					const finalEvent = events[0];
 					if (finalEvent.name=="BidOccurred") {
 						_$statusCell.addClass("current-winner");
-						_$status.append(`<br>You are now the current winner!`);
+						_$status.append(`<br>Your bid made you the current winner.`);
+						setTimeout(_self.refresh, 1000);
 						return;
 					}
 					if (finalEvent.name=="BidRefundSuccess") {
