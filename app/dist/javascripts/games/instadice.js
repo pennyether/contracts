@@ -472,7 +472,7 @@ Loader.require("dice")
 			    hour: "2-digit",
 			    minute: "2-digit",
 			    second: "2-digit"
-			};  
+			};
 			const $rollLink = id ? util.$getTxLink(`Roll #${id}`, txId) : ``;
 	    	const dateStr = (new Date(roll.created.time.toNumber()*1000))
 	    		.toLocaleString(window.navigator.language, options);

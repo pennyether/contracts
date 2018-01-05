@@ -46,6 +46,20 @@
 			return new LoadingBar(timeMs, speed);
 		}
 
+		this.toDateStr = function(timestampS){
+			if (timestampS.toNumber) timestampS = timestampS.toNumber();
+			var options = {
+			    day: "numeric",
+			    month: "short",
+			    hour: "2-digit",
+			    minute: "2-digit",
+			    second: "2-digit"
+			};
+			return (new Date(timestampS*1000))
+    			.toLocaleString(window.navigator.language, options);
+		}
+
+		// returns something like "4h 3m 10s"
 		this.toTime = function(timeS, numUnits) {
 			try {
 				numUnits = numUnits || 2;
@@ -106,7 +120,6 @@
 				clearTimeout(_timeout);
 				const startTime = (+new Date());
 				const startPct = Number(_$loaded[0].style.width.slice(0, -1));
-				console.log("startPct", startPct);
 				(function update(){
 					const t = Math.min(1, (+new Date() - startTime)/durationMs);
 					const newPct = startPct + (100 - startPct)*t;

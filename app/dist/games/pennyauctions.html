@@ -444,8 +444,7 @@
 		}
 		.auction.one-minute .timeLeft {
 			font-weight: bold;
-			background: red;
-			color: white;
+			animation: halfMinute 2s 0s infinite ease-in-out alternate;
 		}
 		.auction.two-minutes .timeLeft {
 			font-weight: bold;
@@ -533,10 +532,41 @@
 			animation: flashGrayBackground 5s 0s 1 ease-out;
 		}
 		.auction.new-winner .currentWinnerCell {
+			animation: flashGrayBackground 5s 0s 1 ease-out;
+		}
+		.auction.now-winner .currentWinnerCell {
 			animation: flashGreenBackground 5s 0s 1 ease-out;	
 		}
-		.auction.new-loser .currentWinnerCell {
+		.auction.now-loser .currentWinnerCell {
 			animation: flashRedBackground 5s 0s 1 ease-out;		
+		}
+
+		.moreInfo {
+			width: 350px;
+		} 
+		.moreInfo .head {
+			font-weight: bold;
+			border-bottom: 1px solid #AAA;
+			padding: 2px 4px;
+			margin: 5px 0px;
+		}
+		.moreInfo .logs {
+			background: #EEE;
+			padding: 3px;
+			color: black;
+			font-size: 90%;
+			max-height: 300px;
+			overflow: auto;
+			text-align: left;
+			margin-bottom: 4px;
+			border-radius: 3px;
+		}
+		.moreInfo .logs td {
+			padding: 2px 6px 2px 2px;
+			white-space: nowrap;
+		}
+		.moreInfo .logs .logRow:nth-child(even) {
+			background: #DDD;
 		}
 
 		@keyframes flashGrayBackground {
@@ -589,8 +619,10 @@
 		<div class="auction template" style="display: none;">
 			<div class="moreInfo" style="display: none;">
 				<div>
-					Stuff goes in here.
-					<div class="logs"></div>
+					<div class="head">Bid History</div>
+					<div class="logs">
+						<table width="100%"" cellpadding="0" cellspacing="0"></table>
+					</div>
 				</div>
 			</div>
 			<table width="100%" cellpadding="0" cellspacing="0">

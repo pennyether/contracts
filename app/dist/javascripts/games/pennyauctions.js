@@ -105,6 +105,7 @@ Loader.require("pac")
 		var _prevBlocksLeft = null;
 		var _prevAmWinner = null;
 		var _prevPrize = null;
+		var _prevCurrentWinner = null;
 
 		// initialize dom elements
 		const _$status = _$e.find(".status");
@@ -121,10 +122,64 @@ Loader.require("pac")
 		const _$moreInfo = _$e.find(".moreInfo").show();
 
 		this.refreshMoreInfo = function(){
-			const _$logs = _$moreInfo.find(".logs").text("loading...");
-			util.$getLogs(_auction).then($e=>{
-				_$logs.empty().append($e);
-			});
+			const blockTime = ethUtil.getBlock("latest").then(b=>b.timestamp);
+			const curAccount = ethUtil.getCurrentAccount();
+			const _$logs = _$moreInfo.find(".logs").unbind().bind("scroll", checkScroll);
+			const _$logsTable = _$logs.find("table").empty();
+
+			var prevBidTime = null;
+			var lastBlock = ethUtil.getCurrentBlockHeight();
+			var isDone = false;
+			function checkScroll() {
+				if (isDone) return;
+    			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 1;
+    			if (!isNearBottom) return;
+
+				const fromBlock = lastBlock - 199;
+				const toBlock = lastBlock;
+				lastBlock = fromBlock - 1;
+				const $loading = $("<div class='loading'></div>")
+					.text(`Loading logs from block ${toBlock}`)
+					.appendTo(_$logs);
+				Promise.all([
+					blockTime,
+					_auction.getEvents("BidOccurred", {}, fromBlock, toBlock),
+					_auction.getEvents("Started", {}, fromBlock, toBlock)
+				]).then(arr=>{
+					// order all events by blocknumber, and break tie with logIndex.
+					const blockTime = arr[0];
+					const events = arr[1].concat(arr[2]);
+					events.sort((a,b)=>{
+						return a.blockNumber == b.blockNumber
+							? a.logIndex > b.logIndex ? -1 : 1
+							: a.blockNumber > b.blockNumber
+								? -1 : 1
+					});
+					events.forEach(e=>{
+						const $entry = $(`<tr class='logRow'></tr>`).appendTo(_$logsTable);
+						if (e.name=="BidOccurred") {
+							const timeBeforeStr = prevBidTime
+								? util.toTime(prevBidTime.minus(e.args.time)) + " earlier"
+								: util.toTime(blockTime - e.args.time.toNumber()) + " ago";
+							if (timeBeforeStr == "0s earlier") return;
+							const $txLink = util.$getTxLink('Bid', e.transactionHash);
+							const $userLink = util.$getAddrLink(`${e.args.bidder.slice(0, 8)}...`, e.args.bidder);
+							$entry.append(`<td>${timeBeforeStr}</td>`)
+								.append(
+									$('<td width=100%></td>').append($txLink).append(" by: ").append($userLink)
+								);
+							prevBidTime = e.args.time;
+						} else if (e.name=="Started") {
+							const dateStr = util.toDateStr(e.args.time);
+							$entry.append(`<td>${dateStr}</td><td>Auction Started</td>`);
+							isDone = true;
+						}
+					});
+					$loading.remove();
+					checkScroll();
+				});
+			}
+			checkScroll();
 		}
 
 		this.setBlocktime = function(blocktime) {
@@ -183,9 +238,10 @@ Loader.require("pac")
 				// compute useful things, and update
 				_$e.removeClass("winner");
 				const isNewBlock = _prevBlocksLeft && blocksLeft < _prevBlocksLeft;
-				const amWinner = currentWinner === ethUtil.getCurrentAccount()
-				const isNewWinner = !_prevAmWinner && amWinner;
-				const isNewLoser = _prevAmWinner && !amWinner;
+				const amWinner = currentWinner === ethUtil.getCurrentAccount();
+				const amNowWinner = !_prevAmWinner && amWinner;
+				const amNowLoser = _prevAmWinner && !amWinner;
+				const isNewWinner = currentWinner != _prevCurrentWinner;
 				const isNewPrize = _prevPrize && !_prevPrize.equals(prize);
 				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
@@ -193,10 +249,11 @@ Loader.require("pac")
 				_prevPrize = prize;
 				_prevAmWinner = amWinner;
 				_prevBlocksLeft = blocksLeft;
+				_prevCurrentWinner = currentWinner;
 
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
-				if (isNewLoser) {
+				if (amNowLoser) {
 					_$currentWinnerCell.attr("title", "You are no longer the current winner!");
 					const t = tippy(_$currentWinnerCell[0], {
 						placement: "top",
@@ -207,7 +264,7 @@ Loader.require("pac")
 					t.show();
 					setTimeout(function(){ t.hide(); }, 3000);
 				}
-				if (isNewWinner) {
+				if (amNowWinner && !isEnded) {
 					_$currentWinnerCell.attr("title", "You are the current winner!");
 					const t = tippy(_$currentWinnerCell[0], {
 						placement: "top",
@@ -227,12 +284,17 @@ Loader.require("pac")
 				} else {
 					_$blocksLeft.text(blocksLeft);
 					setTimeout(function(){
-						if (isNewLoser){
+						if (amNowLoser){
+							_$e.removeClass("now-winner");
 							_$e.removeClass("new-winner");
-							flashClass("new-loser");
-						}
-						if (isNewWinner) {
-							_$e.removeClass("new-loser");
+							flashClass("now-loser");
+						} else if (amNowWinner) {
+							_$e.removeClass("now-loser");
+							_$e.removeClass("new-winner");
+							flashClass("now-winner");
+						} else if (isNewWinner) {
+							_$e.removeClass("now-winner");
+							_$e.removeClass("now-loser");
 							flashClass("new-winner");
 						}
 						if (isNewBlock) flashClass("new-block");
@@ -307,7 +369,9 @@ Loader.require("pac")
 					if (finalEvent.name=="BidOccurred") {
 						_$statusCell.addClass("current-winner");
 						_$status.append(`<br>Your bid made you the current winner.`);
+						// sometimes providers take a little bit to catch up.
 						setTimeout(_self.refresh, 1000);
+						setTimeout(_self.refresh, 5000);
 						return;
 					}
 					if (finalEvent.name=="BidRefundSuccess") {
@@ -370,6 +434,8 @@ Loader.require("pac")
 				dynamicTitle: true
 			});
 			tippy(_$e.find(".infoIcon")[0], {
+				animation: "fade",
+				placement: "right",
 				html: _$moreInfo.show()[0],
 				trigger: "click",
 				onShow: function(){
