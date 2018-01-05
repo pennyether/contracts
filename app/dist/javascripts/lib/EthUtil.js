@@ -78,6 +78,9 @@
 		this.getCurrentBlockHeight = function(){
 			return new BigNumber(_curState.latestBlock.number);
 		}
+		this.getCurrentBlockTime = function(){
+			return new BigNumber(_curState.latestBlock.timestamp);
+		}
 		this.getCurrentAccount = function(required){
 			if (required) {
 				if (!_curState.account || _curState.account===_self.NO_ADDRESS)

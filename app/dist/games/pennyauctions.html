@@ -91,8 +91,8 @@
 						<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
 							No deposit, no sign-up.
 						</div><br>
-						<div class="feature tipLeft" title="Just send some Ether to an auction. If nobody bids after you, you'll win the prize!">
-							Easy to play!
+						<div class="feature tipLeft" title="It's easy. Place a bid and if nobody bids after you, you'll win the whole prize.">
+							Bid a little, win a lot!
 						</div><br>
 						<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
 							Responsive UI.
@@ -239,7 +239,7 @@
 								</div>
 								<div class="right">
 									<div class="title">Bid <span class="question">i</span></div>
-									<div class="info">Send bid amount</div>
+									<div class="info">Send a small bid</div>
 								</div>
 							</div>
 						</div>
@@ -320,12 +320,12 @@
 		<div id="BidTip" style="display:none;">
 			<div class="bidTip">
 				<div class="title">Bid with confidence.</div>
-				<div class="info">If your bid doesn't result in you becoming the current winner, it is refunded. You'll get your remaining gas back, too.</div>
+				<div class="info">It only costs a little bit to play! And, if your bid doesn't result in you becoming the current winner, it is refunded. You'll get your remaining gas back, too.</div>
 				<div class="aboveList">This could happen if:</div>
-				<div class="item">• You bid the wrong amount.</div>
 				<div class="item">• The auction has already ended.</div>
 				<div class="item">• Someone bids after you in the same block.</div>
 				<div class="item">• You are already the current winner.</div>
+				<div class="item">• You bid the wrong amount.</div>
 			</div>
 		</div>
 		<div id="WaitTip" style="display: none;">
@@ -448,9 +448,11 @@
 		}
 		.auction.two-minutes .timeLeft {
 			font-weight: bold;
-			color: red;
+			color: white;
+			background: red;
 		}
 		.auction.five-minutes .timeLeft {
+			font-weight: bold;
 			color: red;
 		}
 		.auction .bidPrice {
@@ -569,6 +571,52 @@
 			background: #DDD;
 		}
 
+		.bidInfo {
+			font-size: 90%;
+			color: black;
+			width: 370px;
+			border-radius: 3px
+			padding: 10px;
+			text-align: left;
+		}
+		.bidInfo .head {
+			text-align: center;
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+		.bidInfo .info {
+			text-align: center;
+			margin-bottom: 10px;
+		}
+		.bidInfo .bidPrice,
+		.bidInfo .prize {
+			color: green;
+			font-weight: bold;
+		}
+		.bidInfo .bulletTitle {
+			font-weight: bold;
+		}
+		.bidInfo .bullet {
+			margin-left: 20px;
+			margin-top: 4px;
+			margin-bottom: 5px;
+		}
+		.bidInfo .bullet:before{
+			content: "• ";
+		}
+		.bidInfo .refundSpan {
+			border-bottom: 1px dotted #AAA;
+		}
+		.bidInfo .gasInfo {
+			margin-top: 8px;
+			font-size: 80%;
+			background: #DDD;
+			border: 1px solid #CCC;
+			border-radius: 4px;
+			padding: 3px;
+		}
+
+
 		@keyframes flashGrayBackground {
 		  from { }
 		  3% { background: gray; }
@@ -618,12 +666,19 @@
 
 		<div class="auction template" style="display: none;">
 			<div class="moreInfo" style="display: none;">
-				<div>
-					<div class="head">Bid History</div>
-					<div class="logs">
-						<table width="100%"" cellpadding="0" cellspacing="0"></table>
-					</div>
+				<div class="head">Bid History</div>
+				<div class="logs">
+					<table width="100%"" cellpadding="0" cellspacing="0"></table>
 				</div>
+			</div>
+			<div class="bidInfo" style="display: none;">
+				<div class="head">Placing a Bid</div>
+				<div class="info">Bid just <span class='bidPrice'></span> and you could win <span class='prize'>.1000 ETH</span>!</div>
+				<div class="bulletTitle">When you bid:</div>
+				<div class="bullet prizeIncr"></div>
+				<div class="bullet addBlocks"></div>
+				<div class="bullet refund">You'll become the current winner, <span class="refundSpan dontTip" title="See 'How to Play' for more details.">or get refunded</span></div>
+				<div class="gasInfo">Note: The current average blocktime is <span class="blocktime"></span>, and it may take at least two blocks to bid. See <a href="https://ethgasstation.info/" target="_blank">EthGasStation</a> for more info.</div>
 			</div>
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<tr class="top">
@@ -635,7 +690,7 @@
 						</div>
 					</td>
 					<td colspan=2 width="100%" class="blocksLeftCell">
-						<div class="label dontTip infoLeft" title="The number of blocks remaining until the auction ends. The amount of time left is estimated based on recent blocktimes.">Blocks Remaining</div>
+						<div class="label dontTip infoLeft" title=" ">Blocks Remaining</div>
 						<div class="field">
 							<div class="blocksLeft">5</div><br>
 							<div class="timeLeft">(~3:22)</div>
@@ -662,7 +717,7 @@
 				</tr>
 				<tr class="bottom">
 					<td>
-						<div class="bid dontTip" data-tippy-trigger="mouseenter" title=" ">
+						<div class="bid">
 							<button>Bid</button>
 						</div>
 					</td>

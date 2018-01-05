@@ -102,10 +102,10 @@ Loader.require("pac")
 		var _bidAddBlocks;
 		var _estTimeLeft;
 		var _estTimeLeftAt;
-		var _prevBlocksLeft = null;
-		var _prevAmWinner = null;
-		var _prevPrize = null;
-		var _prevCurrentWinner = null;
+		var _curBlocksLeft = null;
+		var _curAmWinner = null;
+		var _curPrize = null;
+		var _curCurrentWinner = null;
 
 		// initialize dom elements
 		const _$status = _$e.find(".status");
@@ -119,10 +119,9 @@ Loader.require("pac")
 		const _$currentWinner = _$e.find(".currentWinner .value");
 		const _$btn = _$e.find(".bid button")
 			.click(()=>{ _self.bid(); });
-		const _$moreInfo = _$e.find(".moreInfo").show();
+		const _$moreInfo = _$e.find(".moreInfo");
 
 		this.refreshMoreInfo = function(){
-			const blockTime = ethUtil.getBlock("latest").then(b=>b.timestamp);
 			const curAccount = ethUtil.getCurrentAccount();
 			const _$logs = _$moreInfo.find(".logs").unbind().bind("scroll", checkScroll);
 			const _$logsTable = _$logs.find("table").empty();
@@ -142,13 +141,11 @@ Loader.require("pac")
 					.text(`Loading logs from block ${toBlock}`)
 					.appendTo(_$logs);
 				Promise.all([
-					blockTime,
 					_auction.getEvents("BidOccurred", {}, fromBlock, toBlock),
 					_auction.getEvents("Started", {}, fromBlock, toBlock)
 				]).then(arr=>{
 					// order all events by blocknumber, and break tie with logIndex.
-					const blockTime = arr[0];
-					const events = arr[1].concat(arr[2]);
+					const events = arr[0].concat(arr[1]);
 					events.sort((a,b)=>{
 						return a.blockNumber == b.blockNumber
 							? a.logIndex > b.logIndex ? -1 : 1
@@ -160,10 +157,13 @@ Loader.require("pac")
 						if (e.name=="BidOccurred") {
 							const timeBeforeStr = prevBidTime
 								? util.toTime(prevBidTime.minus(e.args.time)) + " earlier"
-								: util.toTime(blockTime - e.args.time.toNumber()) + " ago";
+								: util.toTime(ethUtil.getCurrentBlockTime().minus(e.args.time.toNumber())) + " ago";
 							if (timeBeforeStr == "0s earlier") return;
 							const $txLink = util.$getTxLink('Bid', e.transactionHash);
-							const $userLink = util.$getAddrLink(`${e.args.bidder.slice(0, 8)}...`, e.args.bidder);
+							const bidderStr = e.args.bidder == ethUtil.getCurrentAccount()
+								? "You"
+								: e.args.bidder.slice(0, 10) + "...";
+							const $userLink = util.$getAddrLink(bidderStr, e.args.bidder);
 							$entry.append(`<td>${timeBeforeStr}</td>`)
 								.append(
 									$('<td width=100%></td>').append($txLink).append(" by: ").append($userLink)
@@ -171,7 +171,7 @@ Loader.require("pac")
 							prevBidTime = e.args.time;
 						} else if (e.name=="Started") {
 							const dateStr = util.toDateStr(e.args.time);
-							$entry.append(`<td>${dateStr}</td><td>Auction Started</td>`);
+							$entry.append(`<td>${dateStr}</td><td><b>Auction Started</b></td>`);
 							isDone = true;
 						}
 					});
@@ -200,7 +200,7 @@ Loader.require("pac")
 			}
 
 			_$e.removeClass("half-minute one-minute two-minutes five-minutes");
-			if (_prevBlocksLeft <= 0) return;
+			if (_curBlocksLeft <= 0) return;
 
 			if (newTimeLeft <= 30){
 				_$e.addClass("half-minute");
@@ -237,19 +237,19 @@ Loader.require("pac")
 
 				// compute useful things, and update
 				_$e.removeClass("winner");
-				const isNewBlock = _prevBlocksLeft && blocksLeft < _prevBlocksLeft;
+				const isNewBlock = _curBlocksLeft && blocksLeft < _curBlocksLeft;
 				const amWinner = currentWinner === ethUtil.getCurrentAccount();
-				const amNowWinner = !_prevAmWinner && amWinner;
-				const amNowLoser = _prevAmWinner && !amWinner;
-				const isNewWinner = currentWinner != _prevCurrentWinner;
-				const isNewPrize = _prevPrize && !_prevPrize.equals(prize);
+				const amNowWinner = !_curAmWinner && amWinner;
+				const amNowLoser = _curAmWinner && !amWinner;
+				const isNewWinner = currentWinner != _curCurrentWinner;
+				const isNewPrize = _curPrize && !_curPrize.equals(prize);
 				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
 				const isEnded = blocksLeft.lt(1);
-				_prevPrize = prize;
-				_prevAmWinner = amWinner;
-				_prevBlocksLeft = blocksLeft;
-				_prevCurrentWinner = currentWinner;
+				_curPrize = prize;
+				_curAmWinner = amWinner;
+				_curBlocksLeft = blocksLeft;
+				_curCurrentWinner = currentWinner;
 
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
@@ -417,15 +417,10 @@ Loader.require("pac")
 			// update DOM
 			_$bidPrice.text(`${ethUtil.toEth(_bidPrice)}`);
 
-			// update tips
-			const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
-			const bidIncrStr = _bidIncr.equals(0)
-				? ""
-				: _bidIncr.gt(0)
-					? `A bid will add ${bidIncrEthStr} to the prize`
-					: `A bid will subtract ${bidIncrEthStr} from the prize`;
-			_$e.find(".bid").attr("title",
-				`${bidIncrStr}. The auction will be extended by ${_bidAddBlocks} blocks.`);
+			// update tip. todo: move this to setBlocktime
+			const blocksLeftTip = `The number of blocks remaining until the auction ends. \
+			Time is estimated using the current average blocktime of ${_blocktime.round()} seconds.`;
+			_$e.find(".blocksLeftCell .label").attr("title", blocksLeftTip);
 
 			// initialize tips
 			tippy(_$e.find("[title]").toArray(), {
@@ -442,6 +437,43 @@ Loader.require("pac")
 					_self.refreshMoreInfo();
 				}
 			});
+
+			// bidTip is more substantial
+			const $bidInfo = _$e.find(".bidInfo");
+			const $bidPrice = $bidInfo.find(".bidPrice");
+			const $prize = $bidInfo.find(".prize");
+			const $blocktime = $bidInfo.find(".blocktime");
+			const $prizeIncr = $bidInfo.find(".prizeIncr");
+			const $addBlocks = $bidInfo.find(".addBlocks");
+			const $refundSpan = $bidInfo.find(".refundSpan");
+
+			const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
+			const bidIncrStr = _bidIncr.equals(0)
+				? ""
+				: _bidIncr.gt(0)
+					? `The prize will go up by ${bidIncrEthStr}`
+					: `The prize will go down by ${bidIncrEthStr}`;
+			const addBlocksStr = `The auction will be extended by ${_bidAddBlocks} blocks`;
+
+			$prizeIncr.text(bidIncrStr);
+			$addBlocks.text(addBlocksStr);
+			tippy(_$btn[0], {
+				// arrow: false,
+				theme: "light",
+				animation: "fade",
+				placement: "top",
+				html: _$e.find(".bidInfo").show()[0],
+				trigger: "mouseenter",
+				onShow: function(){
+					$bidPrice.text(ethUtil.toEthStr(_bidPrice));
+					$prize.text(ethUtil.toEthStr(_curPrize));
+					$blocktime.text(`${Math.round(_blocktime)} seconds`);
+				}
+			});
+			// tippy($refundSpan[0], {
+			// 	placement: "top",
+			// 	trigger: "mouseenter"
+			// });
 		});
 	}
 });

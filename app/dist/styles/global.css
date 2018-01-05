@@ -505,6 +505,12 @@ body {
 		cursor: pointer;
 	}
 
+.tippy-tooltip.light-theme {
+	background-color: #EEE;
+	border: 1px solid black;
+	box-shadow: 5px 5px 5px 0px rgba(50,50,50,.3);
+}
+
 .ib {
 	display: inline-block;
 	margin-bottom: 5px;
