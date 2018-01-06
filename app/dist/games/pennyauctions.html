@@ -23,119 +23,70 @@
 					letter-spacing: .2em;
 				}
 
+			.topCtnr {
+				background: linear-gradient(to bottom, #BBC 0%, #68D 100%);
+				margin: 0px;
+				padding: 15px 0px;
+			}
+
 			.featureBox {
+				display: table;
 				box-sizing: border-box;
 				width: 100%;
-				display: table;
-				background: linear-gradient(to bottom, #BBC 0%, #68D 100%);
-				padding: 15px 0px;
-				margin: 0px;
 			}
-			.featureBox > .left {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox > .middle {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox > .right {
-				display: table-cell;
-				vertical-align: top;
-				width: 33%;
-			}
-			.featureBox .block {
-				display: inline-block;
-				margin: 0px 40px;
-				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
-			}
-			@keyframes textShadowGlow {
-				from { text-shadow: 0px 0px 10px cyan; }
-				to { text-shadow: 0px 0px 4px #68D; }
-			}
-			.featureBox .title {
-				text-align: center;
-				font-weight: bold;
-				font-size: 180%;
-				color: #FAFAFA;
-				letter-spacing: .1em;
-				padding-bottom: 4px;
-				text-shadow: 0px 0px 5px cyan;
-				animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
-			}
-			.featureBox .feature {
-				display: inline-block;
-				font-size: 90%;
-				margin: 4px 0px;
-				font-weight: bold;
-
-			}
-			.featureBox .tipLeft::before {
-				background: rgba(0,0,0,.1)
-			}
-		</style>
-	</head>
-	<body>
-	<div id="Content">
-		<div id="Summary">
-			<div id="Title">
-				<div class="sup">Penny Auctions</div>
-				<div class="sub">the world's fairest penny auctions</div>
-			</div>
-			<div class="featureBox">
-				<div class="left">
-					<div class="block">
-						<div class="title">Fast</div>
-						<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
-							No deposit, no sign-up.
-						</div><br>
-						<div class="feature tipLeft" title="It's easy. Place a bid and if nobody bids after you, you'll win the whole prize.">
-							Bid a little, win a lot!
-						</div><br>
-						<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
-							Responsive UI.
-						</div>
-					</div>
-				</div>
-				<div class="middle">
-					<div class="block">
-						<div class="title">Fair</div>
-						<div class="feature tipLeft" title="Insider bidding is impossible. Each bid gets distributed to all PennyEther token holders.">
-							Shill bidding is impossible.
-						</div><br>
-						<div class="feature tipLeft" title="If a bid doesn't result in you becoming the current winner, it is refunded.">
-							Some bids are refunded.
-						</div><br>
-						<div class="feature tipLeft" title="The prize is held in a smart contract, and will only ever leave to pay the winner.">
-							Prize is already staked.
-						</div>
-					</div>
-				</div>
-				<div class="right">
-					<div class="block">
-						<div class="title">Exciting</div>
-						<div class="feature tipLeft" title="We always have Penny Auctions running. Catch them at the right time and win!">
-							Always running.
-						</div><br>
-						<div class="feature tipLeft" title="For some auctions, each bid increases the prize.">
-							Growing prizes.
-						</div><br>
-						<div class="feature tipLeft" title="Watch as bids are updated live.">
-							Bids are updated live.
-						</div><br>
-					</div>
-				</div>
-			</div>
-			<style>
-
-				.instructions {
-					margin: 20px auto;
-					width: 700px;
-					border-radius: 10px;
-					background: linear-gradient(180deg, #C0D0E0 0%, #E0F0FA 100%);
+				.featureBox > .left {
+					display: table-cell;
+					vertical-align: top;
+					width: 33%;
 				}
+				.featureBox > .middle {
+					display: table-cell;
+					vertical-align: top;
+					width: 33%;
+				}
+				.featureBox > .right {
+					display: table-cell;
+					vertical-align: top;
+					width: 33%;
+				}
+				.featureBox .block {
+					display: inline-block;
+					margin: 0px 40px;
+					text-shadow: 1px 1px 1px rgba(255,255,255,.4);
+				}
+				@keyframes textShadowGlow {
+					from { text-shadow: 0px 0px 10px cyan; }
+					to { text-shadow: 0px 0px 4px #68D; }
+				}
+				.featureBox .title {
+					text-align: center;
+					font-weight: bold;
+					font-size: 180%;
+					color: #FAFAFA;
+					letter-spacing: .1em;
+					padding-bottom: 4px;
+					text-shadow: 0px 0px 5px cyan;
+					animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
+				}
+				.featureBox .feature {
+					display: inline-block;
+					font-size: 90%;
+					margin: 4px 0px;
+					font-weight: bold;
+
+				}
+				.featureBox .tipLeft::before {
+					background: rgba(0,0,0,.1)
+				}
+
+
+			.instructions {
+				margin: 30px auto 15px auto;
+				width: 700px;
+				border-radius: 10px;
+				box-shadow: 0px 0px 10px 3px #68D;
+				background: linear-gradient(180deg, #C0D0E0 0%, #E0F0FA 100%);
+			}
 				.howTo {
 					padding: 5px 0px 3px 0px;
 					margin: 0px 20px;
@@ -226,42 +177,95 @@
 					border-radius: 13px;
 					font-family: serif;
 				}
-
-			</style>
-			<div class="instructions">
-				<div class="howTo">How to play</div>
-				<div class="oneTwoThree">
-					<div class="oneCell">
-						<div class="inline">
-							<div class="one dontTip tipTop" title="" data-tippy-html="#BidTip" data-tippy-animation="scale">
-								<div class="left">
-									<img class="icon" src="/images/ethereum.png"/>
-								</div>
-								<div class="right">
-									<div class="title">Bid <span class="question">i</span></div>
-									<div class="info">Send a small bid</div>
-								</div>
+		</style>
+	</head>
+	<body>
+	<div id="Content">
+		<div id="Summary">
+			<div id="Title">
+				<div class="sup">Penny Auctions</div>
+				<div class="sub">the world's fairest penny auctions</div>
+			</div>
+			<div class="topCtnr">
+				<div class="featureBox">
+					<div class="left">
+						<div class="block">
+							<div class="title">Fast</div>
+							<div class="feature tipLeft" title="No need to deposit Ether or fill out any forms.">
+								No deposit, no sign-up.
+							</div><br>
+							<div class="feature tipLeft" title="It's easy. Place a bid and if nobody bids after you, you'll win the whole prize.">
+								Bid a little, win a lot!
+							</div><br>
+							<div class="feature tipLeft" title="Our UI shows you what's happening every step of the way.">
+								Responsive UI.
 							</div>
 						</div>
 					</div>
-					<div class="twoCell">
-						<div class="inline">
-							<div class="two dontTip tipTop" data-tippy-html="#WaitTip" data-tippy-animation="scale">
-								<div class="left">⌛</div>
-								<div class="right">
-									<div class="title">Wait <span class="question">i</span></div>
-									<div class="info">If nobody else bids...</div>
-								</div>
+					<div class="middle">
+						<div class="block">
+							<div class="title">Fair</div>
+							<div class="feature tipLeft" title="Insider bidding is impossible. Each bid gets distributed to all PennyEther token holders.">
+								Shill bidding is impossible.
+							</div><br>
+							<div class="feature tipLeft" title="If a bid doesn't result in you becoming the current winner, it is refunded.">
+								Some bids are refunded.
+							</div><br>
+							<div class="feature tipLeft" title="The prize is held in a smart contract, and will only ever leave to pay the winner.">
+								Prize is already staked.
 							</div>
 						</div>
 					</div>
-					<div class="threeCell">
-						<div class="inline">
-							<div class="three dontTip tipTop" data-tippy-html="#WinTip" data-tippy-animation="scale">
-								<div class="left">💸</div>
-								<div class="right">
-									<div class="title">Win! <span class="question">i</span></div>
-									<div class="info">Claim the prize</div>
+					<div class="right">
+						<div class="block">
+							<div class="title">Exciting</div>
+							<div class="feature tipLeft" title="We always have Penny Auctions running. Catch them at the right time and win!">
+								Always running.
+							</div><br>
+							<div class="feature tipLeft" title="For some auctions, each bid increases the prize.">
+								Growing prizes.
+							</div><br>
+							<div class="feature tipLeft" title="Watch as bids are updated live.">
+								Bids are updated live.
+							</div><br>
+						</div>
+					</div>
+				</div>
+				<div class="instructions">
+					<div class="howTo">How to play</div>
+					<div class="oneTwoThree">
+						<div class="oneCell">
+							<div class="inline">
+								<div class="one dontTip tipTop" title="" data-tippy-html="#BidTip" data-tippy-animation="scale">
+									<div class="left">
+										<img class="icon" src="/images/ethereum.png"/>
+									</div>
+									<div class="right">
+										<div class="title">Bid <span class="question">i</span></div>
+										<div class="info">Send a small bid</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="twoCell">
+							<div class="inline">
+								<div class="two dontTip tipTop" data-tippy-html="#WaitTip" data-tippy-animation="scale">
+									<div class="left">⌛</div>
+									<div class="right">
+										<div class="title">Wait <span class="question">i</span></div>
+										<div class="info">If nobody else bids...</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="threeCell">
+							<div class="inline">
+								<div class="three dontTip tipTop" data-tippy-html="#WinTip" data-tippy-animation="scale">
+									<div class="left">💸</div>
+									<div class="right">
+										<div class="title">Win! <span class="question">i</span></div>
+										<div class="info">Claim the prize</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -321,7 +325,7 @@
 			<div class="bidTip">
 				<div class="title">Bid with confidence.</div>
 				<div class="info">It only costs a little bit to play! And, if your bid doesn't result in you becoming the current winner, it is refunded. You'll get your remaining gas back, too.</div>
-				<div class="aboveList">This could happen if:</div>
+				<div class="aboveList">Your bid will be refunded if:</div>
 				<div class="item">• The auction has already ended.</div>
 				<div class="item">• Someone bids after you in the same block.</div>
 				<div class="item">• You are already the current winner.</div>
@@ -363,9 +367,8 @@
 		.auction.ended {
 			opacity: .4;
 		}
-		.auction .top td,
-		.auction .middle td,
-		.auction .bottom td {
+
+		.auction tr td {
 			position: relative;
 			border-bottom: 1px solid gray;
 			z-index: 2;
@@ -402,6 +405,17 @@
 		.auction .label.infoLeft:before {
 			text-transform: none;
 			background: #AAA;
+		}
+		.auction .alertsIcon {
+			position: absolute;
+			top: 2px;
+			right: 5px;
+			font-size: 150%;
+			filter: saturate(0%);
+			cursor: pointer;
+		}
+		.auction .alertsIcon.on {
+			filter: saturate(100%);
 		}
 		.auction td .prizeLabel {
 			border-top-left-radius: 10px;
@@ -543,16 +557,17 @@
 			animation: flashRedBackground 5s 0s 1 ease-out;		
 		}
 
-		.moreInfo {
+		/* Auction Tips */
+		.moreTip {
 			width: 350px;
 		} 
-		.moreInfo .head {
+		.moreTip .head {
 			font-weight: bold;
 			border-bottom: 1px solid #AAA;
 			padding: 2px 4px;
 			margin: 5px 0px;
 		}
-		.moreInfo .logs {
+		.moreTip .logs {
 			background: #EEE;
 			padding: 3px;
 			color: black;
@@ -563,15 +578,15 @@
 			margin-bottom: 4px;
 			border-radius: 3px;
 		}
-		.moreInfo .logs td {
+		.moreTip .logs td {
 			padding: 2px 6px 2px 2px;
 			white-space: nowrap;
 		}
-		.moreInfo .logs .logRow:nth-child(even) {
+		.moreTip .logs .logRow:nth-child(even) {
 			background: #DDD;
 		}
 
-		.bidInfo {
+		.bidTip {
 			font-size: 90%;
 			color: black;
 			width: 370px;
@@ -579,36 +594,38 @@
 			padding: 10px;
 			text-align: left;
 		}
-		.bidInfo .head {
+		.bidTip .head {
 			text-align: center;
 			font-weight: bold;
 			margin-bottom: 10px;
 		}
-		.bidInfo .info {
+		.bidTip .info {
 			text-align: center;
 			margin-bottom: 10px;
 		}
-		.bidInfo .bidPrice,
-		.bidInfo .prize {
+		.bidTip .bidPrice,
+		.bidTip .prize {
 			color: green;
 			font-weight: bold;
 		}
-		.bidInfo .bulletTitle {
+		.bidTip .bulletTitle {
 			font-weight: bold;
 		}
-		.bidInfo .bullet {
+		.bidTip .bullet {
 			margin-left: 20px;
 			margin-top: 4px;
 			margin-bottom: 5px;
 		}
-		.bidInfo .bullet:before{
+		.bidTip .bullet:before{
 			content: "• ";
 		}
-		.bidInfo .refundSpan {
+		.bidTip .refundSpan {
 			border-bottom: 1px dotted #AAA;
 		}
-		.bidInfo .gasInfo {
-			margin-top: 8px;
+		.bidTip .gasInfo {
+			margin-left: -10px;
+			margin-top: 10px;
+			margin-bottom: -5px;
 			font-size: 80%;
 			background: #DDD;
 			border: 1px solid #CCC;
@@ -665,20 +682,87 @@
 		</style>
 
 		<div class="auction template" style="display: none;">
-			<div class="moreInfo" style="display: none;">
+			<div class="moreTip" style="display: none;">
 				<div class="head">Bid History</div>
 				<div class="logs">
 					<table width="100%"" cellpadding="0" cellspacing="0"></table>
 				</div>
 			</div>
-			<div class="bidInfo" style="display: none;">
+			<div class="bidTip" style="display: none;">
 				<div class="head">Placing a Bid</div>
 				<div class="info">Bid just <span class='bidPrice'></span> and you could win <span class='prize'>.1000 ETH</span>!</div>
 				<div class="bulletTitle">When you bid:</div>
 				<div class="bullet prizeIncr"></div>
 				<div class="bullet addBlocks"></div>
-				<div class="bullet refund">You'll become the current winner, <span class="refundSpan dontTip" title="See 'How to Play' for more details.">or get refunded</span></div>
-				<div class="gasInfo">Note: The current average blocktime is <span class="blocktime"></span>, and it may take at least two blocks to bid. See <a href="https://ethgasstation.info/" target="_blank">EthGasStation</a> for more info.</div>
+				<div class="bullet refund">You'll become the current winner, <span class="refundSpan dontTip" title="See 'How to Play: Bid' for more details.">or get refunded</span></div>
+				<div class="gasInfo">A bid takes time to be mined. Plan you bid and set your gasPrice accordingly. See <a href="https://ethgasstation.info/" target="_blank">EthGasStation</a> for more info.</div>
+			</div>
+			<style>
+				.alertsTip .title {
+					font-weight: bold;
+					text-align: center;
+					border-bottom: 1px solid #CCC;
+					padding: 0px 0px 2px 0px;
+					margin-bottom: 5px;
+				}
+				.alertsTip .option {
+					font-size: 90%;
+					padding: 3px 0px;
+					margin: 2px 0px;
+					cursor: pointer;
+				}
+				.alertsTip .request {
+					display: none;
+					margin: 5px 0px;
+					border: 1px solid #CCC;
+					background: #DDD;
+					padding: 2px 4px;
+					border-radius: 4px;
+					font-size: 90%;
+				}
+				.alertsTip.disabled .request {
+					display: block;
+				}
+				.alertsTip.disabled .options {
+					pointer-events: none;
+					opacity: .5;
+				}
+			</style>
+			<div class="alertsTip disabled" style="display: none;">
+				<div class="title">Alerts</div>
+				<div class="request">
+					Browser Notifications are not enabled.<br>
+					<button>Enable Notifications</button>
+				</div>
+				<div class="options" style="text-align: left;">					
+					<label>
+						<div class="option whenBlocksLeft">
+							<input type="checkbox" data-alert-name="whenBlocksLeft">
+							When less than
+							<select>
+								<option value=2>2</option>
+								<option value=3>3</option>
+								<option value=4>4</option>
+								<option value=5 selected>5</option>
+								<option value=6>10</option>
+								<option value=7>20</option>
+							</select>
+							blocks left.
+						</div>
+					</label>
+					<label>
+						<div class="option whenEnds">
+							<input type="checkbox" data-alert-name="whenEnds">
+							When the auction ends.
+						</div>
+					</label>
+					<label>
+						<div class="option whenNotWinner">
+							<input type="checkbox" data-alert-name="whenNowLoser">
+							When somebody bids after I do.
+						</div>
+					</label>
+				</div>
 			</div>
 			<table width="100%" cellpadding="0" cellspacing="0">
 				<tr class="top">
@@ -691,6 +775,7 @@
 					</td>
 					<td colspan=2 width="100%" class="blocksLeftCell">
 						<div class="label dontTip infoLeft" title=" ">Blocks Remaining</div>
+						<div class="alertsIcon">🔔</div>
 						<div class="field">
 							<div class="blocksLeft">5</div><br>
 							<div class="timeLeft">(~3:22)</div>
@@ -712,7 +797,7 @@
 						</div>
 					</td>
 					<td>
-						<div class="infoIcon">ⓘ</div>
+						<div class="infoIcon">☰</div>
 					</td>
 				</tr>
 				<tr class="bottom">
@@ -728,16 +813,31 @@
 				</tr>
 			</table>	
 		</div>
-		<div class="subsection">
-			<div class="head">Current Auctions</div>
+		<style>
+		.activeAuctions .allAlerts {
+			display: inline-block;
+			margin-left: 10px;
+			font-size: 150%;
+			filter: saturate(0%);
+			vertical-align: middle;
+		}
+		.activeAuctions .allAlerts.on {
+			filter: saturate(100%);
+		}
+		</style>
+		<div class="subsection activeAuctions">
+			<div class="head">
+				Live Auctions
+				<div class="allAlerts">🔔</div>
+			</div>
 			<div class="body">
-				<div class="activeAuctions"></div>
+				<div class="auctions"></div>
 			</div>
 		</div>
-		<div class="subsection">
+		<div class="subsection endedAuctions">
 			<div class="head">Ended Auctions</div>
 			<div class="body">
-				<div class="endedAuctions"></div>
+				<div class="auctions"></div>
 			</div>
 		</div>
 	</div>

@@ -4,8 +4,9 @@ Loader.require("pac")
 
 	const _activeAuctions = {};
 	const _endedAuctions = {};
-	const _$activeAuctions = $(".activeAuctions");
-	const _$endedAuctions = $(".endedAuctions");
+	const _$activeAuctions = $(".activeAuctions .auctions");
+	const _$liveAlerts = $(".activeAuctions .liveAlerts");
+	const _$endedAuctions = $(".endedAuctions .auctions");
 
 	// returns all Auction objects
 	function getAllAuctions() {
@@ -95,6 +96,7 @@ Loader.require("pac")
 			.removeClass("template")
 			.attr("id", auction.address)
 		const _auction = auction;
+		const _lsKey = `${_auction.address}-alerts`;
 		var _initialized;
 		var _blocktime;
 		var _bidPrice;
@@ -106,11 +108,13 @@ Loader.require("pac")
 		var _curAmWinner = null;
 		var _curPrize = null;
 		var _curCurrentWinner = null;
+		var _alerts = {};
 
 		// initialize dom elements
 		const _$status = _$e.find(".status");
 		const _$statusCell = _$e.find(".statusCell");
 		const _$currentWinnerCell = _$e.find(".currentWinnerCell");
+		const _$bottomCell = _$e.find(".bottomCell");
 		const _$prize = _$e.find(".prize .value");
 		const _$blocksLeftCtnr = _$e.find(".blocksLeftCtnr");
 		const _$blocksLeft = _$e.find(".blocksLeft");
@@ -119,11 +123,105 @@ Loader.require("pac")
 		const _$currentWinner = _$e.find(".currentWinner .value");
 		const _$btn = _$e.find(".bid button")
 			.click(()=>{ _self.bid(); });
-		const _$moreInfo = _$e.find(".moreInfo");
 
-		this.refreshMoreInfo = function(){
+		
+		const _$alertsTip = _$e.find(".alertsTip");
+		const _$alertsIcon = _$e.find(".alertsIcon");
+		function _initAlertsTip(){
+			loadAlerts();
+
+			// attach tippy
+			tippy(_$alertsIcon[0], {
+				theme: "light",
+				animation: "fade",
+				placement: "right",
+				html: _$alertsTip.show()[0],
+				onShow: function(){
+					_self.refreshAlertsTip();
+				}
+			});
+
+			// hook up "Enabled Notification" button
+			const $alertBtn = _$alertsTip.find("button").click(function(){
+				Notification.requestPermission(_self.refreshAlertsTip);
+			});
+			// hook up all the checkboxes
+			_$alertsTip.find("input").change(function(){
+				const $sel = $(this).parent().find("select");
+				const name = $(this).data("alert-name");
+				if (this.checked){
+					_alerts[name] = $sel.length ? $sel.val() : true;
+				} else {
+					delete _alerts[name];
+				}
+				storeAlerts();
+				alertsChanged();
+			});
+			_$alertsTip.find("select").change(function(){
+				$(this).parent().find("input").change();
+			});
+
+			// load _alerts from localStorage, set state of checkboxes
+			function loadAlerts() {
+				try {
+					_alerts = JSON.parse(localStorage.getItem(_lsKey)) || {};
+				} catch (e) {}
+
+				_$alertsTip.find("input").toArray().forEach(e=>{
+					const name = $(e).data("alert-name"); 
+					const value = _alerts[name];
+					if (value) {
+						$(e).parent().find("select").val(value);
+						e.checked = true;
+					}
+				});
+				alertsChanged();
+			}
+			function storeAlerts() {
+				try {
+					localStorage.setItem(_lsKey, JSON.stringify(_alerts));
+					console.log("stored", _lsKey);
+				} catch (e) {}
+			}
+			function alertsChanged(){
+				if (Object.keys(_alerts).length > 0){
+					_$alertsIcon.addClass("on");
+				} else {
+					_$alertsIcon.removeClass("on");
+				}
+			}
+		}
+
+		function _triggerAlerts(blocksLeft, isEnded, amNowLoser){
+			if (_alerts["whenBlocksLeft"] && blocksLeft.lt(_alerts["whenBlocksLeft"])) {
+				
+			}
+			if (_alerts["whenEnded"] && isEnded) {
+
+			}
+			if (_alerts["WhenNowLoser"] && amNowLoser) {
+
+			}
+		}
+
+		// shows alertsTip in state depending on window.Notification.permission
+		this.refreshAlertsTip = function(){
+			_$alertsTip.removeClass("disabled");
+			if (!window.Notification) {
+				_$alertsTip.addClass("disabled");
+				_$alertsTip.find(".request").text("Your browser does not support notifications.");
+				return;
+			}
+			if (Notification.permission !== "granted") {
+				_$alertsTip.addClass("disabled");
+				return;
+			}
+		}
+
+		const _$moreTip = _$e.find(".moreTip");
+		this.refreshMoreTip = function(){
 			const curAccount = ethUtil.getCurrentAccount();
-			const _$logs = _$moreInfo.find(".logs").unbind().bind("scroll", checkScroll);
+			const _$logs = _$moreTip.find(".logs").unbind().bind("scroll", checkScroll);
 			const _$logsTable = _$logs.find("table").empty();
 
 			var prevBidTime = null;
@@ -134,7 +232,7 @@ Loader.require("pac")
     			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 1;
     			if (!isNearBottom) return;
 
-				const fromBlock = lastBlock - 199;
+				const fromBlock = lastBlock - 499;
 				const toBlock = lastBlock;
 				lastBlock = fromBlock - 1;
 				const $loading = $("<div class='loading'></div>")
@@ -301,6 +399,7 @@ Loader.require("pac")
 						if (isNewPrize) flashClass("new-prize");
 					}, 100);
 				}
+				_triggerAlerts(blocksLeft, isEnded, amNowLoser);
 			});
 		}
 
@@ -404,6 +503,8 @@ Loader.require("pac")
 
 		this.$e = _$e;
 
+		_initAlertsTip();
+
 		// initialize this auction
 		_initialized = Promise.all([
 			_auction.bidPrice(),
@@ -428,24 +529,26 @@ Loader.require("pac")
 				trigger: "mouseenter",
 				dynamicTitle: true
 			});
+
+			// moreTip
 			tippy(_$e.find(".infoIcon")[0], {
 				animation: "fade",
 				placement: "right",
-				html: _$moreInfo.show()[0],
+				html: _$moreTip.show()[0],
 				trigger: "click",
 				onShow: function(){
-					_self.refreshMoreInfo();
+					_self.refreshMoreTip();
 				}
 			});
 
 			// bidTip is more substantial
-			const $bidInfo = _$e.find(".bidInfo");
-			const $bidPrice = $bidInfo.find(".bidPrice");
-			const $prize = $bidInfo.find(".prize");
-			const $blocktime = $bidInfo.find(".blocktime");
-			const $prizeIncr = $bidInfo.find(".prizeIncr");
-			const $addBlocks = $bidInfo.find(".addBlocks");
-			const $refundSpan = $bidInfo.find(".refundSpan");
+			const $bidTip = _$e.find(".bidTip");
+			const $bidPrice = $bidTip.find(".bidPrice");
+			const $prize = $bidTip.find(".prize");
+			const $blocktime = $bidTip.find(".blocktime");
+			const $prizeIncr = $bidTip.find(".prizeIncr");
+			const $addBlocks = $bidTip.find(".addBlocks");
+			const $refundSpan = $bidTip.find(".refundSpan");
 
 			const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
 			const bidIncrStr = _bidIncr.equals(0)
@@ -462,7 +565,7 @@ Loader.require("pac")
 				theme: "light",
 				animation: "fade",
 				placement: "top",
-				html: _$e.find(".bidInfo").show()[0],
+				html: $bidTip.show()[0],
 				trigger: "mouseenter",
 				onShow: function(){
 					$bidPrice.text(ethUtil.toEthStr(_bidPrice));
@@ -470,10 +573,6 @@ Loader.require("pac")
 					$blocktime.text(`${Math.round(_blocktime)} seconds`);
 				}
 			});
-			// tippy($refundSpan[0], {
-			// 	placement: "top",
-			// 	trigger: "mouseenter"
-			// });
 		});
 	}
 });

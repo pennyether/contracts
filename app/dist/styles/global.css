@@ -507,6 +507,7 @@ body {
 
 .tippy-tooltip.light-theme {
 	background-color: #EEE;
+	color: black;
 	border: 1px solid black;
 	box-shadow: 5px 5px 5px 0px rgba(50,50,50,.3);
 }

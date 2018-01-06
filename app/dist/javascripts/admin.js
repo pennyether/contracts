@@ -107,7 +107,7 @@ Loader.require("reg", "tr", "mc", "pac", "dice")
 			_summary: $e.find(".summary").val(),
 			_initialPrize: ethUtil.toWei($e.find(".initialPrize").val()),
 			_bidPrice: ethUtil.toWei($e.find(".bidPrice").val()),
-			_bidIncr: ethUtil.toWei($e.find(".bidInctr").val()),
+			_bidIncr: ethUtil.toWei($e.find(".bidIncr").val()),
 			_bidAddBlocks: $e.find(".bidAddBlocks").val(),
 			_initialBlocks: $e.find(".initialBlocks").val()
 		};
