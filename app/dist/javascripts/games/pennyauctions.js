@@ -405,28 +405,6 @@ Loader.require("pac")
 
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
-				if (amNowLoser) {
-					_$currentWinnerCell.attr("title", "You are no longer the current winner!");
-					const t = tippy(_$currentWinnerCell[0], {
-						placement: "top",
-						trigger: "manual",
-						animation: "fade",
-						onHidden: function(){ t.destroy(); }
-					}).tooltips[0];
-					t.show();
-					setTimeout(function(){ t.hide(); }, 3000);
-				}
-				if (amNowWinner && !isEnded) {
-					_$currentWinnerCell.attr("title", "You are the current winner!");
-					const t = tippy(_$currentWinnerCell[0], {
-						placement: "top",
-						trigger: "manual",
-						animation: "fade",
-						onHidden: function(){ t.destroy(); }
-					}).tooltips[0];
-					t.show();
-					setTimeout(function(){ t.hide(); }, 3000);
-				}
 				_$currentWinner.empty().append($curWinner);
 				_$prize.text(`${ethUtil.toEth(prize)}`);
 				if (isEnded) {
@@ -447,11 +425,31 @@ Loader.require("pac")
 						_$e.removeClass("now-winner");
 						_$e.removeClass("new-winner");
 						flashClass("now-loser");
+
+						_$currentWinnerCell.attr("title", "You are no longer the current winner!");
+						const t = tippy(_$currentWinnerCell[0], {
+							placement: "top",
+							trigger: "manual",
+							animation: "fade",
+							onHidden: function(){ t.destroy(); }
+						}).tooltips[0];
+						t.show();
+						setTimeout(function(){ t.hide(); }, 3000);
 					} else if (amNowWinner) {
 						_$status.text("You are the current winner!");
 						_$e.removeClass("now-loser");
 						_$e.removeClass("new-winner");
 						flashClass("now-winner");
+
+						_$currentWinnerCell.attr("title", "You are the current winner!");
+						const t = tippy(_$currentWinnerCell[0], {
+							placement: "top",
+							trigger: "manual",
+							animation: "fade",
+							onHidden: function(){ t.destroy(); }
+						}).tooltips[0];
+						t.show();
+						setTimeout(function(){ t.hide(); }, 3000);
 					} else if (isNewWinner) {
 						_$status.empty()
 							.append($curWinner.clone())
