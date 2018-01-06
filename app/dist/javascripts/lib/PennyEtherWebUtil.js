@@ -59,8 +59,14 @@
     			.toLocaleString(window.navigator.language, options);
 		}
 
+		this.getLocalTime = function(){
+			return (new Date()).toLocaleString(window.navigator, {
+				hour: "2-digit", minute: "2-digit", second: "2-digit"
+			});
+		}
+
 		// returns something like "4h 3m 10s"
-		this.toTime = function(timeS, numUnits) {
+		this.toTime = function(timeS, numUnits, useColon) {
 			try {
 				numUnits = numUnits || 2;
 				timeS = (new BigNumber(timeS)).round();
@@ -68,25 +74,23 @@
 				console.error("Val expected to be a number", timeS);
 				return "<unknown>";
 			}
-			if (timeS.gt(60*60*24)){
-				const days = timeS.div(60*60*24).floor();
-				const hours = timeS.minus(days.mul(60*60*24)).div(60*60).floor();
-				const minutes = timeS.minus(days.mul(60*60*24)).minus(hours.mul(60*60)).div(60).floor();
+			const days = timeS.div(60*60*24).floor();
+			timeS = timeS.minus(days.mul(60*60*24));
+			const hours = timeS.div(60*60).floor();
+			timeS = timeS.minus(hours.mul(60*60));
+			const minutes = timeS.div(60).floor();
+			const seconds = timeS.minus(minutes.mul(60));
+			if (days.gt(0)){
 				if (numUnits == 1) return `${days}d`;
 				if (numUnits == 2) return `${days}d ${hours}h`;
 				return `${days}h ${hours}m ${minutes}m`;
 			}
-			if (timeS.gt(60*60)) {
-				const hours = timeS.div(60*60).floor();
-				const minutes = timeS.minus(hours.mul(60*60)).div(60).floor();
-				const seconds = timeS.minus(hours.mul(60*60)).minus(minutes.mul(60)).floor();
+			if (hours.gt(0)) {
 				if (numUnits == 1) return `${hours}h`;
 				if (numUnits == 2) return `${hours}h ${minutes}m`;
 				return `${hours}h ${minutes}m ${seconds}s`;
 			}
-			if (timeS.gt(60)) {
-				const minutes = timeS.div(60).floor();
-				const seconds = timeS.minus(minutes.mul(60));
+			if (minutes.gt(0)) {
 				if (numUnits == 1) return `${minutes}m`;
 				return `${minutes}m ${seconds}s`;
 			}

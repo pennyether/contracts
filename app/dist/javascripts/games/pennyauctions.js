@@ -112,6 +112,8 @@ Loader.require("pac")
 
 		// initialize dom elements
 		const _$status = _$e.find(".status");
+		const _$txStatus = _$e.find(".txStatus");
+		const _$clearTxStatus = _$e.find(".clearTxStatus").click(()=>_self.clearTxStatus());
 		const _$statusCell = _$e.find(".statusCell");
 		const _$currentWinnerCell = _$e.find(".currentWinnerCell");
 		const _$bottomCell = _$e.find(".bottomCell");
@@ -128,7 +130,7 @@ Loader.require("pac")
 		const _$alertsTip = _$e.find(".alertsTip");
 		const _$alertsIcon = _$e.find(".alertsIcon");
 		function _initAlertsTip(){
-			loadAlerts();
+			_loadAlerts();
 
 			// attach tippy
 			tippy(_$alertsIcon[0], {
@@ -154,53 +156,94 @@ Loader.require("pac")
 				} else {
 					delete _alerts[name];
 				}
-				storeAlerts();
-				alertsChanged();
+				_storeAlerts();
 			});
 			_$alertsTip.find("select").change(function(){
 				$(this).parent().find("input").change();
 			});
-
-			// load _alerts from localStorage, set state of checkboxes
-			function loadAlerts() {
-				try {
-					_alerts = JSON.parse(localStorage.getItem(_lsKey)) || {};
-				} catch (e) {}
-
-				_$alertsTip.find("input").toArray().forEach(e=>{
-					const name = $(e).data("alert-name"); 
-					const value = _alerts[name];
-					if (value) {
-						$(e).parent().find("select").val(value);
-						e.checked = true;
-					}
-				});
-				alertsChanged();
-			}
-			function storeAlerts() {
-				try {
-					localStorage.setItem(_lsKey, JSON.stringify(_alerts));
-					console.log("stored", _lsKey);
-				} catch (e) {}
-			}
-			function alertsChanged(){
-				if (Object.keys(_alerts).length > 0){
-					_$alertsIcon.addClass("on");
-				} else {
-					_$alertsIcon.removeClass("on");
-				}
-			}
 		}
 
-		function _triggerAlerts(blocksLeft, isEnded, amNowLoser){
-			if (_alerts["whenBlocksLeft"] && blocksLeft.lt(_alerts["whenBlocksLeft"])) {
-				
+		// load _alerts from localStorage, set state of checkboxes and icon
+		function _loadAlerts() {
+			try {
+				_alerts = JSON.parse(localStorage.getItem(_lsKey)) || {};
+			} catch (e) {}
+
+			_$alertsTip.find("input").toArray().forEach(e=>{
+				const name = $(e).data("alert-name"); 
+				const value = _alerts[name];
+				if (value) {
+					$(e).parent().find("select").val(value);
+					e.checked = true;
+				}
+			});
+			Object.keys(_alerts).length > 0
+				? _$alertsIcon.addClass("on")
+				: _$alertsIcon.removeClass("on");
+		}
+		// store alerts, update icon
+		function _storeAlerts() {
+			try {
+				localStorage.setItem(_lsKey, JSON.stringify(_alerts));
+			} catch (e) {}
+			Object.keys(_alerts).length > 0
+				? _$alertsIcon.addClass("on")
+				: _$alertsIcon.removeClass("on");
+		}
+		// remove alerts, remove icon
+		function _clearAlerts() {
+			localStorage.removeItem(_lsKey);
+			_alerts = {};
+			_$alertsIcon.remove();
+		}
+
+		function _triggerAlerts(blocksLeft, amNowLoser, newWinner){
+			if (Object.keys(_alerts).length==0) return;
+			const timeStr = util.getLocalTime();
+			const newWinnerStr = _curCurrentWinner.slice(0, 10) + "...";
+			const title = `Auction @ ${_auction.address.slice(0,10)}...`;
+
+			// alert one or none of: Not Winner, New Winner
+			if (_alerts["whenNowLoser"] && amNowLoser) {
+				new Notification(title, {
+					tag: `${_auction.address}-bidAfter`,
+					renotify: true,
+					body: `${timeStr} - You were bid after by ${newWinnerStr}`,
+					requireInteraction: true
+				});
+			} else {
+				if (_alerts["whenNewWinner"] && newWinner) {
+					new Notification(title, {
+						tag: `${_auction.address}-newWinner`,
+						renotify: true,
+						body: `${timeStr} - Bid placed by ${newWinnerStr}`,
+						requireInteraction: true
+					})
+				}	
 			}
+			// alert one or none of: Ended, N blocks Left
+			const isEnded = blocksLeft.lt(1);
 			if (_alerts["whenEnded"] && isEnded) {
-
-			}
-			if (_alerts["WhenNowLoser"] && amNowLoser) {
-
+				new Notification(title, {
+					tag: `${_auction.address}-blocksLeft`,
+					renotify: true,
+					body: `${timeStr} - Auction ended.`,
+					requireInteraction: true
+				});
+			} else {
+				if (_alerts["whenBlocksLeft"]){
+					if (blocksLeft.lt(_alerts["whenBlocksLeft"])) {
+						const body = blocksLeft.lt(0)
+							? `${timeStr} - Auction ended.`
+							: `${timeStr} - Only ${blocksLeft} blocks left.`
+						new Notification(title, {
+							tag: `${_auction.address}-blocksLeft`,
+							renotify: true,
+							body: body,
+							requireInteraction: true
+						});	
+					}
+				}
 			}
 		}
 
@@ -254,7 +297,7 @@ Loader.require("pac")
 						const $entry = $(`<tr class='logRow'></tr>`).appendTo(_$logsTable);
 						if (e.name=="BidOccurred") {
 							const timeBeforeStr = prevBidTime
-								? util.toTime(prevBidTime.minus(e.args.time)) + " earlier"
+								? "↳ " + util.toTime(prevBidTime.minus(e.args.time)) + " before"
 								: util.toTime(ethUtil.getCurrentBlockTime().minus(e.args.time.toNumber())) + " ago";
 							if (timeBeforeStr == "0s earlier") return;
 							const $txLink = util.$getTxLink('Bid', e.transactionHash);
@@ -278,6 +321,13 @@ Loader.require("pac")
 				});
 			}
 			checkScroll();
+		}
+
+		this.clearTxStatus = function(){
+			_$clearTxStatus.hide();
+			_$txStatus.empty().hide();
+			_$status.show();
+			_$statusCell.removeClass().addClass("statusCell");
 		}
 
 		this.setBlocktime = function(blocktime) {
@@ -339,7 +389,7 @@ Loader.require("pac")
 				const amWinner = currentWinner === ethUtil.getCurrentAccount();
 				const amNowWinner = !_curAmWinner && amWinner;
 				const amNowLoser = _curAmWinner && !amWinner;
-				const isNewWinner = currentWinner != _curCurrentWinner;
+				const isNewWinner = _curCurrentWinner && currentWinner != _curCurrentWinner;
 				const isNewPrize = _curPrize && !_curPrize.equals(prize);
 				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
@@ -379,43 +429,66 @@ Loader.require("pac")
 					_$e.addClass("ended");
 					_$btn.attr("disabled", "disabled").addClass("disabled");
 					_$blocksLeft.text("Ended");
+					_$status.empty()
+						.append("The auction has ended.<br>")
+						.append($curWinner).append(" won!");
 				} else {
 					_$blocksLeft.text(blocksLeft);
-					setTimeout(function(){
-						if (amNowLoser){
-							_$e.removeClass("now-winner");
-							_$e.removeClass("new-winner");
-							flashClass("now-loser");
-						} else if (amNowWinner) {
-							_$e.removeClass("now-loser");
-							_$e.removeClass("new-winner");
-							flashClass("now-winner");
-						} else if (isNewWinner) {
-							_$e.removeClass("now-winner");
-							_$e.removeClass("now-loser");
-							flashClass("new-winner");
+					if (amNowLoser){
+						_$status.empty()
+							.append("You are no longer the current winner. ")
+							.append($curWinner.clone())
+							.append(" bid after you.");
+						_$e.removeClass("now-winner");
+						_$e.removeClass("new-winner");
+						flashClass("now-loser");
+					} else if (amNowWinner) {
+						_$status.text("You are the current winner!");
+						_$e.removeClass("now-loser");
+						_$e.removeClass("new-winner");
+						flashClass("now-winner");
+					} else if (isNewWinner) {
+						_$status.empty()
+							.append($curWinner.clone())
+							.append(" is now the current winner.");
+						_$e.removeClass("now-winner");
+						_$e.removeClass("now-loser");
+						flashClass("new-winner");
+					} else {
+						if (amWinner) {
+							_$status.text("You are the current winner!");
+						} else {
+							_$status.empty()
+								.append($curWinner.clone())
+								.append(" is the current winner.");
 						}
-						if (isNewBlock) flashClass("new-block");
-						if (isNewPrize) flashClass("new-prize");
-					}, 100);
+					}
+					if (isNewBlock) flashClass("new-block");
+					if (isNewPrize) flashClass("new-prize");
 				}
-				_triggerAlerts(blocksLeft, isEnded, amNowLoser);
+				_triggerAlerts(blocksLeft, amNowLoser, isNewWinner);
+				if (isEnded) _clearAlerts();
 			});
 		}
 
 		this.bid = function(){
+			_$txStatus.show();
+			_$status.hide();
+
 			var p;
 			try {
 				p = _auction.sendTransaction({gas: 59000, value: _bidPrice});
 			} catch (e) {
-				_$status.text(`Error: ${e.message}`);	
+				_$clearTxStatus.show();
+				_$txStatus.text(`Error: ${e.message}`);
+				return;
 			}
 			var bidTxId;
 
 			_$statusCell
 				.removeClass("prepending pending refunded error current-winner")
 				.addClass("prepending");
-			_$status.text("Waiting for signature...");
+			_$txStatus.text("Waiting for signature...");
 
 			// update status to prepending
 			var loadingBar;
@@ -430,12 +503,13 @@ Loader.require("pac")
 					placement: "top",
 					animation: "fade"
 				});
-				_$status.empty().append($txLink).append(loadingBar.$e);
+				_$txStatus.empty().append($txLink).append(loadingBar.$e);
 			});
 
 			p.then(function(res){
 				return loadingBar.finish(500).then(()=>res);
 			}).then(function(res){
+				_$clearTxStatus.show();
 				_$statusCell.removeClass("pending");
 				// see if they got refunded, or if bid occurred
 				const block = res.receipt.blockNumber;
@@ -443,18 +517,18 @@ Loader.require("pac")
 				const bidRefunded = res.events.find(e=>e.name=="BidRefundSuccess");
 				if (!bidRefunded && !bidOccurred){
 					_$statusCell.addClass("error");
-					_$status.append(`<br>WARNING: Your transaction did not produce any logs. Please try refreshing the page.`);
+					_$txStatus.append(`<br>WARNING: Your transaction did not produce any logs. Please try refreshing the page.`);
 					return;
 				}
 				if (bidRefunded) {
 					_$statusCell.addClass("refunded");
 					const $txLink = util.$getTxLink("Your Bid was refunded.", bidTxId);
-					_$status.empty().append($txLink).append(`<br>${bidRefunded.args.msg}`);
+					_$txStatus.empty().append($txLink).append(`<br>${bidRefunded.args.msg}`);
 					return;
 				}
 				// Their bid was accepted and not immediately refunded.
 				const $txLink = util.$getTxLink("Your bid succeeded!", bidTxId);
-				_$status.empty().append($txLink);
+				_$txStatus.empty().append($txLink);
 				// Get all events related to the user for this block, and update
 				//  status based on the most recent event.
 				Promise.all([
@@ -465,9 +539,17 @@ Loader.require("pac")
 					events = events[0].concat(events[1]).concat(events[2]);
 					events.sort((a,b)=>a.logIndex > b.logIndex ? -1 : 1);
 					const finalEvent = events[0];
+					if (!finalEvent) {
+						// weird case where we cant get events.
+						// a refresh should settle all of this.
+						_$txStatus.empty().append(`<br>Please wait a moment.`);
+						setTimeout(_self.refresh, 1000);
+						setTimeout(_self.refresh, 5000);
+						return
+					}
 					if (finalEvent.name=="BidOccurred") {
 						_$statusCell.addClass("current-winner");
-						_$status.append(`<br>Your bid made you the current winner.`);
+						_$txStatus.append(`<br>Your bid made you the current winner.`);
 						// sometimes providers take a little bit to catch up.
 						setTimeout(_self.refresh, 1000);
 						setTimeout(_self.refresh, 5000);
@@ -476,7 +558,7 @@ Loader.require("pac")
 					if (finalEvent.name=="BidRefundSuccess") {
 						_$statusCell.addClass("refunded");
 						const $refundLink = util.$getTxLink("Your Bid was refunded.", bidTxId);
-						_$status.empty()
+						_$txStatus.empty()
 							.append($refundLink)
 							.append(`<br>Your bid was refunded: ${e[0].args.msg}`);
 						return;
@@ -484,19 +566,20 @@ Loader.require("pac")
 					if (finalEvent.name=="BidRefundFailure") {
 						_$statusCell.addClass("error");
 						const $refundLink = util.$getTxLink("Your Bid was not refunded.", bidTxId);
-						_$status.empty()
+						_$txStatus.empty()
 							.append($refundLink)
 							.append(`<br>Your bid could not be refunded: ${e[0].args.msg}`);
 						return;
 					}
 				});
 			}, function(e){
+				_$clearTxStatus.show();
 				_$statusCell.removeClass("prepending pending").addClass("error");
 				if (bidTxId) {
 					const $txLink = util.$getTxLink("Your Bid failed.");
-					_$status.empty().append($txLink).append(`<br>${e.message}`);
+					_$txStatus.empty().append($txLink).append(`<br>${e.message}`);
 				} else {
-					_$status.text(`Error: ${e.message}`);	
+					_$txStatus.text(`Error: ${e.message}`);	
 				}
 			});
 		}

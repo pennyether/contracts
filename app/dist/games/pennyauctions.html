@@ -538,6 +538,17 @@
 		.auction .statusCell .LoadingBar .loaded {
 			background: rgba(0,128,0,.7);
 		}
+		.auction .statusCell .clearTxStatus {
+			position: absolute;
+			top: 2px;
+			right: 2px;
+			opacity: .5;
+			cursor: pointer;
+			border-radius: 20px;
+			padding: 1px 3px;
+			font-size: 70%;
+			color: blue;
+		}
 
 		.auction.new-prize .prizeCell {
 			border-top-left-radius: 10px;
@@ -736,11 +747,10 @@
 				</div>
 				<div class="options" style="text-align: left;">					
 					<label>
-						<div class="option whenBlocksLeft">
+						<div class="option">
 							<input type="checkbox" data-alert-name="whenBlocksLeft">
 							When less than
 							<select>
-								<option value=2>2</option>
 								<option value=3>3</option>
 								<option value=4>4</option>
 								<option value=5 selected>5</option>
@@ -751,15 +761,21 @@
 						</div>
 					</label>
 					<label>
-						<div class="option whenEnds">
-							<input type="checkbox" data-alert-name="whenEnds">
+						<div class="option">
+							<input type="checkbox" data-alert-name="whenEnded">
 							When the auction ends.
 						</div>
 					</label>
 					<label>
-						<div class="option whenNotWinner">
+						<div class="option">
 							<input type="checkbox" data-alert-name="whenNowLoser">
 							When somebody bids after I do.
+						</div>
+					</label>
+					<label>
+						<div class="option">
+							<input type="checkbox" data-alert-name="whenNewWinner">
+							When anybody bids.
 						</div>
 					</label>
 				</div>
@@ -808,7 +824,9 @@
 					</td>
 					<td colspan=2 class="statusCell">
 						<div class="label dontTip infoLeft" title="This displays the auction status.">Status</div>
-						<div class="status">The auction is live. Place your bid!</div>
+						<div class="clearTxStatus" style="display: none;">clear</div>
+						<div class="status"></div>
+						<div class="txStatus" style="display: none;"></div>
 					</td>
 				</tr>
 			</table>	
@@ -828,7 +846,6 @@
 		<div class="subsection activeAuctions">
 			<div class="head">
 				Live Auctions
-				<div class="allAlerts">🔔</div>
 			</div>
 			<div class="body">
 				<div class="auctions"></div>
