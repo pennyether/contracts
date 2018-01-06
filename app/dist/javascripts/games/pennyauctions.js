@@ -31,6 +31,8 @@ Loader.require("pac")
 	}
 
 	// get up to 10 last ended auction contracts
+	// todo: if optimization is needed, we can update 
+	// this only when numEndedAuctions has changed.
 	function getEndedAuctionContracts() {
 		return pac.numEndedAuctions().then(len=>{
 			const max = Math.min(len, 10);
@@ -108,6 +110,7 @@ Loader.require("pac")
 		var _curAmWinner = null;
 		var _curPrize = null;
 		var _curCurrentWinner = null;
+		var _curBlockEnded = null;
 		var _alerts = {};
 
 		// initialize dom elements
@@ -268,7 +271,7 @@ Loader.require("pac")
 			const _$logsTable = _$logs.find("table").empty();
 
 			var prevBidTime = null;
-			var lastBlock = ethUtil.getCurrentBlockHeight();
+			var lastBlock = BigNumber.min(_curBlockEnded, ethUtil.getCurrentBlockHeight()).toNumber();
 			var isDone = false;
 			function checkScroll() {
 				if (isDone) return;
@@ -398,6 +401,7 @@ Loader.require("pac")
 				_curAmWinner = amWinner;
 				_curBlocksLeft = blocksLeft;
 				_curCurrentWinner = currentWinner;
+				_curBlockEnded = blockEnded;
 
 				// update DOM and classes
 				if (amWinner) _$e.addClass("winner");
@@ -431,7 +435,8 @@ Loader.require("pac")
 					_$blocksLeft.text("Ended");
 					_$status.empty()
 						.append("The auction has ended.<br>")
-						.append($curWinner).append(" won!");
+						.append($curWinner.clone())
+						.append(" won!");
 				} else {
 					_$blocksLeft.text(blocksLeft);
 					if (amNowLoser){
