@@ -32,7 +32,7 @@ contract MainController is
 	/* events */
 	event Error(uint time, string msg);
 	event PennyAuctionRewardsChanged(uint time);
-	event PennyAuctionStarted(uint time, uint index, address addr);
+	event PennyAuctionStarted(uint time, uint index, address indexed addr);
 	event RewardPaid(uint time, address indexed recipient, string note, uint amount);
 	event RewardNotPaid(uint time, address indexed recipient, string note, uint amount);
 
