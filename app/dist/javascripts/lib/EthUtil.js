@@ -131,15 +131,6 @@
             return `${zeroes}${hexStr}`;
 		}
 
-		// formats a named input value to a string
-		this.inputToString = function(name, type, val) {
-			if (name=="time") {
-				return (new Date(val.toNumber()*1000)).toString();
-			} else {
-				return `${val}`;
-			}
-		};
-
 		// does a low-level JSON RPC call with provided method/params
 		this.sendAsync = function(method, params){
 	        return new Promise((res,rej)=>{
@@ -268,6 +259,37 @@
 							     / 3;
 					return new BigNumber(num.toFixed(15));
 				});
+			});
+		}
+		// returns the gasPrices, refreshing if older than 1 minute
+		var _lastGasPrices;
+		this.getGasPrices = function(){
+			if (_lastGasPrices && _lastGasPrices.timestamp+60000 >= (+new Date())){
+				return Promise.resolve(_lastGasPrices.data);
+			}
+			const url = "https://ethgasstation.info/json/predictTable.json";
+			return AJAX(url).then(function(res){
+				const obj = JSON.parse(res);
+				const totalTxs = obj[0].tx_atabove;
+				const formatted = obj.map((o,i)=>{
+					const nextTxAtAbove = (obj[i+1] ? obj[i+1].tx_atabove : o.tx_atabove);
+					return {
+						gasPrice: o.gasprice,
+						atOrAbove: o.tx_atabove,
+						numTxs: o.tx_atabove - nextTxAtAbove,
+						percentile: (1 - nextTxAtAbove/totalTxs) * 100,
+						waitBlocks: o.expectedWait,
+						waitTimeS: o.expectedTime * 60,
+					};
+				})
+				_lastGasPrices = {
+					timestamp: (+new Date()),
+					data: formatted
+				};
+				return formatted;
+			},(e)=>{
+				console.error("Error retrieving gas prices.", e);
+				throw e;
 			});
 		}
 

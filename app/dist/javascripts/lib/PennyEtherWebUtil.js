@@ -40,6 +40,10 @@
 			return lv.$e;
 		}
 
+		this.getGasPriceSlider = function(){
+			return new GasPriceSlider();
+		}
+
 		this.$getShortAddrLink = function(addr) {
 			const addrStr = addr.slice(0, 10) + "...";
 			return _self.$getAddrLink(addrStr, addr);
@@ -332,6 +336,82 @@
 
 		_$head.empty().append(opts.$head || "Log Viewer");
 		_checkScroll();
+	}
+
+	// A slider to help the user choose a gas price.
+	function GasPriceSlider(defaultValue){
+		const _$e = $(`
+			<div class="GasPriceSlider">
+				<div class='head'>Choose Gas Price</div>
+				<div class='loading'></div>
+				<div class='content'>
+					<input type="range" increment="1" class="slider"></div>
+					<div class='description'>
+						<div class='gasPrice'></div>
+						<div class='wait'></div>
+					</div>
+				</div>
+			</div>
+		`);
+		const _$loading = _$e.find(".loading");
+		const _$content = _$e.find(".content");
+		const _$gasPrice = _$e.find(".gasPrice");
+		const _$wait = _$e.find(".wait");
+		const _$slider = _$e.find("input").on("input", _onSliderChanged);
+		var _gasData = {};
+		var _value = defaultValue;
+		var _hasValue = false;
+
+		function _refresh() {
+			_$loading.show().empty().text(`Loading gas data...`);
+			_$content.hide();
+			ethUtil.getGasPrices().then(data=>{
+				// get min and max, populate gasData
+				var min = null;
+				var max = null;
+				_gasData = {};
+				data.forEach(d=>{
+					_gasData[d.gasPrice] = d;
+					if (!min && d.waitTimeS <= 4*60*60) min = d.gasPrice;
+					if (!max && d.waitBlocks <= 2) max = d.gasPrice;
+					if (!_value && d.waitTimeS <= 60) _value = d.gasPrice;
+				});
+				_$slider.attr("min", min);
+				_$slider.attr("max", max);
+				_$slider.val(_value);
+				if (_$slider.val() > max) _$slider.val(max);
+				if (_$slider.val() < min) _$slider.val(min);
+				_$loading.hide();
+				_$content.show();
+				_hasValue = true;
+				_onSliderChanged();
+			}, (e)=>{
+				_hasValue = false;
+				_$loading.show().empty().text(`Error: ${e}`);
+				_$content.hide();
+			});
+		}
+
+		function _onSliderChanged() {
+			const val = _$slider.val();
+			const data = _gasData[val];
+			const blocks = data.waitBlocks;
+			const timeStr = util.toTime(Math.round(data.waitTimeS));
+
+			_value = val;
+			_$gasPrice.text(`${val} GWei`);
+			_$wait.removeClass("fast slow");
+			if (data.waitTimeS <= 60) _$wait.addClass("fast");
+			else if (data.waitTimeS > 60*15) _$wait.addClass("slow");
+			_$wait.text(`~${blocks} Blocks (${timeStr})`);
+		}
+
+		this.getValue = function(){
+			if (!_hasValue) return;
+			return (new BigNumber(_value)).mul(1e9);
+		}
+		this.refresh = _refresh;
+		this.$e = _$e;
 	}
 	
 	window.PennyEtherWebUtil = PennyEtherWebUtil;

@@ -551,6 +551,37 @@ body {
 		padding: 2px 5px;
 	}
 
+
+/*
+*/
+.GasPriceSlider {
+}
+.GasPriceSlider .head {
+	font-size: 80%;
+}
+.GasPriceSlider .slider {
+	width: 100%;
+	cursor: pointer;
+	padding: 5px 0px;
+	min-width: 200px;
+}
+.GasPriceSlider .description {
+	font-size: 80%;
+	margin-top: -10px;
+}
+.GasPriceSlider .gasPrice {
+	font-weight: bold;
+}
+.GasPriceSlider .wait {
+	color: #555;
+}
+.GasPriceSlider .wait.fast {
+	color: green;
+}
+.GasPriceSlider .wait.slow {
+	color: #A00;
+}
+
 .ib {
 	display: inline-block;
 	margin-bottom: 5px;

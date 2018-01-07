@@ -1,13 +1,9 @@
 Loader.require("dice")
 .then(function(dice){
-	//dice.addBankroll([], {value: 1e18});
-	//dice.resolveUnresolvedRolls([100]);
-
 	ethUtil.onStateChanged((state)=>{
 		refreshAllRolls(state);
 		refreshStats();
 	});
-
 
 	/******************************************************/
 	/*** BET PLACING UI ***********************************/
@@ -167,27 +163,48 @@ Loader.require("dice")
 		return bet.mul(100).div(number).mul(.99)
     }
 
-	$("#RollButton").click(function(){
-		var bet = $wagerText.val();
-		var number = $numberText.val();
-		try { bet = (new BigNumber(bet)).mul(1e18) }
-		catch (e) { bet = null; }
-		try { number = new BigNumber(number); }
-		catch (e) { number = null; }
+    // roll tip
+    function _initRollButton(){
+    	const gps = util.getGasPriceSlider();
+    	const $rollBtn = $("#RollButton");
+    	const $rollTip = $("#RollTip").append(gps.$e);
 
-		if (bet == null || number == null) {
-			alert("Invalid bet or number.");
-			return;
-		}
+		tippy($rollBtn[0], {
+			// arrow: false,
+			theme: "light",
+			animation: "fade",
+			placement: "top",
+			html: $rollTip.show()[0],
+			trigger: "mouseenter",
+			onShow: function(){ gps.refresh(); }
+		});
 
-		$(this).blur();
-		trackResult(
-			dice.roll({_number: number}, {value: bet, gas: 147000}),
-			bet,
-			number
-		);
-		doScrolling("#BetterCtnr", 400);
-    })
+		$rollBtn.click(function(){
+			this._tippy.hide(0);
+			
+			var bet = $wagerText.val();
+			var number = $numberText.val();
+			try { bet = (new BigNumber(bet)).mul(1e18) }
+			catch (e) { bet = null; }
+			try { number = new BigNumber(number); }
+			catch (e) { number = null; }
+
+			if (bet == null || number == null) {
+				alert("Invalid bet or number.");
+				return;
+			}
+
+			$(this).blur();
+			trackResult(
+				dice.roll({_number: number}, {value: bet, gas: 147000, gasPrice: gps.getValue()}),
+				bet,
+				number
+			);
+			doScrolling("#BetterCtnr", 400);
+	    })
+    }
+    _initRollButton();
+			
 
 	// When they place a bet, show it and add it to _$currentRolls
 	var _$currentRolls = {};
@@ -583,7 +600,7 @@ Loader.require("dice")
 	/******************************************************/
 	// t: 0 to 1, returns 0 to 1
     function easeInOut(t) {
-    	return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1
+    	return t<.5 ? 2*t*t : -1+(4-2*t)*t;
     }
     function easeNumber(from, to, duration, cb) {
     	var cancel = false;
@@ -615,7 +632,7 @@ Loader.require("dice")
     		const newRolls = arr[0].toNumber();
     		const newWagered = arr[1].div(1e18).toNumber();
     		const newWon = arr[2].div(1e18).toNumber();
-    		_prevEases.forEach(e => { if (e) e(); });
+    		_prevEases.forEach(cancel => cancel());
     		_prevEases[0] = easeNumber(curRolls, newRolls, 3000, (n)=>{
     			$rolls.text(Math.round(n));
     		})
