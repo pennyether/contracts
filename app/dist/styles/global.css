@@ -537,6 +537,8 @@ body {
 }
 .LogViewer table td {
 	padding: 2px 6px 2px 2px;
+}
+.LogViewer table td.date {
 	white-space: nowrap;
 }
 .LogViewer table tr:nth-child(even) {

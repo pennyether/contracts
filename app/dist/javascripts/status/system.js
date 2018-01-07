@@ -111,5 +111,6 @@ Loader.require("reg", "comp", "tr", "mc", "pac", "dice")
 		$("#DiceAddr").empty().append(util.$getAddrLink(dice.address));
 		util.bindToElement(dice.getAdmin(), $("#DiceAdmin"));
 		util.bindToElement(dice.version(), $("#DiceVersion"));
+		util.bindToElement(util.$getLogs(dice), $("#DiceLogs"), true);
 	}
 });

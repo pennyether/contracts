@@ -24,18 +24,14 @@
 		}
 
 		this.$getLogs = function $getLogs(instance) {
-			return niceWeb3.getAllEvents(instance).then((events)=>{
-				const $ctnr = $("<div class='logs'></div>");
-				events.reverse().forEach((e)=>{
-					const argsStr = Object.keys(e.args)
-						.map((name)=>`${name}: ${e.args[name]}`)
-						.join(", ");
-					$("<div></div>")
-						.text(`${e.name} - ${argsStr}`)
-						.appendTo($ctnr);
-				})
-				return $ctnr;
+			const lv = new LogViewer({
+				events: [{
+					instance: instance,
+					name: "all"
+				}],
+				order: "newest"
 			});
+			return Promise.resolve(lv.$e);
 		};
 
 		this.$getLogViewer = function(opts) {
@@ -184,7 +180,6 @@
 		`);
 		if (!opts.order) opts.order == 'newest';
 		if (!opts.events) throw new Error(`Must provide "events" option.`);
-		if (opts.order=='newest' && !opts.stopFn) throw new Error(`Must provide "stopFn" option.`);
 		if (opts.order=='oldest' && !opts.startBlock) throw new Error(`Must provide "startBlock"`);
 		const _$logs = _$e.find(".logs").bind("scroll", _checkScroll)
 		const _$head = _$e.find(".head");
@@ -192,7 +187,7 @@
 		const _order = opts.order;
 		const _dateFn = opts.dateFn || _defaultDateFn;
 		const _valueFn = opts.valueFn || _defaultValueFn;
-		const _stopFn = opts.stopFn;
+		const _stopFn = opts.stopFn || function(){};
 		const _startBlock = opts.startBlock || ethUtil.getCurrentBlockHeight().toNumber();
 		const _endBlock = _order == 'newest' ? _startBlock - 500000 : _startBlock + 500000;
 		var _isDone = false;
@@ -240,12 +235,12 @@
 			var fromBlock, toBlock;
 			if (_order == 'newest'){
 				toBlock = _lastBlock;
-				fromBlock = Math.max(_lastBlock - 499, 0);
+				fromBlock = Math.max(_lastBlock - 4999, 0);
   				_lastBlock = fromBlock - 1;
   				if (fromBlock <= _endBlock) _isDone = true;
   			} else {
   				fromBlock = _lastBlock;
-  				toBlock = fromBlock + 499;
+  				toBlock = fromBlock + 4999;
   				_lastBlock = toBlock + 1;
   				if (toBlock >= _endBlock) _isDone = true;
   			}
@@ -283,6 +278,35 @@
   					? allEvents
   					: _loadMoreEvents();
   			});
+		}
+
+		function _defaultDateFn(e) {
+			const dateStr = e.args.time
+				? util.toDateStr(e.args.time)
+				: "Unknown";
+			return util.$getTxLink(dateStr, e.transactionHash);
+		}
+		function _defaultValueFn(e) {
+			const $argVals = Object.keys(e.args)
+				.filter(name=>name!=="time")
+				.map(name=>{
+					const val = e.args[name];
+					const $e = $("<span></span>").append(`<b>${name}</b>: `);
+					if (val.toNumber && val.gt(1000000000)){
+						$e.append(ethUtil.toEthStr(val));	
+					} else if (!val.toNumber && val.toString().length==42) {
+						$e.append(util.$getShortAddrLink(val));
+					} else {
+						$e.append(val.toString());
+					}
+					return $e;
+				})
+			const $e = $("<div></div>").append(`<b>${e.name}</b> - `);
+			$argVals.forEach(($v,i)=>{
+				if (i!==0) $e.append(", ");
+				$e.append($v)
+			});
+			return $e;
 		}
 
 		this.$e = _$e;

@@ -31,8 +31,8 @@
 		this.getAllEvents = function(instance, fromBlock, toBlock) {
 			return _ethUtil.sendAsync("eth_getLogs", [{
 				address: instance.address,
-				fromBlock: fromBlock || web3.toHex(0),
-				toBlock: toBlock || "latest"
+				fromBlock: web3.toHex(fromBlock) || web3.toHex(0),
+				toBlock: web3.toHex(toBlock) || "latest"
 			}]).then((events)=>{
 				return _self.decodeKnownEvents(events);
 			});
