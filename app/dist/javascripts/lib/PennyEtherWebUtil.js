@@ -23,13 +23,14 @@
 			});
 		}
 
-		this.$getLogs = function $getLogs(instance) {
+		this.$getLogs = function $getLogs(instance, allAtOnce) {
 			const lv = new LogViewer({
 				events: [{
 					instance: instance,
 					name: "all"
 				}],
-				order: "newest"
+				order: "newest",
+				allAtOnce: allAtOnce
 			});
 			return Promise.resolve(lv.$e);
 		};
@@ -160,9 +161,12 @@
 			$head: content to put into head
 			// which order to retrieve logs
 			order: 'newest' || 'oldest',
+			// if set to true, will scan all blocks in one request.
+			// useful for things with not an absurd amount of events.
+			allAtOnce: false
 			// if order == 'oldest', must be provided
-			startBlock: [number]
-			// if order == 'newest', must be provided
+			startBlock: [current block],
+			// if order == 'newest', tells LogViewer when to stop looking
 			stopFn: (event)=>true/false of should stop
 			// formatting fns
 			dateFn: (event, prevEvent, nextEvent)=>{str}
@@ -174,8 +178,10 @@
 			<div class='LogViewer'>
 				<div class='head'></div>
 				<div class='logs' style='overflow-y: auto;'>
+					<div class='empty'>No Logs Found</div>
 					<table cellspacing="0" cellpadding="0"></table>
 				</div>
+				<div class='status'></div>
 			</div>
 		`);
 		if (!opts.order) opts.order == 'newest';
@@ -184,71 +190,84 @@
 		const _$logs = _$e.find(".logs").bind("scroll", _checkScroll)
 		const _$head = _$e.find(".head");
 		const _$table = _$e.find("table");
+		const _$empty = _$e.find(".empty");
+		const _$status = _$e.find(".status");
+
 		const _order = opts.order;
-		const _dateFn = opts.dateFn || _defaultDateFn;
-		const _valueFn = opts.valueFn || _defaultValueFn;
-		const _stopFn = opts.stopFn || function(){};
+		const _allAtOnce = opts.allAtOnce || false;
 		const _startBlock = opts.startBlock || ethUtil.getCurrentBlockHeight().toNumber();
 		const _endBlock = _order == 'newest' ? _startBlock - 500000 : _startBlock + 500000;
+		const _stopFn = opts.stopFn || function(){};
+		const _dateFn = opts.dateFn || _defaultDateFn;
+		const _valueFn = opts.valueFn || _defaultValueFn;
+
 		var _isDone = false;
 		var _isLoading = false;
-		var _lastEvent = null;
-		var _lastBlock = _startBlock;
-		var _$lastDateTd = null;
+		var _prevBlock = _startBlock;	// the previously loaded block
+		var _prevEvent = null;			// the previously loaded event
+		var _$prevDateTd = null;		// the date cell of the _prevEvent
+		var _leastFromBlock = Infinity;
+		var _greatestToBlock = -1;
+		
+		var _requestCount = 0;
 
 		function _checkScroll() {
-			if (_isDone || _isLoading) { return; }
-			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 1;
+			if (_isDone || _isLoading) return;
+
+			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 20;
   			if (!isNearBottom) return;
   			_loadMoreEvents().then(events=>{
-  				const lastEvent = null;
-  				const nextEvent = null;
-
+  				if (events.length > 0) _$empty.hide();
   				events.forEach((event, i)=>{
   					const $row = $(`<tr></tr>`).appendTo(_$table);
   					const $dateTd = $(`<td class='date'></td>`).appendTo($row);
   					const $valueTd = $(`<td class='value'></td>`).appendTo($row);
-  					const prevEvent = _order == 'newest' ? events[i+1] : _lastEvent;
-  					const nextEvent = _order == 'newest' ? _lastEvent : events[i+1];
+  					const prevEvent = _order == 'newest' ? events[i+1] : _prevEvent;
+  					const nextEvent = _order == 'newest' ? _prevEvent : events[i+1];
   					const $date = _dateFn(event, prevEvent, nextEvent);
   					const $value = _valueFn(event);
   					$dateTd.append($date);
   					$valueTd.append($value);
-  					if (_$lastDateTd && i==0) {
-  						const $lastDate = _dateFn(_lastEvent, prevEvent, nextEvent)
-	  					_$lastDateTd.empty().append($lastDate);
+  					if (_$prevDateTd && i==0) {
+  						const $lastDate = _dateFn(_prevEvent, prevEvent, nextEvent)
+	  					_$prevDateTd.empty().append($lastDate);
 	  				}
   					_isDone = _isDone || _stopFn(event);
-					_lastEvent = event;
-					_$lastDateTd = $dateTd;
+					_prevEvent = event;
+					_$prevDateTd = $dateTd;
   				});
   				_checkScroll();
   			});
 		}
 
 		function _loadMoreEvents() {
-			// return if _isDone
-			if (_isDone || _isLoading) {
-				return Promise.resolve([]);
-			}
+			// return if _isDone or _isLoading
+			if (_isDone || _isLoading) return Promise.resolve([]);
 			// compute from/to block
 			var fromBlock, toBlock;
-			if (_order == 'newest'){
-				toBlock = _lastBlock;
-				fromBlock = Math.max(_lastBlock - 4999, 0);
-  				_lastBlock = fromBlock - 1;
-  				if (fromBlock <= _endBlock) _isDone = true;
-  			} else {
-  				fromBlock = _lastBlock;
-  				toBlock = fromBlock + 4999;
-  				_lastBlock = toBlock + 1;
-  				if (toBlock >= _endBlock) _isDone = true;
-  			}
+			if (_allAtOnce) {
+	  			fromBlock = 0;
+	  			toBlock = ethUtil.getCurrentBlockHeight().toNumber();
+	  			_isDone = true;
+	  		} else {
+	  			if (_order == 'newest'){
+					toBlock = _prevBlock;
+					fromBlock = Math.max(_prevBlock - 4999, 0);
+	  				_prevBlock = fromBlock - 1;
+	  				if (fromBlock <= _endBlock) _isDone = true;
+	  			} else {
+	  				fromBlock = _prevBlock;
+	  				toBlock = fromBlock + 4999;
+	  				_prevBlock = toBlock + 1;
+	  				if (toBlock >= _endBlock) _isDone = true;
+	  			}
+	  		}
+	  		_greatestToBlock = Math.max(toBlock, _greatestToBlock);
+	  		_leastFromBlock = Math.min(fromBlock, _leastFromBlock);
+
 			// show that we're loading
 			_isLoading = true;
-			const $loading = $("<div class='loading'></div>")
-				.text(`Loading logs from blocks ${fromBlock} - ${toBlock}...`)
-				.appendTo(_$logs);
+			_$status.text(`Scanning blocks: ${fromBlock} - ${toBlock}...`);
   			// get promises for all events
   			const promises = opts.events.map((ev)=>{
   				if (!ev.instance) throw new Error(`opts.events.instance not defined.`);
@@ -265,7 +284,7 @@
   						: bool ? 1 : -1;
   				}
   				_isLoading = false;
-  				$loading.remove();
+  				_$status.text(`Scanned blocks: ${_leastFromBlock} - ${_greatestToBlock}.`);
 
   				var allEvents = [];
   				arr.forEach((events)=>{ allEvents = allEvents.concat(events) });

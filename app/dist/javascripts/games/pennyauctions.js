@@ -127,7 +127,10 @@ Loader.require("pac")
 		const _$bidPrice = _$e.find(".bidPrice .value");
 		const _$currentWinner = _$e.find(".currentWinner .value");
 		const _$btn = _$e.find(".bid button")
-			.click(()=>{ _self.bid(); });
+			.click(function(){
+				this._tippy.hide(0);
+				_self.bid();
+			});
 
 		
 		const _$alertsTip = _$e.find(".alertsTip");
@@ -203,7 +206,9 @@ Loader.require("pac")
 		function _triggerAlerts(blocksLeft, amNowLoser, newWinner){
 			if (Object.keys(_alerts).length==0) return;
 			const timeStr = util.getLocalTime();
-			const newWinnerStr = _curCurrentWinner.slice(0, 10) + "...";
+			const newWinnerStr = _curCurrentWinner == ethUtil.getCurrentAccount()
+				? "You"
+				: _curCurrentWinner.slice(0, 10) + "...";
 			const title = `Auction @ ${_auction.address.slice(0,10)}...`;
 
 			// alert one or none of: Not Winner, New Winner
@@ -472,7 +477,7 @@ Loader.require("pac")
 				bidTxId = txId;
 				const $txLink = util.$getTxLink("Your Bid is being mined.", bidTxId);
 				_$statusCell.removeClass("prepending").addClass("pending");
-				loadingBar = util.$getLoadingBar(_blocktime*1000, .75);
+				loadingBar = util.$getLoadingBar(_blocktime*1000*2, .75);
 				loadingBar.$e.attr("title", "This is an estimate of time remaining, based on the average blocktime.");
 				tippy(loadingBar.$e[0], {
 					trigger: "mouseenter",

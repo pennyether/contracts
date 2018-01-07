@@ -55,7 +55,7 @@ Loader.require("reg", "comp", "tr", "mc", "pac", "dice")
 			util.bindToElement(comp.isSaleStarted(), $("#CompSaleStarted"));
 			util.bindToElement(token.totalSupply().then(ethUtil.toTokenStr), $("#CompTokenTotalSupply"));
 			util.bindToElement(token.balanceOf([lockerAddr]).then(ethUtil.toTokenStr), $("#CompLockerBalance"));
-			util.bindToElement(util.$getLogs(comp), $("#CompLogs"), true);
+			util.bindToElement(util.$getLogs(comp, true), $("#CompLogs"), true);
 		});
 	}
 
