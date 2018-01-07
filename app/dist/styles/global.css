@@ -512,6 +512,37 @@ body {
 	box-shadow: 5px 5px 5px 0px rgba(50,50,50,.3);
 }
 
+/*
+*/
+.LogViewer .head {
+	font-weight: bold;
+	border-bottom: 1px solid #AAA;
+	padding: 2px 4px;
+	margin: 5px 0px;
+}
+.LogViewer .logs {
+	background: #EEE;
+	padding: 3px;
+	color: black;
+	font-size: 90%;
+	max-height: 200px;
+	overflow: auto;
+	text-align: left;
+	margin-bottom: 4px;
+	border-radius: 3px;
+}
+.LogViewer table {
+	box-sizing: border-box;
+	width: 100%;
+}
+.LogViewer table td {
+	padding: 2px 6px 2px 2px;
+	white-space: nowrap;
+}
+.LogViewer table tr:nth-child(even) {
+	background: #DDD;
+}
+
 .ib {
 	display: inline-block;
 	margin-bottom: 5px;

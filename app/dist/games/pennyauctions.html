@@ -365,7 +365,7 @@
 			margin: 10px 30px;
 		}
 		.auction.ended {
-			opacity: .4;
+			opacity: .6;
 		}
 
 		.auction tr td {
@@ -572,30 +572,6 @@
 		.moreTip {
 			width: 350px;
 		} 
-		.moreTip .head {
-			font-weight: bold;
-			border-bottom: 1px solid #AAA;
-			padding: 2px 4px;
-			margin: 5px 0px;
-		}
-		.moreTip .logs {
-			background: #EEE;
-			padding: 3px;
-			color: black;
-			font-size: 90%;
-			max-height: 300px;
-			overflow: auto;
-			text-align: left;
-			margin-bottom: 4px;
-			border-radius: 3px;
-		}
-		.moreTip .logs td {
-			padding: 2px 6px 2px 2px;
-			white-space: nowrap;
-		}
-		.moreTip .logs .logRow:nth-child(even) {
-			background: #DDD;
-		}
 
 		.bidTip {
 			font-size: 90%;
@@ -694,10 +670,6 @@
 
 		<div class="auction template" style="display: none;">
 			<div class="moreTip" style="display: none;">
-				<div class="head">Bid History</div>
-				<div class="logs">
-					<table width="100%"" cellpadding="0" cellspacing="0"></table>
-				</div>
 			</div>
 			<div class="bidTip" style="display: none;">
 				<div class="head">Placing a Bid</div>

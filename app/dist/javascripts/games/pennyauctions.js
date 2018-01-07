@@ -225,7 +225,7 @@ Loader.require("pac")
 				}	
 			}
 			// alert one or none of: Ended, N blocks Left
-			const isEnded = blocksLeft.lt(1);
+			const isEnded = blocksLeft < 1;
 			if (_alerts["whenEnded"] && isEnded) {
 				new Notification(title, {
 					tag: `${_auction.address}-blocksLeft`,
@@ -235,8 +235,8 @@ Loader.require("pac")
 				});
 			} else {
 				if (_alerts["whenBlocksLeft"]){
-					if (blocksLeft.lt(_alerts["whenBlocksLeft"])) {
-						const body = blocksLeft.lt(0)
+					if (blocksLeft < _alerts["whenBlocksLeft"]) {
+						const body = blocksLeft <= 0
 							? `${timeStr} - Auction ended.`
 							: `${timeStr} - Only ${blocksLeft} blocks left.`
 						new Notification(title, {
@@ -266,64 +266,37 @@ Loader.require("pac")
 
 		const _$moreTip = _$e.find(".moreTip");
 		this.refreshMoreTip = function(){
-			const curAccount = ethUtil.getCurrentAccount();
-			const _$logs = _$moreTip.find(".logs").unbind().bind("scroll", checkScroll);
-			const _$logsTable = _$logs.find("table").empty();
-
-			var prevBidTime = null;
-			var lastBlock = BigNumber.min(_curBlockEnded, ethUtil.getCurrentBlockHeight()).toNumber();
-			var isDone = false;
-			function checkScroll() {
-				if (isDone) return;
-    			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 1;
-    			if (!isNearBottom) return;
-
-				const fromBlock = lastBlock - 499;
-				const toBlock = lastBlock;
-				lastBlock = fromBlock - 1;
-				const $loading = $("<div class='loading'></div>")
-					.text(`Loading logs from block ${toBlock}`)
-					.appendTo(_$logs);
-				Promise.all([
-					_auction.getEvents("BidOccurred", {}, fromBlock, toBlock),
-					_auction.getEvents("Started", {}, fromBlock, toBlock)
-				]).then(arr=>{
-					// order all events by blocknumber, and break tie with logIndex.
-					const events = arr[0].concat(arr[1]);
-					events.sort((a,b)=>{
-						return a.blockNumber == b.blockNumber
-							? a.logIndex > b.logIndex ? -1 : 1
-							: a.blockNumber > b.blockNumber
-								? -1 : 1
-					});
-					events.forEach(e=>{
-						const $entry = $(`<tr class='logRow'></tr>`).appendTo(_$logsTable);
-						if (e.name=="BidOccurred") {
-							const timeBeforeStr = prevBidTime
-								? "↳ " + util.toTime(prevBidTime.minus(e.args.time)) + " before"
-								: util.toTime(ethUtil.getCurrentBlockTime().minus(e.args.time.toNumber())) + " ago";
-							if (timeBeforeStr == "0s earlier") return;
-							const $txLink = util.$getTxLink('Bid', e.transactionHash);
-							const bidderStr = e.args.bidder == ethUtil.getCurrentAccount()
-								? "You"
-								: e.args.bidder.slice(0, 10) + "...";
-							const $userLink = util.$getAddrLink(bidderStr, e.args.bidder);
-							$entry.append(`<td>${timeBeforeStr}</td>`)
-								.append(
-									$('<td width=100%></td>').append($txLink).append(" by: ").append($userLink)
-								);
-							prevBidTime = e.args.time;
-						} else if (e.name=="Started") {
-							const dateStr = util.toDateStr(e.args.time);
-							$entry.append(`<td>${dateStr}</td><td><b>Auction Started</b></td>`);
-							isDone = true;
-						}
-					});
-					$loading.remove();
-					checkScroll();
-				});
-			}
-			checkScroll();
+			const $lv = util.$getLogViewer({
+				$head: "Bid History",
+				events: [{
+					instance: _auction,
+					name: "BidOccurred",
+				},{
+					instance: _auction,
+					name: "Started"
+				}],
+				order: "newest",
+				startBlock: Math.min(_curBlockEnded, ethUtil.getCurrentBlockHeight()),
+				stopFn: (event)=>event.name=="Started",
+				dateFn: (event, prevEvent, nextEvent) => {
+					if (!prevEvent){
+						return util.toDateStr(event.args.time);
+					} else {
+						const timeDiff = event.args.time.minus(prevEvent.args.time);
+						return `${util.toTime(timeDiff)} later`;
+					}
+				},
+				valueFn: (event)=>{
+					if (event.name=="BidOccurred"){
+						const $txLink = util.$getTxLink("Bid", event.transactionHash);
+						const $bidderLink = util.$getShortAddrLink(event.args.bidder);
+						return $("<div></div>").append($txLink).append(" by: ").append($bidderLink);
+					} else if (event.name=="Started"){
+						return "<b>Auction Started</b>";
+					}
+				}
+			});
+			_$moreTip.empty().append($lv);
 		}
 
 		this.clearTxStatus = function(){
@@ -378,10 +351,10 @@ Loader.require("pac")
 			]).then(arr => {
 				const prize = arr[1];
 				const currentWinner = arr[2];
-				const blockEnded = arr[3];
+				const blockEnded = arr[3].toNumber();
 
 				// update most recent estimate of time left
-				const blocksLeft = blockEnded.minus(ethUtil.getCurrentBlockHeight());
+				const blocksLeft = blockEnded - ethUtil.getCurrentBlockHeight();
 				_estTimeLeft = _blocktime.mul(blocksLeft).toNumber();
 				_estTimeLeftAt = (+new Date()/1000);
 				_self.updateTimeLeft();
@@ -396,7 +369,7 @@ Loader.require("pac")
 				const isNewPrize = _curPrize && !_curPrize.equals(prize);
 				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
-				const isEnded = blocksLeft.lt(1);
+				const isEnded = blocksLeft < 1;
 				_curPrize = prize;
 				_curAmWinner = amWinner;
 				_curBlocksLeft = blocksLeft;
@@ -624,6 +597,9 @@ Loader.require("pac")
 				trigger: "click",
 				onShow: function(){
 					_self.refreshMoreTip();
+				},
+				onHidden: function() {
+					_$moreTip.empty();
 				}
 			});
 

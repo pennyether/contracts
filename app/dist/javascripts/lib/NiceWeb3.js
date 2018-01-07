@@ -28,16 +28,17 @@
 			_self._knownInstances[instance.address.toLowerCase()] = instance;
 		};
 		// gets all events in a way shitamask and infura can live with
-		this.getAllEvents = function(instance) {
+		this.getAllEvents = function(instance, fromBlock, toBlock) {
 			return _ethUtil.sendAsync("eth_getLogs", [{
 				address: instance.address,
-				fromBlock: web3.toHex(0),
-				toBlock: "latest"
+				fromBlock: fromBlock || web3.toHex(0),
+				toBlock: toBlock || "latest"
 			}]).then((events)=>{
 				return _self.decodeKnownEvents(events);
 			});
 		};
-		// gets all events matching a topic
+		// gets all events given a name and filter (filters are ANDed)
+		// eg: {topic1Name: value, topic2Name: value}
 		this.getEvents = function(instance, name, filter, fromBlock, toBlock) {
 			filter = filter || {};
 			const def = instance.abi.find((def)=>def.type=="event" && def.name==name);
@@ -177,7 +178,9 @@
 					.bind(instance, []);
 			}
 			// attach getAllEvents
-			instance.getAllEvents = ()=>niceWeb3.getAllEvents(instance);
+			instance.getAllEvents = function(fromBlock, toBlock){
+				return niceWeb3.getAllEvents(instance, fromBlock, toBlock);
+			}
 			instance.getEvents = function(name, filter, fromBlock, toBlock) {
 				return niceWeb3.getEvents(instance, name, filter, fromBlock, toBlock);
 			}
