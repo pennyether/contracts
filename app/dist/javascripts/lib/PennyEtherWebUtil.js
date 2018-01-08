@@ -345,7 +345,11 @@
 	}
 
 	// A slider to help the user choose a gas price.
+	// Pulls data from EthGasStatus, sets default to lowest
+	// cost for 60 second mining.
 	function GasPriceSlider(defaultValue){
+		const DEFAULT_WAIT_TIME_S = 60;
+		
 		const _$e = $(`
 			<div class="GasPriceSlider">
 				<div class='head'>Choose Gas Price</div>
@@ -380,7 +384,7 @@
 					_gasData[d.gasPrice] = d;
 					if (!min && d.waitTimeS <= 4*60*60) min = d.gasPrice;
 					if (!max && d.waitBlocks <= 2) max = d.gasPrice;
-					if (!_value && d.waitTimeS <= 60) _value = d.gasPrice;
+					if (!_value && d.waitTimeS <= DEFAULT_WAIT_TIME_S) _value = d.gasPrice;
 				});
 				_$slider.attr("min", min);
 				_$slider.attr("max", max);

@@ -279,6 +279,7 @@
 				}
 			}
 			.roll {
+				position: relative;
 				margin: 20px;
 				border: 1px solid gray;
 				border-radius: 5px;
@@ -302,6 +303,17 @@
 				border-color: #bbbb52;	
 			}
 
+			.roll .viewLink {
+				position: absolute;
+				bottom: 0px;
+				right: 0px;
+				padding: 0px 3px;
+				opacity: .4;
+			}
+			.roll .viewLink a {
+				text-decoration: none;
+			}
+
 			.roll .info {
 				box-sizing: border-box;
 				display: table;
@@ -312,6 +324,9 @@
 				border-radius: inherit;
 				border-bottom-left-radius: 0;
 				border-bottom-right-radius: 0;
+			}
+			.roll.won .info {
+				background: #EFE;
 			}
 				.roll .header {
 					display: table-cell;
@@ -365,82 +380,82 @@
 					width: 100%;
 				}
 
-			.roll .rollicon {
-				background: #EEE;
-				padding: 3px;
-				border-radius: 10px;
-				border: 1px solid #EEE;
-				box-shadow: 2px 2px 2px 0px gray;
-				min-width: 60px;
-				text-align: center;
-			}
-			.roll.won .rollicon {
-				background: #EFE;
-			}
-			.roll .rollicon .rollnumber {
-				margin-top: -5px;
-				font-size: 300%;
-			}
-			.roll .rollicon .label {
-				margin-top: -5px;
-				font-size: 70%;
-				text-align: center;
-			}
+				.roll .rollicon {
+					background: #EEE;
+					padding: 3px;
+					border-radius: 10px;
+					border: 1px solid #EEE;
+					box-shadow: 2px 2px 2px 0px gray;
+					min-width: 60px;
+					text-align: center;
+				}
+				.roll.won .rollicon {
+					background: #EFE;
+				}
+				.roll .rollicon .rollnumber {
+					margin-top: -5px;
+					font-size: 300%;
+				}
+				.roll .rollicon .label {
+					margin-top: -5px;
+					font-size: 70%;
+					text-align: center;
+				}
 
-			.roll .won {
-				font-weight: bold;
-				font-style: italic;
-			}
-			.roll .lost {
-				white-space: nowrap;
-			}
-			.roll .lostMsg {
-				font-style: italic;
-				color: gray;
-			}
-			.roll .paid {
-				color: green;
-			}
-			.roll .warning {
-				display: inline-block;
-				border: 1px solid #AAA;
-				background: #EEE;
-				padding: 3px;
-				font-size: 80%;
-				border-radius: 5px;
-				margin: 5px 0px;
-				color: #666;
-			}
-			.roll.unresolved .warning {
-				background: #FEE;
-				color: red;
-				border: 1px solid #FDD;
-			}
-			@keyframes boxShadowGlow {
-				from { box-shadow: 0px 0px 4px lime; }
-				to { box-shadow: 0px 0px 4px green; }
-			}
-			.roll .claim {
-				font-size: 150%;
-				color: green;
-				font-weight: bold;
-				padding: 3px;
-				margin: 10px;
-				cursor: pointer;
-				border: none;
-				border-radius: 3px;
-				animation: boxShadowGlow 2s 0s infinite ease-in-out alternate;
-			}
-			.roll.unresolved .claim {
-				background: green;
-				color: white;
-			}
-			.roll.claiming .claim {
-				background: #DDD;
-				color: gray;
-				cursor: not-allowed;
-				animation: none;
-			}
+				.roll .won {
+					font-weight: bold;
+					font-style: italic;
+				}
+				.roll .lost {
+					white-space: nowrap;
+				}
+				.roll .lostMsg {
+					font-style: italic;
+					color: gray;
+				}
+				.roll .paid {
+					color: green;
+				}
+				.roll .warning {
+					display: inline-block;
+					border: 1px solid #AAA;
+					background: #EEE;
+					padding: 3px;
+					font-size: 80%;
+					border-radius: 5px;
+					margin: 5px 0px;
+					color: #666;
+				}
+				.roll.unresolved .warning {
+					background: #FEE;
+					color: red;
+					border: 1px solid #FDD;
+				}
+				@keyframes boxShadowGlow {
+					from { box-shadow: 0px 0px 4px lime; }
+					to { box-shadow: 0px 0px 4px green; }
+				}
+				.roll .claim {
+					font-size: 150%;
+					color: green;
+					font-weight: bold;
+					padding: 3px;
+					margin: 10px;
+					cursor: pointer;
+					border: none;
+					border-radius: 3px;
+					animation: boxShadowGlow 2s 0s infinite ease-in-out alternate;
+				}
+				.roll.unresolved .claim {
+					background: green;
+					color: white;
+				}
+				.roll.claiming .claim {
+					background: #DDD;
+					color: gray;
+					cursor: not-allowed;
+					animation: none;
+				}
 		</style>
 	</head>
 	<body>
@@ -562,7 +577,7 @@
 
 		<div class="subsection currentRolls">
 			<div class="head">
-				Current Rolls
+				Your Current Rolls
 				<span class="clear">(clear)</span>
 			</div>
 			<div class="body">
@@ -660,10 +675,10 @@
 						<button class="claim">Claim Winnings</button>
 						<div class="claimStatus"></div>
 					</div>
-					<div class="lostMsg">
-					</div>
+					<div class="lostMsg"></div>
 				</div>
 			</div>
+			<div class="viewLink"><a>🔎</a></div>
 		</div>
 	</div>
 	</body>

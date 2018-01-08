@@ -457,6 +457,7 @@ Loader.require("dice")
     	const $failed = $e.find(".status .failed").hide();
     	const $result = $e.find(".result").hide();
     	const $mined = $e.find(".mined").hide();
+    	const $viewLink = $e.find(".viewLink").hide();
     	$e.addClass(roll.state);
     	
     	const bet = roll.bet;
@@ -483,7 +484,7 @@ Loader.require("dice")
 	    	const time = roll.created.time;
 	    	const blockNum = roll.created.blockNumber;
 	    	const blockHash = roll.created.blockHash;
-			var options = {  
+			let options = {  
 			    weekday: "short",
 			    day: "numeric",
 			    month: "short",
@@ -491,14 +492,18 @@ Loader.require("dice")
 			    minute: "2-digit",
 			    second: "2-digit"
 			};
-			//const $rollLink = $(`<a>Roll #${id}</a>`).attr("href", `/games/viewroll.html#${id}`)
-			const $rollLink = id ? util.$getTxLink(`Roll #${id}`, txId) : ``;
+
+			const linkStr = id ? `Roll #${id}` : `No Roll`;
+			const $txLink = util.$getTxLink(linkStr, txId);
 	    	const dateStr = (new Date(roll.created.time.toNumber()*1000))
 	    		.toLocaleString(window.navigator.language, options);
 	    	$e.find(".mined").empty()
 	    		.show()
-	    		.append($rollLink)
+	    		.append($txLink)
 	    		.append(` ${dateStr} `);
+
+	    	$viewLink.show().find("a")
+	    		.attr("href", `/games/viewroll.html#${txId}`);
 	    }
 
     	if (roll.state == "refunded") {
