@@ -182,7 +182,8 @@ contract InstaDice is
 	function payoutRoll(uint32 _id)
 		public
 	{
-		// do not resolve if its unresolvable.
+		// do not attempt to resolve if its unresolvable.
+		// this would add it to unresolved queue.
 		Roll storage r = rolls[_id];
 		if (r.block == block.number) return;
 		// resolve, and quit if it's paid or nothing to payout.

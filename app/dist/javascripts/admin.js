@@ -155,6 +155,15 @@ DiceNumUnresolved
 		util.bindToInput(dice.minNumber(), $("#DiceMinNumber"));
 		util.bindToInput(dice.maxNumber(), $("#DiceMaxNumber"));
 		
+		dice.curId().then((id)=>{
+			return dice.rolls([id])
+		}).then(roll=>{
+			const result = roll[5];
+			const isResolved = !result.equals(0);
+			isResolved
+				? $("#btnDiceResolveLatest").attr("disabled","disabled")
+				: $("#btnDiceResolveLatest").removeAttr("disabled");
+		});
 	}
 	$("#DiceChangeSettings").click(function(){
 		if (!dice) return alert("dice not loaded.");
@@ -202,13 +211,21 @@ DiceNumUnresolved
 			alert("Unsuccessful.");
 		})
 	});
-	$("#btnDiceResolve").click(function(){
+	$("#btnDiceResolveMany").click(function(){
 		const num = new BigNumber($("#DiceResolveRolls").val());
 		dice.resolveUnresolvedRolls([num]).then(function(){
 			alert("Resolved.");
 			updateDice();
 		}).catch(function(){
 			alert("Unsuccessful.");	
+		});
+	});
+	$("#btnDiceResolveLatest").click(function(){
+		dice.curId().then(rollId=>{
+			return dice.payoutRoll([rollId])
+		}).then(()=>{
+			alert("Roll resolved.");
+			updateDice();
 		});
 	})
 });

@@ -111,11 +111,11 @@
 						<span id="DiceBalance"></span>
 					</div>
 					<div>
-						<span>Bankroll:</span>
+						<span class="tipLeft" title="The amount of ETH available to be used for potential payout. This is decremented any time a roll is created, and incremented when the roll is resolved (if it lost).">Bankroll:</span>
 						<span id="DiceBankroll"></span>
 					</div>
 					<div>
-						<span>MinBankroll:</span>
+						<span class="tipLeft" title="The amount of bankroll that has added to InstaDice. Any bankroll exceeding this is considered profit.">MinBankroll:</span>
 						<span id="DiceMinBankroll"></span>
 					</div>
 					<div>
@@ -130,16 +130,20 @@
 						<span id="DiceSendProfits" placeholder="eth"></span> <button id="btnDiceSendProfits">Send Profits</button> (admin only)
 					</div>
 					<div>
-						<span class="tipLeft" title="Increases bankroll and minBankroll">Add Bankroll: </span>
-						<input type=text id="DiceAddBankroll" placeholder="eth"> ETH <button id="btnDiceAddBankroll">Add Bankroll</button> (anybody)
-					</div>
-					<div>
 						<span class="tipLeft" title="Removes from bankroll and send to treasury.">Remove Bankroll: </span>
 						<input type=text id="DiceRemoveBankroll" placeholder="eth"> ETH <button id="btnDiceRemoveBankroll">Remove Bankroll</button> (admin only)
 					</div>
 					<div>
+						<span class="tipLeft" title="Increases bankroll and minBankroll">Add Bankroll: </span>
+						<input type=text id="DiceAddBankroll" placeholder="eth"> ETH <button id="btnDiceAddBankroll">Add Bankroll</button> (anybody)
+					</div>
+					<div>
 						<span class="tipLeft" title="Removes from bankroll and send to treasury. Anyone can do this.">Resolve Unresolved Rolls:</span>
-						<input type=text id="DiceResolveRolls" placeholder="number of rolls" value=100> rolls. <button id="btnDiceResolve">Resolve</button> (anybody)
+						<input type=text id="DiceResolveRolls" placeholder="number of rolls" value=100> rolls. <button id="btnDiceResolveMany">Resolve Rolls</button> (anybody)
+					</div>
+					<div>
+						<span class="tipLeft" title="Resolves the latest roll.">Resolve Last Roll:</span>
+						<button id="btnDiceResolveLatest">Resolve Last Roll</button> (anybody)
 					</div>
 				</div>
 				<h4>Settings</h4>
