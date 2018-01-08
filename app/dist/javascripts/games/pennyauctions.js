@@ -373,7 +373,7 @@ Loader.require("pac")
 				const amNowLoser = _curAmWinner && !amWinner;
 				const isNewWinner = _curCurrentWinner && currentWinner != _curCurrentWinner;
 				const isNewPrize = _curPrize && !_curPrize.equals(prize);
-				const addrName = amWinner ? "You" : currentWinner.slice(0,10) + "...";
+				const addrName = amWinner ? "You" : currentWinner.slice(0,6) + "..." + currentWinner.slice(-4);
 				const $curWinner = util.$getAddrLink(addrName, currentWinner);
 				const isEnded = blocksLeft < 1;
 				_curPrize = prize;

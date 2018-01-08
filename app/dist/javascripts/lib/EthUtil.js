@@ -188,11 +188,17 @@
 
 		//////// COMMON ETH CALLS ///////////////////////////////
 		// todo: iterate over existing .eth to populate these all automatically.
-		this.getTxReceipt = function(transactionHash) {
-			return _self.pollEthCall("getTransactionReceipt", [transactionHash]);
+		this.getTxReceipt = function(transactionHash, doPolling) {
+			if (doPolling===undefined) doPolling = true;
+			return doPolling
+				? _self.pollEthCall("getTransactionReceipt", [transactionHash])
+				: _self.doEthCall("getTransactionReceipt", [transactionHash]);
 		};
-		this.getTx = function(transactionHash) {
-			return _self.pollEthCall("getTransaction", [transactionHash]);
+		this.getTx = function(transactionHash, doPolling) {
+			if (doPolling===undefined) doPolling = true;
+			return doPolling
+				? _self.pollEthCall("getTransaction", [transactionHash])
+				: _self.doEthCall("getTransaction", [transactionHash]);
 		};
 		this.getBalance = function(addr) {
 			if (addr.address) addr = addr.address;

@@ -447,6 +447,7 @@ body {
 	font-size: 150%;
 	font-weight: bold;
 	text-shadow: 3px 3px 2px rgba(0,0,0,.15);
+	padding-left: 25px;
 }
 
 /* Sections are commonly used chunks of related info */

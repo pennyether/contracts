@@ -45,14 +45,17 @@
 		}
 
 		this.$getShortAddrLink = function(addr) {
-			const addrStr = addr.slice(0, 10) + "...";
+			const addrStr = addr.slice(0, 6) + "..." + addr.slice(-4);
 			return _self.$getAddrLink(addrStr, addr);
 		}
 		this.$getAddrLink = function(name, addr){
 			return niceWeb3.ethUtil.$getLink(name, addr || name, "address");
 		}
 		this.$getTxLink = function(name, tx){
-			return niceWeb3.ethUtil.$getLink(name, tx || name, "tx");
+			const shortName = name.length == 66
+				? name.slice(0,10) + "..." + name.slice(-10)
+				: name;
+			return niceWeb3.ethUtil.$getLink(shortName, tx || name, "tx");
 		}
 		this.$getLoadingBar = function(timeMs, speed) {
 			return new LoadingBar(timeMs, speed);
@@ -71,8 +74,9 @@
     			.toLocaleString(window.navigator.language, options);
 		}
 
-		this.getLocalTime = function(){
-			return (new Date()).toLocaleString(window.navigator, {
+		this.getLocalTime = function(date){
+			if (!date) date = new Date();
+			return date.toLocaleString(window.navigator, {
 				hour: "2-digit", minute: "2-digit", second: "2-digit"
 			});
 		}

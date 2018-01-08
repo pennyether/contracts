@@ -160,6 +160,7 @@ Loader.require("dice")
         return bn.mod(100).plus(1);
     }
     function computePayout(bet, number) {
+    	//todo: use the feeBips, not hardcoded .99
 		return bet.mul(100).div(number).mul(.99)
     }
 
@@ -490,6 +491,7 @@ Loader.require("dice")
 			    minute: "2-digit",
 			    second: "2-digit"
 			};
+			//const $rollLink = $(`<a>Roll #${id}</a>`).attr("href", `/games/viewroll.html#${id}`)
 			const $rollLink = id ? util.$getTxLink(`Roll #${id}`, txId) : ``;
 	    	const dateStr = (new Date(roll.created.time.toNumber()*1000))
 	    		.toLocaleString(window.navigator.language, options);

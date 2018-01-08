@@ -42,11 +42,11 @@ contract InstaDice is
 	uint8 constant public version = 1;
 	
 	// Events
-	event RollWagered(uint time, uint32 id, address indexed user, uint bet, uint8 number);
+	event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number);
 	event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
-	event RollResolved(uint time, uint32 id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
-	event PayoutSuccess(uint time, uint32 id, address indexed user, uint payout);
-	event PayoutFailure(uint time, uint32 id, address indexed user, uint payout);
+	event RollResolved(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
+	event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
+	event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
 
 	// Admin events
 	event SettingsChanged(uint time, address indexed sender);
@@ -163,10 +163,10 @@ contract InstaDice is
 	        isPaid: false
 	    });
 
-	    // bankroll loses the _payout, but gains the bet
+	    // bankroll gains the bet, but loses payout
 	    // bankroll will be freed up when roll is resolved.
 	    totalWagered += _bet;
-	    bankroll = bankroll - _payout + uint128(msg.value);
+	    bankroll = bankroll + uint128(msg.value) - _payout;
 	    RollWagered(now, curId, msg.sender, _bet, _number);
 	}
 	// refunds user the full value, and logs an error
@@ -340,7 +340,8 @@ contract InstaDice is
 		constant
 		returns (uint _amount)
 	{
-		// Balance should always be >= bankroll.
+		// Balance should always be >= bankroll
+		assert(this.balance >= bankroll);
 		if (bankroll <= minBankroll) return;
 		return bankroll - minBankroll;
 	}
