@@ -31,9 +31,14 @@ Loader.require("dice")
 		refreshPayout();
 	});
 	$wagerRange.on("input", function(){
+		function round(n, nearest){
+			const rounded = Math.round(n*nearest)/nearest;
+			return rounded == 0 ? n : rounded;
+		}
 		const n = Number($(this).val());
-		if (Number.isNaN(n)) return;
-		$wagerText.val(n/100);
+		const rounded = round(n/100, 100);
+		$wagerText.val(rounded);
+		$(this).val(Math.round(rounded*100));
 		refreshPayout();
 	});
 	$numberText.on("input", function(){
@@ -44,7 +49,6 @@ Loader.require("dice")
 	});
 	$numberRange.on("input", function(){
 		const n = Number($(this).val());
-		if (Number.isNaN(n)) return;
 		$numberText.val(n);
 		refreshPayout();
 	});
@@ -71,9 +75,14 @@ Loader.require("dice")
 			$wagerText
 				.attr("min", _minBet.div(1e18).toNumber())
 				.attr("max", _maxBet.div(1e18).toNumber());
+
+			let minBetHundreds = _minBet.div(1e16);
+			let maxBetHundreds = _maxBet.div(1e16);
 			$wagerRange
-				.attr("min", _minBet.div(1e16).toNumber())
-				.attr("max", _maxBet.div(1e16).toNumber());
+				.attr("min", minBetHundreds.toNumber());
+			minBetHundreds.lt(1)
+				? $wagerRange.attr("max", maxBetHundreds.plus(minBetHundreds).toNumber())
+				: $wagerRange.attr("max", maxBetHundreds.toNumber());
 			$numberText
 				.attr("min", _minNumber.toNumber())
 				.attr("max", _maxNumber.toNumber());
