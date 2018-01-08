@@ -549,6 +549,14 @@
 			font-size: 70%;
 			color: blue;
 		}
+		.auction .statusCell .auctionLink {
+			position: absolute;
+			bottom: 3px;
+			right: 3px;
+		}
+		.auction .statusCell .auctionLink a {
+			text-decoration: none;
+		}
 
 		.auction.new-prize .prizeCell {
 			border-top-left-radius: 10px;
@@ -800,6 +808,7 @@
 					</td>
 					<td colspan=2 class="statusCell">
 						<div class="label dontTip infoLeft" title="This displays the auction status.">Status</div>
+						<div class="auctionLink"><a>🔗</a></div>
 						<div class="clearTxStatus" style="display: none;">clear</div>
 						<div class="status"></div>
 						<div class="txStatus" style="display: none;"></div>

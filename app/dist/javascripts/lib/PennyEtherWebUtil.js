@@ -178,6 +178,8 @@
 		}
 	*/
 	function LogViewer(opts) {
+		const _BLOCKS_PER_SEARCH = 5000;
+
 		const _$e = $(`
 			<div class='LogViewer'>
 				<div class='head'></div>
@@ -219,6 +221,7 @@
 			if (_isDone || _isLoading) return;
 
 			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 20;
+			console.log("nearbottom", isNearBottom);
   			if (!isNearBottom) return;
   			_loadMoreEvents().then(events=>{
   				if (events.length > 0) _$empty.hide();
@@ -256,12 +259,12 @@
 	  		} else {
 	  			if (_order == 'newest'){
 					toBlock = _prevBlock;
-					fromBlock = Math.max(_prevBlock - 4999, 0);
+					fromBlock = Math.max(_prevBlock - (_BLOCKS_PER_SEARCH-1), 0);
 	  				_prevBlock = fromBlock - 1;
 	  				if (fromBlock <= _endBlock) _isDone = true;
 	  			} else {
 	  				fromBlock = _prevBlock;
-	  				toBlock = fromBlock + 4999;
+	  				toBlock = fromBlock + (_BLOCKS_PER_SEARCH-1);
 	  				_prevBlock = toBlock + 1;
 	  				if (toBlock >= _endBlock) _isDone = true;
 	  			}
@@ -297,7 +300,7 @@
 						? order(a.logIndex > b.logIndex)
 						: order(a.blockNumber > b.blockNumber)
 				});
-  				return allEvents.length
+  				return allEvents.length > 0
   					? allEvents
   					: _loadMoreEvents();
   			});

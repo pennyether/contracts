@@ -570,6 +570,8 @@ Loader.require("pac")
 		this.$e = _$e;
 
 		_initAlertsTip();
+		_$e.find(".auctionLink a")
+			.attr("href", `/games/viewpennyauction.html#${_auction.address}`);
 
 		// initialize this auction
 		_initialized = Promise.all([
