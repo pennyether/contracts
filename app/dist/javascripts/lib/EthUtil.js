@@ -161,7 +161,7 @@
 				function callback(err, result){
 					if (err){ reject(err); }
 					if (result!==null){ resolve(result); }
-					reject(`_web3.eth.${name} returned null.`);
+					reject(new Error(`"_web3.eth.${name}" returned null.`));
 				}
 				_web3.eth[name].apply(_web3.eth, args.concat(callback));
 			});

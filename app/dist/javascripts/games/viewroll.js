@@ -19,6 +19,7 @@ Loader.require("dice")
 	function findRoll(){
 		_$status.empty();
 		const val = _$roll.val();
+		window.location.hash = `#${val}`;
 		var rollId, txHash;
 		if (!val)
 			return alert("Please enter a Roll Id or a transaction hash.");

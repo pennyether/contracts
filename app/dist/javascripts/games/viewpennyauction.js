@@ -16,6 +16,7 @@ Loader.require("pac")
 
 	function changeAddress(){
 		_address = _$address.val();
+		window.location.hash = `#${_address}`;
 		if (!_address)
 			return alert("Please enter a valid address.");
 		if (!(_address.toLowerCase().startsWith("0x")))
