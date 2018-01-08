@@ -2,6 +2,7 @@ Loader.require("pac")
 .then(function(pac){
 	ethUtil.onStateChanged(refreshAllAuctions);
 
+	const _GAS_PRICE_SLIDER = util.getGasPriceSlider();
 	const _activeAuctions = {};
 	const _endedAuctions = {};
 	const _$activeAuctions = $(".activeAuctions .auctions");
@@ -458,7 +459,8 @@ Loader.require("pac")
 
 			var p;
 			try {
-				p = _auction.sendTransaction({gas: 59000, value: _bidPrice});
+				const gasPrice = _GAS_PRICE_SLIDER.getValue();
+				p = _auction.sendTransaction({gas: 59000, value: _bidPrice, gasPrice: gasPrice});
 			} catch (e) {
 				_$clearTxStatus.show();
 				_$txStatus.text(`Error: ${e.message}`);
@@ -612,10 +614,9 @@ Loader.require("pac")
 			const $bidTip = _$e.find(".bidTip");
 			const $bidPrice = $bidTip.find(".bidPrice");
 			const $prize = $bidTip.find(".prize");
-			const $blocktime = $bidTip.find(".blocktime");
 			const $prizeIncr = $bidTip.find(".prizeIncr");
 			const $addBlocks = $bidTip.find(".addBlocks");
-			const $refundSpan = $bidTip.find(".refundSpan");
+			const $gasPrice = $bidTip.find(".gasPrice")
 
 			const bidIncrEthStr = ethUtil.toEthStr(_bidIncr.abs());
 			const bidIncrStr = _bidIncr.equals(0)
@@ -623,10 +624,11 @@ Loader.require("pac")
 				: _bidIncr.gt(0)
 					? `The prize will go up by ${bidIncrEthStr}`
 					: `The prize will go down by ${bidIncrEthStr}`;
-			const addBlocksStr = `The auction will be extended by ${_bidAddBlocks} blocks`;
+			const addBlocksStr = `${_bidAddBlocks} blocks`;
+			const addBlocksTime = util.toTime(_blocktime.mul(_bidAddBlocks));
 
 			$prizeIncr.text(bidIncrStr);
-			$addBlocks.text(addBlocksStr);
+			$addBlocks.text(addBlocksStr).attr("title", `~${addBlocksTime}`);
 			tippy(_$btn[0], {
 				// arrow: false,
 				theme: "light",
@@ -635,9 +637,10 @@ Loader.require("pac")
 				html: $bidTip.show()[0],
 				trigger: "mouseenter",
 				onShow: function(){
+					_GAS_PRICE_SLIDER.refresh();
+					$gasPrice.append(_GAS_PRICE_SLIDER.$e);
 					$bidPrice.text(ethUtil.toEthStr(_bidPrice));
 					$prize.text(ethUtil.toEthStr(_curPrize));
-					$blocktime.text(`${Math.round(_blocktime)} seconds`);
 				}
 			});
 		});

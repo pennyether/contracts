@@ -555,8 +555,12 @@ body {
 /*
 */
 .GasPriceSlider {
+	display: inline-block;
+	max-width: 200px
 }
 .GasPriceSlider .head {
+	text-shadow: 1px 1px 1px rgba(0,0,0,.1);
+	text-align: center;
 	font-size: 80%;
 }
 .GasPriceSlider .slider {
@@ -566,8 +570,9 @@ body {
 	min-width: 200px;
 }
 .GasPriceSlider .description {
+	text-align: center;
 	font-size: 80%;
-	margin-top: -10px;
+	margin-top: -8px;
 }
 .GasPriceSlider .gasPrice {
 	font-weight: bold;

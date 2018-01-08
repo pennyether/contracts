@@ -345,7 +345,7 @@
 				<div class='head'>Choose Gas Price</div>
 				<div class='loading'></div>
 				<div class='content'>
-					<input type="range" increment="1" class="slider"></div>
+					<input type="range" increment="1" class="slider">
 					<div class='description'>
 						<div class='gasPrice'></div>
 						<div class='wait'></div>
@@ -353,8 +353,8 @@
 				</div>
 			</div>
 		`);
-		const _$loading = _$e.find(".loading");
-		const _$content = _$e.find(".content");
+		const _$loading = _$e.find(".loading").text("Not initialized.").show();
+		const _$content = _$e.find(".content").hide();
 		const _$gasPrice = _$e.find(".gasPrice");
 		const _$wait = _$e.find(".wait");
 		const _$slider = _$e.find("input").on("input", _onSliderChanged);
@@ -363,7 +363,7 @@
 		var _hasValue = false;
 
 		function _refresh() {
-			_$loading.show().empty().text(`Loading gas data...`);
+			_$loading.show().text(`Loading gas data...`);
 			_$content.hide();
 			ethUtil.getGasPrices().then(data=>{
 				// get min and max, populate gasData
@@ -387,7 +387,7 @@
 				_onSliderChanged();
 			}, (e)=>{
 				_hasValue = false;
-				_$loading.show().empty().text(`Error: ${e}`);
+				_$loading.show().text(`Error: ${e}`);
 				_$content.hide();
 			});
 		}

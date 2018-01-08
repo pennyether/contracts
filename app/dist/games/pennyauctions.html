@@ -579,47 +579,48 @@
 		.bidTip {
 			font-size: 90%;
 			color: black;
-			width: 370px;
+			width: 380px;
 			border-radius: 3px
 			padding: 10px;
 			text-align: left;
 		}
-		.bidTip .head {
+		.bidTip .content .info {
+			margin-top: 5px;
+			padding: 2px 4px;
+			background: rgba(0,128,0,.2);
+			border: 1px solid green;
+			border-radius: 5px;
+			box-shadow: 2px 2px 2px 0px rgba(0,0,0,.1);
 			text-align: center;
-			font-weight: bold;
-			margin-bottom: 10px;
+			margin-bottom: 15px;
 		}
-		.bidTip .info {
-			text-align: center;
-			margin-bottom: 10px;
-		}
-		.bidTip .bidPrice,
-		.bidTip .prize {
+		.bidTip .content .bidPrice,
+		.bidTip .content .prize {
 			color: green;
 			font-weight: bold;
 		}
-		.bidTip .bulletTitle {
-			font-weight: bold;
+		.bidTip .content .bulletTitle {
 		}
-		.bidTip .bullet {
+		.bidTip .content .bullet {
 			margin-left: 20px;
 			margin-top: 4px;
 			margin-bottom: 5px;
 		}
-		.bidTip .bullet:before{
+		.bidTip .content .bullet:before{
 			content: "• ";
 		}
-		.bidTip .refundSpan {
+		.bidTip .content .addBlocks {
 			border-bottom: 1px dotted #AAA;
 		}
-		.bidTip .gasInfo {
-			margin-top: 10px;
-			margin-bottom: 5px;
-			font-size: 80%;
+		.bidTip > .gasPrice {
 			background: #DDD;
-			border: 1px solid #CCC;
-			border-radius: 4px;
-			padding: 3px;
+			margin-top: 15px;
+			margin-bottom: 4px;
+			border: 1px dotted #AAA;
+			border-radius: 5px;
+			padding-top: 5px;
+			padding-bottom: 5px;
+			text-align: center;
 		}
 
 
@@ -674,13 +675,14 @@
 			<div class="moreTip" style="display: none;">
 			</div>
 			<div class="bidTip" style="display: none;">
-				<div class="head">Placing a Bid</div>
-				<div class="info">Bid just <span class='bidPrice'></span> and you could win <span class='prize'>.1000 ETH</span>!</div>
-				<div class="bulletTitle">When you bid:</div>
-				<div class="bullet prizeIncr"></div>
-				<div class="bullet addBlocks"></div>
-				<div class="bullet refund">You'll become the current winner, <span class="refundSpan dontTip" title="See 'How to Play: Bid' for more details.">or get refunded</span></div>
-				<div class="gasInfo">A bid takes time to be mined. Choose your gasPrice, and when to bid, accordingly. See <a href="https://ethgasstation.info/" target="_blank">EthGasStation</a> for more info.</div>
+				<div class="content">
+					<div class="info">Bid just <span class='bidPrice'></span> and you could win <span class='prize'>.1000 ETH</span>!</div>
+					<div class="bulletTitle">When you bid:</div>
+					<div class="bullet prizeIncr"></div>
+					<div class="bullet">The auction will be extended by <span class="addBlocks dontTip" title=" "></span></div>
+					<div class="bullet">You'll become the current winner!</div>
+				</div>
+				<div class="gasPrice"></div>
 			</div>
 			<style>
 				.alertsTip .title {
