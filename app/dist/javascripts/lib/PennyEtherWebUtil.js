@@ -188,7 +188,7 @@
 				<div class='status'></div>
 			</div>
 		`);
-		if (!opts.order) opts.order == 'newest';
+		if (!opts.order) opts.order = 'newest';
 		if (!opts.events) throw new Error(`Must provide "events" option.`);
 		if (opts.order=='oldest' && !opts.startBlock) throw new Error(`Must provide "startBlock"`);
 		const _$logs = _$e.find(".logs").bind("scroll", _checkScroll)

@@ -451,7 +451,7 @@ body {
 
 /* Sections are commonly used chunks of related info */
 .section {
-	margin: 25px 0px 25px 0px;
+	margin: 25px 0px 40px 0px;
 	padding: 0px 20px;
 }
 	.section > .head {
@@ -540,6 +540,9 @@ body {
 	}
 	.LogViewer table td.date {
 		white-space: nowrap;
+	}
+	.LogViewer table td.value {
+		width: 100%;
 	}
 	.LogViewer table tr:nth-child(even) {
 		background: #DDD;
