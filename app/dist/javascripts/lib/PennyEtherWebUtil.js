@@ -310,26 +310,32 @@
 		}
 
 		function _defaultDateFn(e) {
-			const dateStr = e.args.time
+			const dateStr = e.args && e.args.time
 				? util.toDateStr(e.args.time)
-				: "Unknown";
+				: `Block ${e.blockNumber}`;
 			return util.$getTxLink(dateStr, e.transactionHash);
 		}
 		function _defaultValueFn(e) {
-			const $argVals = Object.keys(e.args)
-				.filter(name=>name!=="time")
-				.map(name=>{
-					const val = e.args[name];
-					const $e = $("<span></span>").append(`<b>${name}</b>: `);
-					if (val.toNumber && val.gt(1000000000)){
-						$e.append(ethUtil.toEthStr(val));	
-					} else if (!val.toNumber && val.toString().length==42) {
-						$e.append(util.$getShortAddrLink(val));
-					} else {
-						$e.append(val.toString());
-					}
-					return $e;
-				})
+			var $argVals;
+			if (!e.args) {
+				$argVals = [$("<span></span>").text("Unable to decode data.")];
+			} else {
+				$argVals = Object.keys(e.args || [])
+					.filter(name=>name!=="time")
+					.map(name=>{
+						const val = e.args[name];
+						const $e = $("<span></span>").append(`<b>${name}</b>: `);
+						if (val.toNumber && val.gt(1000000000)){
+							$e.append(ethUtil.toEthStr(val));	
+						} else if (!val.toNumber && val.toString().length==42) {
+							$e.append(util.$getShortAddrLink(val));
+						} else {
+							$e.append(val.toString());
+						}
+						return $e;
+					});
+			}
+			
 			const $e = $("<div></div>").append(`<b>${e.name}</b> - `);
 			$argVals.forEach(($v,i)=>{
 				if (i!==0) $e.append(", ");
