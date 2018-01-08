@@ -225,7 +225,6 @@
 			if (_isDone || _isLoading) return;
 
 			const isNearBottom = _$logs[0].scrollHeight - _$logs.scrollTop() - _$logs.outerHeight() < 20;
-			console.log("nearbottom", isNearBottom);
   			if (!isNearBottom) return;
   			_loadMoreEvents().then(events=>{
   				if (events.length > 0) _$empty.hide();
