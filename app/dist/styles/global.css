@@ -380,6 +380,8 @@ body {
 	}
 	.statusTip .error {
 		color: red;
+		margin-top: -5px;
+		margin-bottom: 10px;
 	}
 
 	.argsTip,

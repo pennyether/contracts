@@ -254,7 +254,7 @@
   			},(e)=>{
   				$status.empty().append("Signing Error");	// todo: tooltip
   				$statusTitle.html(`Your provider threw an error:`);
-  				$statusError.text(e.message);
+  				$statusError.text(e.message).show();
   				$e.removeClass("signing").addClass("tx-id-error");
   			});
   			p.then((res)=>{
