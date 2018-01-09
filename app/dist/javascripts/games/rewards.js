@@ -1,19 +1,22 @@
 Loader.require("tr", "mc", "pac")
 .then(function(tr, mc, pac){
-	$(".paStart .gasPrice").keypress(e=>{
-		if(e.which == 13) updatePaStart();
-	});
-	$(".paStart .refresh").click(updatePaStart);
+	const _paStartGps = util.getGasPriceSlider();
+	_paStartGps.refresh();
+	_paStartGps.onChange(util.debounce(500, updatePaStart))
+	_paStartGps.$e.find(".head").remove();
+	$(".paStart .gasPriceSlider").prepend(_paStartGps.$e);	
 
-	$(".paRefresh .gasPrice").keypress(e=>{
-		if(e.which == 13) updatePaRefresh();
-	});
-	$(".paRefresh .refresh").click(updatePaRefresh)
-	
-	$(".trDiv .gasPrice").keypress(e=>{
-		if(e.which == 13) updateTrDiv();
-	});
-	$(".trDiv .refresh").click(updateTrDiv);
+	const _paRefreshGps = util.getGasPriceSlider();
+	_paRefreshGps.refresh();
+	_paRefreshGps.onChange(util.debounce(500, updatePaRefresh))
+	_paRefreshGps.$e.find(".head").remove();
+	$(".paRefresh .gasPriceSlider").prepend(_paRefreshGps.$e);
+
+	const _trDivGps = util.getGasPriceSlider();
+	_trDivGps.refresh();
+	_trDivGps.onChange(util.debounce(500, updateTrDiv))
+	_trDivGps.$e.find(".head").remove();
+	$(".trDiv .gasPriceSlider").prepend(_trDivGps.$e);
 
 	updateAll();
 
@@ -34,13 +37,7 @@ Loader.require("tr", "mc", "pac")
 		const $risk = $e.find(".risk .value").text("Loading...");
 		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
 		const failGasVal = new BigNumber($e.find(".failGasPrice").val());
-		var gasPrice;
-
-		try {
-			gasPrice = new BigNumber($gasPrice.val()).mul(1e9);
-		} catch(e) {
-			gasPrice = new BigNumber(0);
-		}
+		const gasPrice = _paStartGps.getValue();
 
 		mc.getStartPennyAuctionReward().then(res=>{
 			var data = {
@@ -53,21 +50,20 @@ Loader.require("tr", "mc", "pac")
 			}
 			return data;
 		}).then(data=>{
-			console.log("reward data", data);
 			const reward = data.reward;
 			const estGas = new BigNumber(data.estGas);
 			const index = data.index;
 
-			if (!reward.gt(0)){
+			if (reward.gt(0)){
+				$notice.hide();
+				$fields.show();	
+			} else {
 				$notice.show();
 				$fields.hide();
 				return;
-			} else {
-				$notice.hide();
-				$fields.show();	
 			}
 			
-			if (gasPrice.gt(0)) {
+			if (gasPrice) {
 				const cost = estGas.mul(gasPrice);
 				const profit = reward.minus(cost);
 				const risk = failGasVal.mul(gasPrice);
@@ -104,13 +100,7 @@ Loader.require("tr", "mc", "pac")
 		const $profit = $e.find(".profit .value").text("Loading...");
 		const $risk = $e.find(".risk .value").text("Loading...");
 		const $btn = $e.find(".execute button").unbind("click").attr("disabled","disabled");
-		var gasPrice;
-
-		try {
-			gasPrice = new BigNumber($gasPrice.val()).mul(1e9);
-		} catch(e) {
-			gasPrice = new BigNumber(0);
-		}
+		const gasPrice = _paRefreshGps.getValue();
 
 		Promise.all([
 			mc.paEndReward(),
@@ -128,13 +118,13 @@ Loader.require("tr", "mc", "pac")
 			const feesCollected = arr[4][1];
 			const failGasVal = new BigNumber(arr[5]);
 
-			if (!reward.gt(0)){
+			if (reward.gt(0)){
+				$notice.hide();
+				$fields.show();	
+			} else {
 				$notice.show();
 				$fields.hide();
 				return;
-			} else {
-				$notice.hide();
-				$fields.show();	
 			}
 			
 			const perEndEth = ethUtil.toEthStr(endReward);
@@ -142,7 +132,7 @@ Loader.require("tr", "mc", "pac")
 			const feesStr = ethUtil.toEthStr(feesCollected);
 			$settings.text(`${perEndEth} per auction ended + ${feePct} of fees collected`);
 			$available.text(`${gamesEnded} auctions to end, ${feesStr} in fees to collect.`);
-			if (gasPrice.gt(0)) {
+			if (gasPrice) {
 				const cost = estGas.mul(gasPrice);
 				const profit = reward.minus(cost);
 				const risk = failGasVal.mul(gasPrice);
@@ -178,13 +168,7 @@ Loader.require("tr", "mc", "pac")
 		const $profit = $e.find(".profit .value").text("Loading...");
 		const $risk = $e.find(".risk .value").text("Loading...");
 		const failGasVal = new BigNumber($e.find(".failGasPrice").val());
-		var gasPrice;
-
-		try {
-			gasPrice = new BigNumber($gasPrice.val()).mul(1e9);
-		} catch(e) {
-			gasPrice = new BigNumber(0);
-		}
+		const gasPrice = _trDivGps.getValue();
 
 		Promise.all([
 			tr.getAmountToDistribute(),
@@ -195,7 +179,10 @@ Loader.require("tr", "mc", "pac")
 			const rewDenom = arr[1];
 			const estGas = new BigNumber(arr[2]);
 
-			if (!amount.gt(0)) {
+			if (amount.gt(0)) {
+				$notice.hide();
+				$fields.show();
+			} else {
 				$notice.show();
 				$fields.hide();
 				return;
@@ -204,7 +191,7 @@ Loader.require("tr", "mc", "pac")
 			$notice.hide();
 			$fields.show();	
 			$amount.text(ethUtil.toEthStr(amount));
-			if (gasPrice.gt(0)) {
+			if (gasPrice) {
 				const reward = amount.div(rewDenom);
 				const pct = (new BigNumber(1)).div(rewDenom).mul(100) + "%";
 				const cost = estGas.mul(gasPrice);

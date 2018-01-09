@@ -112,6 +112,16 @@
 			}
 			return `${timeS}s`;
 		}
+
+		this.debounce = function(timeout, fn) {
+			var i;
+			const ret = function(){
+				clearTimeout(i);
+				i = setTimeout(fn, timeout);
+			}
+			ret();
+			return ret;
+		}
 	}
 
 	// loading bar that always looks like it'll take timeMs to complete.
@@ -377,6 +387,7 @@
 		var _gasData = {};
 		var _value = defaultValue;
 		var _hasValue = false;
+		var _onChangeCb;
 
 		function _refresh() {
 			_$loading.show().text(`Loading gas data...`);
@@ -420,8 +431,12 @@
 			if (data.waitTimeS <= 60) _$wait.addClass("fast");
 			else if (data.waitTimeS > 60*15) _$wait.addClass("slow");
 			_$wait.text(`~${blocks} Blocks (${timeStr})`);
+			if (_onChangeCb) _onChangeCb(val);
 		}
 
+		this.onChange = function(fn) {
+			_onChangeCb = fn;
+		};
 		this.getValue = function(){
 			if (!_hasValue) return;
 			return (new BigNumber(_value)).mul(1e9);

@@ -269,12 +269,17 @@
 		}
 		// returns the gasPrices, refreshing if older than 1 minute
 		var _lastGasPrices;
+		var _gasPricePromise;
 		this.getGasPrices = function(){
 			if (_lastGasPrices && _lastGasPrices.timestamp+60000 >= (+new Date())){
 				return Promise.resolve(_lastGasPrices.data);
 			}
+			if (_gasPricePromise) return _gasPricePromise;
+
 			const url = "https://ethgasstation.info/json/predictTable.json";
-			return AJAX(url).then(function(res){
+			console.log("getting prices");
+			_gasPricePromise = AJAX(url).then(function(res){
+				_gasPricePromise = null;
 				const obj = JSON.parse(res);
 				const totalTxs = obj[0].tx_atabove;
 				const formatted = obj.map((o,i)=>{
@@ -294,9 +299,11 @@
 				};
 				return formatted;
 			},(e)=>{
+				_gasPricePromise = null;
 				console.error("Error retrieving gas prices.", e);
 				throw e;
 			});
+			return _gasPricePromise;
 		}
 
 
