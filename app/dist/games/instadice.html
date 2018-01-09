@@ -144,14 +144,14 @@
 				vertical-align: middle;
 				width: 100%;
 			}
-			.wager,
-			.number {
+			.better .wager,
+			.better .number {
 				display: table;
 				vertical-align: middle;
 				margin: 10px 0px;
 			}
-				.wager .value,
-				.number .value {
+				.better .wager .value,
+				.better .number .value {
 					display: table-cell;
 					text-align: center;
 					margin: 5px 0px;
@@ -255,9 +255,6 @@
 			/*********************************************/
 			/******** ROLLS ******************************/
 			/*********************************************/
-			.currentRolls {
-				margin-top: 40px;
-			}
 			.currentRolls .clear {
 				font-size: 80%;
 				color: blue;
@@ -280,7 +277,7 @@
 			}
 			.roll {
 				position: relative;
-				margin: 20px;
+				margin: 20px 0px;
 				border: 1px solid gray;
 				border-radius: 5px;
 				box-shadow: 0px 0px 10px 0px gray;
@@ -336,7 +333,6 @@
 				}
 				.roll .betValue, .roll .numberValue, .roll .payoutValue {
 					font-weight: bold;
-					padding-right: 5px;
 				}
 				.roll .mined {
 					display: table-cell;
@@ -455,6 +451,85 @@
 					color: gray;
 					cursor: not-allowed;
 					animation: none;
+				}
+			
+
+			.liveRolls {
+				width: 270px;
+				opacity: .6;
+				transition: opacity .3s;
+			}
+			.liveRolls:hover {
+				width: 270px;
+				opacity: 1;
+				transition: opacity .5s;
+			}
+				.mini-roll {
+					transform: scale(0) rotate(20deg);
+					margin: 5px 0px;
+					font-size: 80%;
+				}
+				.mini-roll.new {
+					transform: scale(1) rotate(0deg);
+					transition: transform 1s;
+				}
+				.mini-roll .head {
+					padding: 3px 4px;
+					position: relative;
+					background: #EFEFEF;
+				}
+				.mini-roll .head a {
+					text-decoration: none;
+				}
+				.mini-roll .head .right {
+					font-weight: normal;
+					margin-top: -2px;
+					float: right;
+				}
+				.mini-roll.won .head {
+					background: #EFFFEF;
+				}
+				.mini-roll .body {
+					background: #FAFAFA;
+					padding: 4px;
+				}
+				.mini-roll .table {
+					display: table;
+					width: 100%;
+				}
+				.mini-roll .cell {
+					display: table-cell;
+					vertical-align: top;
+				}
+				.mini-roll .cell.right {
+					width: 100%;
+					padding-left: 10px;
+				}
+
+				.mini-roll .rollicon {
+					background: #EEE;
+					padding: 3px;
+					border-radius: 5px;
+					border: 1px solid #EEE;
+					box-shadow: 2px 2px 2px 0px gray;
+					min-width: 30px;
+					text-align: center;
+				}
+				.mini-roll.won .rollicon {
+					background: #EFE;
+				}
+				.mini-roll .rollicon .rollnumber {
+					margin-top: -3px;
+					font-size: 200%;
+				}
+				.mini-roll .rollicon .label {
+					margin-top: -4px;
+					margin-bottom: -2px;
+					font-size: 70%;
+					text-align: center;
+				}
+				.mini-roll .info {
+					color: gray;
 				}
 		</style>
 	</head>
@@ -575,38 +650,53 @@
 		<div id="RollTip">
 		</div>
 
-		<div class="subsection currentRolls">
-			<div class="head">
-				Your Current Rolls
-				<span class="clear">(clear)</span>
-			</div>
-			<div class="body">
-				<div class="empty">
-					Roll above, and watch for your result right here.
+		<div class="main">
+			<table width=100%><tr>
+			<td valign=top width=100%>
+				<div class="subsection currentRolls">
+					<div class="head">
+						Your Current Rolls
+						<span class="clear">(clear)</span>
+					</div>
+					<div class="body">
+						<div class="empty">
+							Roll above, and watch for your result right here.
+						</div>
+						<div class="rolls">
+						</div>
+					</div>
 				</div>
-				<div class="rolls">
+				<div class="subsection recentRolls">
+					<div class="head">
+						Your Roll History
+					</div>
+					<div class="body">
+						<div class="empty">
+							You have no rolls in the last 256 blocks.
+						</div>
+						<div class="rolls"></div>
+					</div>
 				</div>
-			</div>
-		</div>
-
-		<div class="subsection recentRolls">
-			<div class="head">
-				Your Roll History
-			</div>
-			<div class="body">
-				<div class="rolls"></div>
-			</div>
+			</td>
+			<td valign=top>
+				<div class="subsection liveRolls" style="width: 270px">
+					<div class="head">Live Feed</div>
+					<div class="body">
+						<div class="rolls"></div>
+					</div>
+				</div>
+			</td>
+			</tr></table>
 		</div>
 
 		
 		<div class="roll template" style="display: none;">
 			<div class="info">
 				<div class="header">
-					<span class="betLabel">Bet:</span>
 					<span class="betValue"></span>
-					<span class="numberLabel">Number:</span>
+					<span class="numberLabel">on</span>
 					<span class="numberValue"></span>
-					<span class="payoutLabel">Payout:</span>
+					<span class="payoutLabel">for</span>
 					<span class="payoutValue"></span>
 				</div>
 				<div class="mined">
@@ -661,7 +751,7 @@
 					</div>
 					<div class="unresolved">
 						<div class="warning">
-							Your roll was unable to be automatically paid. You have <span class="blocksLeft"></span> to claim your winnings.
+							Your roll was unable to be automatically paid.<br>You have <span class="blocksLeft"></span> to claim your winnings.
 						</div>
 						<button class="claim">Claim Winnings</button>
 						<div class="claimStatus"></div>
@@ -679,6 +769,45 @@
 				</div>
 			</div>
 			<div class="viewLink"><a target="_blank">🔎</a></div>
+		</div>
+
+
+		<div class='mini-roll template' style="display: none;">
+			<div class='head'>
+				<div class='right'>
+					<!-- <a>#1234</a>
+					<a target="_blank">🔎</a> -->
+				</div>
+				<div class='date'>
+					<!-- Jan 8, 4:15:10 PM -->
+				</div>
+			</div>
+			<div class="body">
+				<div class="table">
+					<div class="cell left">
+						<div class="rollicon">
+							<div class="rollnumber"></div>
+							<div class="label">roll</div>
+						</div>
+					</div>
+					<div class="cell right">
+						<div>
+							<span class='info'>Account: </span>
+							<span class='bettor'></span>
+						</div>
+						<div>
+							<span class='info'>Wagered</span>
+							<span class='bet'></span>
+							<span class='info'>on</span>
+							<span class='number'></span>
+						</div>
+						<div>
+							<span class='info win-result'></span>
+							<span class='payout'></span>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	</body>

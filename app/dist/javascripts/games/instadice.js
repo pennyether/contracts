@@ -3,6 +3,7 @@ Loader.require("dice")
 	ethUtil.onStateChanged((state)=>{
 		refreshAllRolls(state);
 		refreshStats();
+		refreshLiveRolls();
 	});
 
 	/******************************************************/
@@ -402,6 +403,7 @@ Loader.require("dice")
     }
 
     const _$recentRollsCtnr = $(".recentRolls .rolls");
+    const _$noRecentRolls = $(".recentRolls .empty");
     const _$lockedRolls = {};
     function refreshRecentRolls(rolls) {
     	// create $rolls, detach _$locked ones
@@ -414,11 +416,14 @@ Loader.require("dice")
     	// append them all
     	_$recentRollsCtnr.empty();
     	$rolls.forEach($r=>$r.appendTo(_$recentRollsCtnr));
+    	rolls.length == 0
+    		? _$noRecentRolls.show()
+    		: _$noRecentRolls.hide();
     }
 
 
 	/******************************************************/
-	/*** DISPLAY A ROLL  **********************************/
+	/*** DISPLAY A ROLL ***********************************/
 	/******************************************************/
 	const avgBlockTime = ethUtil.getAverageBlockTime();
 	const _msgs = [
@@ -610,6 +615,67 @@ Loader.require("dice")
 		});
     	return $e;
     }
+
+    /******************************************************/
+	/*** LIVE FEED ****************************************/
+	/******************************************************/
+	var _lastCheckedBlock = null;
+	function refreshLiveRolls() {
+		const MAX_ELEMENTS = 5;
+		const toBlock = ethUtil.getCurrentBlockHeight().toNumber();
+		const fromBlock = _lastCheckedBlock ? _lastCheckedBlock + 1 : (toBlock - 250);
+		_lastCheckedBlock = toBlock;
+		dice.getEvents("RollWagered", {}, fromBlock, toBlock).then((events)=>{
+			console.log(`got ${events.length} events.`, events);
+			if (events.length > MAX_ELEMENTS){
+				console.log('trimming');
+				events = events.slice(-MAX_ELEMENTS);
+				console.log(`now has ${events.length} events`, events);
+			}
+			events.forEach((e, i)=>{
+				console.log("adding one", e);
+				const txId = e.transactionHash;
+				const rollId = e.args.id.toNumber();
+				const dateStr = util.toDateStr(e.args.time);
+				const betStr = ethUtil.toEthStr(e.args.bet);
+				const number = e.args.number.toNumber();
+				const $userLink = e.args.user == ethUtil.getCurrentAccount()
+					? util.$getAddrLink("You!", e.args.user)
+					: util.$getShortAddrLink(e.args.user);
+				const payoutStr = ethUtil.toEthStr(computePayout(e.args.bet, number));
+				const result = computeResult(e.blockHash, rollId);
+				const isWinner = !result.gt(number);
+
+				const $rollLink = util.$getTxLink(`Roll #${rollId}`, txId);
+				const $viewLink = $("<a target='_blank'>🔎</a>").attr("href", `/games/viewroll.html#${rollId}`)
+				const $e = $(".mini-roll.template")
+					.clone()
+					.removeClass("template")
+					.show()
+					.prependTo($(".liveRolls .rolls"));
+				$e.find(".head .right")
+					.append($rollLink)
+					.append(" ")
+					.append($viewLink);
+				$e.find(".date").text(dateStr);
+				$e.find(".bettor").append($userLink);
+				$e.find(".bet").text(betStr);
+				$e.find(".number").text(number);
+				$e.find(".payout").text(payoutStr);
+				$e.find(".rollnumber").text(result)
+				$e.find(".win-result").text(isWinner ? "and won" : "did not win");
+				if (isWinner) $e.addClass("won");
+				setTimeout(()=>$e.addClass("new"), (events.length-i)*200);
+			});
+			// trim excess elements (but not the template!)
+			$(".mini-roll:not(.template)").toArray()
+				.slice(MAX_ELEMENTS).forEach(e=>$(e).remove());
+		});
+
+
+	}
+
+
 
 	/******************************************************/
 	/*** LIVE STATS ***************************************/
