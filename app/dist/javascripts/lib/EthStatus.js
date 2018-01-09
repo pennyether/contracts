@@ -279,7 +279,7 @@
   				$e.removeClass("waiting pending");
   				if (isError) {
   					$statusTitle.text(`Your transaction was mined, but resulted in an error:`);
-  					$statusError.text(err.message);
+  					$statusError.text(err.message).show();
   					$e.addClass("tx-error");
   				} else {
   					$statusTitle.text(`Your transaction was mined.`);
