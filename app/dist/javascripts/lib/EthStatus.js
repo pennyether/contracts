@@ -39,9 +39,9 @@
 						</div>
 						<div class="right">
 							<div class="contractName"></div>
-							<div class="fnName tipped" data-tippy-trigger="mouseenter"></div>
-							<div class="fnArgs" data-tippy-trigger="mouseenter">(...)</div>
-							<div class="opts tipped" data-tippy-trigger="mouseenter">[opts]</div>
+							<div class="fnName" data-tippy-trigger="mouseenter" data-tippy-animation="scale"></div>
+							<div class="fnArgs" data-tippy-trigger="mouseenter" data-tippy-animation="scale">()</div>
+							<div class="opts tipped" data-tippy-trigger="mouseenter" data-tippy-animation="scale">opts</div>
 						</div>
 					</div>
 					<div style="display: none;">
@@ -52,8 +52,8 @@
 								<div class="summary" style="display: none;"></div>
 							</div>
 						</div>
-						<div class="argsTip">Tip for args</div>
-						<div class="optsTip">Tip for opts</div>
+						<div class="argsTip"></div>
+						<div class="optsTip"></div>
 					</div>
 				</div>
 			</div>
@@ -198,7 +198,8 @@
 			const $fnTip = $e.find(".fnTip");
 			const $argsTip = $e.find(".argsTip");
 			const $optsTip = $e.find(".optsTip");
-			const hasArgs = p.metadata.inputs.length > 0;
+			const argsObj = p.metadata.inputsObj;
+			const opts = p.metadata.opts;
 
 			// show _pendingTxs()
 			const count = _$txs.children().length;
@@ -209,16 +210,37 @@
 
 			// fill out name and args
 			$contractName.text(p.metadata.contractName);
-			$fnName.text(p.metadata.fnName).attr("title", p.metadata.abiDef.comment);
-			$fnArgs.text(hasArgs ? "(...)" : "()");
-
-			// add Tips for fnName, opts, and optionally args
-			tippy($status[0], {html: $statusTip[0]});
-			tippy($fnName[0], {dynamicTitle: true});
-			tippy($opts[0], {html: $optsTip[0]});
-			if (hasArgs) {
+			$fnName.text(p.metadata.fnName)
+			if (p.metadata.abiDef.comment){
+				$fnName.attr("title", p.metadata.abiDef.comment).addClass("tipped");
+				tippy($fnName[0]);
+			}
+			if (Object.keys(argsObj).length > 0) {
+				Object.keys(argsObj).forEach((name)=>{
+					const $e = $("<div></div>").text(`${name}: ${argsObj[name]}`);
+					$argsTip.append($e);
+				});
+				$fnArgs.text("(...)").addClass("tipped");
 				tippy($fnArgs[0], {html: $argsTip[0]});
-				$fnArgs.addClass("tipped");
+			}
+			if (true) {
+				$opts.text("[opts]")
+				Object.keys(opts).forEach((name)=>{
+					const $e = $("<div></div>");
+					if (name=="value")
+						$e.text(`${name}: ${ethUtil.toEthStr(new BigNumber(opts[name]))}`);
+					if (name=="gas")
+						$e.text(`${name}: ${new BigNumber(opts[name]||0)}`);
+					if (name=="gasPrice")
+						$e.text(`${name}: ${(new BigNumber(opts[name]||0)).div(1e9)} GWei`);
+					if (name=="to" || name=="from")
+						$e.append(`${name}: `).append(util.$getShortAddrLink(opts[name]));
+					if (name=="data")
+						$e.append(`${name}: ${opts[name].slice(0,10)}...`);
+					$optsTip.append($e);
+				});
+				tippy($opts[0], {html: $optsTip[0]});	
+				tippy($status[0], {html: $statusTip[0]});
 			}
 
   			$e.addClass("signing")

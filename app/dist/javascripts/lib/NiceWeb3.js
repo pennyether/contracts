@@ -187,7 +187,6 @@
 			}
 			// add instance to known instances (so can parse events)
 			niceWeb3.addKnownInstance(instance);
-			//console.log(`Created ${contractName} @ ${instance.address}`);
 			return instance;
 		};
 
@@ -209,7 +208,7 @@
 				: `${contractName}.${fnName}(${inputStr})`;
 
 			return function NiceWeb3ContractCall(inputsObj, opts, callback) {
-				var inputs, opts;
+				var inputsArr, opts;
 				if (callback !== undefined){
 					throw new Error(`${callName} was passed a callback. Don't do that.`);
 				}
@@ -225,7 +224,7 @@
 					throw new Error(`${callName} passed a 'to' field, but is a constructor.`);
 				}
 				try {
-					inputs = _validateInputs(inputsObj, abiInputs);
+					[inputsArr, inputsObj] = _validateInputs(inputsObj, abiInputs);
 					opts = _validateOpts(opts, isPayable);
 					if (isConstructor){
 						if (!unlinked_binary) throw new Error(`No unlinked_binary provided.`);
@@ -246,8 +245,8 @@
 					abiDef: def,
 					callName: callName,
 					isConstant: isConstant,
+					inputsArr: inputsArr,
 					inputsObj: inputsObj,
-					inputs: inputs,
 					opts: opts
 				};
 				const p = _doPromisifiedCall(oldCallFn, metadata);
@@ -267,9 +266,10 @@
 			const instance = metadata.instance;
 			const fnName = metadata.fnName;
 			const isConstant = metadata.isConstant;
-			const inputs = metadata.inputs;
+			const inputs = metadata.inputsArr;
 			const opts = metadata.opts;
-			const inputStr = metadata.inputs.join(",");
+			const inputStr = Object.keys(metadata.inputsObj)
+				.map(name=>`${name}: ${metadata.inputsObj[name]}`).join(",");
 			const optsStr = Object.keys(metadata.opts)
 				.map(name=>`${name}: ${metadata.opts[name]}`).join(", ");
 			const callStr = `${contractName}.${fnName}(${inputStr}, {${optsStr}})`;
@@ -376,11 +376,12 @@
 			throw new Error(`Expected ${abiInputs.length} arguments, but got ${providedInputsArr.length}.`);
 
 		// for each abi input, validate exists correctly in providedInputsArr
+		const providedInputsObj = {};
 		abiInputs.forEach((abiInput, i) => {
-			const name = abiInput.name ? `"${abiInput.name}"` : "";
+			const name = abiInput.name ? abiInput.name : "";
 			const type = abiInput.type;
 			const val = providedInputsArr[i];
-			const nameAsStr = `[${i}]${name}: (${type})`;
+			const nameAsStr = `[${i}]"${name}": (${type})`;
 			if (!providedInputsArr.hasOwnProperty(i)) {
 				throw new Error(`Not passed expected input: "${nameAsStr}"`);
 			}
@@ -398,8 +399,9 @@
 			} else {
 				console.warn(`NiceWeb3 Validation for input not supported: ${nameAsStr}`);
 			}
+			providedInputsObj[name] = val;
 		});
-		return providedInputsArr;
+		return [providedInputsArr, providedInputsObj];
 	}
 
 	// Validates options passed in against isPayable

@@ -335,6 +335,10 @@ body {
 		.EthStatus .tx .contractName:after {
 			content: ".";
 		}
+		.EthStatus .tx .right .opts {
+			margin-left: 5px;
+			color: gray;
+		}
 	.EthStatus .tx .status {
 		display: inline-block;
 		padding: 2px 4px;
@@ -376,6 +380,13 @@ body {
 	}
 	.statusTip .error {
 		color: red;
+	}
+
+	.argsTip,
+	.optsTip {
+		text-align: left;
+		white-space: nowrap;
+		font-size: 80%;
 	}
 
 	.EthStatus .tx.new {
