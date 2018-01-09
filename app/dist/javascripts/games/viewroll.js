@@ -1,7 +1,5 @@
 Loader.require("dice")
 .then(function(dice){
-	//ethUtil.onStateChanged(refreshAuction);
-
 	var _rollId;
 	const _$roll = $("#Roll");
 	const _$loadBtn = $("#LoadButton").click(findRoll);

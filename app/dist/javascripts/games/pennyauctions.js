@@ -1,6 +1,10 @@
 Loader.require("pac")
 .then(function(pac){
-	ethUtil.onStateChanged(refreshAllAuctions);
+	$("#Title").addClass("loaded");
+	ethUtil.onStateChanged((state)=>{
+		if (!state.isConnected) return;
+		refreshAllAuctions();
+	});
 
 	const _GAS_PRICE_SLIDER = util.getGasPriceSlider();
 	const _activeAuctions = {};
@@ -462,7 +466,9 @@ Loader.require("pac")
 				const gasPrice = _GAS_PRICE_SLIDER.getValue();
 				p = _auction.sendTransaction({gas: 59000, value: _bidPrice, gasPrice: gasPrice});
 			} catch (e) {
+				ethStatus.open();
 				_$clearTxStatus.show();
+				_$statusCell.addClass("error");
 				_$txStatus.text(`Error: ${e.message}`);
 				return;
 			}

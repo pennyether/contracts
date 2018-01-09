@@ -14,13 +14,19 @@
 			}
 				#Title .sup {
 					font-size: 180%;
-					/*font-weight: bold;*/
+					text-shadow: 0px 0px 10px cyan;
+				}
+				body.loaded #Title .sup {
 					letter-spacing: .25em;
-					animation: textShadowGlow 2s 0s infinite ease-in-out alternate;
+					text-shadow: 0px 0px 4px #68D;
+					transition: letter-spacing 3s ease-out, text-shadow 3s ease-out;
 				}
 				#Title .sub {
 					font-size: 90%;
+				}
+				body.loaded #Title .sub {
 					letter-spacing: .2em;
+					transition: letter-spacing 3s ease-out;
 				}
 
 			.topCtnr {
@@ -54,10 +60,6 @@
 					margin: 0px 40px;
 					text-shadow: 1px 1px 1px rgba(255,255,255,.4);
 				}
-				@keyframes textShadowGlow {
-					from { text-shadow: 0px 0px 10px cyan; }
-					to { text-shadow: 0px 0px 4px #68D; }
-				}
 				.featureBox .title {
 					text-align: center;
 					font-weight: bold;
@@ -66,7 +68,6 @@
 					letter-spacing: .1em;
 					padding-bottom: 4px;
 					text-shadow: 0px 0px 5px cyan;
-					animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
 				}
 				.featureBox .feature {
 					display: inline-block;
@@ -525,10 +526,10 @@
 				animation: statusPending 1s 0s infinite ease-in-out alternate;
 			}
 			.auction .statusCell.refunded {
-				background: rgba(255, 255, 0, .25);
+				background: rgba(255, 255, 0, .2);
 			}
 			.auction .statusCell.error {
-				background: rgba(255, 0, 0, .3);
+				background: rgba(255, 0, 0, .2);
 			}
 			.auction .statusCell.current-winner {
 				background: rgba(0, 255, 128, .2);

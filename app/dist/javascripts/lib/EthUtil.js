@@ -4,10 +4,17 @@
 		const _ethAbi = ethAbi;
 		const _self = this;
 
-		// state change stuff.
-		var _curState = {};
-		const _stateChangeCallbacks = [];
+		// current state and promise for current state
+		const _DEFAULT_STATE = {
+			isConnected: false,
+			account: null,
+			networkId: null,
+			latestBlock: {number: null}
+		};
+		var _isInitialized;
+		var _curState = {latestBlock: {}};
 		var _curStatePromise = null;
+		const _stateChangeCallbacks = [];
 
 		this.NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -15,12 +22,6 @@
 		this.getCurrentState = function(fresh){
 			// update the _curState value every 2 seconds
 			function updateCurrentState(){
-				const notConnectedState = {
-					isConnected: false,
-					account: null,
-					networkId: null,
-					latestBlock: null
-				};
 				return Promise.resolve(_self.getBlock('latest'))
 					.then(block=>{
 						return {
@@ -30,15 +31,18 @@
 							latestBlock: block,
 						}
 					}).catch(() => {
-						return notConnectedState;
+						return _DEFAULT_STATE;
 					}).then(newState => {
-						const isChanged = Object.keys(newState).some(k=>{
-							return k=="latestBlock"
-								? newState[k].number!==_curState[k].number
-								: newState[k]!==_curState[k];
+						// for for any differences, and call the callbacks
+						const anyChange = Object.keys(newState).some(state=>{
+							return state=="latestBlock"
+								? newState[state].number!==_curState[state].number
+								: newState[state]!==_curState[state];
 						})
 						_curState = newState;
-						if (isChanged) {
+						_isInitialized = true;
+
+						if (anyChange){
 							try { _stateChangeCallbacks.forEach(cb => cb(newState)); }
 							catch(e){ console.error("Callback Threw: ", e); }
 						}
@@ -55,8 +59,9 @@
 					Promise.resolve(_curStatePromise).then(reset, reset);
 					return _curStatePromise;
 				}
+			} else {
+				return Promise.resolve(_curState);
 			}
-			else return Promise.resolve(_curState);
 		};
 
 		this.pollForStateChange = function(timeMs){
@@ -69,7 +74,7 @@
 
 		this.onStateChanged = function(cb){
 			_stateChangeCallbacks.push(cb);
-			setTimeout(()=>cb(_curState), 0);
+			if (_isInitialized) setTimeout(()=>cb(_curState), 0);
 		};
 
 		this.getToday = function(){
@@ -158,7 +163,11 @@
 			if (!Array.isArray(args))
 				throw new Error(`doAsyncEthCall(${name}) expects an array as args.`);
 			return new Promise((resolve, reject)=>{
+				const timeout = setTimeout(()=>{
+					reject(new Error(`web3.eth.${name} call timed out.`));
+				}, 5000);
 				function callback(err, result){
+					clearTimeout(timeout); 
 					if (err){ reject(err); }
 					if (result!==null){ resolve(result); }
 					reject(new Error(`"_web3.eth.${name}" returned null.`));
@@ -277,7 +286,6 @@
 			if (_gasPricePromise) return _gasPricePromise;
 
 			const url = "https://ethgasstation.info/json/predictTable.json";
-			console.log("getting prices");
 			_gasPricePromise = AJAX(url).then(function(res){
 				_gasPricePromise = null;
 				const obj = JSON.parse(res);

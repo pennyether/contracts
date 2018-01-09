@@ -1,6 +1,9 @@
 Loader.require("pac")
 .then(function(pac){
-	ethUtil.onStateChanged(refreshAuction);
+	ethUtil.onStateChanged((state)=>{
+		if (!state.isConnected) return;
+		refreshAuction();
+	});
 
 	var _address;
 	const _$address = $("#Address");

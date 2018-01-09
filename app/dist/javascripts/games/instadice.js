@@ -1,6 +1,7 @@
 Loader.require("dice")
 .then(function(dice){
 	ethUtil.onStateChanged((state)=>{
+		if (!state.isConnected) return;
 		refreshAllRolls(state);
 		refreshStats();
 		refreshLiveRolls();
@@ -206,8 +207,16 @@ Loader.require("dice")
 			}
 
 			$(this).blur();
+			try {
+				var rollPromise = dice.roll({_number: number}, {value: bet, gas: 147000, gasPrice: gps.getValue()});
+			} catch(e) {
+				console.error(e);
+				ethStatus.open();
+				return;
+			}
+			
 			trackResult(
-				dice.roll({_number: number}, {value: bet, gas: 147000, gasPrice: gps.getValue()}),
+				rollPromise,
 				bet,
 				number
 			);

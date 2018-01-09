@@ -80,7 +80,7 @@ body {
 	color: white;
 	background: green;
 }
-	#Top a {
+	#Top .middle a {
 		color: inherit;
 		text-decoration: inherit;
 	}
@@ -165,6 +165,9 @@ body {
 		filter: hue-rotate(0) saturate(300%) contrast(1);
 		transition: all 1s;
 	}
+	.EthStatus.no-connection .icon {
+		background: rgba(0,0,255,.25);
+	}
 	.EthStatus .icon:hover, .EthStatus.open .icon {
 		filter: hue-rotate(0deg) saturate(500%) contrast(5);
 	}
@@ -174,8 +177,6 @@ body {
 	}
 	.EthStatus.off .icon:hover, .EthStatus.off.open .icon {
 		filter: hue-rotate(110deg) saturate(100%) contrast(2);
-		margin-top: 0px;
-		margin-bottom: 0px;	
 	}
 
 	.EthStatus .notifications {
@@ -218,6 +219,9 @@ body {
 			border-bottom: 1px solid #AAA;
 			background: #DDD;
 			background: linear-gradient(to bottom, #DDD 0%, #BBB 100%);
+		}
+		.EthStatus.no-connection .network {
+			background: rgb(232, 166, 165);
 		}
 		.EthStatus .network > .left {
 			display: table-cell;
@@ -285,6 +289,18 @@ body {
 			.EthStatus .account.none > .balance {
 				display: none;
 			}
+		.EthStatus .getAccount {
+			text-align: center;
+			font-size: 90%;
+			padding: 5px;
+		}
+			.EthStatus .getAccount .head {
+				font-weight: bold;
+				margin-top: 10px;
+			}
+			.EthStatus .getAccount .body {
+				padding: 10px;
+			}
 
 	/* Pending Transactions */
 	.EthStatus .pendingTxs .head {
@@ -318,6 +334,10 @@ body {
 	.EthStatus .tx .table {
 		display: table;
 		width: 100%;
+	}
+	.EthStatus .tx a {
+		color: inherit;
+		text-decoration: none;
 	}
 		.EthStatus .tx .left {
 			display: table-cell;

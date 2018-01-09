@@ -24,6 +24,24 @@
 						<div class="address"></div>
 						<div class="balance"></div>
 					</div>
+					<div class="getAccount">
+						<div class="web3" style="display: none;">
+							<div class="head">Please Unlock Account</div>
+							<div class="body">
+								It looks like your browser has web3 enabled, but there is no Ethereum account available.
+								Please unlock an account, and you're good to go!
+							</div>
+						</div>
+						<div class="noWeb3" style="display: none;">
+							<div class="head">Get an Ethereum Account!</div>
+							<div class="body">
+								To play on PennyEther, please install the 
+								<a href="https://metamask.io/" target="_blank">MetaMask browser extension</a>,
+								or use a web3 enabled browser such as <a href="https://brave.com/" target="_blank">Brave</a>
+								or <a href="https://github.com/ethereum/mist/releases" target="_blank">Mist</a>.
+							</div>
+						</div>
+					</div>
 					<div class="pendingTxs">
 						<div class="head">PennyEther Transactions
 							<span class="clear" style="display: none;">(clear)</span>
@@ -64,10 +82,15 @@
 		const _$blockTimeAgo = _$e.find(".network .blockTimeAgo");
 		const _$networkConnected = _$e.find(".network .connected");
 		const _$networkName = _$e.find(".network .name");
+		const _$getAccount = _$e.find(".getAccount");
+		window.hasWeb3
+			? _$getAccount.find(".web3").show()
+			: _$getAccount.find(".noWeb3").show();
 		const _$acctCtnr = _$e.find(".account");
 		const _$acctAddr = _$e.find(".account .address");
 		const _$acctBal = _$e.find(".account .balance");
 		// txs stuff
+		const _$pendingTxs = _$e.find(".pendingTxs");
 		const _$notifications = _$e.find(".notifications").hide();
 		const _$txTemplate = _$e.find(".tx.template");
 		const _$txs = _$e.find(".txs");
@@ -122,21 +145,29 @@
 			if (isConnected){
 				_$networkName.text(networkName);	
 			} else {
-				_$networkName.text("Not Connected!");
+				_$networkName.text("Not Connected");
 			}
-			_$e.removeClass("off");
-			if (!isConnected || !_curState.account) _$e.addClass("off");
+			_$e.removeClass("no-connection off");
+			if (!_curState.account) _$e.addClass("off");
+			if (!isConnected) {
+				_$e.addClass("no-connection");
+				_self.open();
+			}
 		}
 
 		function _refreshAddress(){
 			const acctAddr = _curState.account;
 			if (!acctAddr) {
 				_$acctCtnr.addClass("none");
-				_$acctAddr.text("⚠ No Account Available");
+				_$acctAddr.text("⚠ No Ethereum Account");
+				_$pendingTxs.hide();
+				_$getAccount.show();
 				return;
 			} else {
 				const acctStr = acctAddr.slice(0,6) + "..." + acctAddr.slice(-4);
 				const $link = _ethUtil.$getLink(acctStr, acctAddr, "address")
+				_$pendingTxs.show();
+				_$getAccount.hide();
 				_$acctCtnr.removeClass("none");
 				_$acctAddr.empty().append("Account: ").append($link);
 				_$acctBal.text("...");
@@ -157,7 +188,7 @@
 				_$block.text("").hide();
 			} else {
 				const str = `#${latestBlock.number}`;
-				const $link = _ethUtil.$getLink(str, latestBlock.num, "block");
+				const $link = _ethUtil.$getLink(str, latestBlock.number, "block");
 				_$block.show().empty().append($link);
 			}
 			_refreshBlockTimeAgo();
@@ -299,6 +330,7 @@
 		}
 
 		this.$e = _$e;
+		this.open = function(){ _$e.addClass("open"); }
 
 		_init();
 		function _init(){

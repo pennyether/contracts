@@ -4,7 +4,6 @@
 		<script src="/javascripts/lib/Loader.js"></script>
 		<script src="/javascripts/games/instadice.js"></script>
 		<style>
-
 			/*********************************************/
 			/******** TITLE AND FEATURES *****************/
 			/*********************************************/
@@ -15,13 +14,19 @@
 			}
 				#Title .sup {
 					font-size: 180%;
-					/*font-weight: bold;*/
+					text-shadow: 0px 0px 5px lime;
+				}
+				body.loaded #Title .sup {
 					letter-spacing: .25em;
-					animation: textShadowGlow 2s 0s infinite ease-in-out alternate;
+					text-shadow: 0px 0px 5px green;
+					transition: letter-spacing 3s ease-out, text-shadow 3s ease-out;
 				}
 				#Title .sub {
 					font-size: 90%;
+				}
+				body.loaded #Title .sub {
 					letter-spacing: .2em;
+					transition: letter-spacing 3s ease-out;
 				}
 
 			.featureBox {
@@ -52,18 +57,14 @@
 				margin: 0px 40px;
 				text-shadow: 1px 1px 1px rgba(255,255,255,.4);
 			}
-			@keyframes textShadowGlow {
-				from { text-shadow: 0px 0px 10px lime; }
-				to { text-shadow: 0px 0px 4px green; }
-			}
 			.featureBox .title {
 				text-align: center;
 				font-weight: bold;
 				font-size: 180%;
 				color: #FAFAFA;
+				letter-spacing: .1em;
 				padding-bottom: 4px;
-				text-shadow: 0px 0px 5px green;
-				animation: textShadowGlow 3s 0s infinite ease-in-out alternate;
+				text-shadow: 0px 0px 10px lime;
 			}
 			.featureBox .feature {
 				display: inline-block;
@@ -428,19 +429,24 @@
 					border: 1px solid #FDD;
 				}
 				@keyframes boxShadowGlow {
-					from { box-shadow: 0px 0px 4px lime; }
+					from { box-shadow: 0px 0px 10px lime; }
 					to { box-shadow: 0px 0px 4px green; }
 				}
 				.roll .claim {
 					font-size: 150%;
 					color: green;
 					font-weight: bold;
-					padding: 3px;
+					padding: 3px 5px;
 					margin: 10px;
 					cursor: pointer;
 					border: none;
 					border-radius: 3px;
 					animation: boxShadowGlow 2s 0s infinite ease-in-out alternate;
+					transition: background .3s;
+				}
+				.roll .claim:hover {
+					background: rgba(0,255,0,.2);
+					transition: background .5s;
 				}
 				.roll.unresolved .claim {
 					background: green;

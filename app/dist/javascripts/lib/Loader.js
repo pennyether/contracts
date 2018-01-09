@@ -50,7 +50,6 @@
 			addScript("/javascripts/lib/external/EthAbi.js"),
 			addScript("/javascripts/lib/EthUtil.js"),
 			addScript("/javascripts/lib/NiceWeb3.js"),
-			addScript("/javascripts/lib/NiceWeb3Logger.js"),
 			addScript("/javascripts/lib/ABIs.js"),
 			addScript("/javascripts/lib/PennyEtherWebUtil.js"),
 			addScript("/javascripts/lib/Nav.js"),
@@ -64,7 +63,6 @@
 			if (!window.ethAbi) throw new Error("Unable to find ethAbi.")
 			if (!window.EthUtil) throw new Error("Unable to find EthUtil.");
 			if (!window.NiceWeb3) throw new Error("Unable to find NiceWeb3.");
-			if (!window.NiceWeb3Logger){ throw new Error("Unable to find NiceWeb3Logger."); }
 			if (!window.ABIs){ throw new Error("Unable to find ABIs."); }
 			if (!window.PennyEtherWebUtil){ throw new Error("Unable to find PennyEtherWebUtil."); }
 			if (!window.Nav){ throw new Error("Unable to find Nav"); }
@@ -90,6 +88,7 @@
 		  	window.ethUtil = niceWeb3.ethUtil;
 		  	window.BigNumber = web3.toBigNumber().constructor;
 		  	window.util = new PennyEtherWebUtil(niceWeb3);
+		  	window.ethStatus = new EthStatus(ethUtil, niceWeb3);
 
 		  	// tell ethUtil to poll for state change
 		  	ethUtil.pollForStateChange();
@@ -105,13 +104,10 @@
 			// make Registry public
 		  	const registry = Registry.at("0x3a98e0a23e4b90357ebb937bdbc9144cb7ac0dd3");
 
-		  	// attach visual components
-		  	const ethStatus = new EthStatus(ethUtil, niceWeb3);
+		  	// load nav
 		  	const nav = new Nav();
 		  	nav.setEthStatusElement(ethStatus.$e)
 		  	$("#Content").prepend(nav.$e);
-		  	// const logger = new NiceWeb3Logger(niceWeb3);
-		  	// logger.$e.appendTo(document.body);
 
 		  	// attach Tippies
 		  	tippy.defaults.trigger = "click";
@@ -121,6 +117,9 @@
 		  	$('[title]:not(.tipLeft):not(.dontTip)').addClass("tipRight");
 		  	tippy('.tipLeft:not(.dontTip)', {placement: "top"});
 		  	tippy('.tipRight:not(.dontTip)', {placement: "right"});
+
+		  	// add class for initial transitions
+		  	$("body").addClass("loaded");
 
 		  	// done.
 		  	return statePromise.then(()=>{
