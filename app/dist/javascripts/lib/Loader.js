@@ -226,3 +226,20 @@ function doScrolling(element, duration) {
 		}
 	});
 }
+
+function promiseInView(el){
+	return new Promise((res,rej)=>{
+		function check() {
+	    	const rect = el.getBoundingClientRect();
+	    	const elemTop = rect.top;
+	    	const elemBottom = rect.bottom;
+	    	const isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
+	    	if (isVisible) {
+	    		res();
+	    		$(document).unbind("scroll", check);
+	    	}
+	    }
+		$(document).on("scroll", check);
+		check();
+	});
+}
