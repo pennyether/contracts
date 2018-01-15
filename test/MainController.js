@@ -61,6 +61,7 @@ describe("MainController", function(){
 	const nonAdmin = accounts[3];
 	const bidder1 = accounts[4];
 	const bidder2 = accounts[5];
+	const anon = accounts[6];
 	const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 	var registry;
@@ -71,10 +72,10 @@ describe("MainController", function(){
 
 	before("Set it all up", async function(){
 		registry = await Registry.new(owner, {from: nonAdmin});
-        treasury = await Treasury.new(registry.address);
-        mainController = await MainController.new(registry.address);
-        pac = await PennyAuctionController.new(registry.address);
-        paf = await PennyAuctionFactory.new(registry.address);
+        treasury = await Treasury.new(registry.address, {from: anon});
+        mainController = await MainController.new(registry.address, {from: anon});
+        pac = await PennyAuctionController.new(registry.address, {from: anon});
+        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
         
         await testUtil.transfer(owner, treasury.address, INITIAL_PRIZE_0.mul(5));
 
@@ -89,6 +90,7 @@ describe("MainController", function(){
         	paf: paf.address,
         	bidder1: bidder1,
         	bidder2: bidder2,
+        	anon: anon,
         	NO_ADDRESS: NO_ADDRESS
         };
 

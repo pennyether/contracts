@@ -5,7 +5,7 @@ const DividendToken = artifacts.require("DividendToken");
 const DividendTokenLocker = artifacts.require("DividendTokenLocker");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
-    .createDefaultTxTester.bind(null, web3, assert, it);
+    .createDefaultTxTester.bind(null, web3, assert);
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
@@ -30,7 +30,7 @@ describe('Comptroller', function(){
 
     before("Set up registry, treasury, and create comptroller.", async function(){
         registry = await Registry.new(regOwner, {from: anon});
-        treasury = await Treasury.new(registry.address);
+        treasury = await Treasury.new(registry.address, {from: anon});
         comptroller = await Comptroller.new(compOwner, {from: anon});
         token = DividendToken.at(await comptroller.token());
         locker = DividendTokenLocker.at(await comptroller.locker());

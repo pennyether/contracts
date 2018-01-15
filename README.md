@@ -1,92 +1,69 @@
-PennyEth.
+## This contains open-sourced PennyEther contracts, in a project with minimal dependancies.
 
-/app contains the front-end code. See readme for more info.
+## To Compile and Run Tests
 
-General architecture:
+- First, install dependencies: `npm install`.
+- Next, run /scripts/compile.js
+- Finally, run /scripts/test.js test/PennyAuction.js
+	- If you receive an error that TestRPC could be found, make sure you have `testrpc` or `ganache` running on `localhost:5678` or whatever the default port is.
+
+## Contract Architecture
+
+- We have a `Registry` contract that keeps track of name=>address mappings.
+	- Upgrading a contract is as easy as remapping the name
+	- Only some contracts support this ... `Core` contracts do not
+- Since many contracts use various Registry names, we created inheritible classes for each
+	- `contracts/roles` allows contracts to easily access Registered contracts, and include modifiers to ensure calls from specifically registered contracts.
+	- `contracts/interfaces` are the interfaces inherited when using `roles`
+- We don't use libraries anywhere. We feel they make life difficult.
+
+## Testing
+
+### Helper Contracts ###
+
+In all cases where a contract _could_ bid, we made a test where it _did_ bid. This tests cases where malicious contracts try to consume too much gas. These contracts are found in the `test-helpers` folder.
 
 
-COMPTROLLER / DIVIDENDTOKEN / LOCKER
+### TxTester ###
 
-	For security, are unaware of the registry.
-	Comptroller:
-		- Does nothing until .initSale() is called.
-			- Requires a treasury to be set
-			- Requires a token locker to be initialized
-		- Mints/Burns tokens, keeps PennyEther ownership at 20%
-	Token:
-		- Token that splits up deposits to token holders
-	TokenLocker:
-		- Holds the tokens so they cannot be burnt
-		- Allows dividends to be collected to the TokenLockerOwner
-			- The owner is set via .initTokenLocker()
+We've created a pretty awesome testing framework. Have a look at js/tx-tester.
 
+It allows you to quickly test nearly _all_ side effects of any transaction:
 
-REGISTRY
+Here's a quick and dirty overview:
 
-	A contract that holds all entries to important addresses. This is set-up on deploy.
-	If a contract is ever redeployed, the address should be updated here.
-	Only the owner can change entries.
+```
+const web3 = /*...*/;
+const assert = require("chai").assert;
+const createDefaultTxTester = require("tx-tester.js")
+    .createDefaultTxTester.bind(null, web3, assert);
 
-	Holds:
-		- Owner
-			- Controls registry
-			- Can call Treasury.initToken() and Treasury.initComptroller()
-			- Can swap in/out contracts (excluding Comp/Treasury/TokenLocker)
-		- Admin
-			- Can alter settings of MainController
-			- Can alter settings of PennyAuctionController
-		- Treasury
-		- MainController
-		- GameControllers
-		- PennyAuctionFactory
+createDefaultTxTester()
+	// ledger starts watching on these addresses
+	.startLedger([addr1, addr2])
+	// does a transaction, using truffle-contract library
+	.doTx([myContract, "someFn", <param1>, <param2>])
+	.assertSucces() 				// ensures no failure in the Tx
+		// ensures a log was emitted with this data
+		.assertLog("NameOfLog", {
+			param1: 123,
+			param2: "some string",
+			param3: null				// this only tests that param3 exists
+		})
+		// ensures contract2.someConstant() returns 5678
+		.assertCallReturns([contract2, "someConstant"], 5678)
+	.doFn(async function(){
+		// you can define a promise here, and use it in a later assertion.
+		// perhaps you want to assert a value of a newly created contract
+		pContract = Contract.at(await myContract.getNewContract());
+		someResultThatJustHappened = myContract.foo();
+	})
+		// assertCallReturns can take fn's as arguments, allowing async stuff.
+		.assertCallReturns(()=>[pContract, "foo"], ()=>someResultThatJustHappened)
+	// this tells the ledger to collect all data for [addr1, addr2]
+	.stopLedger()
+	.assertDelta(addr1, 123)			// ensures addr1 gained 123 wei
+	.assertDeltaMinusTxFee(addr2, 123)	// ensures addr2 gains 123, but lost txFee
+	.start();							// starts the asyncChain above, returns promise.
 
-	At some point, the owner of the registry should be changed to a Custodial Wallet
-	to ensure nobody can own the whole system.
-
-TREASURY
-
-	Holds all the funds, all the time.  All fees get collected here.  Only pays
-	out to MainController and Token (if set).
-
-MAIN CONTROLLER
-
-	Interfaces with game controllers to:
-		- refresh statuses of games
-		- reward users for the above
-
-GAME CONTROLLER (eg: PENNYAUCTIONCONTROLLER)
-
-	- manages instances of games
-	- allows games to be started, stopped, have feescollected
-	- everything is callable by everyone
-
-GAMES
-	FACTORY
-		Contains code to create a new instance of the game.
-		Will use getTreasury() to determine where funds go.
-	GAME
-		Code for the game itself.
-
-------------------------------------
-
-To develop:
-
-	- Set up truffle... good luck with that.  I've been using an old version of truffle.
-		- I've edited some truffle files to work with smocha... you can search truffle-test
-		  codebase to replease "Mocha" with "Smocha" and you should be fine.
-	- npm install -g ganache-cli
-	- ganache-cli
-	- probably need to install other things... I've polluted my global NPM at this point
-	- truffle test test/PathToTest.js
-	- Front-end development is more complicated... see the readme in "/app"
-
-Notes:
-
-	- truffle compiles by passing a "runs" paramater to solcjs. This parameter tells the
-	  optimizer to optimize against a certain number of "runs" of the contract... 0
-	  represents never running the contract, 1000 represents calling it 1,000 times, etc.
-	  Now, etherscan validates against a value of 200.  There's a separate page that
-	  can allow you to enter a custom value here: (etherscanio.veryify2)
-	  Anyway, you can change truffle's default by finding wherever the fuck it is
-	  installed (/usr/local/bin/lib/node_modules/trufflesuit/node_modules/truffle-compile)
-	  and changing the value there.
+// Prints out really nice looking log. You'll have to try it for yourself to see.

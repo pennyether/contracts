@@ -27,7 +27,7 @@ describe('InstaDice', function(){
     const FEE_BIPS = 125;
 
     before("Set up registry, treasury, and create comptroller.", async function(){
-        registry = await Registry.new(owner);
+        registry = await Registry.new(owner, {from: anon});
         await registry.register("ADMIN", admin, {from: owner});
         await registry.register("TREASURY", dummyTreasury, {from: owner});
         console.log(`Registry: ${registry.address}`);
@@ -371,7 +371,7 @@ describe('InstaDice', function(){
 
         const txTester = createDefaultTxTester()
             .startLedger([dice, roll.user])
-            .doTx([dice, "payoutRoll", id])
+            .doTx([dice, "payoutRoll", id, {from: anon}])
             .assertSuccess()
             .stopLedger()
                 .assertDelta(dice, expPayout.mul(-1))
@@ -494,7 +494,9 @@ describe('InstaDice', function(){
                     : expPayout;
                 const diceResult = await dice.getRollResult(expId);
                 console.log(`This roll will have a result of ${result} for a payout of ${payout}.`);
-                console.log(`Dice thinks this result will be: ${diceResult}.`);
+                // note, there's a bug where block.number is incorrect in ganache.
+                // https://github.com/trufflesuite/ganache/issues/204
+                console.log(`Dice thinks this result will be: ${diceResult}. [may be incorrect]`);
             })
             .doFn(assertBalanceGtBankroll);
 

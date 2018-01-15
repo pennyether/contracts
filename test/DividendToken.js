@@ -20,7 +20,7 @@ var unpayableTokenHolder;
 describe('Token', function(){
     before("Initialize TokenCrowdSale", async function(){
         token = await Token.new({from: comptroller});
-        unpayableTokenHolder = await UnpayableTokenHolder.new();
+        unpayableTokenHolder = await UnpayableTokenHolder.new({from: anon});
 
         const addresses = {
             comptroller: comptroller,

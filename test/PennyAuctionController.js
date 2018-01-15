@@ -3,7 +3,7 @@ var Treasury = artifacts.require("Treasury.sol");
 var PennyAuctionController = artifacts.require("PennyAuctionController.sol");
 var PennyAuctionFactory = artifacts.require("PennyAuctionFactory.sol");
 var PennyAuction = artifacts.require("PennyAuction.sol");
-var UnpayableBidder = artifacts.require("./test-helpers/UnpayableBidder.sol");
+var UnpayableBidder = artifacts.require("UnpayableBidder.sol");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
@@ -69,12 +69,13 @@ describe('PennyAuctionController', function(){
     const auctionWinner = accounts[6];
     const notMainController = accounts[7];
     const nonAdmin = accounts[8];
+    const anon = accounts[9];
 
     before("Set up registry and treasury", async function(){
         registry = await Registry.new(owner, {from: nonAdmin});
-        treasury = await Treasury.new(registry.address);
-        pac = await PennyAuctionController.new(registry.address);
-        paf = await PennyAuctionFactory.new(registry.address);
+        treasury = await Treasury.new(registry.address, {from: anon});
+        pac = await PennyAuctionController.new(registry.address, {from: anon});
+        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
 
         const addresses = {
             registry: registry.address,
@@ -85,6 +86,7 @@ describe('PennyAuctionController', function(){
             bidder1: bidder1,
             bidder2: bidder2,
             auctionWinner: auctionWinner,
+            anon: accounts[9],
             NO_ADDRESS: NO_ADDRESS
         };
 
@@ -216,7 +218,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertAsString(() => pac.getIsEnabled(0), true, "isEnabled is true")
+                .assertCallReturns(() => [pac, "getIsEnabled", 0], true, "isEnabled is true")
                 .assertCallReturns([pac, "numDefinedAuctions"], 4)
                 .start();
         });
@@ -251,7 +253,7 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertAsString(() => pac.getIsEnabled(0), false,
+                .assertCallReturns([pac, "getIsEnabled", 0], false,
                     "isEnabled is now false")
                 .assertCallReturns([pac, "numDefinedAuctions"], 4)
                 .start();
@@ -592,13 +594,13 @@ describe('PennyAuctionController', function(){
         var auction2;
         before("Bid on auction2 with UnpayableBidder, end it...", async function(){
             // create unpayableBidder
-            unpayableBidder = await UnpayableBidder.new();
-            await unpayableBidder.fund({value: BID_PRICE_2.mul(2)});
+            unpayableBidder = await UnpayableBidder.new({from: anon});
+            await unpayableBidder.fund({value: BID_PRICE_2.mul(2), from: anon});
             assert.strEqual(await testUtil.getBalance(unpayableBidder), BID_PRICE_2.mul(2));
             // bid on auction2
             auction2 = PennyAuction.at(await pac.getAuction(2));
             assert.notEqual(auction2.address, NO_ADDRESS);
-            await unpayableBidder.doBid(auction2.address);
+            await unpayableBidder.doBid(auction2.address, {from: anon});
             assert.strEqual(await auction2.currentWinner(), unpayableBidder.address);
             // fast-forward
             const blocksRemaining = await auction2.getBlocksRemaining();

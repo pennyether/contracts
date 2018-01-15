@@ -1,6 +1,6 @@
 const createDeferredFn = require("./deferred-fn");
 
-// Allows you to add fns onto a queue
+// Allows you to add async fns onto a queue
 // Calling start triggers them in order, stopping on any fail.
 // Once started, you are not allowed to add to it.  This is to
 // prevent race conditions, which are no good when testing.
@@ -13,6 +13,11 @@ const createDeferredFn = require("./deferred-fn");
 //			.asPromise()
 //			.then() ...
 //
+// Additional Methods:
+//  - .resolve(v): resolves the entire queue with v
+//  - .reject(e): rejects the entire queue with e.
+//		          The currently running queue item will still execute,
+//				  but its results will be ignored.
 function createTaskQueue(allowAddingAsync) {
 	var _obj = Object.create(null);
 	var _started = false;
@@ -27,8 +32,11 @@ function createTaskQueue(allowAddingAsync) {
 	var _lastPromise = undefined;
 	function _doNextPromise(v) {
 		if (_deferredFns.length) {
+			// do the next promise, if there is one.
 			var next = _deferredFns.shift();
 			next.resolve(v).then(_doNextPromise, (e) => { _endPromise.reject(e); });
+			// we add this here to stop "unhandled promise exception"
+			// we are already catching failure above
 			_lastPromise = next.catch((e) => {});
 		} else {
 			// all tasks done. fulfill the end promise

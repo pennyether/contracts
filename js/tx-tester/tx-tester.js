@@ -23,14 +23,13 @@ returns:
 notes:
 	Plugins are expected to read/write to the ctx object.
 */
-function createTxTester(plugins, it) {
+function createTxTester(plugins) {
 	// the object to be returned
 	const _obj = new Promise((res, rej)=>{ _resolve = res; _reject = rej; });
 	var _resolve;
 	var _reject;
 	
 	var _queue = createTaskQueue();		// all the plugin tasks we need to do
-	const _it = it;						// requires a testing library that can do async tests
 	const _afterDoneFns = [];			// when done, perform all of these (fail if any fail)
 	// ctx object that is passed to all plugins.
 	const _ctx = {
@@ -69,72 +68,6 @@ function createTxTester(plugins, it) {
 		_queue.add((prev) => {
 			return fn.call(_ctx, prev)
 		});
-		return _obj;
-	};
-
-	// makes proceeding plugin calls execute on itChain
-	// the main chain will wait for this itChain to finish
-	// and the itChain will wait for 'it' to be called
-	_obj.it = function(msg, fnOrRequired, required) {
-		if (!_it) throw new Error(`'it' function was never provided.`);
-		if (_obj.endIt) { _obj.endIt(); }
-
-		var fn;
-		if (required === undefined){
-			if (fnOrRequired === undefined) fn = null;
-			else if (typeof fnOrRequired === 'function') fn = fnOrRequired;
-			else if (typeof fnOrRequired === 'boolean') required = fnOrRequired;
-			else throw new Error("Second argument must be a function or boolean");
-		} else {
-			if (typeof fnOrRequried !== 'function')
-				throw new Error("If three args provided, second argument must be a function");
-			fn = fnOrRequired;
-		}
-
-		if (fn) {
-			_it(msg, fn.bind(_ctx));
-			return _obj;
-		}
-
-		const mainQueue = _queue;
-		const itQueue = createTaskQueue();
-		const deferredItFn = createDeferredFn();
-
-		// mocha will wait for deferredItFn, which:
-		// 	- gets resolved when mainQueue gets to itQueue
-		//  - gets rejected if mainQueue fails before that (so skip test)
-		_it(msg, function(){
-			const skip = this.skip;
-			return deferredItFn.then(
-				() => { return itQueue.start(); },
-				() => { skip("a prior required test failed"); }
-			);
-		});
-		
-		// otherwise, mainQueue got here.
-		// if itQueue fails (and is required), fail mainQueue (see next part)
-		mainQueue.add(function(){
-			deferredItFn.resolve();
-			return itQueue.asPromise().catch((e) => {
-				if (required) {
-					console.log("TxTester: required 'it' failed, will skip all other 'it's.");
-					throw e; 
-				}
-			});
-		});
-
-		// if mainQueue fails, reject run the deferredItFn, so the it skips
-		mainQueue.asPromise().catch(e => { deferredItFn.reject(e); });
-
-		// swap _queue for itQueue, so all plugin tasks are added to itQueue
-		_queue = itQueue;
-		
-		// when endIt is called, make it so all plugin tasks are added to mainQueue
-		_obj.endIt = function() {
-			_queue = mainQueue;
-			delete _obj.endIt;
-			return _obj;
-		}
 		return _obj;
 	};
 
@@ -227,10 +160,10 @@ const createUtil = require("./util.js");
 const createPlugins = require("./plugins.js");
 const Ledger = require("./ledger.js");
 module.exports.createTxTester = createTxTester;
-module.exports.createDefaultTxTester = function(web3, assert, it) {
+module.exports.createDefaultTxTester = function(web3, assert) {
 	const util = createUtil(web3, assert);
 	const ledger = new Ledger(web3);
 	const plugins = createPlugins(util, ledger);
-	const txTester = createTxTester(plugins, it);
+	const txTester = createTxTester(plugins);
 	return txTester;
 }

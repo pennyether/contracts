@@ -33,9 +33,9 @@ describe('CustodialWallet', function(){
     };
 
     before("Create CustodialWallet and DumbContract", async function(){
-    	cWallet = await CustodialWallet.new(cust1, supervisor1, owner1);
+    	cWallet = await CustodialWallet.new(cust1, supervisor1, owner1, {from: anon});
     	addresses.cWallet = cWallet.address;
-    	dContract = await DumbContract.new();
+    	dContract = await DumbContract.new({from: anon});
     	addresses.dContract = dContract.address;
     	await createDefaultTxTester()
     		.nameAddresses(addresses)

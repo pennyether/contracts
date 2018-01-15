@@ -5,7 +5,6 @@ const Logger = require("./logger");
 
 // creates an object with "describe", "it", "before", "beforeEach", "after", "afterEach"
 // allows you to create tests as they run, like any sane person would expect.
-// seriously, fuck mocha.
 function Smocha(opts) {
 	var _obj = this;
 	var _opts = strictExtend({
@@ -20,6 +19,8 @@ function Smocha(opts) {
 	var _consoleLog = console.log;		// we override this to provide indented console logs
 	this.logger = _logger;
 
+	// After a node's fn is executed, it will have children nodes.
+	// Here, we populate the .queue of the node depending on those children.
 	function _buildQueue(node) {
 		var queue = node.queue;
 
@@ -75,7 +76,7 @@ function Smocha(opts) {
 		if (node.after && !node.after.skip) queue.add(() => _run(_curNode.after));
 	}
 
-	// sets the current context to the node, then runs the node asynchronously
+	// sets the current context to the node, then runs the node asynchronously (callRun)
 	// at this point, any calls to describe, it, before, etc, are stored in the node
 	//
 	// if the run fails, it will not run the children nodes.
@@ -116,28 +117,33 @@ function Smocha(opts) {
 		var callRun = function(){
 			if (node.run.length >= 2)
 				return Promise.reject(
-					new Error(`'${node.run.toString()}'' should take zero or one arguments, not ${node.run.length}`)
+					new Error(`'${node.run.toString()}' should take zero or one arguments, not ${node.run.length}`)
 				);
 			if (node.run.length == 0){
 				return Promise.resolve().then(() => node.run.call(ctx));
 			}
-
-			// call run, wait for `deferredFn.resolve` to be called
-			var deferredFn = createDeferredFn();
-			var ret = node.run.call(ctx, deferredFn.resolve);
-			if (ret && ret.then) {
-				return Promise.reject(new Error(`Smocha Error: '${node.name}' should use done or return a Promise, but not both.`));
+			if (node.run.length == 1){
+				// call run, wait for `deferredFn.resolve` to be called
+				var deferredFn = createDeferredFn();
+				var ret = node.run.call(ctx, deferredFn.resolve);
+				if (ret) {
+					return Promise.reject(
+						new Error(`Smocha Error: '${node.name}' is expected to call "done", but returned: ${ret}.`)
+					);
+				}
+				// see if done() was passed anything, indicating a failure
+				return deferredFn.then(function(){
+					if (arguments[0] === undefined) return;
+					var doneResult = arguments[0];
+					var e = new Error(`${node.name}: 'done()' was called with a value: ${doneResult}`);
+					if (doneResult && doneResult.stack) e.stack = doneResult.stack;
+					throw e;
+				});
 			}
-			return deferredFn.then(function(){
-				if (arguments[0] === undefined) return;
-				var doneResult = arguments[0];
-				var e = new Error(`'done()' was called with a value: ${doneResult}`);
-				if (doneResult && doneResult.stack) e.stack = doneResult.stack;
-				throw e;
-			});
 		}
 
-		// run the node itself. during this, children may be added (before, after, etc.)
+		// callRun, during which children may be addeded to the node.
+		// after success, we execute the queue itself.
 		var startTime = +(new Date());
 		callRun().then(
 			() => {
@@ -171,10 +177,10 @@ function Smocha(opts) {
 			node.queue.reject(e);
 		});
 
-		// when the above finishes, it will start/resolve the queue, which we handle below
+		// Wait for all children (queue) to finish, then handle accordingly.
 		return _curNode.queue.asPromise().then(
 			() => {
-				// queue is resolved if initialRun fails, OR all children run
+				// queue is resolved if callRun fails, OR all children run
 				_logger.onQueuePass(node);
 				if (node.runError) throw node.runError;
 			},
@@ -185,6 +191,7 @@ function Smocha(opts) {
 				throw node.queueError;
 			}
 		).then(
+			// always reset _curNode, and if necessary bubble the error.
 			() => { _curNode = node.parent; },
 			(e) => {
 				_curNode = node.parent;

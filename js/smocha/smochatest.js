@@ -1,50 +1,50 @@
+#!/usr/bin/env node
+
 const path = require('path');
-if (typeof describe == "undefined") {
-	Smocha = require("../js/smocha/smocha");
-	console.log("No mocha/smocha found, creating our own...");
-	(new Smocha()).run();
+Smocha = require("./smocha");
+(new Smocha()).run();
+
+function dummyPromise(){
+	return new Promise((res,rej)=>{
+		setTimeout(res, 10);
+	});
 }
 
-// before("super before", function(){
-// 	console.log("in super before.before()...")
-
-// 	return Promise.resolve().then(function(){
-// 		console.log("In promise in super before.before");
-// 		it("DID A TEST DEFINED IN BEFORE?", function(){
-// 			console.log("running test in super before");
-// 		});
-// 		describe("super before describe", function(){
-// 			console.log("in super beofre describe");
-// 			it("does something in super before describe", function(){
-
-// 			})
-// 		})
-// 		it("does something AFTER super before describe", function(){
-				
-// 		})
-// 		describe("super before describe", function(){
-// 			console.log("in super beofre describe");
-// 			it("does something in super before describe", function(){
-
-// 			})
-// 		})
-// 	})
-// })
-
-describe.only("test describe", function(){
-	before("i fail", function(){
-		throw new Error("FAIL!");
+describe("Some cool features", async function(){
+	before("Before can have nested describe/its", function(){
+		describe("I'm a describe", function(){
+			it("Test 1", function(){
+				console.log("console.logs() get nested!");
+			});
+			it("Test 2", function(){});
+		});
+		it("An it, sibling of describe. No problem here.", function(){})
 	});
 
-	describe("I should not run, before failed.", function(){
+	await dummyPromise();
+	describe("This describe was created after awaiting for a promise.", function(){
+		it("It's can have children its. Why not?", function(){
+			it("Child it #1", function(){});
+			it("Child it #2", function(){});
+		});
+	});
+
+	afterEach("This is an afterEach", function(){});
+});
+
+describe("testing before/after", function(){
+	before("i fail, so everything else should skip.", function(){
+		throw new Error("Error message in 'before'");
+	});
+	after("i should get skipped", function(){})
+
+	describe("I should not run because before failed.", function(){
 		it("bla", function(){})
 		it("bla", function(){})
 		it("bla", function(){})
 	})
 
 	it("I should get skipped as well", function(){})
-
-	after("i should get skipped", function(){})
 });
 
 describe("this beforeEach fails", function(){
@@ -52,25 +52,25 @@ describe("this beforeEach fails", function(){
 	beforeEach("before each fails", function(){
 		throw new Error("FAIL!")
 	});
-	it("does stuff", function(){})
-	it("does stuff", function(){})
-	it("does stuff", function(){})
-	afterEach("after each", function(){})
-	after("i should run", function(){})
+	it("this should get skipped", function(){})
+	it("this should get skipped", function(){})
+	it("this should get skipped", function(){})
+	afterEach("this afterEach should get skipped", function(){})
+	after("after should get run", function(){})
 });
 
-describe.only("this has its that skip", function(){
+describe("This has its that skip", function(){
 	before("some before", function(){
-		console.log("I'm logging from within before");
+		console.log("I'm an example of logging from within before");
 	});
 	it("logs stuff", function(){
 		console.log("hello from inside it");
-		it("a nested it", function(){
+		it("I'm a test that fails", function(){
 			console.log("hello from inside nested it");
 			throw new Error("crap");
 		});
 	})
-	it("does stuff", function(){
+	it("I will call skip internally.", function(){
 		this.skip("calling skip internally")
 	})
 	after("the after", function(){
@@ -78,112 +78,59 @@ describe.only("this has its that skip", function(){
 	})
 })
 
-describe("DESCRIBE", async function(){
+describe("Only works relative to nested elements, and multiple can have .only", function(){
+	describe("I should be skipped", function(){});
+	describe.only("I should not be skipped", function(){
+		it("I should be skipped", function(){})
+		it.only("I should not be skipped", function(){})
+		it.only("I should not skipped", function(){})
+		it("I should be skipped", function(){})
+	});
+	describe("I should be skipped", function(){});
+})
+
+describe("This beforeEach will fail on the second run.", async function(){
 	var count = 0;
 
-	beforeEach("BEFOREEACH", function(){
+	beforeEach("I'll fail the second run.", function(){
 		count++;
 		if (count === 2) throw new Error("beef");
 	})
 
-	afterEach("AFTEREACH", function(){
+	afterEach("I'm afterEach", function(){});
 
-	});
+	it("Test 1", function(){})
 
-	it("TEST1", function(){
+	it("Test 2 should skip, because beforeEach fails", function(){})
 
-	})
-
-	it("TEST TO BE SKIPPED bc of BEFOREEACH", function(){
-
-	})
-
-	it("test uses 'done' callback", function(done) {
+	it("This test uses 'done' callback", function(done) {
 		setTimeout(done, 500);
 	});
-	it("test uses 'done' callback and passes a value", function(done) {
+	it("This test uses 'done' callback to fail.", function(done) {
 		done(12345);
 	});
-	it("test uses 'done' callback and passes an Error", function(done) {
+	it("This test uses 'done' callback and passes an Error", function(done) {
 		done(new Error("I hope the stacktrace is here."));
 	});
-	it("test uses 'done' callback and returns promise (should fail)", function(done) {
+	it("This test uses 'done' callback, but returns a value (so should fail)", function(done) {
 		setTimeout(done, 500);
 		return Promise.resolve();
 	});
-	it("test returns failed promise", function() {
-		return Promise.reject(new Error("poop"));
-	});
-
-	file(path.join(__dirname, "./smochatest2.js"));
-
-	file.skip("SKIP IT", "some-file-to-skip.js");
-
-	file("This file fails", path.join(__dirname, "./smochatest3.js"));
-
-	describe("A describe", function(){
-		before("this is a before", function(){
-			
-		})
-		it("a", function(){})
-		it("b", function(){ throw new Error("this is an example of a really long error message"); })
-		it("c", function(){})
-		it("d skips itself", function(){ this.skip(); })
-		after("this is a before", function(){
-			
-		})
+	it("This test returns a failed promise, so it should fail", function() {
+		return Promise.reject(new Error("I'm a failure."));
 	});
 
 	await new Promise(function(res, rej){
 		setTimeout(function(){
-			it("ND.TESTDEFINED ASYNC", function(){});
+			it("I'm an it that got defined after a setTimeout", function(){});
 			res();
 		}, 100);
-	})
-
-	describe("NESTED DESCRIBE", async function(){
-		before("", function(){
-			throw new Error("shit");
-		})
-
-		it("ND.TEST1", function(){
-
-		})
-		it("ND.TEST2", function(){
-			
-		})
-		describe("describe to be skipped", function(){});
-	})
-
-	it("TEST3", function(){
-
-	})
-	it("TEST4", function(){
-
-	})
-
-	describe("bla bla bla", function(){
-
-		it("does stuff", function(){
-
-		})
-
-		after("failing after", function(){
-			throw new Error("afternnoon");
-		})
-
-		return new Promise((res, rej)=>{
-			setTimeout(()=>{
-				it("does a test defined asychronously", function(){});
-				res();
-			}, 100)
-		})
-	})
+	});
 })
 
-describe("this fails while running", function(){
-	it("does stuff", function(){
-
+describe("This describe fails after defining an it.", function(){
+	it("I should never be run", function(){
+		console.log("I SHOULDNT BE DISPLAYED");
 	})
 
 	return new Promise((res,rej) => {
@@ -191,115 +138,4 @@ describe("this fails while running", function(){
 			rej(new Error("I hate pants"))
 		}, 100);
 	})
-})
-
-it("still works after prev desc failed", function(){
-
-})
-
-it("is pretty cool", function(){
-
-})
-
-describe("only do me", function(){
-	describe("failed describe", function(){
-		throw new Error("fjkdsa");
-	})
-})
-
-// describe("first describe", function(){
-// 	// it("first test", function(){
-// 	// 	return new Promise((res, rej)=>{
-// 	// 		setTimeout(res, 500);
-// 	// 	})
-// 	// })
-
-// 	// describe("this one has a before", function(){
-// 	// 	before("do stuff before", function(){
-
-// 	// 	})
-
-// 	// 	it("bla", function(){
-
-// 	// 	})
-
-// 	// 	after("do stuff after", function(){
-// 	// 		throw new Error("failed (in after)")
-// 	// 	})
-// 	// })
-
-// 	// it("second test (fails)", function(){
-// 	// 	throw new Error("FAILURE REASON!");
-// 	// });
-
-// 	// describe("wow, a describe inside a describe...", function(){
-// 	// 	console.log("logging from in a describe");
-// 	// 	it("fourth test", function(){
-// 	// 		console.log("Logging from fourth test");
-// 	// 	});
-// 	// 	it("fifth test", function(){});
-// 	// 	before(function bla(){
-// 	// 		it("and it inside a before?", function(){
-
-// 	// 		});
-// 	// 	});
-// 	// });
-
-// 	// describe("another describe", function(){
-// 	// 	it("does test one", function(){
-
-// 	// 	});
-
-// 	// 	return new Promise((res, rej) => {
-// 	// 		setTimeout(res, 400);
-// 	// 	}).then(function(){
-// 	// 		it("waits for test two.", function(){
-
-// 	// 		})	
-// 	// 	})
-// 	// })
-// });
-
-// describe("A", function(){
-
-// 	describe("A.A", function(){
-// 		before("", function(){
-// 			console.log("A.A.before()...")
-// 		})
-
-// 		console.log("A.A");
-// 		it("A.A.T1", function(){
-// 			this.skip();
-// 		});
-// 		describe("A.A.A", function(){
-// 			console.log("A.A.A");
-// 			it("A.A.A.T1", function(){
-				
-// 			})
-// 		});
-// 		it("A.A.T2", function(){
-			
-// 		})
-// 	})
-// });
-
-// 	it("some test", function(){
-
-// 	});
-
-// 	outerD("B.A", function(){
-// 		console.log("B.A");
-// 		it("B.A.T1", function(){
-			
-// 		});
-// 		describe("B.A.A", function(){
-// 			console.log("B.A.A");
-// 			it("B.A.A.T1", function(){
-				
-// 			})
-// 		});
-// 		it("B.A.T2", function(){
-			
-// 		})
-// 	})
-// })
+});

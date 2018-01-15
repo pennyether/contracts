@@ -1,6 +1,8 @@
-// creates a promise with a "resolve()" and "reject()" function
-// resolve(...): resolves with fn(...), ...[0], or nothing
-// reject(e): fails it with e
+// Creates a promise with a "resolve()" and "reject()" function
+// Upon resolving, will execute the initally passed function.
+// Additional Methods:
+//  - resolve(...): resolves with fn(...), ...[0], or nothing
+//  - reject(e): fails it with e
 function createDeferredFn(fn) {
 	var resolve;
 	var onResolve;

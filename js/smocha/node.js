@@ -1,5 +1,10 @@
 createTaskQueue = require("../lib/task-queue");
 
+/*
+	Creates a Node object that has many public properties.
+	This is very tightly coupled with Smocha, and could use some
+	 better documentation.
+*/
 function createNode(type, name, parentNode, run, opts) {
 	opts = strictExtend({
 		only: false,
@@ -53,7 +58,8 @@ function createNode(type, name, parentNode, run, opts) {
 	};
 }
 
-// puts opts onto obj, throws if opts has a prop that obj doenst.
+// Overrides `obj` with anythings `opts` has.
+// Throws if `opts` provides something that `obj` doesn't have.
 function strictExtend(obj, opts){
 	Object.keys(opts || {}).forEach((key) => {
 		if (!obj.hasOwnProperty(key))

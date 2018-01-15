@@ -485,34 +485,6 @@ function createPlugins(testUtil, ledger) {
 				console.log(`✓ ${msg}`);
 			}
 		},
-		// assert $contract[$name]() returns $expectedValue
-		assertStateAsString: async function(contract, name, expectedValue, msg) {
-			msg = msg || `should equal '${str(expectedValue)}'`;
-			msg = `${at(contract)}.${name}() ${msg}`;
-			if (!contract[name])
-				throw new Error(`'${name}' is not a callable property of the contract.`);
-			assert.strEqual(await contract[name](), expectedValue, msg);
-			console.log(`✓ ${msg}`);
-		},
-		// waits for fnOrPromise, then ensures it equals expectedValue
-		assertAsString: async function(fnOrPromise, expectedValue, msg) {
-			fnOrPromise = testUtil.toPromise(fnOrPromise);
-			expectedValue = testUtil.toPromise(expectedValue);
-			msg = msg || `should equal '${str(expectedValue)}'`;
-			assert.strEqual(await fnOrPromise, await expectedValue, msg);
-			console.log(`✓ ${msg}`);
-		},
-		assertStateCloseTo: async function(contract, name, expectedValue, tolerance, msg) {
-			const val = await contract[name]();
-			if (!val || !val.toNumber())
-				throw new Error(`assertStateCloseTo expects call to return a BigNumber.`);
-
-			msg = msg || "is close to some number";
-			msg = `${at(contract)}.${name}() ${msg}`;
-			if (expectedValue.toNumber) expectedValue = expectedValue.toNumber();
-			assert.closeTo(val.toNumber(), expectedValue, tolerance, msg);
-			console.log(`✓ ${msg}`);
-		},
 		assertEquals: async function(val1, val2, msg) {
 			val1 = await testUtil.toPromise(val1);
 			val2 = await testUtil.toPromise(val2);
@@ -535,13 +507,6 @@ function createPlugins(testUtil, ledger) {
 			msg = `Balance of ${at(address)} ${msg}`;
 			assert.strEqual(balance, expectedBalance, msg);
 			console.log(`✓ ${msg}`);
-		},
-		assertBalanceLessThan: async function(address, num, msg) {
-			const balance = await testUtil.getBalance(address);
-			msg = msg || `should be less than some value`;
-			msg = `Balance of ${at(address)} ${msg}`;
-			assert(balance.lt(num), msg);
-			console.log(`✓ ${msg}`);	
 		},
 		// print the balance of an address (or contract)
 		printBalance: async function(address) {
@@ -604,7 +569,8 @@ function at(val) {
 			: `${val.constructor._json.contract_name}[${shortened}]`;
 	}
 	if (typeof val == "string"){
-		return `"${val}"`;
+		if (val.length > 19) return `"${val.slice(0,19)}..."`;
+		else return `"${val}"`;
 	}
 	return `${val}`;
 }
@@ -620,14 +586,20 @@ function str(val, hideBrackets) {
 	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
 		return at(val);
 	} else if (val.constructor.name == "BigNumber") {
-		return val.toString();
+		if (val.abs().gt(1e8)) return wei(val);
+		else return val.toString();
 	} else if (typeof val == "object") {
-		const keys = Object.keys(val).map((k) => `${k}: ${str(val[k])}`);
+		const keys = Object.keys(val).map((k) => {
+			if (k=="value") return `${k}: ${wei(val[k])}`;
+			return `${k}: ${str(val[k])}`
+		});
 		const extra = keys.length - 3;
 		const ellipsis = extra > 0 ? `, +${extra}...` : "";
 		return `{${keys.join(", ") + ellipsis}}`;
 	} else {
-		return val.toString();
+		const str = val.toString();
+		if (str.length > 20) return `${str.slice(0,19)}...`;
+		else return str;
 	}
 }
 function wei(val) {

@@ -24,7 +24,7 @@ describe('Treasury', function(){
         registry = await Registry.new(owner, {from: anon});
         await registry.register("MAIN_CONTROLLER", dummyMainController, {from: owner});
         await registry.register("ADMIN", admin, {from: owner});
-        treasury = await Treasury.new(registry.address);
+        treasury = await Treasury.new(registry.address, {from: anon});
 
         const addresses = {
             registry: registry.address,
@@ -515,11 +515,13 @@ describe('Distribution Stats', function(){
     before("Set up registry and treasury", async function(){
         const registry = await Registry.new(owner, {from: anon});
         await registry.register("ADMIN", admin, {from: owner});
-        treasury = await Treasury.new(registry.address);
+        treasury = await Treasury.new(registry.address, {from: anon});
 
         const addresses = {
             registry: registry.address,
             treasury: treasury.address,
+            owner: owner,
+            anon: anon,
             dummyToken: dummyToken,
             admin: admin
         };

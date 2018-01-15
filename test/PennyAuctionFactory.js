@@ -25,7 +25,7 @@ describe('PennyAuctionFactory', async function(){
     var paf;
     
     before("Can be created", async function(){
-        paf = await PennyAuctionFactory.new(registry.address);
+        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
         const addresses = {
             registry: registry.address,
             dummyTreasury: dummyTreasury,

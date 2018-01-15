@@ -1,5 +1,5 @@
-const PennyAuction = artifacts.require("./PennyAuction.sol");
-const ExpensivePayableBidder = artifacts.require("./test-helpers/ExpensivePayableBidder.sol");
+const PennyAuction = artifacts.require("PennyAuction");
+const ExpensivePayableBidder = artifacts.require("ExpensivePayableBidder");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
@@ -24,7 +24,7 @@ PARAMS_3[2] = PARAMS_3[0].div(10).mul(-1);
 const PARAMS_4 = PARAMS_1.slice();
 PARAMS_4[2] = PARAMS_4[1];
 
-_smocha.logger.silence = true;
+//_smocha.logger.silence = true;
 testWithParams("Testing with regular params.", PARAMS_1);
 testWithParams("Testing with 0 bidIncr", PARAMS_2)
 testWithParams("Testing with negative bidIncr.", PARAMS_3);
@@ -43,6 +43,7 @@ function testWithParams(name, params) {
         console.log(`Params:`, params);
 
         var auction, bidderContract, blockStarted;
+        const anon = accounts[0];
         const collector = accounts[1];
         const bidder1 = accounts[2];
         const bidder2 = accounts[3];
@@ -54,8 +55,8 @@ function testWithParams(name, params) {
         const nonAdmin = accounts[9];
 
         before("Create BidderContract", async function(){
-            bidderContract = await ExpensivePayableBidder.new();
-            await bidderContract.fund({value: BID_PRICE.mul(5)});
+            bidderContract = await ExpensivePayableBidder.new({from: anon});
+            await bidderContract.fund({value: BID_PRICE.mul(5), from: anon});
             assert.strEqual(await testUtil.getBalance(bidderContract), BID_PRICE.mul(5));
         });
 
@@ -64,7 +65,7 @@ function testWithParams(name, params) {
                 return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.minus(1)}))
+                        {value: INITIAL_PRIZE.minus(1), from: anon}))
                     .assertInvalidOpCode()
                     .start();
             });
@@ -72,7 +73,7 @@ function testWithParams(name, params) {
                 return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.plus(1)}))
+                        {value: INITIAL_PRIZE.plus(1), from: anon}))
                     .assertInvalidOpCode()
                     .start();
             });
@@ -80,7 +81,7 @@ function testWithParams(name, params) {
                return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE.plus(1), BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.plus(1)}))
+                        {value: INITIAL_PRIZE.plus(1), from: anon}))
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -88,7 +89,7 @@ function testWithParams(name, params) {
                return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE.plus(1), BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE}))
+                        {value: INITIAL_PRIZE, from: anon}))
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -96,7 +97,7 @@ function testWithParams(name, params) {
                return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, BID_INCR.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE}))
+                        {value: INITIAL_PRIZE, from: anon}))
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -104,7 +105,7 @@ function testWithParams(name, params) {
                return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, BID_PRICE.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE}))
+                        {value: INITIAL_PRIZE, from: anon}))
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -112,7 +113,7 @@ function testWithParams(name, params) {
                return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, INITIAL_PRIZE.plus(1).mul(-1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE}))
+                        {value: INITIAL_PRIZE, from: anon}))
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -123,7 +124,7 @@ function testWithParams(name, params) {
                 return createDefaultTxTester()
                     .doNewTx(() => PennyAuction.new(collector,
                         INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE}))
+                        {value: INITIAL_PRIZE, from: anon}))
                     .assertSuccess("Created auction")
                         .assertOnlyLog("Started", {time: null, initialBlocks: null})
                     .doFn(ctx => {
@@ -235,13 +236,15 @@ function testWithParams(name, params) {
                                 if (block.transactions[1] != tx2res.tx)
                                     throw new Error("tx2 did not occur second");
 
-                                // fix logs bug (all logs included in all receipts/logs)
+                                // fix web3 logs bug 
+                                // (logs of other transactions are erroneously included)
                                 arr.forEach((txRes)=>{
                                     const hash = txRes.tx;
                                     txRes.receipt.logs = txRes.receipt.logs.filter((l)=>l.transactionHash == hash);
                                     txRes.logs = txRes.logs.filter((l)=>l.transactionHash == hash);
                                 })
-                                // fix gasUsed bug (gasUsed is recorded as gasUsed up until that tx)
+                                // fix ganache gasUsed bug
+                                // (gasUsed is erroneously recorded as cumulativeGasUsed)
                                 tx3res.receipt.gasUsed = tx3res.receipt.gasUsed - tx2res.receipt.gasUsed;
                                 tx2res.receipt.gasUsed = tx2res.receipt.gasUsed - tx1res.receipt.gasUsed;
                                 // store txFees
@@ -291,7 +294,7 @@ function testWithParams(name, params) {
                         .startLedger([bidderContract, bidderSecond, auction])
                         .startWatching([auction])
                         .doFn(() => { testUtil.stopMining(); })
-                        .doFn(() => { tx1 = bidderContract.doBid(auction.address, {gas: "200001"}); })
+                        .doFn(() => { tx1 = bidderContract.doBid(auction.address, {gas: "200001", from: anon}); })
                         .wait(100)
                         .doFn(() => { tx2 = auction.sendTransaction({from: bidderSecond, value: BID_PRICE, gas: "200002"}); })
                         .wait(100, "Stopped mining, queued both tx1 and tx2.")
@@ -358,7 +361,7 @@ function testWithParams(name, params) {
                     await createDefaultTxTester()
                         .startLedger([bidderContract, auction])
                         .startWatching([auction])
-                        .doTx(() => bidderContract.doBid(auction.address))
+                        .doTx(() => bidderContract.doBid(auction.address, {from: anon}))
                             .assertSuccess()
                             .assertCallReturns([auction, 'prize'], newPrize, "increased by prizeIncr")
                             .assertCallReturns([auction, 'fees'], newFees, "increased by feeIncr")
@@ -392,7 +395,7 @@ function testWithParams(name, params) {
                         }
                         console.log("Bidding with bidderContract so they it's the winner.");
                         await createDefaultTxTester()
-                                .doTx(() => bidderContract.doBid(auction.address))
+                                .doTx(() => bidderContract.doBid(auction.address, {from: anon}))
                                 .assertSuccess()
                                 .start();    
                     });

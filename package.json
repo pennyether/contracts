@@ -1,0 +1,11 @@
+{
+  "name": "pennyether-contracts",
+  "description": "PennyEther.com Solidity contacts, with tests.",
+  "version": "1.0.0",
+  "dependencies": {
+    "chai": "^4.1.2",
+    "colors": "^1.1.2",
+    "solc": "^0.4.19",
+    "truffle-contract": "^3.0.1"
+  }
+}
