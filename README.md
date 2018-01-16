@@ -2,18 +2,16 @@
 
 This repo contains open-sourced PennyEther contracts. All tests are included and are easy to run, with minimal dependancies.
 
-## Requirements
-
-Due to the use of ES6 features like `arrow functions` and `async`, Node 8 or above is required.
-
 ## To Run Tests
+
+_Note: Node 8 or higher required._
 
 - Install `node` and `npm`
 - `git clone` this repo, and `cd` into it
 - Install dependencies: `npm install`.
-- Run: `./compile.js` - this compiles all contracts and creates artifacts (abis, etc) in the `/build/contracts` folder.
-- To run a test: `./test.js test/Comptroller.js`
-- To run all tests: `./test.js all` (this will run _a lot_ of tests!)
+- Run: `./scripts/compile.js` - this compiles all contracts and creates artifacts (abis, etc) in the `/build/contracts` folder.
+- To run a test: `./scripts/test.js tests/Comptroller.js`
+- To run all tests: `./scripts/test.js all` (this will run _a lot_ of tests!)
 
 <div style='border: 1px solid gray; padding: 10px; background: #FFFFFA; border-radius: 5px;'>
 If you receive an error that Web3 couldn't connect, make sure you have `testrpc` or `ganache` running on `localhost:8545`
@@ -43,7 +41,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 			- Dividends can be claimed at any time by calling `.collectDividends()` from an account with a balance.
 			- Owed dividends can be viewed by calling `.getCollectableDividends(<address>)` by anyone.
 	- After the crowdsale:
-		- Allows tokens to be burned. This will remove bankroll from `Treasury` and refund user. It will also burn `TokenLocker` tokens, to sure `TokenLocker` balance stays at 10% of `totalSupply`
+		- Allows tokens to be burned. This will remove bankroll from `Treasury` and refund the user. It will also burn `TokenLocker` tokens to ensure `TokenLocker` balance stays at 10% of `totalSupply`
 - **Treasury.sol**: Holds the bankroll, pays dividends on demand.
 	- Is able to fund `MainController` a limited amount per day.
 		- Note: the address of `MainController` is determined via the `Registry`, *all other addresses are permanent, meaning the owners cannot change how dividends, burning, etc, will work*.
@@ -84,7 +82,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 
 ### Tests
 
-We've tested every feature listed above, and if you're so inclined, you can read and run the tests yourself.
+We've tested every feature listed above, and if you're so inclined, you can read and run the tests yourself. Or, you can view the test results 
 
 ### Helper Contracts
 
@@ -132,6 +130,7 @@ createDefaultTxTester()
 	.start();							// starts the asyncChain above, returns promise.
 
 // Prints out really nice looking log. You'll have to try it for yourself to see.
+```
 
 ## Security
 
@@ -211,6 +210,8 @@ Let's go over a few scenarios, and their possible impact on Penny Ether
 		- If all tokens are burned, maximum payout to attacker is `dailyFundLimit * 14`.
 	- Notes: As noted in `CustodialWallet.sol`, `owner` wallet is held in deep cold storage, and will likely never need to be used.
 
+- Additional Notes
+	- `Treasury` has a buffer between the `bankroll` amount, and the `minimum dividend threshold` of `14 * dailyLimit`. This means if dividends were just distributed, there is a guaranteed 14 days of solvency where _all_ tokens can be burned for a refund.
 		
 ### Audits
 

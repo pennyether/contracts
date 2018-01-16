@@ -1,5 +1,5 @@
 const util = require("util");
-const colors = require("colors/safe");
+const chalk = require("chalk");
 const BigNumber = require("bignumber.js");
 
 function createPlugins(testUtil, ledger) {
@@ -535,7 +535,8 @@ function createPlugins(testUtil, ledger) {
 var addrToName = {};
 function nameAddresses(obj, reset) {
 	if (reset === undefined || !!reset) addrToName = {};
-	console.log("Named addresses", obj);
+	console.log("Named addresses:")
+	console.log(JSON.stringify(obj, null, 2));
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);
@@ -559,13 +560,13 @@ function at(val) {
 	if (typeof val == "string" && val.length == 42){
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
-			? colors.underline(`${addrToName[val]}`)
+			? chalk.underline(`${addrToName[val]}`)
 			: shortened;
 	}
 	if (val.constructor.name == "TruffleContract") {
 		var shortened = val.address.substr(0, 6) + "...";
 		return addrToName[val.address]
-			? colors.underline(`${addrToName[val.address]}`)
+			? chalk.underline(`${addrToName[val.address]}`)
 			: `${val.constructor._json.contract_name}[${shortened}]`;
 	}
 	if (typeof val == "string"){

@@ -18,19 +18,14 @@ const options = {
 	showGasEstimates: false
 }
 
-const contractDir = path.join(__dirname, "contracts");
-const buildDir = path.join(__dirname, "build");
-const buildContractsDir = path.join(buildDir, "contracts");
+const contractDir = path.join(__dirname, "../contracts");
+const buildDir = path.join(__dirname, "../build");
 if (!fs.lstatSync(contractDir).isDirectory()){
 	throw new Error("Could not find a contracts folder.");
 }
 if (!fs.existsSync(buildDir)){
-	console.log(`Creating dirctory: ./build`);
+	console.log(`Creating directory: ${buildDir}`);
 	fs.mkdirSync(buildDir)
-}
-if (!fs.existsSync(buildContractsDir)){
-	console.log(`Creating directory: ./build/contracts`);
-	fs.mkdirSync(buildContractsDir);
 }
 
 // Recursively searches a directory for .sol files.
@@ -131,7 +126,7 @@ function handleResult(result){
 				devdoc: obj.devdoc,
 				unlinked_binary: obj.evm.bytecode.object
 			};
-			const filepath = path.join(__dirname, "build", "contracts", `${name}.json`);
+			const filepath = path.join(buildDir, `${name}.json`);
 			console.log(`  * Saving ${filepath}...`);
 			fs.writeFileSync(filepath, JSON.stringify(json, null, 2));
 

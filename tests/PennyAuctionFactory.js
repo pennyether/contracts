@@ -17,8 +17,7 @@ const accounts = web3.eth.accounts;
 const owner = accounts[1];
 const dummyTreasury = accounts[2];
 const dummyPac = accounts[3];
-const notPac = accounts[4];
-const anon = accounts[5];
+const anon = accounts[4];
 
 describe('PennyAuctionFactory', async function(){
     const registry = await Registry.new(owner, {from: anon});
@@ -30,7 +29,7 @@ describe('PennyAuctionFactory', async function(){
             registry: registry.address,
             dummyTreasury: dummyTreasury,
             dummyPac: dummyPac,
-            notPac: notPac,
+            anon: anon,
             paf: paf.address
         };
         await createDefaultTxTester()
@@ -45,8 +44,8 @@ describe('PennyAuctionFactory', async function(){
     });
 
     describe(".createAuction()", async function(){
-        it("should fail when called by randos", function(){
-            const settings = {from: notPac, gas: 2000000, value: INITIAL_PRIZE};
+        it("should fail when called by anon", function(){
+            const settings = {from: anon, gas: 2000000, value: INITIAL_PRIZE};
             const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
                 .doTx(callParams)
@@ -63,7 +62,7 @@ describe('PennyAuctionFactory', async function(){
                 .start();
         });
 
-        it("should fail when passed too little", function(){
+        it("should fail when passed too little ETH", function(){
             const settings = {from: dummyPac, gas: 2000000, value: 1}; 
             const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
@@ -72,7 +71,7 @@ describe('PennyAuctionFactory', async function(){
                 .start();
         });
 
-        it("should fail when passed too much", function(){
+        it("should fail when passed too much ETH", function(){
             const settings = {from: dummyPac, gas: 2000000, value: INITIAL_PRIZE.plus(1)};
             const callParams = [paf, "createAuction"].concat(AUCTION_DEF, settings);
             return createDefaultTxTester()
@@ -81,8 +80,8 @@ describe('PennyAuctionFactory', async function(){
                 .start();
         });
 
-        it("should fail when passed invalid auction param", function(){
-           return createDefaultTxTester()
+        it("should fail when passed invalid auction param (negative prize)", function(){
+            return createDefaultTxTester()
                 .doTx([paf, "createAuction",
                             -1, 
                             BID_PRICE,

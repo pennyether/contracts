@@ -1,34 +1,37 @@
-const colors = require("colors/safe");
+const chalk = require("chalk");
 const util = require("util");
 
 function SmochaLogger() {
 	const _self = this;
 
-	colors.setTheme({
+	const theme = {
 		// misc
-		indent: ['dim', 'gray'],
-		log: ['dim', 'gray'],
-		skipText: 'cyan',
+		indent: chalk.hex("#BBB"),
+		log: chalk.hex("#BBB"),
+		skipText: chalk.dim.cyan,
+		info: chalk.reset.italic.gray,
+		warn: chalk.reset.italic.red,
 
 		// states
-		pass: 'green',
-		fail: 'red',
-		skip: [],
+		pass: chalk.green,
+		fail: chalk.red,
+		skip: chalk,
 
 		// types
-		file: 'bold',
-		describe: ['bold'],
-		it: [],
-		before: [],
-		after: [],
-		beforeEach: [],
-		afterEach: [],
+		file: chalk.bold,
+		describe: chalk.bold,
+		it: chalk,
+		before: chalk,
+		after: chalk,
+		beforeEach: chalk,
+		afterEach: chalk,
 
 		// overrides
-		'describe.encountered': ['bold', 'black'],
-		'file.encountered': ['bold', 'magenta'],
-		'it.encountered': []
-	});
+		'describe.encountered': chalk.bold.black,
+		'file.encoutered': chalk.bold.magenta,
+		'it.encountered': chalk
+	}
+	
 	const _consoleLog = console.log;
 	var _startTime;
 	const _passes = [];
@@ -44,15 +47,16 @@ function SmochaLogger() {
 	function _log(indents, args, colorize, doExtraIndent) {
 		const lastMarker = doExtraIndent ? "└ " : "├ ";
 		indents = indents + (doExtraIndent ? 1 : 0);
-		const indent = colors.indent((new Array(indents)).join("│  ") + lastMarker);
-		const indent2 = colors.indent((new Array(indents)).join("│  ") + "   ");
+		const indent = theme.indent((new Array(indents)).join("│  ") + lastMarker);
+		const indent2 = theme.indent((new Array(indents)).join("│  ") + "   ");
 
 		args = args || [];
 		args = args.map((arg) => {
 			const argStr = util.format(arg).replace(/\n/g, `\n${indent2}`);
-			return colorize ? colors.log(argStr) : argStr;
+			return colorize ? theme.log(argStr) : argStr;
 		});
 		args.unshift(indent);
+		args.push(chalk.reset(' '));
 		_consoleLog.apply(null, args);		
 	}
 
@@ -63,11 +67,11 @@ function SmochaLogger() {
 
 		// convert the first arg to a string, and colorize it.
 		var str = args[0].toString();
-		if (colors[`${node.type}.${state}`]){
-			str = colors[`${node.type}.${state}`](str);
+		if (theme[`${node.type}.${state}`]){
+			str = theme[`${node.type}.${state}`](str);
 		} else {
-			if (colors[state]) { str = colors[state](str); }
-			if (colors[node.type]) { str = colors[node.type](str); }
+			if (theme[state]) { str = theme[state](str); }
+			if (theme[node.type]) { str = theme[node.type](str); }
 		}
 		args[0] = str;
 		_log(node.getParents().length, args, false, doExtraIndent);
@@ -79,7 +83,7 @@ function SmochaLogger() {
 	}
 	function _addError(node, error) {
 		_errors.push([node, error]);
-		const errNumStr = colors.red.bold(`(${_errors.length})`);
+		const errNumStr = chalk.red.bold(`(${_errors.length})`);
 		const trimmedMsg = error.message.length > 50
 			? error.message.substr(0, 50) + "..."
 			: error.message;
@@ -92,7 +96,7 @@ function SmochaLogger() {
 
 	this.onSkip = function(node) {
 		_addSkip(node);
-		_logType(node, "skip", [`${node.name}`, colors.skipText(`(skipped: ${node.skipReason})`)]);
+		_logType(node, "skip", [`${node.name}`, theme.skipText(`(skipped: ${node.skipReason})`)]);
 	}
 
 	this.onEncounter = function(node) {
@@ -120,7 +124,7 @@ function SmochaLogger() {
 	// otherwise, just log the whole thing using .onSkip
 	this.onSkipDuringInitialRun = function(node) {
 		if (_logOnEncounter.has(node.type)) {
-			_logType(node, "skip", [colors.skipText(`skipped: ${node.skipReason}`)], true);
+			_logType(node, "skip", [theme.skipText(`skipped: ${node.skipReason}`)], true);
 			_addSkip(node);
 		} else {
 			this.onSkip(node);
@@ -130,21 +134,16 @@ function SmochaLogger() {
 	this.onQueuePass = function(node) {
 		// we don't really care about this
 	}
-	// this should only happen on before -- all other errors should be handled
 	this.onQueueFail = function(node) {
-		// if (_logOnEncounter.has(node.type)) {
-		// 	const str = colors.indent('└') + " " + colors.fail("Skipped children tasks because something threw");
-		// 	_log(node.getParents().length, [str]);
-		// }
-		// else console.log("FILL THIS IN NOW");
+		// this is logged already	
 	}
 
 	this.onStart = function() {
 		process.on('unhandledRejection', function(reason, p){
-		    console.log(colors.red.bold("Unhandled Rejection:\n"), colors.red(util.format(reason)));
+		    console.log(chalk.red.bold("Unhandled Rejection:\n"), chalk.red(util.format(reason)));
 		});
 		_startTime = +(new Date());
-		const smochaStarting = colors.black.bold.inverse(" SMOCHA STARTING ");
+		const smochaStarting = chalk.black.bold.inverse(" SMOCHA STARTING ");
 		console.log("");
 		console.log("  ========================================= ")
 		console.log(`  =========== ${smochaStarting} ===========`);
@@ -153,14 +152,14 @@ function SmochaLogger() {
 	}
 	this.onComplete = function() {
 		var statusColorize;
-		if (_errors.length) statusColorize = colors.red.bold.inverse;
-		else if (_skips.length) statusColorize = colors.gray.bold.inverse;
-		else statusColorize = colors.green.bold.inverse;
+		if (_errors.length) statusColorize = chalk.red.bold.inverse;
+		else if (_skips.length) statusColorize = chalk.gray.bold.inverse;
+		else statusColorize = chalk.green.bold.inverse;
 
 		const smochaFinished = statusColorize(" SMOCHA FINISHED ");
-		const numPasses = colors.green.bold(_passes.length) + colors.green(" passed.");
-		const numErrors = colors.red.bold(_errors.length) + colors.red(" errors.");
-		const numSkips = colors.gray.bold(_skips.length) + colors.gray(" skipped.");
+		const numPasses = chalk.green.bold(_passes.length) + chalk.green(" passed.");
+		const numErrors = chalk.red.bold(_errors.length) + chalk.red(" errors.");
+		const numSkips = chalk.gray.bold(_skips.length) + chalk.gray(" skipped.");
 		const duration = (((new Date()) - _startTime) / 1000).toFixed(2);
 
 		console.log("");
@@ -170,8 +169,8 @@ function SmochaLogger() {
 		console.log("");
 		_errors.forEach(function(arr, i){
 			const [node, error] = arr;
-			const nodeStr = colors.bold(node.name);
-			const numStr = colors.red.bold(`(${i+1})`);
+			const nodeStr = chalk.bold(node.name);
+			const numStr = chalk.red.bold(`(${i+1})`);
 			const errStr = util.format(error.stack).replace(/\n/g, `\n  `);
 			console.log(`  ${numStr}: Occurred in '${nodeStr}'`)
 			console.log(`  ----------------------------------`);
@@ -180,12 +179,20 @@ function SmochaLogger() {
 		});
 	}
 	this.onFailure = function(e) {
-		console.log(colors.red.bold("Smocha unexpectedly failed: "), colors.red(util.format(e)));
+		console.log(chalk.red.bold("Smocha unexpectedly failed: "), chalk.red(util.format(e)));
 	}
 
 	this.log = function(node, args){
 		if (_self.silence) return;
 		_log(node.getParents().length + 1, args, true);
+	}
+	this.logInfo = function(node, str){
+		if (_self.silence) return;
+		_logType(node, "info", [str]);
+	}
+	this.logWarn = function(node, str){
+		if (_self.silence) return;
+		_logType(node, "warn", [str]);
 	}
 }
 

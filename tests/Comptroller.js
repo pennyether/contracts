@@ -28,7 +28,7 @@ describe('Comptroller', function(){
     var registry;
     var treasury;
 
-    before("Set up registry, treasury, and create comptroller.", async function(){
+    before("Set up Registry, Treasury, and create Comptroller.", async function(){
         registry = await Registry.new(regOwner, {from: anon});
         treasury = await Treasury.new(registry.address, {from: anon});
         comptroller = await Comptroller.new(compOwner, {from: anon});
@@ -123,6 +123,7 @@ describe('Comptroller', function(){
     });
     describe("Before sale", function(){
         it("Owner gets all dividends before is started", function(){
+            this.logInfo("Owner should have 1 token, therefore should receive all dividends.");
             return createDefaultTxTester()
                 .startLedger([token])
                 .doTx([token, "sendTransaction", {value: FIRST_DIV_AMT, from: anon}])
@@ -179,7 +180,7 @@ describe('Comptroller', function(){
     	});
     });
     describe("Dividends work", async function(){
-        before("Deposit some to token", function(){
+        before("Deposit some ETH to token", function(){
             return createDefaultTxTester()
                 .startLedger([token])
                 .doTx([token, "sendTransaction", {value: SECOND_DIV_AMT, from: anon}])
@@ -187,7 +188,7 @@ describe('Comptroller', function(){
                 .assertDelta(token, SECOND_DIV_AMT)
                 .start();
         });
-        it("Everyone gets their share", async function(){
+        it("getCollectableDividends() returns expected values", async function(){
             const totalTokens = await token.totalSupply();
             const acct1Tokens = await token.balanceOf(account1);
             const acct2Tokens = await token.balanceOf(account2);
@@ -210,13 +211,13 @@ describe('Comptroller', function(){
                 .assertCallReturns([locker, "owner"], compOwner)
                 .start();
         })
-        it("Cannot collect from anon", function(){
+        it("anon cannot call .collect()", function(){
             return createDefaultTxTester()
                 .doTx([locker, "collect", {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Locker can collect", async function(){
+        it("Owner can call .collect()", async function(){
             const expDivs = await token.getCollectableDividends(locker.address);
             const lockerBalance = await testUtil.getBalance(locker.address);
             return createDefaultTxTester()
@@ -231,18 +232,22 @@ describe('Comptroller', function(){
         });
     })
     describe(".burnTokens()", async function(){
-    	it("Doesn't work if you have no tokens.", async function(){
+    	it("Doesn't work for user with no tokens.", async function(){
     		return createDefaultTxTester()
     			.doTx([comptroller, "burnTokens", 1e16, {from: account3}])
     			.assertInvalidOpCode()
     			.start();
     	});
-    	it("Burns 2 of account2's tokens", async function(){
+    	it("Burns 2 of account2's 2.5 tokens", async function(){
     		return assertBurnsTokens(account2, 2e18);
     	});
         it("Burns all .15 of account1's tokens, even when .20 passed", function(){
             return assertBurnsTokens(account1, .2e18);
         });
+    });
+
+    describe(".burnTokens() when Treasury balance is low", async function(){
+        this.logInfo("Here we test the case where Treasury does not have enough funds to burn all tokens.");
         it("Fund something, so balance is less than bankroll", async function(){
             const AMT = new BigNumber(1e12);
             const bankroll = await treasury.bankroll();
@@ -262,7 +267,7 @@ describe('Comptroller', function(){
                 })
                 .start();
         });
-        it("Only burns some of account2's .5 tokens", async function(){
+        it("Only burns some of account2's remaining .5 tokens", async function(){
             return assertBurnsTokens(account2, 1e18);
         });
         it("Deposit something, so account2 can burn.", async function(){
@@ -271,7 +276,7 @@ describe('Comptroller', function(){
                 .assertSuccess()
                 .start();
         });
-        it("Can burn the rest of account2's tokens.", async function(){
+        it("Can now burn the rest of account2's tokens.", async function(){
             return assertBurnsTokens(account2, 1e18);
         });
     })
@@ -323,18 +328,16 @@ describe('Comptroller', function(){
         // alter numTokens if not in user's balance
     	const prevAccTokens = await token.balanceOf(acct);
         if (prevAccTokens.lt(expectedNumTokens)){
-            expectedNumTokens = prevAccTokens;
             console.log(`Account only has ${prevAccTokens} tokens.`);
-            console.log(`Should only burn ${expectedNumTokens} tokens.`);
+            expectedNumTokens = prevAccTokens;
         }
         // alter further if treasury cannot afford
         var numWei = expectedNumTokens.div(tokensPerWei).mul(".8");
         const tBalance = testUtil.getBalance(treasury.address);
         if (tBalance.lt(numWei)) {
+            console.log(`Treasury can't afford to burn ${expectedNumTokens} tokens.`);
             numWei = tBalance;
             expectedNumTokens = numWei.mul(5).mul(tokensPerWei).div(4);
-            console.log(`Treasury can't afford to burn all those tokens.`);
-            console.log(`Should only burn ${numTokens} tokens instead.`);
         }
         console.log(`Should burn ${expectedNumTokens} tokens for ${numWei} wei.`);
     	const prevLockerTokens = await token.balanceOf(locker.address);

@@ -98,6 +98,8 @@ function Smocha(opts) {
 
 			_skip: false,
 			skip: (reason) => { ctx._skip = true; node.skipReason = reason; },
+			logInfo: (str) => { _logger.logInfo(_curNode, str); },
+			logWarn: (str) => { _logger.logWarn(_curNode, str); },
 			
 			retries: (num) => { console.log(".retries() not yet supported."); },
 			timeout: (ms) => { console.log(".timeout() not yet supported."); },
@@ -204,22 +206,20 @@ function Smocha(opts) {
 		_logger.onSkip(node);
 	}
 
-	_obj.file = function(optDesc, filename){
-		filename = filename ? filename : optDesc;
+	_obj.file = function(filename, optDesc){
+		filename = path.relative(process.cwd(), filename);
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
 		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}));
 	};
-	_obj.file.only = function(optDesc, filename){
-		filename = optDesc ? filename : optDesc;
+	_obj.file.only = function(filename, optDesc){
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
 		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
 		}, {only: true}));
 	};
-	_obj.file.skip = function(optDesc, filename){
-		filename = optDesc ? filename : optDesc;
+	_obj.file.skip = function(filename, optDesc){
 		var name = optDesc ? `File: ${optDesc}` : `File: ${filename}`;
 		_curNode.addChild(createNode("file", name, _curNode, function(){
 			require(path.resolve(filename));
@@ -278,8 +278,6 @@ function Smocha(opts) {
 			_logger.onComplete();
 		});
 	};
-
-	_obj.addFile = _obj.file;
 
 	_obj.run = _obj.start;
 

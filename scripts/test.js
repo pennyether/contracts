@@ -6,9 +6,13 @@ const assert = require("chai").assert;
 const contract = require("truffle-contract");
 const path = require("path");
 const fs = require("fs");
-const Smocha = require("./js/smocha/smocha");
+const Smocha = require("../js/smocha/smocha");
 
-const contractsDir = path.join(__dirname, "build", "contracts");
+const rootDir = path.join(__dirname, "..");
+const artifactsDir = path.join(rootDir, "build");
+const testsDir = path.join(rootDir, "tests");
+if (!fs.existsSync(artifactsDir) || !fs.statSync(artifactsDir).isDirectory())
+	throw new Error(`Couldn't find the contracts directory at: ${artifactsDir}`);
 
 if (!web3.isConnected())
 	throw new Error(`Web3 not connected. Ensure ganache is running on localhost:8545.`);
@@ -18,7 +22,7 @@ global["web3"] = web3;
 global["artifacts"] = {
 	require: function(str) {
 		if (str.endsWith(".sol")) str = str.slice(0,-4);
-		const filename = path.join(contractsDir, `${str}.json`);
+		const filename = path.join(artifactsDir, `${str}.json`);
 		if (!fs.existsSync(filename)){
 			throw new Error(`Couldn't load artifact for ${str}: ${filename} doesn't exist.`);
 		} else {
@@ -62,7 +66,6 @@ if (!process.argv[2])
 const smocha = new Smocha();
 const files = process.argv.slice(2);
 if (files[0] === 'all'){
-	const testDir = path.join(__dirname, "test");
 	const jsFiles = getAllFiles(testDir, ".js");
 	console.log(`Found ${jsFiles.length} .js files in ${testDir}.`);
 	jsFiles.forEach((file)=>{ smocha.file(file); });
