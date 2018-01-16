@@ -1,10 +1,19 @@
 pragma solidity ^0.4.0;
 
 /**
- * Allows a custodian to control a wallet.
- *  - owner is intended to be a cold wallet.
- *  - custodian can be revoked / changed by owner.
- *  - when custodian is changed, owner must be changed
+ * Allows a custodian to control a wallet, and allows
+ * Supervisor and Owner accounts to be used once for any
+ * action. (This helps enforce that they are "cold" wallets)
+ *
+ *  - Custodian can:
+ *      - make calls on behalf of the wallet
+ *  - Supervisor can:
+ *      - change the custodian
+ *      - collect the balance of the contract
+ *      - in both cases, must provide a new supervisor.
+ *  - Owner can:
+ *      - change the supervisor
+ *      - must provide a new owner
  */
 contract CustodialWallet {
     address public owner;
