@@ -40,7 +40,12 @@ function testWithParams(name, params) {
         const BID_INCR = params[2];
         const BID_ADD_BLOCKS = params[3];
         const INITIAL_BLOCKS = params[4];
-        console.log(`Params:`, params);
+        this.logInfo(`Will test a Penny Auction with these params:`);
+        this.logInfo(`Initial Prize: ${INITIAL_PRIZE}`);
+        this.logInfo(`Bid Price: ${BID_PRICE}`);
+        this.logInfo(`Bid Incr: ${BID_INCR}`);
+        this.logInfo(`Bid Add Blocks: ${BID_ADD_BLOCKS}`);
+        this.logInfo(`Initial Blocks: ${INITIAL_BLOCKS}`);
 
         var auction, bidderContract, blockStarted;
         const anon = accounts[0];
@@ -54,66 +59,90 @@ function testWithParams(name, params) {
         const nonBidder = accounts[8];
         const nonAdmin = accounts[9];
 
+        const addresses = {
+            collector: collector,
+            bidder1: bidder1,
+            bidder2: bidder2,
+            bidder3: bidder3,
+            bidderFirst: bidderFirst,
+            bidderSecond: bidderSecond,
+            bidderThird: bidderThird,
+            nonBidder: nonBidder
+        };
+
         before("Create BidderContract", async function(){
-            bidderContract = await ExpensivePayableBidder.new({from: anon});
-            await bidderContract.fund({value: BID_PRICE.mul(5), from: anon});
+            await createDefaultTxTester().nameAddresses(addresses).start();
+
+            this.logInfo("Create and fund a BidderContract instance.");
+            await createDefaultTxTester()
+                .doNewTx(ExpensivePayableBidder, [], {from: anon}).assertSuccess()
+                .withTxResult((txRes, plugins)=>{
+                    bidderContract = txRes.contract;
+                    plugins.addAddresses({bidderContract: bidderContract});
+                })
+                .doTx(() => bidderContract.fund({value: BID_PRICE.mul(5), from: anon}))
+                .assertSuccess()
+                .start();
+
             assert.strEqual(await testUtil.getBalance(bidderContract), BID_PRICE.mul(5));
+
+            await createDefaultTxTester().printNamedAddresses().start();
         });
 
         describe("Creation", async function(){
             it("Fails when too little funds are sent", function(){
                 return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.minus(1), from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE.minus(1), from: anon})
                     .assertInvalidOpCode()
                     .start();
             });
             it("Fails when too much funds are sent", function(){
                 return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.plus(1), from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE.plus(1), from: anon})
                     .assertInvalidOpCode()
                     .start();
             });
             it("Fails when initialPrize is not divisible by GWei", function(){
                return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE.plus(1), BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE.plus(1), from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE.plus(1), BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE.plus(1), from: anon})
                     .assertInvalidOpCode()
                     .start(); 
             });
             it("Fails when bidPrice is not divisible by GWei", function(){
                return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE.plus(1), BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE, from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE.plus(1), BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE, from: anon})
                     .assertInvalidOpCode()
                     .start(); 
             });
             it("Fails when bidIncr is not divisible by GWei", function(){
                return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, BID_INCR.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE, from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, BID_INCR.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE, from: anon})
                     .assertInvalidOpCode()
                     .start(); 
             });
             it("Fails when bidIncr is > bidPrice", function(){
                return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, BID_PRICE.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE, from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, BID_PRICE.plus(1), BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE, from: anon})
                     .assertInvalidOpCode()
                     .start(); 
             });
             it("Fails when bidIncr is < INITIAL_PRIZE.mul(-1)", function(){
                return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, INITIAL_PRIZE.plus(1).mul(-1), BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE, from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, INITIAL_PRIZE.plus(1).mul(-1), BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE, from: anon})
                     .assertInvalidOpCode()
                     .start(); 
             });
@@ -122,27 +151,15 @@ function testWithParams(name, params) {
         describe("Auction Lifecycle", async function(){
             before("Can be created", async function(){
                 return createDefaultTxTester()
-                    .doNewTx(() => PennyAuction.new(collector,
-                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS,
-                        {value: INITIAL_PRIZE, from: anon}))
+                    .doNewTx(PennyAuction, [collector,
+                        INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL_BLOCKS],
+                        {value: INITIAL_PRIZE, from: anon})
                     .assertSuccess("Created auction")
                         .assertOnlyLog("Started", {time: null, initialBlocks: null})
-                    .doFn(ctx => {
-                        auction = ctx.txRes.contract;
-                        blockStarted = ctx.txRes.receipt.blockNumber;
-                        const addresses = {
-                            collector: collector,
-                            bidder1: bidder1,
-                            bidder2: bidder2,
-                            bidder3: bidder3,
-                            bidderFirst: bidderFirst,
-                            bidderSecond: bidderSecond,
-                            bidderThird: bidderThird,
-                            nonBidder: nonBidder,
-                            bidderContract: bidderContract.address,
-                            auction: auction.address
-                        };
-                        createDefaultTxTester().nameAddresses(addresses).start();
+                    .withTxResult((txRes, plugins) => {
+                        auction = txRes.contract;
+                        blockStarted = txRes.receipt.blockNumber;
+                        createDefaultTxTester().addAddresses({auction: auction}).start();
                     })
                     .start();
             });

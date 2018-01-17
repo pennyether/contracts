@@ -72,16 +72,7 @@ describe('PennyAuctionController', function(){
     const anon = accounts[9];
 
     before("Set up registry and treasury", async function(){
-        registry = await Registry.new(owner, {from: nonAdmin});
-        treasury = await Treasury.new(registry.address, {from: anon});
-        pac = await PennyAuctionController.new(registry.address, {from: anon});
-        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
-
         const addresses = {
-            registry: registry.address,
-            treasury: treasury.address,
-            pac: pac.address,
-            paf: paf.address,
             dummyMainController: dummyMainController,
             bidder1: bidder1,
             bidder2: bidder2,
@@ -89,9 +80,42 @@ describe('PennyAuctionController', function(){
             anon: accounts[9],
             NO_ADDRESS: NO_ADDRESS
         };
+        await createDefaultTxTester().nameAddresses(addresses).start();
 
+        this.logInfo("Create Registry, owned by owner.");
         await createDefaultTxTester()
-            .nameAddresses(addresses)
+            .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                registry = txRes.contract;
+                plugins.addAddresses({registry: registry.address});
+            }).start();
+
+        this.logInfo("Create Treasury.");
+        await createDefaultTxTester()
+            .doNewTx(Treasury, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                treasury = txRes.contract;
+                plugins.addAddresses({treasury: treasury.address});
+            }).start();
+
+        this.logInfo("Create PennyAuctionController.");
+        await createDefaultTxTester()
+            .doNewTx(PennyAuctionController, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                pac = txRes.contract;
+                plugins.addAddresses({pac: pac});
+            }).start();
+
+        this.logInfo("Create PennyAuctionFactory.");
+        await createDefaultTxTester()
+            .doNewTx(PennyAuctionFactory, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                paf = txRes.contract;
+                plugins.addAddresses({paf: paf});
+            }).start();
+
+        this.logInfo("Register ADMIN, TREAUSRY, MC, PAC, and PAF.");
+        await createDefaultTxTester()
             .doTx([registry, "register", "ADMIN", admin, {from: owner}])
                 .assertSuccess()
             .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
@@ -104,8 +128,8 @@ describe('PennyAuctionController', function(){
                 .assertSuccess()
             .assertCallReturns([pac, "getAdmin"], admin)
             .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
+            .printNamedAddresses()
             .start();
-        
     });
 
     describe(".editDefinedAuction()", async function(){

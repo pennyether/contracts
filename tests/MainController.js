@@ -71,31 +71,65 @@ describe("MainController", function(){
 	var paf;
 
 	before("Set it all up", async function(){
-		registry = await Registry.new(owner, {from: nonAdmin});
-        treasury = await Treasury.new(registry.address, {from: anon});
-        mainController = await MainController.new(registry.address, {from: anon});
-        pac = await PennyAuctionController.new(registry.address, {from: anon});
-        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
-        
-        await testUtil.transfer(owner, treasury.address, INITIAL_PRIZE_0.mul(5));
-
-        const addresses = {
-        	owner: owner,
+		const addresses = {
+            owner: owner,
         	admin: admin,
         	nonAdmin: nonAdmin,
-        	registry: registry.address,
-        	treasury: treasury.address,
-        	mainController: mainController.address,
-        	pac: pac.address,
-        	paf: paf.address,
         	bidder1: bidder1,
         	bidder2: bidder2,
         	anon: anon,
         	NO_ADDRESS: NO_ADDRESS
         };
+        await createDefaultTxTester().nameAddresses(addresses).start();
 
+        this.logInfo("Create a Registry.");
         await createDefaultTxTester()
-	        .nameAddresses(addresses)
+            .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                registry = res.contract;
+                plugins.addAddresses({registry: registry.address});
+            }).start();
+
+        this.logInfo("Create a Treasury, pointing to Registry.");
+		await createDefaultTxTester()
+            .doNewTx(Treasury, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                treasury = res.contract;
+                plugins.addAddresses({treasury: treasury.address});
+            }).start();
+
+        this.logInfo("Create a MainController, pointing to Registry.");
+        await createDefaultTxTester()
+            .doNewTx(MainController, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                mainController = res.contract;
+                plugins.addAddresses({mainController: mainController.address});
+            }).start();
+
+        this.logInfo("Create a PennyAuctionController, pointing to Registry.");
+        await createDefaultTxTester()
+            .doNewTx(PennyAuctionController, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                pac = res.contract;
+                plugins.addAddresses({pac: pac.address});
+            }).start();
+
+        this.logInfo("Create a PennyAuctionFactory, pointing to Registry.");
+        await createDefaultTxTester()
+            .doNewTx(PennyAuctionFactory, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                paf = res.contract;
+                plugins.addAddresses({paf: paf.address});
+            }).start();
+
+        this.logInfo("Fund the Treasury");
+        await testUtil.transfer(owner, treasury.address, INITIAL_PRIZE_0.mul(5));
+        await createDefaultTxTester()
+        	.assertBalance(treasury.address, INITIAL_PRIZE_0.mul(5))
+	        .start();
+
+	    this.logInfo("Set up Registry to point to created contracts.");
+        await createDefaultTxTester()
 	        .doTx([registry, "register", "ADMIN", admin, {from: owner}])
                 .assertSuccess()
             .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
@@ -111,17 +145,27 @@ describe("MainController", function(){
 	        .assertCallReturns([mainController, "getAdmin"], admin)
 	        .assertCallReturns([mainController, "getTreasury"], treasury.address)
 	        .assertCallReturns([mainController, "getPennyAuctionController"], pac.address)
-        	.doTx([pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin}))
-        	.doTx([pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin}))
-        	.doTx([pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin}))
-        	.doTx([pac, "editDefinedAuction", 3].concat(DEF_3, {from: admin}))
-        	.doTx([pac, "enableDefinedAuction", 0, {from: admin}])
-        	.doTx([pac, "enableDefinedAuction", 1, {from: admin}])
-        	.doTx([pac, "enableDefinedAuction", 2, {from: admin}])
-        	.doTx([pac, "enableDefinedAuction", 3, {from: admin}])
+	        .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
+	        .assertBalance(treasury.address, INITIAL_PRIZE_0.mul(5))
+	        .start();
+
+		// print addresses
+        await createDefaultTxTester().printNamedAddresses().start();
+	});
+
+	describe("Set up and enable defined auctions.", function(){
+	    return createDefaultTxTester()
+        	.doTx([pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin})).assertSuccess()
+        	.doTx([pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin})).assertSuccess()
+        	.doTx([pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin})).assertSuccess()
+        	.doTx([pac, "editDefinedAuction", 3].concat(DEF_3, {from: admin})).assertSuccess()
+        	.doTx([pac, "enableDefinedAuction", 0, {from: admin}]).assertSuccess()
+        	.doTx([pac, "enableDefinedAuction", 1, {from: admin}]).assertSuccess()
+        	.doTx([pac, "enableDefinedAuction", 2, {from: admin}]).assertSuccess()
+        	.doTx([pac, "enableDefinedAuction", 3, {from: admin}]).assertSuccess()
         	.assertCallReturns([pac, "numDefinedAuctions"], 4)
         	.start();
-	});
+	})
 
 	describe(".setPennyAuctionRewards()", function(){
 		before("Initialized to 0", function(){
@@ -266,7 +310,7 @@ describe("MainController", function(){
 				.start();
 		});
 
-		it(".getStartPennyAuctionReward returns index 3", function(){
+		it(".getStartPennyAuctionReward() returns index 3", function(){
 			return createDefaultTxTester()
 				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 3])
 				.start();
@@ -286,7 +330,7 @@ describe("MainController", function(){
 	describe(".refreshPennyAuctions()", function(){
 		var auction0;
 		var auction3;
-		before("two auctions are open", function(){
+		before("Ensure two auctions are open", function(){
 			return createDefaultTxTester()
 				.assertCallReturns([pac, "getAuction", 0], {not: NO_ADDRESS})
 				.assertCallReturns([pac, "getAuction", 3], {not: NO_ADDRESS})
@@ -301,7 +345,7 @@ describe("MainController", function(){
 				.assertCallThrows([mainController, "getRefreshPennyAuctionsReward"], 0)
 				.start();
 		});
-		it(".refreshPennyAuctions() returns error", function(){
+		it(".refreshPennyAuctions() returns error (No reward to be paid)", function(){
 			const callParams = [mainController, "refreshPennyAuctions", {from: nonAdmin}];
 			return createDefaultTxTester()
 				.startLedger([treasury, nonAdmin])
@@ -409,7 +453,7 @@ describe("MainController", function(){
 		const callParams = [mainController, "startPennyAuction", index, {from: nonAdmin}];
 		return createDefaultTxTester()
 			.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, index])
-			.assertCallReturns(callParams, [true, null])
+			//.assertCallReturns(callParams, [true, null])
 			.startLedger([treasury, pac, nonAdmin, paf])
 			.startWatching([treasury, pac, paf])
 			.doTx(callParams)

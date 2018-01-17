@@ -1,0 +1,73 @@
+
+<html>
+	<head>
+		<title>Test results for: tests/PennyAuctionFactory.js</title>
+		<style>
+			body {
+				background: #FFF;
+				padding: 10px;
+			}
+			pre {
+				font-family: Consolas, 'Courier New';
+				font-size: 75%;
+			}
+		</style>
+	</head>
+	<body>
+		<pre>
+  ========================================= 
+  =========== <span style="color:#000"><b> SMOCHA STARTING </b><span style="color:#000"> ===========
+  ========================================= 
+
+<span style="color:#AAA">├ <span style="color:#000"> <b>File: tests/PennyAuctionFactory.js</b> </span></span></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">PennyAuctionFactory<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Can be created </span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 1077, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: PennyAuctionFactory.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1078, 1529893 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>dummyTreasury</u>, {from: <u>owner</u>}) was successful (block 1079, 45675 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("PENNY_AUCTION_CONTR...", <u>dummyPac</u>, {from: <u>owner</u>}) was successful (block 1080, 46635 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>paf</u>.getPennyAuctionController.call() should equal <u>dummyPac</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>paf</u>.getTreasury.call() should equal <u>dummyTreasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:          0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyPac:      0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyTreasury: 0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner:         0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  paf:           0x885c56c73fe1707234b1a3f7c690a37c63ce72c7<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:      0xe38115032c7542c0b15118d493f4558052806431<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (805 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.createAuction()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> should fail when called by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(0.05 ETH, 1000 GWei, -100 GWei, 2, 5, {from: <u>anon</u>, gas: 2000000, value: 0.05 ETH}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> should fail when not passed any ETH </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(0.05 ETH, 1000 GWei, -100 GWei, 2, 5, {from: <u>dummyPac</u>, gas: 2000000}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> should fail when passed too little ETH </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(0.05 ETH, 1000 GWei, -100 GWei, 2, 5, {from: <u>dummyPac</u>, gas: 2000000, value: 1 Wei}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> should fail when passed too much ETH </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(0.05 ETH, 1000 GWei, -100 GWei, 2, 5, {from: <u>dummyPac</u>, gas: 2000000, value: 0.050000000000000001 ETH}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (25 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> should fail when passed invalid auction param (negative prize) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(-1, 1000 GWei, -100 GWei, 2, 5, {from: <u>dummyPac</u>, gas: 2000000, value: 0.05 ETH}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works when called by PennyAuctionController </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>paf</u>.createAuction(0.05 ETH, 1000 GWei, -100 GWei, 2, 5, {from: <u>dummyPac</u>, gas: 2000000, value: 0.05 ETH}) was successful (block 1086, 946785 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionCreated(time, addr, collector, initialPrize, bidPrice, bidIncr, bidAddBlocks, initialBlocks)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Created auction @ 0x87d9e786c014984882d82c69a1aa837472ea2adb<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.collector.call() should equal <u>dummyTreasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.initialPrize.call() should equal 0.05 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.bidPrice.call() should equal 1000 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.bidIncr.call() should equal -100 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.bidAddBlocks.call() should equal 2<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction</u>.blockEnded.call() should equal 1091<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (354 ms)<span style="color:#000"> </span></span></span></span> 
+
+  =========== <span style="color:#0A0"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
+
+  <span style="color:#0A0"><b>6</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 1.39s
+
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+	</body>
+</html>

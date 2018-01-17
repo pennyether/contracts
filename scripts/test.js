@@ -29,11 +29,12 @@ global["artifacts"] = {
 			const json = fs.readFileSync(filename).toString();
 			const obj = JSON.parse(json);
 			const tContract = contract({
+				contract_name: str,
 				abi: obj.abi,
 				unlinked_binary: obj.unlinked_binary,
-				gas: 5000000
+				gas: 5000000,
 			});
-			tContract.defaults({ gas: 5000000, gasPrice: 2e12 });
+			tContract.defaults({gas: 5000000, gasPrice: 5e9});
 			tContract.setProvider(web3.currentProvider);
 			return tContract;
 		}
@@ -50,7 +51,7 @@ function getAllFiles(dir, ext, arr){
 	fs.readdirSync(dir).forEach(file=>{
 		const filepath = path.join(dir, file);
 		if (fs.statSync(filepath).isDirectory()){
-			return getAllTestFiles(filepath, ext, arr);
+			return getAllFiles(filepath, ext, arr);
 		}
 		if (filepath.toLowerCase().endsWith(ext)) {
 			arr.push(filepath);

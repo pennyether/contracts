@@ -10,38 +10,41 @@ const Converter = require('ansi-to-html');
 const rootDir = path.join(__dirname, "..");
 const testsDir = path.join(rootDir, "tests");
 const outputDir = path.join(testsDir, "results");
-if (!fs.existsSync(outputDir)){
-	console.log(`Creating directory: ${outputDir}`);
-	fs.mkdirSync(outputDir)
-}
+const testScript = path.join(path.join(rootDir, "scripts"), "test.js");
 
 function execute(command){
 	return new Promise((res,rej)=>{
 		process.env.FORCE_COLOR = true;
-		console.log(`Executing ${command}...`);
+		console.log(`  * Executing ${command}...`);
 		const s = spawnSync(command, {shell: true, env: process.env});
-		if (!s.code) res(s.stdout.toString());
-		else rej(s.stderr.toString());
+		if (!s.code) {
+			const result = s.stdout.toString();
+			console.log(`  * Execution successful.`);
+			res(result);
+		} else {
+			const result = s.stderr.toString();
+			console.log(`  * Execution failed.`);
+			rej(result);
+		}
 	});
 };
 
-function saveHtmlForFile(filename) {
-	const filepath = path.join(testsDir, filename);	
-	return execute(`./test.js ${filepath}`).then((res)=>{
-		console.log("Got result:", res);
-		const testHtml = (new Converter({fg: "#000"})).toHtml(res);
-		saveTestResult(filename, testHtml);
+function executeAndSave(filepath, resultfilepath) {
+	const filename = path.relative(rootDir, filepath);
+	const titleStr = `Test results for: ${filename}`;
+	return execute(`${testScript} ${filepath}`).then((res)=>{
+		const htmlStr = (new Converter({fg: "#000"})).toHtml(res);
+		saveTestResult(titleStr, htmlStr, resultfilepath);
 	}).catch((e)=>{
-		console.log("Something failed", e);
-		saveTestResult(filename, e.toString());
+		saveTestResult(titleStr, e.toString(), resultfilepath);
 	});
 }
 
-function saveTestResult(filename, testHtml) {
+function saveTestResult(titleStr, htmlStr, filepath) {
 	const html = `
 <html>
 	<head>
-		<title>Test results for: ${filename}</title>
+		<title>${titleStr}</title>
 		<style>
 			body {
 				background: #FFF;
@@ -54,15 +57,64 @@ function saveTestResult(filename, testHtml) {
 		</style>
 	</head>
 	<body>
-		<pre>${testHtml}</pre>
+		<pre>${htmlStr}</pre>
 	</body>
 </html>
 `;
-	const filepath = path.join(outputDir, `${filename}.html`);
-	console.log(`Saving result of ${filename} to ${filepath}...`);
+	console.log(`  * Saving result to ${filepath}...`);
 	fs.writeFileSync(filepath, html);
+	return filepath;
 }
 
-saveHtmlForFile("PennyAuctionFactory.js").then(function(){
-	console.log("Done");
-});
+function saveAllTests() {
+	if (!fs.existsSync(outputDir)){
+		console.log(`Creating directory: ${outputDir}`);
+		fs.mkdirSync(outputDir)
+	}
+
+	const links = [];
+	const testFiles = [
+		"CustodialWallet.js",
+		"DividendToken.js",
+		"Treasury.js",
+		"Comptroller.js",
+		"MainController.js",
+		"InstaDice.js",
+		"PennyAuction.js",
+		"PennyAuctionFactory.js",
+		"PennyAuctionController.js",
+	]
+	var p = Promise.resolve();
+	testFiles.forEach(async function(testfile){
+		const testfilepath = path.join(testsDir, testfile);
+		const filename = path.basename(testfile) + ".html";
+		const resultfilepath = path.join(outputDir, filename);
+		p = p.then(()=>{
+				console.log(`=== ${testfilepath} ===`);
+				executeAndSave(testfilepath, resultfilepath)
+			}).then(()=>{
+				console.log('  * Done');
+				links.push(`<li><a href="./${filename}">${filename}</a></li>`);	
+			});
+	});
+
+	p.then(()=>{
+		console.log("Saving index.html...");
+		const html = `
+			<html>
+				<head>
+					<title>PennyEther Contract Test Results</title>
+				</head>
+				<body style='padding: 20px;'>
+					<ul>Test Results</ul>
+					${links.join("\n")}
+				</body>
+			</html>
+		`
+		const indexFilename = path.join(outputDir, "index.html");
+		fs.writeFileSync(indexFilename, html);
+		console.log("All done!");
+	});
+}
+
+saveAllTests();

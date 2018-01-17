@@ -18,7 +18,7 @@ describe('CustodialWallet', function(){
     const cust3 = accounts[8];
     const anon = accounts[9];
     var cWallet;
-    var dContract;
+    var dumbContract;
 
     const addresses = {
         owner1: owner1,
@@ -33,13 +33,27 @@ describe('CustodialWallet', function(){
     };
 
     before("Create CustodialWallet and DumbContract", async function(){
-    	cWallet = await CustodialWallet.new(cust1, supervisor1, owner1, {from: anon});
-    	addresses.cWallet = cWallet.address;
-    	dContract = await DumbContract.new({from: anon});
-    	addresses.dContract = dContract.address;
-    	await createDefaultTxTester()
-    		.nameAddresses(addresses)
-    		.start();
+        await createDefaultTxTester().nameAddresses(addresses).start();
+
+        this.logInfo("Create the Custodial Wallet that we will be testing.");
+        await createDefaultTxTester()
+            .doNewTx(CustodialWallet, [cust1, supervisor1, owner1], {from: anon})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                cWallet = res.contract;
+                plugins.addAddresses({cWallet: cWallet.address});
+            }).start();
+
+        this.logInfo("Create a 'dumb contract' that has a few functions cWallet will call.");
+        await createDefaultTxTester()
+            .doNewTx(DumbContract, [], {from: anon})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                dumbContract = res.contract;
+                plugins.addAddresses({dumbContract: dumbContract.address});
+            }).start();
+
+        await createDefaultTxTester().printNamedAddresses().start();
     });
 
     it("Has correct state", function(){
@@ -52,46 +66,50 @@ describe('CustodialWallet', function(){
 
     describe(".doCall", function(){
 		it("Cannot do calls from non custodian", function(){
-	    	const DATA = dContract.contract.setVals.getData(5, 6);
+            this.logInfo("Attempts a call to dumbContract.setVals(5,6)");
+	    	const DATA = dumbContract.contract.setVals.getData(5, 6);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: anon}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: anon}])
 	    		.assertInvalidOpCode()
 	    		.start();
 	    });
 	    it("Can do calls from custodian", function(){
-	    	const DATA = dContract.contract.setVals.getData(5, 6);
+            this.logInfo("Attempts a call to dumbContract.setVals(5,6)");
+	    	const DATA = dumbContract.contract.setVals.getData(5, 6);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: cust1}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
 	    		.assertSuccess()
-	    		.assertCallReturns([dContract, "val1"], 5)
-	    		.assertCallReturns([dContract, "val2"], 6)
+	    		.assertCallReturns([dumbContract, "val1"], 5)
+	    		.assertCallReturns([dumbContract, "val2"], 6)
 	    		.start();
 	    });
 	    it("Can do payable calls", function(){
-	    	const DATA = dContract.contract.payToSetVal2.getData(100);
+            this.logInfo("Attempts a call to dumbContract.payToSetVal2(100), sending some ETH");
+	    	const DATA = dumbContract.contract.payToSetVal2.getData(100);
 	    	const AMT = new BigNumber(1.23456e16);
 	    	return createDefaultTxTester()
-	    		.startLedger([cust1, cWallet, dContract])
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: cust1, value: AMT}])
+	    		.startLedger([cust1, cWallet, dumbContract])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1, value: AMT}])
 	    		.assertSuccess()
-	    			.assertCallReturns([dContract, "val2"], 100)
+	    			.assertCallReturns([dumbContract, "val2"], 100)
 	    		.stopLedger()
 	    			.assertDeltaMinusTxFee(cust1, AMT.mul(-1))
 	    			.assertDelta(cWallet, 0)
-	    			.assertDelta(dContract, AMT)
+	    			.assertDelta(dumbContract, AMT)
 	    		.start();
 	    });
 	    it("Can do calls that get it payed", async function(){
-	    	const DATA = dContract.contract.sendBalance.getData();
-	    	const AMT = await testUtil.getBalance(dContract);
+            this.logInfo("Attempts a call to dumbContract.sendBalance.");
+	    	const DATA = dumbContract.contract.sendBalance.getData();
+	    	const AMT = await testUtil.getBalance(dumbContract);
 	    	return createDefaultTxTester()
-	    		.startLedger([cust1, cWallet, dContract])
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: cust1}])
+	    		.startLedger([cust1, cWallet, dumbContract])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
 	    		.assertSuccess()
 	    		.stopLedger()
 	    			.assertLostTxFee(cust1)
 	    			.assertDelta(cWallet, AMT)
-	    			.assertDelta(dContract, AMT.mul(-1))
+	    			.assertDelta(dumbContract, AMT.mul(-1))
 	    		.start();
 	    });
     });
@@ -117,7 +135,7 @@ describe('CustodialWallet', function(){
         });
     	it("Works", async function(){
     		const AMT = testUtil.getBalance(cWallet);
-    		assert(AMT.gt(0), "Must have a balance.");
+    		assert(AMT.gt(0), "cWallet must have a balance.");
     		return createDefaultTxTester()
     			.startLedger([supervisor1, anon, cWallet])
     			.doTx([cWallet, "collect", anon, supervisor2, {from: supervisor1}])
@@ -163,19 +181,21 @@ describe('CustodialWallet', function(){
 
     describe(".doCall(), again", function(){
 		it("Cannot do calls from old custodian", function(){
-	    	const DATA = dContract.contract.setVals.getData(10, 20);
+            this.logInfo("Attempts to call dumbContract.setVals(10,20)");
+	    	const DATA = dumbContract.contract.setVals.getData(10, 20);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: cust1}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
 	    		.assertInvalidOpCode()
 	    		.start();
 	    });
 	    it("Can do calls from new custodian", function(){
-	    	const DATA = dContract.contract.setVals.getData(10, 20);
+            this.logInfo("Attempts to call dumbContract.setVals(10,20)");
+	    	const DATA = dumbContract.contract.setVals.getData(10, 20);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dContract.address, DATA, {from: cust2}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust2}])
 	    		.assertSuccess()
-	    		.assertCallReturns([dContract, "val1"], 10)
-	    		.assertCallReturns([dContract, "val2"], 20)
+	    		.assertCallReturns([dumbContract, "val1"], 10)
+	    		.assertCallReturns([dumbContract, "val2"], 20)
 	    		.start();
 	    });
     });

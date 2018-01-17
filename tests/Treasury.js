@@ -21,14 +21,7 @@ describe('Treasury', function(){
     const DAILY_LIMIT = new BigNumber(1000000);
 
     before("Set up registry and treasury", async function(){
-        registry = await Registry.new(owner, {from: anon});
-        await registry.register("MAIN_CONTROLLER", dummyMainController, {from: owner});
-        await registry.register("ADMIN", admin, {from: owner});
-        treasury = await Treasury.new(registry.address, {from: anon});
-
         const addresses = {
-            registry: registry.address,
-            treasury: treasury.address,
             dummyToken: dummyToken,
             dummyMainController: dummyMainController,
             dummyComptroller: dummyComptroller,
@@ -37,10 +30,32 @@ describe('Treasury', function(){
             anon: anon,
             NO_ADDRESS: NO_ADDRESS
         };
+        await createDefaultTxTester().nameAddresses(addresses).start();
+
+        this.logInfo("Create Registry, and register MAIN_CONTROLLER and ADMIN");
         await createDefaultTxTester()
-            .nameAddresses(addresses)
+            .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                registry = txRes.contract;
+                plugins.addAddresses({registry: registry});
+            }).start();
+        await createDefaultTxTester()
+            .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: owner}])
+            .assertSuccess()
+            .doTx([registry, "register", "ADMIN", admin, {from: owner}])
+            .assertSuccess()
             .start();
+
+        await createDefaultTxTester()
+            .doNewTx(Treasury, [registry.address], {from: anon})
+            .withTxResult((txRes, plugins)=>{
+                treasury = txRes.contract;
+                plugins.addAddresses({treasury: treasury});
+            }).start();
+
+        await createDefaultTxTester().printNamedAddresses().start();
     });
+
     describe("Initially", function(){
         it("Should have correct mainController and admin", function(){
             return createDefaultTxTester()
@@ -55,7 +70,9 @@ describe('Treasury', function(){
         itCannotFund(1, "Cannot fund.");
         itCannotDistribute("No address to distribute to.");
     });
-    describe("Gets deposit", function(){
+    describe("On initialization", function(){
+        this.logInfo("Treasury cannot fund if there is no daily limit.");
+        this.logInfo("Treasury cannot distribute if there is no token set.");
         itCanReceiveDeposit(10000);
         itCannotFund(1, "Cannot fund.");
         itCannotDistribute("No address to distribute to.");
@@ -87,14 +104,14 @@ describe('Treasury', function(){
         });
     })
     describe("dailyFundLimit", function(){
-        describe(".setDailyFundLimit() initialization", function(){
+        describe(".setDailyFundLimit() to initial value", function(){
             it("Not callable by anon", function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Can be initialized", function(){
+            it(`Can be initialized (to ${DAILY_LIMIT})`, function(){
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
                     .assertSuccess()
@@ -114,7 +131,7 @@ describe('Treasury', function(){
                     .start();
             });
         });
-        describe(".setDailyFundLimit() to change", function(){
+        describe(".setDailyFundLimit() to a new value", function(){
             const newLimit = DAILY_LIMIT.mul(1.03);
             before("Ensure it is initialized, and fast forward a day.", function(){
                 return createDefaultTxTester()
@@ -161,7 +178,7 @@ describe('Treasury', function(){
                     .assertInvalidOpCode()
                     .start();
             });
-            it("Works the next day", async function(){
+            it(`Works the next day (reset dailyLimit to ${DAILY_LIMIT})`, async function(){
                 await testUtil.fastForward(60*60*24);
                 return createDefaultTxTester()
                     .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
@@ -179,25 +196,31 @@ describe('Treasury', function(){
         describe("Test the daily limit", async function(){
             const firstAmount = DAILY_LIMIT.mul(.5);
             const secondAmount = DAILY_LIMIT.mul(.5).plus(1);
-            before("Fund treasury", function(){
+            before("Fund treasury with two times the daily limit.", function(){
                 itCanReceiveDeposit(DAILY_LIMIT.mul(2));    
             });
-            itCanFund(firstAmount);
-            itCannotFund(secondAmount, "Cannot fund.");
-            itCanRefund(10);
-            itCanFund(secondAmount);
-            itCannotFund(10, "Cannot fund.");
-            it("Fast forwards...", function(){
+            describe("Fund half the daily limit, then try the other half (plus one)", function(){
+                itCanFund(firstAmount);
+                itCannotFund(secondAmount, "Cannot fund.");    
+            });
+            describe("When a refund occurs, it credits the daily limit", function(){
+                this.logInfo("Right now, Treasury has funded half the daily limit.");
+                this.logInfo("After refunding 10 wei, Treasury should be able to fund the second half.")
+                this.logInfo("However, it should not be able to fund an additional 10 wei.");
+                itCanRefund(10);
+                itCanFund(secondAmount);
+                itCannotFund(10, "Cannot fund.");
+            });
+            it("Fast forwards to next day", function(){
                 return testUtil.fastForward(24*60*60);
             });
-            itCannotFund(DAILY_LIMIT.plus(1), "Cannot fund.");
-            itCanFund(DAILY_LIMIT);
-            it("Correctly reset amtFundedToday", function(){
-                return createDefaultTxTester()
-                    .assertCallReturns([treasury, "amtFundedToday"], DAILY_LIMIT)
-                    .start();
+            describe("Cannot fund the daily limit plus 1", function(){
+                this.logInfo("Treasury should now able to fund the full daily limit, but not more.");
+                itCannotFund(DAILY_LIMIT.plus(1), "Cannot fund.");
+                itCanFund(DAILY_LIMIT);
+                itCannotFund(1, "Cannot fund.");
             });
-            itCannotFund(1, "Cannot fund.");
+            
         });
         describe("Setting Comptroller and Token", function(){
             describe(".initComptroller()", function(){
@@ -322,9 +345,23 @@ describe('Treasury', function(){
         });
         describe(".removeFromBankroll cannot remove more than balance", async function(){
             before("Distribute, then fund 14 * DAILY_LIMIT + 1", function(){
-                itCanReceiveDeposit(1e12);
-                itCanDistribute();
-                it("Funds 14*DAILY_LIMIT + 1", async function(){
+                describe("Ensure bankroll is equal to distribution threshold", function(){
+                    this.logInfo("We deposit ETH, then distribute to token.");
+                    this.logInfo("The balance should then be bankroll + 14*daily_limit.");
+                    itCanReceiveDeposit(1e12);
+                    itCanDistribute();
+                    it("Bankroll == Dividend Threshold", async function(){
+                        const expBalance = (await treasury.bankroll()).plus(DAILY_LIMIT.mul(14));
+                        const balance = testUtil.getBalance(treasury);
+                        this.logInfo(`Balance: ${balance}, 14*dailyLimit: ${expBalance}`);
+                        assert(expBalance.equals(balance));
+                    });
+                });
+                
+                describe("Funds 14*DAILY_LIMIT + 1", async function(){
+                    this.logInfo("We fund the full daily_limit 15 days in a row.");
+                    this.logInfo("This ensures the balance is less than the bankroll.");
+                    this.logInfo("This is a situation where the Treasury is not fully solvent.");
                     await testUtil.fastForward(24*60*60);
                     for (var i=0; i<14; i++){
                         await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
@@ -336,15 +373,18 @@ describe('Treasury', function(){
             it("Fails if it cannot afford to removeFromBankroll", async function(){
                 const balance = testUtil.getBalance(treasury);
                 const bankroll = await treasury.bankroll();
-                console.log(`Balance: ${balance}, Bankroll: ${bankroll}`);
+                this.logInfo(`Balance: ${balance} < Bankroll: ${bankroll}`);
+                this.logInfo("Treasury cannot afford to remove full bankroll.");
                 assert(balance.lt(bankroll), "Balance should be < bankroll");
                 return createDefaultTxTester()
                     .doTx([treasury, "removeFromBankroll", bankroll, {from: dummyComptroller}])
                     .assertInvalidOpCode()
                     .start();
-            })
+            });
         })
         describe(".distributeToToken()", function(){
+            this.logInfo("We deposit a large amount of revenue.");
+            this.logInfo("Treasury should now be able to distribute dividends once again.");
             itCanReceiveDeposit(123456789);
             itCanDistribute();
             itCannotDistribute("No profit to distribute.");
@@ -537,6 +577,10 @@ describe('Distribution Stats', function(){
     // and checking that the states are correct.
     // .assertDistributes() does the real math to check Treasury's math.
     describe("Distribution stats", function(){
+        this.logInfo("Treasury has the ability to do a binary search for dividends (.getDistributionStats).");
+        this.logInfo(`This is difficult to test. What we do is deposit and distribute many times,\n`+
+            `and check that after each distribution that the stats returned are correct.`);
+
         it("Works for 1st deposit", async function(){
             await assertReceivesDeposit(101);
             await assertDistributes();    

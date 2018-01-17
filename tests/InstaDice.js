@@ -27,24 +27,42 @@ describe('InstaDice', function(){
     const FEE_BIPS = 125;
 
     before("Set up registry, treasury, and create comptroller.", async function(){
-        registry = await Registry.new(owner, {from: anon});
-        await registry.register("ADMIN", admin, {from: owner});
-        await registry.register("TREASURY", dummyTreasury, {from: owner});
-        console.log(`Registry: ${registry.address}`);
-        dice = await InstaDice.new(registry.address, {from: owner});
+        const addresses = {
+            owner: owner,
+            player1: player1, 
+            player2: player2,
+            player3: player3,
+            dummyTreasury: dummyTreasury,
+            admin: admin,
+            anon: anon,
+        };
+        await createDefaultTxTester().nameAddresses(addresses).start();
 
-        return createDefaultTxTester()
-            .nameAddresses({
-                owner: owner,
-                player1: player1, 
-                player2: player2,
-                player3: player3,
-                dummyTreasury: dummyTreasury,
-                admin: admin,
-                anon: anon,
-                dice: dice.address
-            })
-            .start();
+        this.logInfo("Create a Registry, with ADMIN and TREASURY set.");
+        await createDefaultTxTester()
+            .doNewTx(Registry, [owner], {from: anon})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                registry = res.contract;
+                plugins.addAddresses({registry: registry.address});
+            }).start();
+        await createDefaultTxTester()
+            .doTx([registry, "register", "ADMIN", admin, {from: owner}])
+            .assertSuccess().start();
+        await createDefaultTxTester()
+            .doTx([registry, "register","TREASURY", dummyTreasury, {from: owner}])
+            .assertSuccess().start();
+
+        this.logInfo("Create the dice contract that we will be testing.");
+        await createDefaultTxTester()
+            .doNewTx(InstaDice, [registry.address], {from: anon})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                dice = res.contract;
+                plugins.addAddresses({dice: dice.address});
+            }).start();
+
+        await createDefaultTxTester().printNamedAddresses().start();
     });
 
     describe("Bankroll", function(){

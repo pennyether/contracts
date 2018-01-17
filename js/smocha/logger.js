@@ -38,22 +38,20 @@ function SmochaLogger() {
 	const _errors = [];
 	const _skips = [];
 
-	const _logOnEncounter = new Set(['describe', 'file', 'it']);
+	const _logOnEncounter = new Set(['describe', 'file', 'it', 'before']);
 	const _logOnRunPass = new Set(['it', 'before', 'after']);
 
 	this.silence = false;
 
 	// print args with indent.
-	function _log(indents, args, colorize, doExtraIndent) {
-		const lastMarker = doExtraIndent ? "└ " : "├ ";
-		indents = indents + (doExtraIndent ? 1 : 0);
+	function _log(indents, args, doExtraIndent, isLast) {
+		const lastMarker = isLast ? "└ " : "├ ";
 		const indent = theme.indent((new Array(indents)).join("│  ") + lastMarker);
 		const indent2 = theme.indent((new Array(indents)).join("│  ") + "   ");
 
 		args = args || [];
 		args = args.map((arg) => {
-			const argStr = util.format(arg).replace(/\n/g, `\n${indent2}`);
-			return colorize ? theme.log(argStr) : argStr;
+			return util.format(arg).replace(/\n/g, `\n${indent2}`);
 		});
 		args.unshift(indent);
 		args.push(chalk.reset(' '));
@@ -61,7 +59,7 @@ function SmochaLogger() {
 	}
 
 	// prints arg[0] stylized using $type.$state or $state then $type
-	function _logType(node, state, args, doExtraIndent) {
+	function _logType(node, state, args, doExtraIndent, isLast) {
 		if (node.type == "root") return;
 		if (!args || !args.length) return;
 
@@ -74,7 +72,7 @@ function SmochaLogger() {
 			if (theme[node.type]) { str = theme[node.type](str); }
 		}
 		args[0] = str;
-		_log(node.getParents().length, args, false, doExtraIndent);
+		_log(node.getParents().length + (doExtraIndent ? 1 : 0), args, false, isLast);
 	}
 
 	// stats ///////////////////////
@@ -107,7 +105,7 @@ function SmochaLogger() {
 		if (!_logOnRunPass.has(node.type)) return;
 		if (node.type == "it") _addPass(node);
 		if (_logOnEncounter.has(node.type)) {
-			_logType(node, "pass", [`✓ passed (${node.runTime} ms)`], true);
+			_logType(node, "pass", [`✓ passed (${node.runTime} ms)`], true, true);
 		} else {
 			_logType(node, "pass", [`✓ ${node.name} (${node.runTime} ms)`]);
 		}
@@ -115,7 +113,7 @@ function SmochaLogger() {
 	this.onInitialRunFail = function(node) {
 		const [errNumStr, errMsgStr] = _addError(node, node.runError);
 		if (_logOnEncounter.has(node.type)) {
-			_logType(node, "fail", [`${errNumStr} ${errMsgStr}`], true);
+			_logType(node, "fail", [`${errNumStr} ${errMsgStr}`], true, true);
 		} else {
 			_logType(node, "fail", [`${errNumStr} ${node.name}`, errMsgStr]);
 		}
@@ -124,7 +122,7 @@ function SmochaLogger() {
 	// otherwise, just log the whole thing using .onSkip
 	this.onSkipDuringInitialRun = function(node) {
 		if (_logOnEncounter.has(node.type)) {
-			_logType(node, "skip", [theme.skipText(`skipped: ${node.skipReason}`)], true);
+			_logType(node, "skip", [theme.skipText(`skipped: ${node.skipReason}`)], true, true);
 			_addSkip(node);
 		} else {
 			this.onSkip(node);
@@ -184,15 +182,15 @@ function SmochaLogger() {
 
 	this.log = function(node, args){
 		if (_self.silence) return;
-		_log(node.getParents().length + 1, args, true);
+		_logType(node, "log", args, true);
 	}
 	this.logInfo = function(node, str){
 		if (_self.silence) return;
-		_logType(node, "info", [str]);
+		_logType(node, "info", [str], true);
 	}
 	this.logWarn = function(node, str){
 		if (_self.silence) return;
-		_logType(node, "warn", [str]);
+		_logType(node, "warn", [str], true);
 	}
 }
 

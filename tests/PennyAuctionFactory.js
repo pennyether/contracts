@@ -20,20 +20,33 @@ const dummyPac = accounts[3];
 const anon = accounts[4];
 
 describe('PennyAuctionFactory', async function(){
-    const registry = await Registry.new(owner, {from: anon});
+    var registry;
     var paf;
     
     before("Can be created", async function(){
-        paf = await PennyAuctionFactory.new(registry.address, {from: anon});
         const addresses = {
-            registry: registry.address,
+            owner: owner,
             dummyTreasury: dummyTreasury,
             dummyPac: dummyPac,
-            anon: anon,
-            paf: paf.address
+            anon: anon
         };
+        await createDefaultTxTester().nameAddresses(addresses).start();
+
         await createDefaultTxTester()
-            .nameAddresses(addresses)
+            .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                registry = txRes.contract;
+                plugins.addAddresses({registry: registry.address});
+            }).start();
+
+        await createDefaultTxTester()
+            .doNewTx(PennyAuctionFactory, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((txRes, plugins)=>{
+                paf = txRes.contract;
+                plugins.addAddresses({paf: paf.address});
+            }).start();
+        
+        await createDefaultTxTester()
             .doTx([registry, "register", "TREASURY", dummyTreasury, {from: owner}])
                 .assertSuccess()
             .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", dummyPac, {from: owner}])
@@ -41,6 +54,8 @@ describe('PennyAuctionFactory', async function(){
             .assertCallReturns([paf, "getPennyAuctionController"], dummyPac)
             .assertCallReturns([paf, "getTreasury"], dummyTreasury)
             .start();
+
+        await createDefaultTxTester().printNamedAddresses().start();
     });
 
     describe(".createAuction()", async function(){

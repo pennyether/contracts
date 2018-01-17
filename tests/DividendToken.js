@@ -1,4 +1,4 @@
-const Token = artifacts.require("DividendToken");
+const DividendToken = artifacts.require("DividendToken");
 const UnpayableTokenHolder = artifacts.require("UnpayableTokenHolder");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
@@ -17,11 +17,8 @@ const nonAccount = accounts[7];
 var token;
 var unpayableTokenHolder;
 
-describe('Token', function(){
+describe('DividendToken', function(){
     before("Initialize TokenCrowdSale", async function(){
-        token = await Token.new({from: comptroller});
-        unpayableTokenHolder = await UnpayableTokenHolder.new({from: anon});
-
         const addresses = {
             comptroller: comptroller,
             account1: account1,
@@ -30,12 +27,28 @@ describe('Token', function(){
             account4: account4,
             anon: anon,
             nonAccount: nonAccount,
-            token: token.address,
-            unpayableTokenHolder: unpayableTokenHolder.address
         };
+        await createDefaultTxTester().nameAddresses(addresses).start();
+
+        this.logInfo("Create a DividendToken, owned by comptroller.");
         await createDefaultTxTester()
-            .nameAddresses(addresses)
-            .start();
+            .doNewTx(DividendToken, [], {from: comptroller})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                token = res.contract;
+                plugins.addAddresses({dividendToken: token.address});
+            }).start();
+
+        this.logInfo("Create a malicious 'UnpayableTokenHolder' to use later.");
+        await createDefaultTxTester()
+            .doNewTx(UnpayableTokenHolder, [], {from: anon})
+            .assertSuccess()
+            .withTxResult((res, plugins)=>{
+                unpayableTokenHolder = res.contract;
+                plugins.addAddresses({unpayableTokenHolder: unpayableTokenHolder.address});
+            }).start();
+
+        await createDefaultTxTester().printNamedAddresses().start();
     });
     describe("Is initialized correctly", async function(){
         it("token.comptroller() is correct", function(){
@@ -52,10 +65,18 @@ describe('Token', function(){
                 .start();
         });
         it("Can be called by comptroller", async function(){
-            await assertCanMint(account1, 1000);
-            await assertCanMint(account2, 2000);
-            await assertCanMint(account3, 3000);
-            await assertCanMint(account4, 4000);
+            it("Can create 1000 tokens for account1", function(){
+                return assertCanMint(account1, 1000);
+            });
+            it("Can create 2000 tokens for account1", function(){
+                return assertCanMint(account2, 2000);
+            });
+            it("Can create 3000 tokens for account1", function(){
+                return assertCanMint(account3, 3000);
+            });
+            it("Can create 4000 tokens for account1", function(){
+                return assertCanMint(account4, 4000);
+            });
         });
     });
     describe(".burnTokens() works", async function(){
@@ -73,7 +94,7 @@ describe('Token', function(){
         });
         it("Can burn correctly", async function(){
             await assertCanBurn(account4, 4000);
-        })
+        });
     });
     describe("Dividends work", async function(){
         itCanReceiveDeposit(6e12);

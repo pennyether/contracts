@@ -1,0 +1,537 @@
+
+<html>
+	<head>
+		<title>Test results for: tests/Treasury.js</title>
+		<style>
+			body {
+				background: #FFF;
+				padding: 10px;
+			}
+			pre {
+				font-family: Consolas, 'Courier New';
+				font-size: 75%;
+			}
+		</style>
+	</head>
+	<body>
+		<pre>
+  ========================================= 
+  =========== <span style="color:#000"><b> SMOCHA STARTING </b><span style="color:#000"> ===========
+  ========================================= 
+
+<span style="color:#AAA">├ <span style="color:#000"> <b>File: tests/Treasury.js</b> </span></span></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Treasury<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up registry and treasury </span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, and register MAIN_CONTROLLER and ADMIN<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 632, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>dummyMainController</u>, {from: <u>owner</u>}) was successful (block 633, 46123 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 634, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0x6d6e7efa4f8ce4932ba3a95641a88e05b2bf2c57<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyComptroller:    0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyMainController: 0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyToken:          0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  NO_ADDRESS:          0x0000000000000000000000000000000000000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner:               0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x0c7c7179b8148c3d6541ef5d844589f71f6f9a75<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0xa4761a4e71d1c119a6b39c90500732bcea980019<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (607 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Initially<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Should have correct mainController and admin </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getMainController.call() should equal <u>dummyMainController</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAdmin.call() should equal <u>admin</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.token.call() should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.comptroller.call() should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getOwner.call() should equal <u>owner</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (205 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot fund 1 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(1) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(1, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 636, 43946 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-219.73 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1004 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot distribute (No address to distribute to.) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAmountToDistribute.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributeReward.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.distributeToToken({from: <u>anon</u>}) was successful (block 637, 24083 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeError(msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> lost txFee (-120.415 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalDistributed.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (964 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">On initialization<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Treasury cannot fund if there is no daily limit.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Treasury cannot distribute if there is no token set.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can receive 10000 </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 10000 Wei, from: <u>anon</u>}) was successful (block 638, 43054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -10000 Wei but lost txFee (215.27 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 10000 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalRevenue.call() should equal 10000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (885 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot fund 1 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(1) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(1, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 639, 44157 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-220.785 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (946 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot distribute (No address to distribute to.) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAmountToDistribute.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributeReward.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.distributeToToken({from: <u>anon</u>}) was successful (block 640, 24083 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeError(msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> lost txFee (-120.415 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalDistributed.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (889 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.setDistributeReward()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Not callable from anon </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDistributeReward(100, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Must be >10 </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDistributeReward(9, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (34 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDistributeReward(100, {from: <u>admin</u>}) was successful (block 643, 32081 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeRewardChanged(sender, oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.distributeRewardDenom.call() should equal 100<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (111 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">dailyFundLimit<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.setDailyFundLimit() to initial value<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Can be initialized (to 1000000) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000, {from: <u>admin</u>}) was successful (block 645, 67294 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DailyFundLimitChanged(sender, oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dailyFundLimit.call() should equal 1000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dayDailyFundLimitChanged.call() should equal {not: 0}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (148 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable in same day. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (25 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.setDailyFundLimit() to a new value<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Ensure it is initialized, and fast forward a day. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dailyFundLimit.call() should equal 1000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (249 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be increased by >5% </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1051000, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be decreased by >%5 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(949000, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1030000, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1030000, {from: <u>admin</u>}) was successful (block 651, 37407 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DailyFundLimitChanged(sender, oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dailyFundLimit.call() should equal 1030000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dayDailyFundLimitChanged.call() should equal {not: 0}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (125 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable in same day. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (33 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works the next day (reset dailyLimit to 1000000) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000, {from: <u>admin</u>}) was successful (block 654, 37407 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DailyFundLimitChanged(sender, oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dailyFundLimit.call() should equal 1000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.dayDailyFundLimitChanged.call() should equal {not: 0}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (347 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Test the daily limit<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Fund treasury with two times the daily limit. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (0 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Can receive 2000000 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 2000000 Wei, from: <u>anon</u>}) was successful (block 655, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -2000000 Wei but lost txFee (140.27 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 2000000 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalRevenue.call() should equal 2010000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (811 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Fund half the daily limit, then try the other half (plus one)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Can fund 500000 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(500000) should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(500000, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 656, 117060 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> gained 500000 Wei but lost txFee (585.3 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -500000 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 500000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (945 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot fund 500001 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(500001) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(500001, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 657, 45006 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-225.03 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 500000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 500000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (967 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">When a refund occurs, it credits the daily limit<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Right now, Treasury has funded half the daily limit.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">After refunding 10 wei, Treasury should be able to fund the second half.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">However, it should not be able to fund an additional 10 wei.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> MainController can refund 10 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.acceptRefund("Bla bla bla.", {from: <u>dummyMainController</u>, value: 10 Wei}) was successful (block 658, 39308 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RefundReceived(note, sender, value)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 10 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> gained -10 Wei but lost txFee (196.54 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 499990<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (884 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Can fund 500001 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(500001) should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(500001, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 659, 67471 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> gained 500001 Wei but lost txFee (337.355 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -500001 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (845 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot fund 10 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(10) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(10, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 660, 44878 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-224.39 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (905 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Fast forwards to next day </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (192 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Cannot fund the daily limit plus 1<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Treasury should now able to fund the full daily limit, but not more.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot fund 1000001 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(1000001) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(1000001, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 662, 44285 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-221.425 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (886 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Can fund 1000000 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(1000000) should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(1000000, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 663, 72060 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> gained 1000000 Wei but lost txFee (360.3 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -1000000 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 1999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (809 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot fund 1 (Cannot fund.) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.canFund.call(1) should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.fundMainController(1, "Test reason.", {from: <u>dummyMainController</u>}) was successful (block 664, 44878 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> lost txFee (-224.39 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalFunded.call() should equal 1999991<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 1000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (872 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Setting Comptroller and Token<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.initComptroller()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>dummyComptroller</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set by admin </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>dummyComptroller</u>, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Works </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>dummyComptroller</u>, {from: <u>owner</u>}) was successful (block 667, 47968 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ComptrollerSet()' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.comptroller.call() should equal <u>dummyComptroller</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (82 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set again </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>dummyComptroller</u>, {from: <u>owner</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.initToken()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set from anon </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>dummyToken</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set from admin </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>dummyToken</u>, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Can be set by owner </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>dummyToken</u>, {from: <u>owner</u>}) was successful (block 671, 48472 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokenSet(token)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.token.call() should equal <u>dummyToken</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (106 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Cannot be set again </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>dummyToken</u>, {from: <u>owner</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.addToBankroll()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: has no bankroll </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (78 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> cannot be called from admin </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addToBankroll({from: <u>admin</u>, value: 1000000 Wei}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works correctly (from comptroller) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addToBankroll({from: <u>dummyComptroller</u>, value: 1000000 Wei}) was successful (block 674, 44229 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 1000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (97 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.removeFromBankroll()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: has a bankroll already </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal {not: 0}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (16 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be called from admin </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.removeFromBankroll(400000, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works correctly (from comptroller) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.removeFromBankroll(400000, {from: <u>dummyComptroller</u>}) was successful (block 676, 38138 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -400000 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyComptroller</u> gained 400000 Wei but lost txFee (190.69 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (701 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot remove more bankroll than exists </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.removeFromBankroll(600001, {from: <u>dummyComptroller</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (39 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.removeFromBankroll cannot remove more than balance<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Distribute, then fund 14 * DAILY_LIMIT + 1 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (0 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Ensure bankroll is equal to distribution threshold<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">We deposit ETH, then distribute to token.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">The balance should then be bankroll + 14*daily_limit.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> Can receive 1000000000000 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 1 GWei, from: <u>anon</u>}) was successful (block 678, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -1 GWei but lost txFee (140.27 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 1 GWei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalRevenue.call() should equal 1.00000201 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (835 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> Can distribute to token </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributeReward.call() should equal 0.0099998601 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAmountToDistribute.call() should equal 0.999986010009 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.distributeToToken({from: <u>anon</u>}) was successful (block 679, 165995 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeSuccess(token, amount)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyToken</u> changed by 0.989986149909 GWei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.999986010009 GWei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained 0.0099998601 GWei but lost txFee (829.975 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 14600000 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalDistributed.call() should equal 0.989986149909 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1218 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> Bankroll == Dividend Threshold </span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Balance: 14600000, 14*dailyLimit: 14600000<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (104 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Funds 14*DAILY_LIMIT + 1<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">We fund the full daily_limit 15 days in a row.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">This ensures the balance is less than the bankroll.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">This is a situation where the Treasury is not fully solvent.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Fails if it cannot afford to removeFromBankroll </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Balance: 599999 < Bankroll: 600000<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Treasury cannot afford to remove full bankroll.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.removeFromBankroll(600000, {from: <u>dummyComptroller</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (125 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.distributeToToken()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">We deposit a large amount of revenue.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Treasury should now be able to distribute dividends once again.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Can receive 123456789 </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 123456789 Wei, from: <u>anon</u>}) was successful (block 711, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -123456789 Wei but lost txFee (140.27 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 123456789 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalRevenue.call() should equal 1.000125466789 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (803 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Can distribute to token </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributeReward.call() should equal 1094567<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAmountToDistribute.call() should equal 109456788 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.distributeToToken({from: <u>anon</u>}) was successful (block 712, 105995 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeSuccess(token, amount)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyToken</u> changed by 108362221 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -109456788 Wei.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained 1094567 Wei but lost txFee (529.975 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 14600000 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalDistributed.call() should equal 0.99009451213 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1209 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot distribute (No profit to distribute.) </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAmountToDistribute.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributeReward.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.distributeToToken({from: <u>anon</u>}) was successful (block 713, 25424 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DistributeError(msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> lost txFee (-127.12 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.totalDistributed.call() should equal 0.99009451213 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (revenue + bankroll) - (funded + distributed + rewarded)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (818 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Distribution Stats<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up registry and treasury </span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>dummyToken</u>, {from: <u>owner</u>}) was successful (block 717, 48408 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDistributeReward(101, {from: <u>admin</u>}) was successful (block 718, 32081 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (438 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Distribution stats<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Treasury has the ability to do a binary search for dividends (.getDistributionStats).<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">This is difficult to test. What we do is deposit and distribute many times,<span style="color:#000"></span></span></i>
+<span style="color:#AAA">│  │  │     <span style="color:#000"><b></b></span></span><i><span style="color:#555">and check that after each distribution that the stats returned are correct.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 1st deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 101 Wei, from: <u>anon</u>}) was successful (block 719, 43054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (165995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [1, 100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270103 GWei) should equal [1, 100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0) should equal [1, 100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.00151927011 GWei, 0.001519270103 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 26327<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (321 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 2nd deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 1010 Wei, from: <u>anon</u>}) was successful (block 721, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [2, 1100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270103 GWei) should equal [2, 1100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0) should equal [2, 1100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.00151927011 GWei, 0.001519270117 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 27927<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (329 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 3rd deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 10100 Wei, from: <u>anon</u>}) was successful (block 723, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [3, 11100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270103 GWei) should equal [3, 11100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0) should equal [3, 11100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.00151927011 GWei, 0.00151927011 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 29513<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (301 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 4th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 101000 Wei, from: <u>anon</u>}) was successful (block 725, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [4, 111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270103 GWei) should equal [3, 11100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0) should equal [4, 111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270117 GWei, 0.001519270118 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 31758<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (328 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 5th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 1010000 Wei, from: <u>anon</u>}) was successful (block 727, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [5, 1111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270103 GWei) should equal [3, 11100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0) should equal [5, 1111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270117 GWei, 0.001519270103 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 33990<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (350 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 6th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 10100000 Wei, from: <u>anon</u>}) was successful (block 729, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [3, 11100000]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270118 GWei, 0.001519270111 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 36235<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (381 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 7th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 202 Wei, from: <u>anon</u>}) was successful (block 731, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [7, 11111300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [4, 11100200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270117 GWei, 0.001519270104 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 37821<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (457 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 8th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 2020 Wei, from: <u>anon</u>}) was successful (block 733, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [8, 11113300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [5, 11102200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0.001519270119 GWei) should equal [5, 11102200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 39407<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (436 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 9th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 20200 Wei, from: <u>anon</u>}) was successful (block 735, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [9, 11133300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [6, 11122200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270103 GWei, 0.001519270118 GWei) should equal [9, 11133300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 41639<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (442 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 10th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 202000 Wei, from: <u>anon</u>}) was successful (block 737, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [10, 11333300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [7, 11322200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270118 GWei, 0.001519270111 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 43884<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (480 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 11th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 2020000 Wei, from: <u>anon</u>}) was successful (block 739, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [11, 13333300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270104 GWei) should equal [6, 11111100]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0) should equal [8, 13322200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270104 GWei, 0.001519270112 GWei) should equal [8, 13322200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 45470<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (439 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works for 12th deposit </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 20200000 Wei, from: <u>anon</u>}) was successful (block 741, 28054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RevenueReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Called .distributeToToken() (105995 gas)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0) should equal [12, 33333300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0, 0.001519270105 GWei) should equal [8, 11113300]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270105 GWei, 0) should equal [6, 22222200]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getDistributionStats.call(0.001519270112 GWei, 0.001519270106 GWei) should equal [0, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Estimate gas for getting all: 47056<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (424 ms)<span style="color:#000"> </span></span></span></span> 
+
+  =========== <span style="color:#0A0"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
+
+  <span style="color:#0A0"><b>60</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 30.16s
+
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+	</body>
+</html>

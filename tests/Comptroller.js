@@ -29,20 +29,7 @@ describe('Comptroller', function(){
     var treasury;
 
     before("Set up Registry, Treasury, and create Comptroller.", async function(){
-        registry = await Registry.new(regOwner, {from: anon});
-        treasury = await Treasury.new(registry.address, {from: anon});
-        comptroller = await Comptroller.new(compOwner, {from: anon});
-        token = DividendToken.at(await comptroller.token());
-        locker = DividendTokenLocker.at(await comptroller.locker());
-        await registry.register("MAIN_CONTROLLER", dummyMainController, {from: regOwner});
-        await registry.register("ADMIN", admin, {from: regOwner});
-
-        const addresses = {
-        	comptroller: comptroller.address,
-        	token: token.address,
-            locker: locker.address,
-            registry: registry.address,
-            treasury: treasury.address,
+        await createDefaultTxTester().nameAddresses({
             regOwner: regOwner,
             compOwner: compOwner,
             admin: admin,
@@ -52,10 +39,49 @@ describe('Comptroller', function(){
             account3: account3,
             anon: anon,
             NO_ADDRESS: NO_ADDRESS
-        };
+        }).start();
+
+        this.logInfo("Create Registry, owned by regOwner.");
         await createDefaultTxTester()
-            .nameAddresses(addresses)
-            .start();
+            .doNewTx(Registry, [regOwner], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                registry = res.contract;
+                plugins.addAddresses({registry: registry.address});
+            }).start();
+
+        this.logInfo("Create Treasury, which points to Registry.");
+        await createDefaultTxTester()
+            .doNewTx(Treasury, [registry.address], {from: anon}).assertSuccess()
+            .withTxResult((res, plugins)=>{
+                treasury = res.contract;
+                plugins.addAddresses({treasury: treasury.address});
+            }).start();
+
+        this.logInfo("Create Comptroller, owned by compOwner.");
+        await createDefaultTxTester()
+            .doNewTx(Comptroller, [compOwner], {from: anon}).assertSuccess()
+            .withTxResult(async function(res, plugins){
+                comptroller = res.contract;
+                token = DividendToken.at(await comptroller.token());
+                locker = DividendTokenLocker.at(await comptroller.locker());
+                plugins.addAddresses({
+                    comptroller: comptroller.address,
+                    token: token.address,
+                    locker: locker.address,
+                });
+            }).start();
+
+        this.logInfo("Register the MAIN_CONTROLLER (points to a regular account)");
+        await createDefaultTxTester()
+            .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: regOwner}])
+            .assertSuccess().start();
+            
+        this.logInfo("Register the ADMIN (points to a regular account)");
+        await createDefaultTxTester()
+            .doTx([registry, "register", "ADMIN", admin, {from: regOwner}])
+            .assertSuccess().start();
+            
+        await createDefaultTxTester().printNamedAddresses().start();
     });
     describe("Set up Treasury", function(){
     	it("Call .initToken and .initComptroller on Treasury", function(){

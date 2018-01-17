@@ -34,22 +34,22 @@ function createPlugins(testUtil, ledger) {
 		//      .txErr - The error, if any, from execution (or undefined)
 		//		.txPromise - Promise of the tx
 		//		.txName - A name of the TX
-		doTx: function(fnOrPromise) {
+		doTx: function(fnOrPromiseOrArray) {
 			const ctx = this;
 			var contract;
-			if (Array.isArray(fnOrPromise)) {
-				contract = fnOrPromise[0];
-				const name = fnOrPromise[1];
-				const args = fnOrPromise.slice(2);
+			if (Array.isArray(fnOrPromiseOrArray)) {
+				contract = fnOrPromiseOrArray[0];
+				const name = fnOrPromiseOrArray[1];
+				const args = fnOrPromiseOrArray.slice(2);
 				const argsStr = args ? str(args, true) : "";
-				fnOrPromise = () => contract[name].apply(contract, args);
-				ctx.txName = `doTx: ${str(contract)}.${name}(${argsStr})`;
+				fnOrPromiseOrArray = () => contract[name].apply(contract, args);
+				ctx.txName = `tx: ${str(contract)}.${name}(${argsStr})`;
 				if (!contract[name] || !contract[name].apply)
 					throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 			} else {
-				ctx.txName = `${fnOrPromise.toString()}`;
+				if (!ctx.txName) ctx.txName = `${fnOrPromiseOrArray.toString()}`;
 			}
-			ctx.txPromise = testUtil.toPromise(fnOrPromise)
+			ctx.txPromise = testUtil.toPromise(fnOrPromiseOrArray)
 				.then(res => {
 					if (res === undefined)
 						throw new Error(`'.doTx' function returned undefined -- expected a result.`);
@@ -69,14 +69,25 @@ function createPlugins(testUtil, ledger) {
 				);
 			return ctx.txPromise;
 		},
-		doNewTx: function(fnOrPromise) {
+		doNewTx: function(contract, args, opts) {
 			// converts .new() to what a normal call would be (a result with logs and stuff)
 			const ctx = this;
-			const p = testUtil.toPromise(fnOrPromise)
+			const p = testUtil.toPromise(()=>{
+					const name = contract.contract_name;
+					const argsStr = args ? str(args, true) : "";
+					const optsStr = opts ? str(opts, true) : "";
+					ctx.txName = `newTx: ${name}.new(${argsStr}, ${optsStr})`;
+					return contract["new"].apply(contract, args.concat(opts));
+				})
             	.then(testUtil.getTruffleResultFromNew)
             return plugins.doTx.call(ctx, p);
 		},
 		// returns the result of `do`
+		withTxResult: function(fn) {
+			const ctx = this;
+			if (ctx.txRes===undefined) throw new Error("'doTx' was never called, or failed");
+			fn.call(null, ctx.txRes, plugins);
+		},
 		getTxResult: function() {
 			const ctx = this;
 			if (ctx.txRes===undefined) throw new Error("'doTx' was never called, or failed");
@@ -503,7 +514,7 @@ function createPlugins(testUtil, ledger) {
 		assertBalance: async function(address, expectedBalance, msg) {
 			const balance = await testUtil.getBalance(address);
 			expectedBalance = await testUtil.toPromise(expectedBalance);
-			msg = msg || `should equal ${expectedBalance}`;
+			msg = msg || `should equal ${wei(expectedBalance)}`;
 			msg = `Balance of ${at(address)} ${msg}`;
 			assert.strEqual(balance, expectedBalance, msg);
 			console.log(`✓ ${msg}`);
@@ -526,7 +537,19 @@ function createPlugins(testUtil, ledger) {
 		fail: async function(){ throw new Error("Failure"); },
 		
 		testUtil: testUtil,
-		nameAddresses: nameAddresses
+		nameAddresses: nameAddresses,
+		addAddresses: (addrs)=>{ nameAddresses(addrs, false); },
+		printNamedAddresses: ()=>{
+			console.log("Named Addresses:");
+			const maxLen = Math.max.apply(null, Object.values(addrToName).map(x=>x.length));
+			Object.entries(addrToName).sort((a,b)=>{
+				return a[1].toLowerCase() < b[1].toLowerCase() ? -1 : 1;
+			}).forEach((entry)=>{
+				const paddingLen = (maxLen - entry[1].length);
+				const paddingStr = (new Array(paddingLen+1)).join(' ');
+				console.log(`  ${entry[1]}:${paddingStr} ${entry[0]}`);
+			})
+		}
 		////////////////////////////////////////////////////
 	};
 	return plugins;
@@ -535,8 +558,6 @@ function createPlugins(testUtil, ledger) {
 var addrToName = {};
 function nameAddresses(obj, reset) {
 	if (reset === undefined || !!reset) addrToName = {};
-	console.log("Named addresses:")
-	console.log(JSON.stringify(obj, null, 2));
 	Object.keys(obj).forEach((name) => {
 		var val = obj[name];
 		var type = Object.prototype.toString.call(val);
@@ -567,7 +588,7 @@ function at(val) {
 		var shortened = val.address.substr(0, 6) + "...";
 		return addrToName[val.address]
 			? chalk.underline(`${addrToName[val.address]}`)
-			: `${val.constructor._json.contract_name}[${shortened}]`;
+			: `${val.constructor.contract_name}[${shortened}]`;
 	}
 	if (typeof val == "string"){
 		if (val.length > 19) return `"${val.slice(0,19)}..."`;

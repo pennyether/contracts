@@ -1,6 +1,12 @@
 # Penny Ether Contracts
 
-This repo contains open-sourced PennyEther contracts. All tests are included and are easy to run, with minimal dependancies.
+This repo contains open-sourced PennyEther contracts, a description of how they work, and lots of tests.
+
+This repo also contains some pretty useful open sourced testing tools for testing Ethereum contracts. In the future, they will be moved to a separate package.
+
+## Test Results
+
+We've run exhaustive tests and saved them to `/tests/results/index.html`. If you'd like to, follow the instructions below to run the tests.
 
 ## To Run Tests
 
@@ -82,7 +88,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 
 ### Tests
 
-We've tested every feature listed above, and if you're so inclined, you can read and run the tests yourself. Or, you can view the test results 
+We've tested every feature listed above, and if you're so inclined, you can read and run the tests yourself. Or, you can view the test results in `/tests/results/index.html`.
 
 ### Helper Contracts
 
