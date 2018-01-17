@@ -34,8 +34,15 @@ function createPlugins(testUtil, ledger) {
 		//      .txErr - The error, if any, from execution (or undefined)
 		//		.txPromise - Promise of the tx
 		//		.txName - A name of the TX
-		doTx: function(fnOrPromiseOrArray) {
+		doTx: function(fnOrPromiseOrArray, name) {
 			const ctx = this;
+			// delete traces of previous transaction, if any.
+			delete ctx.txRes;
+			delete ctx.txErr;
+			delete ctx.txPromise;
+			delete ctx.txName;
+
+			// create the txName, and if passed array, the promise.
 			var contract;
 			if (Array.isArray(fnOrPromiseOrArray)) {
 				contract = fnOrPromiseOrArray[0];
@@ -43,12 +50,13 @@ function createPlugins(testUtil, ledger) {
 				const args = fnOrPromiseOrArray.slice(2);
 				const argsStr = args ? str(args, true) : "";
 				fnOrPromiseOrArray = () => contract[name].apply(contract, args);
-				ctx.txName = `tx: ${str(contract)}.${name}(${argsStr})`;
+				ctx.txName = name || `tx: ${str(contract)}.${name}(${argsStr})`;
 				if (!contract[name] || !contract[name].apply)
 					throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 			} else {
-				if (!ctx.txName) ctx.txName = `${fnOrPromiseOrArray.toString()}`;
+				ctx.txName = name || `${fnOrPromiseOrArray.toString()}`;
 			}
+			// execute the transaction, and modify ctx.tx* on completion.
 			ctx.txPromise = testUtil.toPromise(fnOrPromiseOrArray)
 				.then(res => {
 					if (res === undefined)
@@ -70,17 +78,18 @@ function createPlugins(testUtil, ledger) {
 			return ctx.txPromise;
 		},
 		doNewTx: function(contract, args, opts) {
-			// converts .new() to what a normal call would be (a result with logs and stuff)
 			const ctx = this;
+			// converts .new() to what a normal call would be (a result with logs and stuff)
+			var name;
 			const p = testUtil.toPromise(()=>{
-					const name = contract.contract_name;
-					const argsStr = args ? str(args, true) : "";
-					const optsStr = opts ? str(opts, true) : "";
-					ctx.txName = `newTx: ${name}.new(${argsStr}, ${optsStr})`;
-					return contract["new"].apply(contract, args.concat(opts));
-				})
-            	.then(testUtil.getTruffleResultFromNew)
-            return plugins.doTx.call(ctx, p);
+				const contractName = contract.contract_name;
+				const argsStr = args ? str(args, true) : "";
+				const optsStr = opts ? str(opts, true) : "";
+				name = `newTx: ${contractName}.new(${argsStr}, ${optsStr})`;
+				return contract["new"].apply(contract, args.concat(opts));
+			}).then(testUtil.getTruffleResultFromNew);
+			// pass promise to regular doTx call, with the name
+            return plugins.doTx.call(ctx, p, name);
 		},
 		// returns the result of `do`
 		withTxResult: function(fn) {

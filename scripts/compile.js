@@ -21,11 +21,10 @@ const options = {
 const contractDir = path.join(__dirname, "../contracts");
 const buildDir = path.join(__dirname, "../build");
 if (!fs.lstatSync(contractDir).isDirectory()){
-	throw new Error("Could not find a contracts folder.");
+	throw new Error(`Could not find contractDir at: ${contractDir}`);
 }
-if (!fs.existsSync(buildDir)){
-	console.log(`Creating directory: ${buildDir}`);
-	fs.mkdirSync(buildDir)
+if (!fs.lstatSync(buildDir).isDirectory()){
+	throw new Error(`Could not find buildDir at: ${buildDir}`);
 }
 
 // Recursively searches a directory for .sol files.

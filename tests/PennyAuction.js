@@ -47,7 +47,7 @@ function testWithParams(name, params) {
         this.logInfo(`Bid Add Blocks: ${BID_ADD_BLOCKS}`);
         this.logInfo(`Initial Blocks: ${INITIAL_BLOCKS}`);
 
-        var auction, bidderContract, blockStarted;
+        var auction, maliciousBidder, blockStarted;
         const anon = accounts[0];
         const collector = accounts[1];
         const bidder1 = accounts[2];
@@ -70,21 +70,22 @@ function testWithParams(name, params) {
             nonBidder: nonBidder
         };
 
-        before("Create BidderContract", async function(){
+        before("Create Malicious Bidder", async function(){
             await createDefaultTxTester().nameAddresses(addresses).start();
 
-            this.logInfo("Create and fund a BidderContract instance.");
+            this.logInfo("Create and fund a MaliciousBidder instance.");
+            this.logInfo("This bidder's fallback function causes an OOG error.");
             await createDefaultTxTester()
                 .doNewTx(ExpensivePayableBidder, [], {from: anon}).assertSuccess()
                 .withTxResult((txRes, plugins)=>{
-                    bidderContract = txRes.contract;
-                    plugins.addAddresses({bidderContract: bidderContract});
+                    maliciousBidder = txRes.contract;
+                    plugins.addAddresses({maliciousBidder: maliciousBidder});
                 })
-                .doTx(() => bidderContract.fund({value: BID_PRICE.mul(5), from: anon}))
+                .doTx(() => maliciousBidder.fund({value: BID_PRICE.mul(5), from: anon}))
                 .assertSuccess()
                 .start();
 
-            assert.strEqual(await testUtil.getBalance(bidderContract), BID_PRICE.mul(5));
+            assert.strEqual(await testUtil.getBalance(maliciousBidder), BID_PRICE.mul(5));
 
             await createDefaultTxTester().printNamedAddresses().start();
         });
@@ -219,6 +220,9 @@ function testWithParams(name, params) {
             // first and second bidders should be refunded, and the end result is one extra bid.
             describe("Handles bids within same block", function(){
                 it("When refund works", async function(){
+                    this.logInfo("This tests a case where three bids occur on the same block.");
+                    this.logInfo("We ensure the first and second bidders are refunded.");
+                    this.logInfo("Note: The weird gas amounts are due to a bug in Ganache.");
                     const fee = BID_PRICE.minus(BID_INCR);
                     const prizeIncr = BID_PRICE.minus(fee);
                     const newPrize = (await auction.prize()).add(prizeIncr);
@@ -231,11 +235,11 @@ function testWithParams(name, params) {
                     await createDefaultTxTester()
                         .startLedger([bidderFirst, bidderSecond, bidderThird, auction])
                         .doFn(() => { testUtil.stopMining(); })
-                        .doFn(() => { tx1 = auction.sendTransaction({from: bidderFirst, value: BID_PRICE, gas: "200001"}); })
+                        .doFn(() => { tx1 = auction.sendTransaction({from: bidderFirst, value: BID_PRICE, gas: "200000"}); })
                         .wait(100)
-                        .doFn(() => { tx2 = auction.sendTransaction({from: bidderSecond, value: BID_PRICE, gas: "200002"}); })
+                        .doFn(() => { tx2 = auction.sendTransaction({from: bidderSecond, value: BID_PRICE, gas: "200001"}); })
                         .wait(100)
-                        .doFn(() => { tx3 = auction.sendTransaction({from: bidderThird, value: BID_PRICE, gas: "200003"}); })
+                        .doFn(() => { tx3 = auction.sendTransaction({from: bidderThird, value: BID_PRICE, gas: "200002"}); })
                         .wait(100, "Stopped mining, queued both tx1, tx2, and tx3")
                         .doFn(() => {
                             console.log("Mining block now...");
@@ -272,15 +276,15 @@ function testWithParams(name, params) {
                             });
                         })
                         .doTx(() => tx1)
-                            .assertSuccess("First Bidder")
+                            .assertSuccess()
                             .assertOnlyLog('BidOccurred', {bidder: bidderFirst, time: null})
                         .doTx(() => tx2)
-                            .assertSuccess("Second Bidder")
+                            .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('BidRefundSuccess', {bidder: bidderFirst, time: null})
                             .assertLog('BidOccurred', {bidder: bidderSecond, time: null})
                         .doTx(() => tx3)
-                            .assertSuccess("Third Bidder")
+                            .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('BidRefundSuccess', {bidder: bidderSecond, time: null})
                             .assertLog('BidOccurred', {bidder: bidderThird, time: null})
@@ -298,6 +302,10 @@ function testWithParams(name, params) {
                 // This is a case where two bidders enter same block, but the refund to the first fails.
                 // In this case, there should be a BidRefundFailed() event, and two bids should be counted.
                 it("When refund fails", async function(){
+                    this.logInfo("In this case, two bids occur in the same block.");
+                    this.logInfo("However, the first bidder's fallback function fails or tries a gas DoS.");
+                    this.logInfo("This test ensures bidding handles this properly.");
+                    this.logInfo("Note: The weird gas amounts are due to a bug in Ganache.");
                     const fee = BID_PRICE.minus(BID_INCR);
                     const prizeIncr = BID_PRICE.minus(fee);
                     const newPrize = (await auction.prize()).add(prizeIncr.mul(2));
@@ -308,12 +316,12 @@ function testWithParams(name, params) {
                     var tx1, tx2;
                     var tx1fee, tx2fee;
                     await createDefaultTxTester()
-                        .startLedger([bidderContract, bidderSecond, auction])
+                        .startLedger([maliciousBidder, bidderSecond, auction])
                         .startWatching([auction])
                         .doFn(() => { testUtil.stopMining(); })
-                        .doFn(() => { tx1 = bidderContract.doBid(auction.address, {gas: "200001", from: anon}); })
+                        .doFn(() => { tx1 = maliciousBidder.doBid(auction.address, {from: anon, gas: "200000"}); })
                         .wait(100)
-                        .doFn(() => { tx2 = auction.sendTransaction({from: bidderSecond, value: BID_PRICE, gas: "200002"}); })
+                        .doFn(() => { tx2 = auction.sendTransaction({from: bidderSecond, value: BID_PRICE, gas: "200001"}); })
                         .wait(100, "Stopped mining, queued both tx1 and tx2.")
                         .doFn(() => {
                             console.log("Mining block now...");
@@ -342,25 +350,25 @@ function testWithParams(name, params) {
                             });
                         })
                         .doTx(() => tx1)
-                            .assertSuccess("Contract bidded")
-                            // this log is not available since he tx address was bidderContract and not auction
-                            // instead, we use .startWatching
-                            //.assertOnlyLog('BidOccurred', {time: null, bidder: bidderContract.address})
+                            .assertSuccess()
+                            // Below will not be in logs (since the 'to:' was not auction, not maliciousBidder)
+                            // The next tx test case covers this anyway: BidRefundFailure to maliciousBidder
+                            //.assertOnlyLog('BidOccurred', {time: null, bidder: maliciousBidder.address})
                         .doTx(() => tx2)
-                            .assertSuccess("Second Bidder")
+                            .assertSuccess()
                             .assertLogCount(2)
-                            .assertLog('BidRefundFailure', {time: null, bidder: bidderContract.address})
+                            .assertLog('BidRefundFailure', {time: null, bidder: maliciousBidder.address})
                             .assertLog('BidOccurred', {time: null, bidder: bidderSecond})
                             .assertCallReturns([auction, 'prize'], newPrize, "is incremented twice")
                             .assertCallReturns([auction, 'fees'], newFees, "is incremented twice")
                             .assertCallReturns([auction, 'numBids'], newNumBids, "is incremented twice")
                             .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "is incremented only once")
                         .stopLedger()
-                            .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
+                            .assertDelta(maliciousBidder, BID_PRICE.mul(-1), "lost BID_PRICE")
                             .assertDelta(bidderSecond, ()=>BID_PRICE.plus(tx2fee).mul(-1), "lost bid+txFee")
                             .assertDelta(auction, BID_PRICE.mul(2), "increased by two bids")
                         .stopWatching()
-                            .assertEvent(auction, 'BidOccurred', {time: null, bidder: bidderContract.address})
+                            .assertEvent(auction, 'BidOccurred', {time: null, bidder: maliciousBidder.address})
                         .start();
                 })
                 
@@ -376,20 +384,20 @@ function testWithParams(name, params) {
                     const newBlockEnded = (await auction.blockEnded()).add(BID_ADD_BLOCKS);
 
                     await createDefaultTxTester()
-                        .startLedger([bidderContract, auction])
+                        .startLedger([maliciousBidder, auction])
                         .startWatching([auction])
-                        .doTx(() => bidderContract.doBid(auction.address, {from: anon}))
+                        .doTx(() => maliciousBidder.doBid(auction.address, {from: anon}))
                             .assertSuccess()
                             .assertCallReturns([auction, 'prize'], newPrize, "increased by prizeIncr")
                             .assertCallReturns([auction, 'fees'], newFees, "increased by feeIncr")
-                            .assertCallReturns([auction, 'currentWinner'], bidderContract.address, "is new currentWinner")
+                            .assertCallReturns([auction, 'currentWinner'], maliciousBidder.address, "is new currentWinner")
                             .assertCallReturns([auction, 'numBids'], newNumBids, "increased by 1")
                             .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "increased by bidAddBlocks")
                         .stopLedger()
                             .assertDelta(auction, BID_PRICE, "increased by BID_PRICE")
-                            .assertDelta(bidderContract, BID_PRICE.mul(-1), "lost BID_PRICE")
+                            .assertDelta(maliciousBidder, BID_PRICE.mul(-1), "lost BID_PRICE")
                         .stopWatching()
-                            .assertOnlyEvent(auction, 'BidOccurred', {bidder: bidderContract.address, time: null})
+                            .assertOnlyEvent(auction, 'BidOccurred', {bidder: maliciousBidder.address, time: null})
                         .start();
                 });
             });
@@ -410,9 +418,9 @@ function testWithParams(name, params) {
                                 .assertSuccess()
                                 .start();
                         }
-                        console.log("Bidding with bidderContract so they it's the winner.");
+                        console.log("Bidding with maliciousBidder so they it's the winner.");
                         await createDefaultTxTester()
-                                .doTx(() => bidderContract.doBid(auction.address, {from: anon}))
+                                .doTx(() => maliciousBidder.doBid(auction.address, {from: anon}))
                                 .assertSuccess()
                                 .start();    
                     });
@@ -451,18 +459,21 @@ function testWithParams(name, params) {
             });
 
             describe(".sendPrize()", function(){
-                before("auction should be ended, and won by bidderContract", async function(){
+                before("auction should be ended, and won by maliciousBidder", async function(){
                     await createDefaultTxTester()
                         .assertCallReturns([auction, "isEnded"], true)
                         .assertCallReturns([auction, "getBlocksRemaining"], 0)
-                        .assertCallReturns([auction, "currentWinner"], bidderContract.address)
+                        .assertCallReturns([auction, "currentWinner"], maliciousBidder.address)
                         .start();
                 });
                 describe("With limited gas", function(){
+                    this.logInfo("The winner requires a ton of gas to pay for sending the prize.");
+                    this.logInfo(".sendPrize(50000) only allots 50,000 gas to pay the winner, and should fail.");
                     it("tx should error", async function(){
+                        const GAS_LIMIT = 50000;
                         const prize = await auction.prize();
                         const currentWinner = await auction.currentWinner();
-                        const callParams = [auction, "sendPrize", 1, {from: nonBidder}];
+                        const callParams = [auction, "sendPrize", GAS_LIMIT, {from: nonBidder}];
                         await createDefaultTxTester()
                             .assertCallReturns(callParams, [false, 0])
                             .startLedger([currentWinner, auction, collector, nonBidder])
@@ -473,7 +484,7 @@ function testWithParams(name, params) {
                                 redeemer: nonBidder,
                                 recipient: currentWinner,
                                 amount: prize,
-                                gasLimit: 1
+                                gasLimit: GAS_LIMIT
                             })
                             .stopLedger()
                                 .assertLostTxFee(nonBidder)
@@ -483,6 +494,7 @@ function testWithParams(name, params) {
                     })
                 });
                 describe("With unlimited gas", function(){
+                    this.logInfo("If we call .sendPrize(0), however, it should work (and use a lot of gas)");
                     it("should pay to winner (callable by anyone)", async function(){
                         const prize = await auction.prize();
                         const currentWinner = await auction.currentWinner();
@@ -613,7 +625,7 @@ function testWithParams(name, params) {
                 .startLedger([auction, nonAdmin])
                 .doTx(callParams)
                 .assertSuccess()
-                    .assertOnlyErrorLog(errorMsg)
+                    .assertOnlyLog("SendPrizeError", {msg: errorMsg})
                 .stopLedger()
                     .assertLostTxFee(nonAdmin)
                     .assertNoDelta(auction)

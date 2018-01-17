@@ -3,6 +3,15 @@ import "./PennyAuction.sol";
 import "../roles/UsingPennyAuctionController.sol";
 import "../roles/UsingTreasury.sol";
 
+/**
+The PennyAuctionFactory creates instances of PennyAuctions.
+    - It sets _collector to the Registry's current value of Treasury
+    - It stores the address in lastCreatedAuction, so that the caller
+      has a way to retrieve the value in case they are using a 
+      low-level call.
+    - It emits an event, this can be used to verify an Auction
+      originated from PennyAuctionFactory.
+*/
 contract PennyAuctionFactory is
     UsingPennyAuctionController,
     UsingTreasury
@@ -12,7 +21,7 @@ contract PennyAuctionFactory is
 
     event AuctionCreated(
         uint time,
-        address addr,
+        address indexed addr,
         address collector,
         uint initialPrize,
         uint bidPrice,
@@ -27,6 +36,7 @@ contract PennyAuctionFactory is
         public
     {}
 
+    // create an auction, event, and return.
     function createAuction(
         uint _initialPrize,
         uint _bidPrice,
@@ -41,8 +51,7 @@ contract PennyAuctionFactory is
     {
         require(msg.value == _initialPrize);
 
-        // create an auction, event, and return.
-        // throws if invalid params are passed.
+        // note: this throws if invalid params are passed.
         address _collector = address(getTreasury());
 		_auction = (new PennyAuction).value(_initialPrize)({
             _collector: _collector,

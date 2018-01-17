@@ -58,20 +58,22 @@ function SmochaLogger() {
 		_consoleLog.apply(null, args);		
 	}
 
-	// prints arg[0] stylized using $type.$state or $state then $type
+	// prints args stylized using $type.$state or $state then $type
 	function _logType(node, state, args, doExtraIndent, isLast) {
 		if (node.type == "root") return;
 		if (!args || !args.length) return;
 
-		// convert the first arg to a string, and colorize it.
-		var str = args[0].toString();
-		if (theme[`${node.type}.${state}`]){
-			str = theme[`${node.type}.${state}`](str);
-		} else {
-			if (theme[state]) { str = theme[state](str); }
-			if (theme[node.type]) { str = theme[node.type](str); }
-		}
-		args[0] = str;
+		args = args.map(arg=>{
+			var str = util.format(arg);
+			if (theme[`${node.type}.${state}`]){
+				str = theme[`${node.type}.${state}`](str);
+			} else {
+				if (theme[state]) { str = theme[state](str); }
+				if (theme[node.type]) { str = theme[node.type](str); }
+			}
+			return str;
+		});
+
 		_log(node.getParents().length + (doExtraIndent ? 1 : 0), args, false, isLast);
 	}
 
