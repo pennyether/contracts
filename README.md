@@ -16,11 +16,12 @@ _Note: Node 8 or higher required._
 - `git clone` this repo, and `cd` into it
 - Install dependencies: `npm install`.
 - Run: `./scripts/compile.js` - this compiles all contracts and creates artifacts (abis, etc) in the `/build/contracts` folder.
+- Fire up `Gananche`. If you don't have it: `npm install -g ganache-cli` then `ganache-cli`
 - To run a test: `./scripts/test.js tests/Comptroller.js`
 - To run all tests: `./scripts/test.js all` (this will run _a lot_ of tests!)
 
 <div style='border: 1px solid gray; padding: 10px; background: #FFFFFA; border-radius: 5px;'>
-If you receive an error that Web3 couldn't connect, make sure you have `testrpc` or `ganache` running on `localhost:8545`
+If you receive an error that Web3 couldn't connect, make sure you have `testrpc` or `ganache` running on `localhost:8545`.  If you do not have Ganache, do: `npm install -g ganache-cli` then `ganache-cli`.
 </div>
 
 ## Contract Architecture
@@ -70,7 +71,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 			- Causes all running Penny Auctions to send their accrued fees to `Treasury`
 			- For any auctions that are complete, pays the winner and moves the auction to *endedAuctions* so that another can be started in its place.
 	- When new types of games are added, this will be upgraded to provide additional rewards to ensure PennyEther remains autonomous.
-- **PennyAuctionController.sol**: The `Game Controller` for Penny Auctions.  It manages all running and ended PennyAuctions. This contract will be made open source after the ICO.
+- **PennyAuctionController.sol**: The `Game Controller` for Penny Auctions.  It manages all running and ended PennyAuctions. To prevent copycats, this contract will be made open source after the ICO. Tests and the ABI are available in this repo.
 - **InstaDice.sol**: The `Game Controller` for InstaDice.
 	- Allows anyone to add bankroll (realistically, only PennyEther will do this)
 	- Allows users to send ETH in return for a chance at winning more.

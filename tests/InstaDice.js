@@ -277,12 +277,15 @@ describe('InstaDice', function(){
                 .doFn(() => {
                     testUtil.stopMining();
                     console.log(`Stopped mining.`);
-                });
+                })
+                .wait(1000);
 
+            var gas = 150000;
             wagers.forEach((p, i)=>{
                 tester
                     .doFn(() => {
-                        txs.push(dice.roll(p[1], {value: p[0], from: p[2]}));
+                        console.log(`gas: ${gas}`)
+                        txs.push(dice.roll(p[1], {value: p[0], from: p[2], gas: gas++}));
                         console.log(`Submitted transacion for roll ${i+1}.`);
                     })
                     .wait(100);
@@ -293,7 +296,7 @@ describe('InstaDice', function(){
                     console.log("Mining block now...");
                     testUtil.mineBlocks(1);
                     testUtil.startMining();
-                    console.log(txs);
+                    // NOTE: It never makes it this far. Ganache just hangs, then dies later on.
                     return Promise.all(txs).then((txResArr)=>{
                         const tx1res = txResArr[0];
                         const block = web3.eth.getBlock(tx1res.receipt.blockNumber);

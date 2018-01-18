@@ -63,7 +63,7 @@ function createPlugins(testUtil, ledger) {
 						throw new Error(`'.doTx' function returned undefined -- expected a result.`);
 					if (!res.receipt)
 						throw new Error('No receipt found.');
-					if (res.receipt.status===0)
+					if ((new BigNumber(res.receipt.status)).equals(0))
 						throw new Error("receipt.status===0");
 					return res;
 				}).then(
