@@ -98,28 +98,28 @@ describe('DividendToken', function(){
     });
     describe("Dividends work", async function(){
         itCanReceiveDeposit(6e12);
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
         itCanCollectDividend(1);
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
         itCanReceiveDeposit(12e13)
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
         itCanCollectDividend(1);
         itCanCollectDividend(2);
         itCanCollectDividend(2);
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
     });
     describe("Transfering works", async function(){
         itCanReceiveDeposit(6e14);
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
         it("account3 cannot transfer more than it has.", async function(){
             return assertCannotTransferTooMuch(account3, account4);
         })
         it("account3 can transfer to account4.", async function(){
             return assertCanTransfer(account3, account4);
         });
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
         itCanReceiveDeposit(6e15);
-        itCanGetCollectableDividends();
+        itCanGetOwedDividends();
     });
     describe(".collectDividends() when account is unpayable", async function(){
         it("Transfer from account4 to unpayableTokenHolder", function(){
@@ -128,10 +128,10 @@ describe('DividendToken', function(){
         itCanReceiveDeposit(6e16);
         it(".collectDividends() throws if cannot send", async function(){
             const unpayableAddress = unpayableTokenHolder.address;
-            const amount = await token.getCollectableDividends(unpayableAddress);
+            const amount = await token.getOwedDividends(unpayableAddress);
             assert(amount.gt(0), `${amount} should be > 0`);
             return createDefaultTxTester()
-                .assertCallReturns([token, "getCollectableDividends", unpayableAddress], amount)
+                .assertCallReturns([token, "getOwedDividends", unpayableAddress], amount)
                 .doTx([unpayableTokenHolder, "collectDividends", token.address])
                     .assertInvalidOpCode()
                 .start();
@@ -160,17 +160,17 @@ describe('DividendToken', function(){
     // These functions keep track of expected dividends, and do assertions against them.
     const trackedAccounts = [account1, account2, account3, account4];
     var expectedTotalDividends = new BigNumber(0);
-    var expectedDividends = trackedAccounts.map(()=>new BigNumber(0));
+    var owedDividends = trackedAccounts.map(()=>new BigNumber(0));
     async function itCanReceiveDeposit(amt) {
         amt = new BigNumber(amt);
 
-        // expectDividends calculates expectedDividends and expectedTotalDividends
+        // expectDividends calculates owedDividends and expectedTotalDividends
         async function expectDividends(amt) {
             const totalSupply = await token.totalSupply();
             expectedTotalDividends = expectedTotalDividends.plus(amt);
             await Promise.all(trackedAccounts.map((acc, i) => {
                 return token.balanceOf(trackedAccounts[i]).then((numTokens)=>{
-                    expectedDividends[i] = expectedDividends[i]
+                    owedDividends[i] = owedDividends[i]
                         .plus(numTokens.mul(amt).div(totalSupply));
                 });
             }));
@@ -187,12 +187,12 @@ describe('DividendToken', function(){
         });
     }
 
-    async function itCanGetCollectableDividends() {
-        it(".getCollectableDividends() works", async function(){
+    async function itCanGetOwedDividends() {
+        it(".getOwedDividends() works", async function(){
             const tester = createDefaultTxTester();
             trackedAccounts.forEach((acc, i)=>{
-                const expected = expectedDividends[i].floor();
-                tester.assertCallReturns([token, "getCollectableDividends", acc], expected);
+                const expected = owedDividends[i].floor();
+                tester.assertCallReturns([token, "getOwedDividends", acc], expected);
             })
             return tester.start();
         });
@@ -201,7 +201,8 @@ describe('DividendToken', function(){
     async function itCanCollectDividend(accountNum) {
         it(`account${accountNum+1} collects correct amount.`, function(){
             const account = trackedAccounts[accountNum];
-            const expected = expectedDividends[accountNum].floor();
+            const expected = owedDividends[accountNum].floor();
+            this.logInfo(`account${accountNum} is owed ${expected} Wei and should be payed that exact amount.`);
             return createDefaultTxTester()
                 .startLedger([account])
                 .doTx([token, "collectDividends", {from: account}])
@@ -212,7 +213,8 @@ describe('DividendToken', function(){
                         amount: expected
                     })
                     .assertDeltaMinusTxFee(account, expected)
-                .doFn(() => expectedDividends[accountNum] = new BigNumber(0))
+                .doFn(() => owedDividends[accountNum] = new BigNumber(0))
+                .assertCallReturns([token, "getOwedDividends", account], 0)
                 .start();         
         })
     }

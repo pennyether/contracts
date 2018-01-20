@@ -15,6 +15,7 @@ contract DividendToken {
 	event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
 
 	// non public state variables
+	bool public isFrozen;	// if true, tokens cannot be transferred
 	mapping (address => uint) balances;
 	mapping (address => mapping (address => uint)) allowed;
 	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
@@ -23,10 +24,10 @@ contract DividendToken {
 
 	// How dividends work.
 	//
-	// - A "point" is a fraction of a Wei, it's used to reduce rounding errors.
+	// - A "point" is a fraction of a Wei (1e-32), it's used to reduce rounding errors.
 	//
 	// - Each time a new deposit is made, totalPointsPerToken is incremented by
-	//             (depositAmtInWei * POINTS_PER_WEI) / totalSupply
+	//     (depositAmtInWei * POINTS_PER_WEI) / totalSupply
 	//   totalPointsPerToken represents how many points each token is entitled to
 	//   from all the dividends ever received.
 	//
@@ -35,12 +36,16 @@ contract DividendToken {
 	//	 can be credited (`totalPointsPerToken` - `lastPointsPerToken`) * balance.
 	//
 	// - .updateCreditedPoints(_account) will increment creditedPoints[account]
-	//   by the points they are owed.  It then sets lastPointsPerToken[account]
+	//   by the points they are (see above). It then sets lastPointsPerToken[account]
 	//   to the current totalPointsPerToken, so they will only be credited for
-	//	 future dividends.  This is called before an account balance changes
-	//	 (transfer, mint, burn), or before .collectDividends() is called.
+	//	 future dividends. This is called before an account balance changes
+	//	 (transfer, mint, burn), or before .collectOwedDividends() is called.
 	//
-	// - When a user collects, creditedPoints are converter to wei, and paid.
+	// - .updateCreditedPoints() is called anytime tokens are minted, burned,
+	//   or transferred. This ensures dividends are not transferrable.
+	//
+	// - .collectOwedDividends() calls .updateCreditedPoints(), converts points
+	//   to wei and pays account, then resets creditedPoints[account] to 0.
 	uint constant POINTS_PER_WEI = 1e32;
 	uint public totalDividends;
 	uint public collectedDividends;
@@ -135,12 +140,18 @@ contract DividendToken {
 		TokensBurned(_account, _amount, totalSupply);
 	}
 
+	function setFrozen(bool _isFrozen)
+		onlyComptroller
+		public
+	{
+		isFrozen = _isFrozen;
+	}
 
 	/*************************************************************/
 	/********** OTHER PUBLIC FUNCTIONS ***************************/
 	/*************************************************************/
 	// Updates creditedPoints, sends all wei to the owner
-	function collectDividends()
+	function collectOwedDividends()
 		public
 	{
 		// update creditedPoints, store amount, and zero it.
@@ -159,7 +170,9 @@ contract DividendToken {
 	// it credits points for both the sender and receiver.
 	function _transfer(address _from, address _to, uint _value)
 		private
-	{
+	{	
+		// ensure tokens are not frozen.
+		require(!isFrozen);
 		// check for overflow and for sufficient funds
 		require(balances[_to] + _value > balances[_to]);
 		require(balances[_from] >= _value);
@@ -197,8 +210,8 @@ contract DividendToken {
 	/*************************************************************/
 	/********* CONSTANTS *****************************************/
 	/*************************************************************/
-	// Returns how many wei a call to .collectDividends() would transfer.
-	function getCollectableDividends(address _account)
+	// Returns how many wei a call to .collectOwedDividends() would transfer.
+	function getOwedDividends(address _account)
 		public
 		constant
 		returns (uint _amount)
