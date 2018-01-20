@@ -14,238 +14,852 @@
 		</style>
 	</head>
 	<body>
+		<h1>Test results for: tests/Comptroller.js</h1>
 		<pre>
   ========================================= 
   =========== <span style="color:#000"><b> SMOCHA STARTING </b><span style="color:#000"> ===========
   ========================================= 
 
 <span style="color:#AAA">├ <span style="color:#000"> <b>File: tests/Comptroller.js</b> </span></span></span></span> 
-<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is not met and hard cap is not met<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Registry, Treasury, and create Comptroller. </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, owned by regOwner.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 548, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 3097, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register the ADMIN (sets daily limit)<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 3098, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register MAIN_CONTROLLER<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>dummyMainController</u>, {from: <u>regOwner</u>}) was successful (block 3099, 46059 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 549, 1566650 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by compOwner.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>compOwner</u>, {from: <u>anon</u>}) was successful (block 550, 1880821 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register the MAIN_CONTROLLER (points to a regular account)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ register was successful (block 551, 46123 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register the ADMIN (points to a regular account)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ register was successful (block 552, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 3100, 1524273 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by wallet.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 3101, 2631307 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token, set Daily limit<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>token</u>, {from: <u>regOwner</u>}) was successful (block 3102, 48450 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>comptroller</u>, {from: <u>regOwner</u>}) was successful (block 3103, 47968 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000000000, {from: <u>admin</u>}) was successful (block 3104, 67358 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0x0d31b8a0ac02e2d75d5d8a38ff9f720faad4776c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account3:            0xd31b118ff92749970d3ab6e1ce6c6c0a5ff21395<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0x8e5a40750414514c48b3c3d00e50c33eaccc7c9a<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  compOwner:           0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0xc0e7a4b4f514423eb2d28d23490c1f2466ade559<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyMainController: 0x6d6e7efa4f8ce4932ba3a95641a88e05b2bf2c57<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0xf48050dc2748737a48a389c3daadb1ab019c3b7c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  NO_ADDRESS:          0x0000000000000000000000000000000000000000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x6dcd16a22e73ac704ea1359d5e102570cc8ffb4c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0xec536d2e1f7976a329ab5203f052c506fa44fac8<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x45345b81f6bf06e4e0587b3c419d0b33f3ef7ac2<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (773 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Set up Treasury<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Call .initToken and .initComptroller on Treasury </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initToken was successful (block 553, 48472 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initComptroller was successful (block 554, 48032 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.token.call() should equal <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.comptroller.call() should equal <u>comptroller</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (330 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Set up Comptroller<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Is initalized correctly </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.owner.call() should equal <u>compOwner</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0xd2d3ac1472ab9b192e59bafca86b4372ea1f26f6<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0xf0d5c1619b8efc164535c315b383d682f8be46c9<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account3:            0x16cd66b081a5b88f214b860f82fb0e6fc1847489<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0xdf93b5a1303c1be0e813eea372f2da26a79f7673<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0x1f2b8d5c1bda3cad17f7c0d64bc806a6650fd904<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0x3a60b591a65dbef1a8968cedc021c25e1a0b1998<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x0017659e74abaa388ed49a1d1d362fb70f4ae7b3<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyMainController: 0xd3f522f17cd81e89a5782bae4369f53601002884<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x7bf5db782f6277d6dc2d17eba86fc36450404a8e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0xecd65486e42c3cb31cf7f6c7803932697d01ffd2<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0xc39835f05a1b5b9842f5ec18071f016cede36a1e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0xbdbdccf560335bb567837b7759f1608e289efb41<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x464ddebc522025893ea2cca09b9f59380f4ed693<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0xd9c62d731859585ac42b48238ec038f5fe6d6a7c<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (3000 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() should equal <u>wallet</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.locker.call() should equal <u>locker</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.token.call() should equal <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.tokensPerWei.call() should equal 1<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.treasury.call() should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.treasury.call() should equal <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 1<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (105 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .buyTokens() doesn't work (sale not started) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ buyTokens failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (400 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .buyTokens() doesn't work (sale not yet started) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3105, 32284 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (42 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1538864520, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (14 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (38 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work (sale not started) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.initTreasury<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable from anon </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initTreasury failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Address must have .comptroller() value </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initTreasury failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initTreasury was successful (block 559, 47829 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.treasury.call() should equal <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (117 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Not callable again </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initTreasury failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Before sale<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Owner gets all dividends before is started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Owner should have 1 token, therefore should receive all dividends.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>token</u> changed by 1 GWei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.getCollectableDividends.call(<u>locker</u>) should equal 1 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (227 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Nobody can buy tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (530 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .isSaleStarted is false </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">WARNING: .startWatching() was called, but .stopWatching() wasn't.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.isSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initSale failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864537, 1538864567, 3, 2, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864537, 1538864567, 1, 2, 3, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864537, 1538864567, 1, 3, 2, {from: <u>wallet</u>}) was successful (block 3111, 125025 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (52 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 16 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864537, 1538864567, 0.01 ETH, 0.03 ETH, 0.02 ETH, {from: <u>wallet</u>}) was successful (block 3112, 50793 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() should equal 1538864537<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() should equal 1538864567<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() should equal 0.03 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() should equal 0.02 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (881 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3113, 32494 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 16 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (452 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00718 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 3115, 155133 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained -0.005 ETH but lost txFee (775.665 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.005 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0071875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.007187500000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1132 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1538864538, dateSaleEnded: 1538864567<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (15 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends in failure.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast-forward to end of CrowdSale </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 29 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (489 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can now be ended. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should fail, since soft cap not met.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Tokens should remain frozen.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 3120, 71570 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleFailed()' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleSuccessful.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (401 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Burning does nothing (softCap not met)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> account1 cannot burn any tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1 ETH, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (33 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Wallet owns PennyEther<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Wallet owns more than 99.9999999% of tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Wallet owns 1000000000000.00000 tokens of 1000000000000.00718 tokens<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (218 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Refunding works<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can refund account1 </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Account should be refunded 0.00500 ETH for 0.00718 tokens.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>account1</u>}) was successful (block 3122, 49517 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by -0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.005 ETH but lost txFee (247.585 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (874 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Has no remaining balance </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Everyone has been refunded.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (121 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is met and hard cap is not met<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Registry, Treasury, and create Comptroller. </span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, owned by regOwner.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 3124, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register the ADMIN (sets daily limit)<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 3125, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register MAIN_CONTROLLER<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>dummyMainController</u>, {from: <u>regOwner</u>}) was successful (block 3126, 46059 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to Registry.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 3127, 1524209 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by wallet.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 3128, 2631307 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token, set Daily limit<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>token</u>, {from: <u>regOwner</u>}) was successful (block 3129, 48450 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>comptroller</u>, {from: <u>regOwner</u>}) was successful (block 3130, 48032 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000000000, {from: <u>admin</u>}) was successful (block 3131, 67358 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0xd2d3ac1472ab9b192e59bafca86b4372ea1f26f6<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0xf0d5c1619b8efc164535c315b383d682f8be46c9<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account3:            0x16cd66b081a5b88f214b860f82fb0e6fc1847489<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0xdf93b5a1303c1be0e813eea372f2da26a79f7673<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0x1f2b8d5c1bda3cad17f7c0d64bc806a6650fd904<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0x3a60b591a65dbef1a8968cedc021c25e1a0b1998<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x44b144011019dc324984069e97d26441e6cc3161<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyMainController: 0xd3f522f17cd81e89a5782bae4369f53601002884<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x40ae87867e7d56f8b5d377e078db1a0e41542d59<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x7a02ff52c0726ad1a456fdc26ff3bffc00f4831e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0xc39835f05a1b5b9842f5ec18071f016cede36a1e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x93ba906d23f1e1634a250d03f3aedc370e8fd97e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x111b12bc1e2d41fdb434d5f2e24244d442689081<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0xd9c62d731859585ac42b48238ec038f5fe6d6a7c<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (2918 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() should equal <u>wallet</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.locker.call() should equal <u>locker</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.token.call() should equal <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.treasury.call() should equal <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 1<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (384 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .buyTokens() doesn't work (sale not yet started) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3132, 32284 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (42 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1538864574, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (31 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (3 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864591, 1538864621, 3, 2, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864591, 1538864621, 1, 2, 3, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (34 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864591, 1538864621, 1, 3, 2, {from: <u>wallet</u>}) was successful (block 3138, 125025 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (34 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 16 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1538864591, 1538864621, 0.01 ETH, 0.03 ETH, 0.02 ETH, {from: <u>wallet</u>}) was successful (block 3139, 50793 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() should equal 1538864591<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() should equal 1538864621<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() should equal 0.03 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() should equal 0.02 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (770 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3140, 32494 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (33 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 17 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (523 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00718 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 3142, 155133 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained -0.005 ETH but lost txFee (775.665 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.005 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0071875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.007187500000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1220 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1538864593, dateSaleEnded: 1538864621<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (16 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (26 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the soft cap...<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account2 buys some tokens (should meet soft cap) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00500 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 31.25% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00656 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Soft Cap of 0.01000 ETH will be met.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 3146, 75630 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained -0.005 ETH but lost txFee (378.15 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0.0065625 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.013750000000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1143 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account3 buys some tokens (should meet bonus cap) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Note: We just just a little more than exceeds bonus cap, to test this case.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.01000 ETH. Will raise another: 0.01010 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.01010 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 12.50% bonus on 0.01000 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Exceeds bonus phase by 0.00010 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.01135 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Bonus Cap of 0.02000 ETH will be met.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 3147, 75617 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.0101 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained -0.0101 ETH but lost txFee (378.085 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.0201 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 0.01135 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.025100000000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (987 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1538864596, dateSaleEnded: 1538864621<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (15 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends successfully.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast-forward to end of CrowdSale </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 25 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (524 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can now be ended. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should succeed:<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Treasury should get some ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should get some ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 3152, 171456 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleSuccessful()' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleSuccessful.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>comptroller</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 0.01413275 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>wallet</u> changed by 0.00596725 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Check tokens:<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should own 10% of tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Locker should own 10% of tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Tokens should be unfrozen.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>wallet</u>) should equal 0.0031375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.0031375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0071875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0.0065625 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 0.01135 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1501 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.sendRefund() does nothing (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .sendRefund() for account1 fails </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Burning works<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Doens't work for user with no tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1 ETH, {from: <u>accountWithNoTokens</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (45 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burning half of account1's tokens works </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00359 tokens for 0.00179 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.00359375 ETH, {from: <u>account1</u>}) was successful (block 3155, 100565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.001796875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.001796875 ETH but lost txFee (502.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.012321875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.00359375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.02738 tokens is 0.00273 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0027381944444444445 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1709 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burning account1's remaining tokens tokens works </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This tests that sending a large amount will burn the remaining tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Account1 has 0.00359 tokens remaining, will try to burn double that.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cannot burn all 0.00718 tokens, account only has 0.00359 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00359 tokens for 0.00179 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0071875 ETH, {from: <u>account1</u>}) was successful (block 3156, 88397 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.001796875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.001796875 ETH but lost txFee (441.985 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.010525 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.02338 tokens is 0.00233 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.002338888888888889 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1411 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burn all of account2's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00656 tokens for 0.00328 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0065625 ETH, {from: <u>account2</u>}) was successful (block 3157, 85565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.00328125 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained 0.00328125 ETH but lost txFee (427.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.00724375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.01609 tokens is 0.00160 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0016097222222222224 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1436 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burn all of owner's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00313 tokens for 0.00156 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0031375 ETH, {from: <u>wallet</u>}) was successful (block 3158, 85565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.00156875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>wallet</u> gained 0.00156875 ETH but lost txFee (427.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.005675 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>wallet</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.01261 tokens is 0.00126 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0012611111111111113 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1374 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Burning works with limited Treasury funds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Drain Treasury for 16 days, so it's balance is low. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (7668 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Now burn all of account3's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Account3 can burn 0.01135 tokens for 0.00567 ETH...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">But treasury only has 0.00567 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cannot burn all 0.02270 tokens, account only has 0.01135 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Treasury can't afford to burn 0.01134 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.01134 tokens for 0.00567 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0227 ETH, {from: <u>account3</u>}) was successful (block 3192, 104093 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.005673 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained 0.005673 ETH but lost txFee (520.465 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 2 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 4 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.00000 tokens is 0.00000 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 444444444444.7}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1672 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is met and hard cap is met<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Registry, Treasury, and create Comptroller. </span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, owned by regOwner.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 3194, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register the ADMIN (sets daily limit)<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 3195, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Register MAIN_CONTROLLER<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>dummyMainController</u>, {from: <u>regOwner</u>}) was successful (block 3196, 46059 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to Registry.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 3197, 1524273 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by wallet.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 3198, 2631307 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token, set Daily limit<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initToken(<u>token</u>, {from: <u>regOwner</u>}) was successful (block 3199, 48450 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>comptroller</u>, {from: <u>regOwner</u>}) was successful (block 3200, 48032 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1000000000000, {from: <u>admin</u>}) was successful (block 3201, 67358 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0xd2d3ac1472ab9b192e59bafca86b4372ea1f26f6<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0xf0d5c1619b8efc164535c315b383d682f8be46c9<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account3:            0x16cd66b081a5b88f214b860f82fb0e6fc1847489<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0xdf93b5a1303c1be0e813eea372f2da26a79f7673<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0x1f2b8d5c1bda3cad17f7c0d64bc806a6650fd904<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0x3a60b591a65dbef1a8968cedc021c25e1a0b1998<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x7effffa1f9244d8f119315dae1c62e8325ab8f99<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyMainController: 0xd3f522f17cd81e89a5782bae4369f53601002884<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x6af4072206345acc1381de40c94f69cc98b69853<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x74bb12b2f7e4ad75512a20a1a8c11b95ed0a9dae<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0xc39835f05a1b5b9842f5ec18071f016cede36a1e<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0xb742f80aae888eb8371ad9118fb88c125bdfe011<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0xb3f97141f5a1544dee5b4403241354d676164167<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0xd9c62d731859585ac42b48238ec038f5fe6d6a7c<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (3022 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() should equal <u>wallet</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.locker.call() should equal <u>locker</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.token.call() should equal <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.treasury.call() should equal <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 1<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (483 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .buyTokens() doesn't work (sale not yet started) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3202, 32284 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (38 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1540333443, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (15 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1540333459, 1540333489, 3, 2, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (35 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1540333459, 1540333489, 1, 2, 3, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initSale was successful (block 564, 44055 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.isSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (82 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable again </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ initSale failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.buyTokens()<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Doesn't work with small values </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ buyTokens failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys .15 tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ buyTokens was successful (block 567, 177267 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 0.12 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>locker</u> changed by 0.03 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained -0.15 ETH but lost txFee (886.335 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensMinted(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensMinted(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.12 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.15 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.030000000000000001 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1242 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account2 buys 2.5 tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ buyTokens was successful (block 568, 132267 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 2 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>locker</u> changed by 0.5 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained -2.5 ETH but lost txFee (661.335 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensMinted(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensMinted(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 2.12 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 2.5 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.530000000000000001 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1182 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Dividends work<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Deposit some ETH to token </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>token</u> changed by 2 GWei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (205 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> getCollectableDividends() returns expected values </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.getCollectableDividends.call(<u>account1</u>) should equal 0.094339622641 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.getCollectableDividends.call(<u>account2</u>) should equal 1.572327044025 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.getCollectableDividends.call(<u>locker</u>) should equal 1.333333333333 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (165 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">DividendTokenLocker<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Has expected state </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.token.call() should equal <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.owner.call() should equal <u>compOwner</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> anon cannot call .collect() </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ collect failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Owner can call .collect() </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ collect was successful (block 571, 42994 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>token</u> changed by -1.333333333333 GWei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>locker</u> changed by -0.53 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>compOwner</u> gained 0.530001333333333333 ETH but lost txFee (214.97 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (866 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.burnTokens()<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Doesn't work for user with no tokens. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (37 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burns 2 of account2's 2.5 tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Should burn 2000000000000000000 tokens for 1600000000000000000 wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens was successful (block 573, 123024 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -1.6 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>compOwner</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained 1.6 ETH but lost txFee (615.12 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.52 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0.5 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.130000000000000001 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1325 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burns all .15 of account1's tokens, even when .20 passed </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Account only has 150000000000000000 tokens.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Should burn 150000000000000000 tokens for 120000000000000000 wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens was successful (block 574, 110856 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.12 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>compOwner</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.12 ETH but lost txFee (554.28 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.4 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.100000000000000001 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1264 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.burnTokens() when Treasury balance is low<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Here we test the case where Treasury does not have enough funds to burn all tokens.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fund something, so balance is less than bankroll </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankroll: 400000000000000000, balance 400000000000000000.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ fundMainController was successful (block 575, 116804 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -1 GWei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyMainController</u> gained 1 GWei but lost txFee (584.02 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankroll: 400000000000000000, balance 399999000000000000.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (817 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Only burns some of account2's remaining .5 tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Account only has 500000000000000000 tokens.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Treasury can't afford to burn 500000000000000000 tokens.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Should burn 499998750000000000 tokens for 399999000000000000 wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens was successful (block 576, 111777 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.399999 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>compOwner</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained 0.399999 ETH but lost txFee (558.885 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 1 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 1.25 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.250000000001 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1269 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Deposit something, so account2 can burn. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ sendTransaction was successful (block 577, 43054 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1540333459, 1540333489, 1, 3, 2, {from: <u>wallet</u>}) was successful (block 3208, 125025 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (31 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can now burn the rest of account2's tokens. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Account only has 1250000000000 tokens.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Should burn 1250000000000 tokens for 1000000000000 wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ burnTokens was successful (block 578, 80856 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 16 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1540333459, 1540333489, 0.01 ETH, 0.03 ETH, 0.02 ETH, {from: <u>wallet</u>}) was successful (block 3209, 50793 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() should equal 1540333459<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() should equal 1540333489<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() should equal 0.03 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() should equal 0.02 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (767 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 1000 GWei}) was successful (block 3210, 32494 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (46 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 16 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (483 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00718 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 3212, 155133 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained -0.005 ETH but lost txFee (775.665 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.005 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0071875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.007187500000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1228 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1540333461, dateSaleEnded: 1540333489<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (44 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (68 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the soft cap...<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account2 buys some tokens (should meet soft cap) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00500 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 31.25% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00656 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Soft Cap of 0.01000 ETH will be met.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 3216, 75630 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained -0.005 ETH but lost txFee (378.15 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0.0065625 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.013750000000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1156 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account3 buys some tokens (should meet bonus cap) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Note: We just just a little more than exceeds bonus cap, to test this case.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.01000 ETH. Will raise another: 0.01010 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.01010 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 12.50% bonus on 0.01000 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Exceeds bonus phase by 0.00010 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.01135 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Bonus Cap of 0.02000 ETH will be met.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 3217, 75617 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.0101 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained -0.0101 ETH but lost txFee (378.085 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.0201 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 0.01135 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.025100000000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1021 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Sale has not ended yet.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1540333464, dateSaleEnded: 1540333489<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .burnTokens() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1000 GWei, {from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (22 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .sendRefund() doesn't work. </span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the hard cap...<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens (should meet hard cap) </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.02010 ETH. Will raise another: 0.01990 ETH<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">0.01000 ETH will be refunded.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will only convert 0.00990 ETH to tokens...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - No bonus remaining.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 0.00990 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Hard Cap of 0.03000 ETH will be met.**<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account1</u>, value: 0.0199 ETH}) was successful (block 3221, 68579 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(sender, value, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.0099 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained -0.0099 ETH but lost txFee (342.895 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.totalRaised.call() should equal 0.03 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0170875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() should equal 0.035000000000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1232 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot buy more tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.buyTokens({from: <u>account2</u>, value: 1000 GWei}) was successful (block 3222, 33142 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(sender, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (48 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends successfully.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can immediately be ended. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should succeed:<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Treasury should get some ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should get some ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 3223, 171246 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleSuccessful()' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleSuccessful.call() should equal true<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>comptroller</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 0.0197015 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>wallet</u> changed by 0.0102985 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Check tokens:<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should own 10% of tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Locker should own 10% of tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Tokens should be unfrozen.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>wallet</u>) should equal 0.004375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 0.004375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.0170875 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0.0065625 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 0.01135 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() should equal false<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1798 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.sendRefund() does nothing (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .sendRefund() for account1 fails </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.sendRefund({from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Burning works<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Doens't work for user with no tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(1 ETH, {from: <u>accountWithNoTokens</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burning half of account1's tokens works </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00854 tokens for 0.00427 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.00854375 ETH, {from: <u>account1</u>}) was successful (block 3226, 100565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -1 GWei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>compOwner</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained 1 GWei but lost txFee (404.28 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.004271875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.004271875 ETH but lost txFee (502.825 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.015415625 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0.00854375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.03425 tokens is 0.00342 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0034256944444444445 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1560 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burning account1's remaining tokens tokens works </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This tests that sending a large amount will burn the remaining tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Account1 has 0.00854 tokens remaining, will try to burn double that.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cannot burn all 0.01708 tokens, account only has 0.00854 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00854 tokens for 0.00427 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0170875 ETH, {from: <u>account1</u>}) was successful (block 3227, 88397 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.004271875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.004271875 ETH but lost txFee (441.985 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.01114375 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account1</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.02476 tokens is 0.00247 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.002476388888888889 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1443 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burn all of account2's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00656 tokens for 0.00328 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0065625 ETH, {from: <u>account2</u>}) was successful (block 3228, 85565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.00328125 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account2</u> gained 0.00328125 ETH but lost txFee (427.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.0078625 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account2</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal 1<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1320 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.01747 tokens is 0.00174 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0017472222222222224 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1441 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Burn all of owner's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.00437 tokens for 0.00218 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.004375 ETH, {from: <u>wallet</u>}) was successful (block 3229, 85565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.0021875 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>wallet</u> gained 0.0021875 ETH but lost txFee (427.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 0.005675 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>wallet</u>) should equal 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.01261 tokens is 0.00126 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 0.0012611111111111113 ETH}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1429 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Burning works with limited Treasury funds<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Drain Treasury for 16 days, so it's balance is low. </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 86400 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (8260 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Now burn all of account3's tokens </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Account3 can burn 0.01135 tokens for 0.00567 ETH...<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">But treasury only has 0.00567 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cannot burn all 0.02270 tokens, account only has 0.01135 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Treasury can't afford to burn 0.01134 tokens.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should burn 0.01134 tokens for 0.00567 ETH.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.burnTokens(0.0227 ETH, {from: <u>account3</u>}) was successful (block 3263, 104093 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(sender, numTokens, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -0.005673 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained 0.005673 ETH but lost txFee (520.465 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BankrollChanged(oldValue, newValue)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'TokensBurned(account, amount)' event was found from <u>token</u><span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.bankroll.call() should equal 2 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>account3</u>) should equal 4 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Locker should have 10% of totalSupply<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">10% of 0.00000 tokens is 0.00000 tokens<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.balanceOf.call(<u>locker</u>) should equal {within1: 444444444444.7}<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1636 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
 
-  <span style="color:#0A0"><b>27</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 12.24s
+  <span style="color:#0A0"><b>90</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 63.96s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>

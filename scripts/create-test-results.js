@@ -57,6 +57,7 @@ function saveTestResult(titleStr, htmlStr, filepath) {
 		</style>
 	</head>
 	<body>
+		<h1>${titleStr}</h1>
 		<pre>${htmlStr}</pre>
 	</body>
 </html>

@@ -314,17 +314,17 @@ describe('Treasury', function(){
             })
             it("Cannot be called from admin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, {from: admin}])
+                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, anon, {from: admin}])
                     .assertInvalidOpCode()
                     .start(); 
             })
-            it("Works correctly (from comptroller)", async function(){
+            it("Works correctly (called from comptroller, to anon)", async function(){
                 const balance = testUtil.getBalance(treasury);
                 const prevBankroll = await treasury.bankroll();
                 assert(balance.gt(BANKROLL_REMOVE));
                 return createDefaultTxTester()
-                    .startLedger([treasury, dummyComptroller])
-                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, {from: dummyComptroller}])
+                    .startLedger([treasury, anon, dummyComptroller])
+                    .doTx([treasury, "removeFromBankroll", BANKROLL_REMOVE, anon, {from: dummyComptroller}])
                     .assertSuccess()
                         .assertOnlyLog("BankrollChanged", {
                             oldValue: prevBankroll,
@@ -332,13 +332,14 @@ describe('Treasury', function(){
                         })
                     .stopLedger()
                         .assertDelta(treasury, BANKROLL_REMOVE.mul(-1))
-                        .assertDeltaMinusTxFee(dummyComptroller, BANKROLL_REMOVE)
+                        .assertDelta(anon, BANKROLL_REMOVE)
+                        .assertLostTxFee(dummyComptroller)
                     .start();
             });
             it("Cannot remove more bankroll than exists", async function(){
                 const br = await treasury.bankroll();
                 return createDefaultTxTester()
-                    .doTx([treasury, "removeFromBankroll", br.plus(1), {from: dummyComptroller}])
+                    .doTx([treasury, "removeFromBankroll", br.plus(1), anon, {from: dummyComptroller}])
                     .assertInvalidOpCode()
                     .start();
             });

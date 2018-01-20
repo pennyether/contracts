@@ -202,10 +202,11 @@ describe('DividendToken', function(){
         it(`account${accountNum+1} collects correct amount.`, function(){
             const account = trackedAccounts[accountNum];
             const expected = owedDividends[accountNum].floor();
-            this.logInfo(`account${accountNum} is owed ${expected} Wei and should be payed that exact amount.`);
+            this.logInfo(`account${accountNum} should be owed ${expected} Wei.`);
             return createDefaultTxTester()
+                .assertCallReturns([token, "getOwedDividends", account], expected)
                 .startLedger([account])
-                .doTx([token, "collectDividends", {from: account}])
+                .doTx([token, "collectOwedDividends", {from: account}])
                 .assertSuccess()
                 .stopLedger()
                     .assertLog("CollectedDividends", {
