@@ -46,7 +46,8 @@ contract Comptroller {
 	bool public wasSaleStarted;				// True when sale is started
 	bool public wasSaleEnded;				// True when sale is ended
 	bool public wasSaleSuccessful;			// True if softCap met
-	mapping (address => uint) amtFunded;	// in case we need to refund users.
+	// Stores amtFunded for useres contributing before softCap
+	mapping (address => uint) public amtFunded;	
 
 	// events
 	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
@@ -164,6 +165,8 @@ contract Comptroller {
 		wasSaleEnded = true;
 		wasSaleSuccessful = totalRaised >= softCap;
 		if (!wasSaleSuccessful) {
+			// wallet should own close to 100%
+			token.mintTokens(wallet, 1e30);
 			SaleFailed(now);
 			return;
 		}

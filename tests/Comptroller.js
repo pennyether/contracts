@@ -25,7 +25,9 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         const account1 = accounts[4];
         const account2 = accounts[5];
         const account3 = accounts[6];
-        const anon = accounts[7];
+        const accountWithNoTokens = accounts[7];
+        const dummyMainController = accounts[8];
+        const anon = accounts[9];
 
         testUtil.mineBlocks(1);
         const DAILY_LIMIT = 1e12;
@@ -49,6 +51,8 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 account1: account1,
                 account2: account2,
                 account3: account3,
+                accountWithNoTokens: accountWithNoTokens,
+                dummyMainController: dummyMainController,
                 anon: anon,
             }).start();
 
@@ -63,6 +67,11 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             this.logInfo("Register the ADMIN (sets daily limit)");
             await createDefaultTxTester()
                 .doTx([registry, "register", "ADMIN", admin, {from: regOwner}])
+                .assertSuccess().start();
+
+            this.logInfo("Register MAIN_CONTROLLER");
+            await createDefaultTxTester()
+                .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: regOwner}])
                 .assertSuccess().start();
 
             this.logInfo("Create Treasury, which points to Registry.");
@@ -206,7 +215,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 });
             });
         }
-        describe("CrowdSale ends.", function(){
+        describe(`CrowdSale ends ${MEET_SOFT_CAP ? "successfully" : "in failure"}.`, function(){
             if (!MEET_HARD_CAP) {
                 it("Fast-forward to end of CrowdSale", async function(){
                     const sTilEnd = DATE_ENDED - testUtil.getBlockTime();
@@ -268,27 +277,97 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             } else {
                 it("Sale can now be ended.", async function(){
                     this.logInfo("Sale should fail, since soft cap not met.");
+                    this.logInfo("Tokens should remain frozen.");
                     return createDefaultTxTester()
                         .doTx([comptroller, "endSale", {from: anon}])
                         .assertSuccess()
                         .assertOnlyLog("SaleFailed")
                         .assertCallReturns([comptroller, "wasSaleEnded"], true)
                         .assertCallReturns([comptroller, "wasSaleSuccessful"], false)
+                        .assertCallReturns([token, "isFrozen"], true)
                         .start();
                 });
             }
         });
         if (MEET_SOFT_CAP) {
+            describe(".sendRefund() does nothing (soft cap met)", function(){
+                it(".sendRefund() for account1 fails", function(){
+                    return createDefaultTxTester()
+                        .doTx([comptroller, "sendRefund", {from: account1}])
+                        .assertInvalidOpCode()
+                        .start();
+                });
+            })
             describe("Burning works", function(){
-
+                it("Doens't work for user with no tokens", function(){
+                    return createDefaultTxTester()
+                        .doTx([comptroller, "burnTokens", 1e18, {from: accountWithNoTokens}])
+                        .assertInvalidOpCode()
+                        .start();
+                })
+                it("Burning half of account1's tokens works", async function(){
+                    const amt = (await token.balanceOf(account1)).div(2);
+                    return assertCanBurnTokens(account1, amt, this.logInfo);
+                });
+                it("Burning account1's remaining tokens tokens works", async function(){
+                    const remaining = await token.balanceOf(account1);
+                    this.logInfo("This tests that sending a large amount will burn the remaining tokens.");
+                    this.logInfo(`Account1 has ${toEth(remaining, "tokens")} remaining, will try to burn double that.`);
+                    return assertCanBurnTokens(account1, remaining.mul(2), this.logInfo);
+                });
+                it("Burn all of account2's tokens", async function(){
+                    const acct2remaining = await token.balanceOf(account2);
+                    await assertCanBurnTokens(account2, acct2remaining, this.logInfo);
+                });
+                it("Burn all of owner's tokens", async function(){
+                    const walletRemaining = await token.balanceOf(wallet);
+                    await assertCanBurnTokens(wallet, walletRemaining, this.logInfo);
+                })
             });
+            describe("Burning works with limited Treasury funds", function(){
+                it("Drain Treasury for 16 days, so it's balance is low.", async function(){
+                    await testUtil.fastForward(24*60*60);
+                    for (var i=0; i<16; i++){
+                        await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
+                        await testUtil.fastForward(24*60*60);
+                    }
+                });
+                it("Now burn all of account3's tokens", async function(){
+                    const acc3tokens = (await token.balanceOf(account3));
+                    const acc3wei = acc3tokens.div(2);
+                    const tBalance = testUtil.getBalance(treasury);
+                    this.logInfo(`Account3 can burn ${toEth(acc3tokens, "tokens")} for ${toEth(acc3wei)}...`);
+                    this.logInfo(`But treasury only has ${toEth(tBalance)}.`);
+                    assert(tBalance.lt(acc3wei), "Treasury should not have enough balance.");
+                    return assertCanBurnTokens(account3, acc3tokens.mul(2), this.logInfo);
+                });
+            })
         } else {
+            describe("Burning does nothing (softCap not met)", function(){
+                it("account1 cannot burn any tokens", function(){
+                    return assertCannotBurnTokens(account1, 1e18);
+                });
+            });
+            describe("Wallet owns PennyEther", function(){
+                it("Wallet owns more than 99.9999999% of tokens", async function(){
+                    const walletTokens = await token.balanceOf(wallet);
+                    const totalSupply = await token.totalSupply();
+                    console.log(`Wallet owns ${toEth(walletTokens, "tokens")} of ${toEth(totalSupply, "tokens")}`);
+                    assert(walletTokens.div(totalSupply).gt(.999999999), "Wallet owns more than 99.9999999%");
+                });
+            });
             describe("Refunding works", function(){
-
+                it("Can refund account1", function(){
+                    return assertCanSendRefund(account1, SOFT_CAP.div(2));
+                });
+                it("Has no remaining balance", function(){
+                    this.logInfo("Everyone has been refunded.");
+                    return createDefaultTxTester()
+                        .assertBalance(treasury, 0)
+                        .start();
+                });
             });
         }
-
-
 
         ////////////////////////////////////////////////////
         ///////// HELPER FUNCTIONS /////////////////////////
@@ -397,21 +476,106 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 })
                 .start();
         }
+
+        async function assertCanBurnTokens(acct, numTokens, logInfo) {
+            numTokens = new BigNumber(numTokens);
+            var expectedNumTokens = numTokens;
+            var numWei = numTokens.div(2);
+            // alter numTokens if not in user's balance
+            const prevAccTokens = await token.balanceOf(acct);
+            if (prevAccTokens.lt(expectedNumTokens)){
+                logInfo(`Cannot burn all ${toEth(numTokens, "tokens")}, account only has ${toEth(prevAccTokens,"tokens")}.`);
+                expectedNumTokens = prevAccTokens;
+                numWei = expectedNumTokens.div(2);
+            }
+            // alter further if treasury cannot afford
+            const tBalance = testUtil.getBalance(treasury.address);
+            if (tBalance.lt(numWei)) {
+                numWei = tBalance;
+                expectedNumTokens = numWei.mul(2);
+                logInfo(`Treasury can't afford to burn ${toEth(expectedNumTokens, "tokens")}.`);
+            }
+            logInfo(`Should burn ${toEth(expectedNumTokens, "tokens")} for ${toEth(numWei)}.`);
+
+            const prevLockerTokens = await token.balanceOf(locker.address);
+            const expectedTokens = prevAccTokens.minus(expectedNumTokens);
+            const prevBankroll = await treasury.bankroll();
+            const expectedBankroll = prevBankroll.minus(numWei);
+            await createDefaultTxTester()
+                .startLedger([comptroller, treasury, acct])
+                .startWatching([treasury, token])
+                .doTx([comptroller, "burnTokens", numTokens, {from: acct}])
+                .assertSuccess()
+                    .assertOnlyLog("UserRefunded", {
+                        sender: acct,
+                        numTokens: expectedNumTokens,
+                        refund: numWei
+                    })
+                .stopLedger()
+                    .assertNoDelta(comptroller)
+                    .assertDelta(treasury, numWei.mul(-1))
+                    .assertDeltaMinusTxFee(acct, numWei)
+                .stopWatching()
+                    .assertOnlyEvent(treasury, "BankrollChanged", {
+                        oldValue: prevBankroll,
+                        newValue: expectedBankroll
+                    })
+                    .assertEventCount(token, 2)
+                    .assertEvent(token, "TokensBurned", {
+                        account: acct,
+                        amount: expectedNumTokens,
+                    })
+                    .assertEvent(token, "TokensBurned", {
+                        account: locker.address,
+                        amount: expectedNumTokens.div(9).floor(),
+                    })
+                .assertCallReturns([treasury, "bankroll"], expectedBankroll)
+                .assertCallReturns([token, "balanceOf", acct], expectedTokens)
+                .start();
+
+            const totalSupply = await token.totalSupply();
+            const expLockerTokens = totalSupply.div(10);
+            logInfo(``);
+            logInfo(`Locker should have 10% of totalSupply`);
+            logInfo(`10% of ${toEth(totalSupply, "tokens")} is ${toEth(expLockerTokens, "tokens")}`);
+            await createDefaultTxTester()
+                .assertCallReturns([token, "balanceOf", locker.address], {within1: expLockerTokens})
+                .start();
+        }
         function assertCannotBurnTokens(account, amt) {
             return createDefaultTxTester()
                 .doTx([comptroller, "burnTokens", amt, {from: account}])
                 .assertInvalidOpCode()
                 .start();
         }
-        function assertCannotEndSale(){
+
+        async function assertCanSendRefund(account, expAmt) {
+            const numTokens = await token.balanceOf(account);
+            console.log(`Account should be refunded ${toEth(expAmt)} for ${toEth(numTokens, "tokens")}.`);
             return createDefaultTxTester()
-                .doTx([comptroller, "endSale", {from: anon}])
-                .assertInvalidOpCode()
+                .startLedger([comptroller, account])
+                .doTx([comptroller, "sendRefund", {from: account}])
+                .assertSuccess()
+                .assertOnlyLog("UserRefunded", {
+                    sender: account,
+                    numTokens: numTokens,
+                    refund: expAmt
+                })
+                .stopLedger()
+                .assertDelta(comptroller, expAmt.mul(-1))
+                .assertDeltaMinusTxFee(account, expAmt)
                 .start();
         }
         function assertCannotSendRefund(){
             return createDefaultTxTester()
                 .doTx([comptroller, "sendRefund", {from: anon}])
+                .assertInvalidOpCode()
+                .start();
+        }
+
+        function assertCannotEndSale(){
+            return createDefaultTxTester()
+                .doTx([comptroller, "endSale", {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         }
