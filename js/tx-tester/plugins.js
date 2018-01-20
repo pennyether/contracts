@@ -46,12 +46,12 @@ function createPlugins(testUtil, ledger) {
 			var contract;
 			if (Array.isArray(fnOrPromiseOrArray)) {
 				contract = fnOrPromiseOrArray[0];
-				const name = fnOrPromiseOrArray[1];
+				const fnName = fnOrPromiseOrArray[1];
 				const args = fnOrPromiseOrArray.slice(2);
 				const argsStr = args ? str(args, true) : "";
-				fnOrPromiseOrArray = () => contract[name].apply(contract, args);
-				ctx.txName = name || `tx: ${str(contract)}.${name}(${argsStr})`;
-				if (!contract[name] || !contract[name].apply)
+				fnOrPromiseOrArray = () => contract[fnName].apply(contract, args);
+				ctx.txName = name || `tx: ${str(contract)}.${fnName}(${argsStr})`;
+				if (!contract[fnName] || !contract[fnName].apply)
 					throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 			} else {
 				ctx.txName = name || `${fnOrPromiseOrArray.toString()}`;
