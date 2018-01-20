@@ -91,11 +91,10 @@ function createPlugins(testUtil, ledger) {
 			// pass promise to regular doTx call, with the name
             return plugins.doTx.call(ctx, p, name);
 		},
-		// returns the result of `do`
 		withTxResult: function(fn) {
 			const ctx = this;
 			if (ctx.txRes===undefined) throw new Error("'doTx' was never called, or failed");
-			fn.call(null, ctx.txRes, plugins);
+			return fn.call(null, ctx.txRes, plugins);
 		},
 		getTxResult: function() {
 			const ctx = this;
@@ -616,8 +615,9 @@ function str(val, hideBrackets) {
 		return `${lBracket}${val.map(v => str(v, true)).join(", ")}${rBracket}`;
 	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
 		return at(val);
-	} else if (val.constructor.name == "BigNumber") {
-		if (val.abs().gt(1e8)) return wei(val);
+	} else if (val.constructor.name == "BigNumber" || typeof val == 'number') {
+		val = new BigNumber(val);
+		if (val.abs().gt(1e12)) return wei(val);
 		else return val.toString();
 	} else if (typeof val == "object") {
 		const keys = Object.keys(val).map((k) => {

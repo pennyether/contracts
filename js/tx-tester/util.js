@@ -169,7 +169,7 @@ function createUtil(web3, assert){
 		    return web3.eth.getBlock(blockHash)
 		},
 		getBlockTime: function (blockHash){
-			return _self.getBlock(blockHash).timestamp;
+			return _self.getBlock(blockHash || 'latest').timestamp;
 		},
 		getTx: function (txHash){
 		    return web3.eth.getTransaction(txHash)
