@@ -122,25 +122,17 @@ contract PennyAuction {
 		noRentry
 	{
 		// check that there is still time to bid
-		if (isEnded()) {
-			errorAndRefund("Auction has already ended.");
-			return;
-		}
+		if (isEnded())
+			return errorAndRefund("Auction has already ended.");
 		// check sender
-		if (msg.sender == currentWinner) {
-			errorAndRefund("You are already the current winner.");
-			return;
-		}
+		if (msg.sender == currentWinner)
+			return errorAndRefund("You are already the current winner.");
 		// check that bid amount is correct
-		if (msg.value != bidPrice()) {
-			errorAndRefund("Value sent must match bidPrice.");
-			return;
-		}
-		// Check that this bid wouldn't result in a negative prize
-		if (prizeGwei + bidIncrGwei < 0) {
-			errorAndRefund("Bidding would result in a negative prize.");
-			return;
-		}
+		if (msg.value != bidPrice())
+			return errorAndRefund("Value sent must match bidPrice.");
+		// check that this bid wouldn't result in a negative prize
+		if (prizeGwei + bidIncrGwei < 0)
+			return errorAndRefund("Bidding would result in a negative prize.");
 
 		if (block.number != lastBidBlock) {
 			// this is a new bid
