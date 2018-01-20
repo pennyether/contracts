@@ -23,105 +23,183 @@ Other notes:
 	- Once sale of tokens has started, cannot be stopped.
 */
 interface _ICompTreasury {
-	function comptroller() public constant returns(address);
 	function addToBankroll() public payable;
-	function removeFromBankroll(uint _amount) public;
+	function removeFromBankroll(uint _amount, address _recipient) public;
+	function getMinBalanceToDistribute() public constant returns (uint _amount);
 }
 contract Comptroller {
-	// Location of the treasury, once set, cannot change.
-	_ICompTreasury public treasury;
-	// Owner can call .initTreasury and .initSale
-	address public owner;
-	// Token contract that can mint / burn tokens
-	DividendToken public token = new DividendToken();
-	// Locker that holds PennyEther's tokens.
-	DividendTokenLocker public locker;
-	// 1 ETH gets 1 full token
-	uint public tokensPerWei = 1 * (10 ** uint(token.decimals())) / (1 ether);
-	// Once set to true, cannot be set to false
-	bool public isSaleStarted;
+	// These values are set in the constructor and can never be changed.
+	address public wallet;				// Wallet can call .initSale().
+	_ICompTreasury public treasury;		// Location of the treasury.
+	DividendToken public token;			// Token contract that can mint / burn tokens
+	DividendTokenLocker public locker;	// Locker that holds PennyEther's tokens.
 
-	modifier fromOwner() { require(msg.sender==owner); _; }
+	// These values are set on .initSale()
+	uint public dateSaleStarted;	// date sale begins
+	uint public dateSaleEnded;		// date sale is endable
+	uint public softCap;			// sale considered successfull if amt met
+	uint public hardCap;			// will not raise more than this
+	uint public bonusCap;			// amt at which bonus ends
+
+	// CrowdSale Variables
+	uint public totalRaised;
+	bool public wasSaleStarted;				// True when sale is started
+	bool public wasSaleEnded;				// True when sale is ended
+	bool public wasSaleSuccessful;			// True if softCap met
+	mapping (address => uint) amtFunded;	// in case we need to refund users.
 
 	// events
-	event TokensBought(address indexed sender, uint value, uint numTokens);
-	event TokensBurned(address indexed sender, uint numTokens, uint refund);
-	event TreasuryInit(address treasury);
-	event SaleStarted(uint time);
+	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
+	event BuyTokensFailure(uint time, address indexed sender, string reason);
+	event SaleInitalized(uint time);		// emitted when owner calls .initSale()
+	event SaleStarted(uint time);			// emitted upon first tokens bought
+	event SaleSuccessful(uint time);		// emitted when sale ends (may happen early)
+	event SaleFailed(uint time);			// emitted if softCap not reached
+	// Emitted after sale when a user burns their tokens via .burnTokens() or .sendRefund()
+	event UserRefunded(uint time, address indexed sender, uint numTokens, uint refund);
 
-	function Comptroller(address _owner)
+	function Comptroller(address _wallet, address _treasury)
 		public
 	{
-		// Give the owner 1e-18 token, so he starts with 100% ownership.
-		owner = _owner;
-		locker = new DividendTokenLocker(token, _owner);
+		wallet = _wallet;
+		treasury = _ICompTreasury(_treasury);
+		token = new DividendToken();
+		locker = new DividendTokenLocker(token, _wallet);
+		// In case the softCap is not met, PennyEther should own 100%.
+		// So we give the locker 1 token for now.
 		token.mintTokens(locker, 1);
 	}
 
-	// Comptroller will receive from Treasury upon removing bankroll.
-	// This happens in .burnTokens() when we call .removeFromBankroll()
-	function ()
-		payable
-		public
-	{
-		require(msg.sender == address(treasury));
-	}
-
 	/*************************************************************/
-	/************ OWNER FUNCTIONS ********************************/
+	/********** WALLET FUNCTIONS *********************************/
 	/*************************************************************/
-	// Callable once: Allows owner to initialize the treasury one time.
-	function initTreasury(address _treasury)
-		fromOwner
+	// Sets parameters of the CrowdSale
+	// Cannot be called once the crowdsale has started.
+	function initSale(uint _dateStarted, uint _dateEnded, uint _softCap, uint _hardCap, uint _bonusCap)
 		public
 	{
-		require(treasury == address(0));
-		treasury = _ICompTreasury(_treasury);
-		require(treasury.comptroller() == address(this));
-		TreasuryInit(treasury);
-	}
-	// Callable once: Allows tokens to be bought / burnt.
-	function initSale()
-		fromOwner
-		public
-	{
-		require(msg.sender == owner);
-		require(!isSaleStarted);
+		require(msg.sender == wallet);
 		require(treasury != address(0));
-		isSaleStarted = true;
-		SaleStarted(now);
+		require(!wasSaleStarted);
+		require(_softCap <= _hardCap);
+		require(_bonusCap <= _hardCap);
+		dateSaleStarted = _dateStarted;
+		dateSaleEnded = _dateEnded;
+		softCap = _softCap;
+		hardCap = _hardCap;
+		bonusCap = _bonusCap;
+		SaleInitalized(now);
 	}
 
 
 	/*************************************************************/
-	/********** BUYING/BURNING TOKENS ****************************/
+	/********** DURING CROWDSALE *********************************/
 	/*************************************************************/
 	// Allows the sender to buy tokens.
 	// Must send units of GWei, nothing lower.
 	function buyTokens()
 		public
 		payable
-		returns (uint _numTokens)
 	{
-		// ensure sale has started, require GWei amount.
-		require(isSaleStarted);
-		require(msg.value % 1000000000 == 0);
-		// 20% goes to the locker as capital
-		uint _capital = msg.value / 5;
-		require(locker.call.value(_capital)());
-		// the rest goes to the treasury bankroll
-		uint _bankroll = msg.value - _capital;
-		treasury.addToBankroll.value(_bankroll)();
-		// mint tokens for the sender and locker
-		// units: (wei) * (tokens * wei^-1) = (tokens)
-		_numTokens = msg.value * tokensPerWei;
+		// Ensure sale is ongoing, and that amount is even GWei
+		if (dateSaleStarted==0 || now < dateSaleStarted)
+			return errorAndRefund("CrowdSale has not yet started.");
+		if (now > dateSaleEnded)
+			return errorAndRefund("CrowdSale has ended.");
+		if (totalRaised >= hardCap)
+			return errorAndRefund("HardCap has been reached.");
+		if (msg.value % 1000000000 != 0)
+			return errorAndRefund("Must send an even amount of GWei.");
+
+		if (!wasSaleStarted) startSale();
+
+		// Only allow up to (hardCap - totalRaised) to be raised.
+		uint _amt = (totalRaised + msg.value) > hardCap
+			? hardCap - totalRaised
+			: msg.value;
+
+		// Mint the tokens for the user
+		uint _numTokens = getTokensFromEth(_amt);
 		token.mintTokens(msg.sender, _numTokens);
-		token.mintTokens(locker, _numTokens / 5);
-		TokensBought(msg.sender, msg.value, _numTokens);
-		return;
+		totalRaised += _amt;
+		BuyTokensSuccess(now, msg.sender, _amt, _numTokens);
+
+		// In case softCap not met, we may need to refund the user.
+		if (totalRaised < softCap) {
+			amtFunded[msg.sender] += _amt;
+		}
+
+		// If totalRaised is hardCap, end the sale and refund user excess
+		if (totalRaised >= hardCap) {
+			// A re-entry here would do nothing, hardCap has been reached
+			if (msg.value > _amt)
+				require(msg.sender.call.value(msg.value - _amt)());
+		}
+	}
+		// Refunds user, logs error reason
+		function errorAndRefund(string _reason)
+			private
+		{
+			require(msg.sender.call.value(msg.value)());
+			BuyTokensFailure(now, msg.sender, _reason);
+		}
+		function startSale()
+			private
+		{
+			wasSaleStarted = true;
+			token.setFrozen(true);
+			SaleStarted(now);
+		}
+
+	// Finalizes the sale, if necessary. Callable by anyone.
+	function endSale()
+		public
+	{
+		// Require sale has been started but not yet ended.
+		require(wasSaleStarted && !wasSaleEnded);
+		// Require hardCap met, or date is after sale ended.
+		require(totalRaised >= hardCap || now > dateSaleEnded);
+		
+		// Mark sale as over. If softcap not met, nothing else to do.
+		wasSaleEnded = true;
+		wasSaleSuccessful = totalRaised >= softCap;
+		if (!wasSaleSuccessful) {
+			SaleFailed(now);
+			return;
+		}
+
+		// Mint 1/8 to wallet, and 1/8 to locker
+		// Ownership will be: funders: 80%, locker: 10%, wallet: 10%
+		// Locker already has 1 token, so subtract it.
+		uint _totalMinted = token.totalSupply();
+		token.mintTokens(wallet, _totalMinted/8);
+		token.mintTokens(locker, _totalMinted/8 - 1);
+
+		// Allow tokens to be transferrable
+		token.setFrozen(false);
+
+		// Move half of burnable-tokens' ETH value to bankroll
+		_totalMinted += token.balanceOf(wallet);
+		treasury.addToBankroll.value(_totalMinted / 2)();
+
+		// Ensure treasury is fully topped off
+		uint _threshold = treasury.getMinBalanceToDistribute();
+		if (treasury.balance < _threshold) {
+			uint _required = _threshold - treasury.balance;
+			if (_required > this.balance) _required = this.balance;
+			require(treasury.call.value(_required)());
+		}
+		
+		// send remaining balance to wallet
+		if (this.balance > 0)
+			require(wallet.call.value(this.balance)());
+		SaleSuccessful(now);
 	}
 
-	// Allows the sender to burn up to _numTokens
+	/*************************************************************/
+	/********** AFTER CROWDSALE **********************************/
+	/*************************************************************/
+	// If sale was successful, allows the sender to burn up to _numTokens
 	//   - If the sender does not have that many tokens, will
 	//     burn their entire balance.
 	//   - If Treasury does not have sufficient balance, it will
@@ -129,26 +207,86 @@ contract Comptroller {
 	function burnTokens(uint _numTokens)
 		public
 	{
-		// Ensure sale has started.
-		require(isSaleStarted);
+		// Ensure sale ended successfully.
+		require(wasSaleEnded && wasSaleSuccessful);
+
 		// If number is too large, use their whole balance.
 		if (_numTokens > token.balanceOf(msg.sender)) {
 			_numTokens = token.balanceOf(msg.sender);
 		}
-		// Should get back 80% of wei.
-		uint _wei = (4 * _numTokens) / (5 * tokensPerWei);
+		// Should get back 50% as wei.
+		uint _wei = _numTokens / 2;
 		// If Treasury can't afford, lower amount of tokens.
 		if (treasury.balance < _wei){
 			_wei = treasury.balance;
-			_numTokens = (5 *_wei * tokensPerWei) / 4;
+			_numTokens = _wei * 2;
 		}
-		// Burn tokens, remove from bankroll, send to user.
 		// Require a minimum of 1Gwei to limit rounding errors.
 		require(_wei > 1000000000);
+		// Burn user's tokens
 		token.burnTokens(msg.sender, _numTokens);
-		token.burnTokens(locker, _numTokens / 5);
-		treasury.removeFromBankroll(_wei);
-		require(msg.sender.call.value(_wei)());
-		TokensBurned(msg.sender, _numTokens, _wei);
+		// For every 9 user tokens burned, burn 1 locker token.
+		// This keeps locker at 10% ownership
+		token.burnTokens(locker, _numTokens / 9);
+		// removeFromBankroll. This sends it to the user (or fails).
+		treasury.removeFromBankroll(_wei, msg.sender);
+		UserRefunded(now, msg.sender, _numTokens, _wei);
+	}
+
+	// If sale was unsuccessful, allow users to get full refund.
+	function sendRefund()
+		public
+	{
+		// Ensure sale ended unsuccessfully.
+		require(wasSaleEnded && !wasSaleSuccessful);
+		require(token.balanceOf(msg.sender) > 0);
+		// Burn all of user's tokens, and send them the amt they sent us.
+		uint _numTokens = token.balanceOf(msg.sender);
+		uint _amt = amtFunded[msg.sender];
+		token.burnTokens(msg.sender, _numTokens);
+		require(msg.sender.call.value(_amt)());
+		UserRefunded(now, msg.sender, _numTokens, _amt);
+	}
+
+	/*************************************************************/
+	/********** PURE/VIEW ****************************************/
+	/*************************************************************/
+	// Returns the total amount of tokens minted at a given _ethAmt raised.
+	// This hard codes the following:
+	//	 - Start at 50% bonus, linear decay to 0% bonus at 20,000 ether.
+	function getTokensMintedAt(uint _ethAmt)
+		public
+		view
+		returns (uint _numTokens)
+	{
+		if (_ethAmt > hardCap) {
+			// Return the full bonus amount, plus the rest
+			_numTokens = (bonusCap * 5)/4 + (hardCap - bonusCap);
+		} else if (_ethAmt > bonusCap) {
+			// Return the full bonus amount, plus whatever amt in ether.
+			_numTokens = (bonusCap * 5)/4 + (_ethAmt - bonusCap);
+		} else {
+			// Use a closed form integral to compute tokens.
+			//   First make a function for tokensPerEth:
+			//     tokensPerEth = 3/2 - x/(2c), where c is bonus cutoff
+			//	   let's try som values:
+			//     with c=20000: (0, 1.5), (10000, 1.25), (20000, 1)
+			//   Next, create a closed form integral:
+			//     integral(3/2 - x/(2c), x) = 3x/2 - x^2/(4c)
+			//     let's try some values:
+			//     with c=20000: (0, 0), (10000, 13750), (20000, 25000)
+			// Note: _ethAmt <= 20000, so there's no risk of overflow.
+			//   eg: (20000e18)^2 is ~1e45.. well under 1e77
+			_numTokens = (3*_ethAmt/2) - (_ethAmt*_ethAmt)/(4*bonusCap);
+		}
+	}
+
+	// Returns how many tokens would be issued for _ethAmt sent.
+	function getTokensFromEth(uint _ethAmt)
+		public
+		view
+		returns (uint _numTokens)
+	{
+		return getTokensMintedAt(totalRaised + _ethAmt) - getTokensMintedAt(totalRaised);
 	}
 }
