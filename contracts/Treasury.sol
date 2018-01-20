@@ -189,9 +189,9 @@ contract Treasury is
 		BankrollChanged(now, _oldValue, bankroll);
 	}
 
-	// Comptroller calls this when somebody burns their tokens. This
-	// sends the bankroll back to the Comptroller to be sent to the user.
-	function removeFromBankroll(uint _amount)
+	// Comptroller calls this when somebody burns their tokens.
+	// This sends the bankroll to the user.
+	function removeFromBankroll(uint _amount, address _recipient)
 		public
 		fromComptroller
 	{
@@ -199,7 +199,7 @@ contract Treasury is
 		require(this.balance >= _amount);
 		uint _oldValue = bankroll;
 		bankroll -= _amount;
-		require(comptroller.call.value(_amount)());
+		require(_recipient.call.value(_amount)());
 		BankrollChanged(now, _oldValue, bankroll);
 	}
 
@@ -254,16 +254,13 @@ contract Treasury is
 			FundFailure(now, "Cannot fund.", _mainController, _note, _amount);
 			return false;
 		}
-		// ensure mainController accepts our wei
-		if (!_mainController.call.value(_amount)()){
-			FundFailure(now, "MainController rejected funds.", _mainController, _note, _amount);
-			return false;
-		}
 		// increase/reset amtFundedToday and set dayLastFunded to today.
 		if (today() > dayLastFunded) amtFundedToday = 0;
 		totalFunded += _amount;
 		amtFundedToday += _amount;
 		dayLastFunded = today();
+		// send the wei, log, return
+		require(_mainController.call.value(_amount)());
 		FundSuccess(now, _mainController, _note, _amount);
 		return true;
 	}
