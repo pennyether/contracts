@@ -31,29 +31,43 @@ If you receive an error that Web3 couldn't connect, make sure you have `testrpc`
 Here's a rundown of our contracts, and how they interact with one another. For more details about what all of this means, please see our whitepaper.
 
 
-- **Comptroller.sol**: Controls tokens and talks to `Treasury`.
-	- Can initiate the crowdsale, during which:
-		- **Handles the minting of tokens and distribution of funds raised**:
-			- 50% of ETH proceeds are sent to `Treasury` as bankroll
-			- 50% of ETH proceeds are sent to `CustodialWallet` as capital
-			- 80% of tokens are sold in crowdsale
-			- 10% of tokens are given to `TokenLocker`
-			- 10% of tokens are given to `CustodialWallet`
-		- **Creates `TokenLocker`**:
-			- This contract holds 10% of the `totalSupply` of tokens.
-			- PennyEther can claim the dividends, but nothing else. We cannot burn or sell these tokens.
-		- **Creates `DividendToken`**:
-			- A standard `ERC20` token
-			- Any ETH sent to it will be distributed across all token holders relative to `their balance / totalSupply`.
-			- Dividends can be claimed at any time by calling `.collectDividends()` from an account with a balance.
-			- Owed dividends can be viewed by calling `.getCollectableDividends(<address>)` by anyone.
+- **Comptroller.sol**: Controls tokens and talks to `Treasury`. Everything below is tested, and an audit is available here.
+
+	- **Creates `DividendToken`**:
+		- A standard `ERC20` token
+		- Any `ETH` sent to it will be distributed across all token holders relative to `balanceOfTokenHolder / totalSupply`.
+		- `.getOwedDividends(<address>)` returns the amount of Ether owed to `<address>`
+		- `.collectOwedDividends()` will send owed dividends to the caller's address.
+		- When tokens are transferred, minted, or burned, `owedDividends` is updated for both the sender and receiver. Therefore, *dividends of tokens are not transferred, only the tokens themselves.*
+		- Tokens can be frozen (this will only happen during the CrowdSale).
+
+	- **Creates `TokenLocker`**:
+		- This contract will hold `10%` of the `totalSupply` of tokens after the CrowdSale ends.
+		- PennyEther can claim the `owedDividends`, but nothing else. We cannot burn or transfer these tokens.
+
+	- **Can initiate the CrowdSale, during which**:
+		- Tokens are frozen (cannot be transferred).
+		- `1 ETH` gets `1 Token` (minimum allowed is `0.000000001 ETH`)
+			- The first `20,000 ETH` will receive a `50%` bonus, on a linear scale.
+			- Eg: The `1st ETH` will receive `~1.5 tokens`, the `10,000th ETH` will receive `~1.25 tokens`, the `20,000 ETH` will receive `~1 Token`.
+		- If `SoftCap` is not reached, all participants can collect a full refund by calling `.refund()`
+		- If `HardCap` is reached, the crowdsale ends.
+
 	- After the crowdsale:
-		- Allows tokens to be burned. This will remove bankroll from `Treasury` and refund the user. It will also burn `TokenLocker` tokens to ensure `TokenLocker` balance stays at 10% of `totalSupply`
+		- `TokenLocker` and `CustodialWallet` tokens are minted, such that they each end with `10%` of `totalSupply`.
+		- Participants end with `80%` of all tokens minted.
+		- No tokens can ever be minted again.
+		- Proceeds are distributed:
+			- `.5 * totalSupply * .9` wei is sent to `Treasury` as bankroll. This ensures all tokens can be burned for a full refund (`TokenLocker's` 10% of tokens are excluded.)
+			- 14 days of daily funding, `~30ETH`, are added to `Treasury`, ensuring a 2 week buffer period is in place.
+			- The remaining proceeds are sent to `CustodialWallet` as capital.
+		- Tokens can be burned. Burning `1 Token` will remove `.5 ETH` from `Treasury`'s bankroll, and refund the user that `.5 ETH`. It will also burn `.125 Tokens` from `TokenLocker`, to ensure `TokenLocker` always has 10% of `totalSupply`.
+			- Note: In the unlikely case that `Treasury` does not have sufficient funds to pay for burning all of a user's tokens, it will burn as many tokens as possible. The rest can be burned if/when `Treasury` gains a balance.
+
 - **Treasury.sol**: Holds the bankroll, pays dividends on demand.
 	- Is able to fund `MainController` a limited amount per day.
-		- Note: the address of `MainController` is determined via the `Registry`, *all other addresses are permanent, meaning the owners cannot change how dividends, burning, etc, will work*.
-	- Allows `Comptroller` to remove bankroll from `Treasury`. This lowers the bankroll and sends ETH to `Comptroller`, which will send it to the user.
-	- Allows anyone to trigger a dividend event by calling `.distributeToToken()`, provided the `Treasury` balance is > `daily limit * 14`.
+	- Allows `Comptroller` to tell `Treasury` to remove bankroll and send it to a user.
+	- Allows anyone to trigger a dividend event by calling `.distributeToToken()`, provided `(Treasury balance) > (daily limit * 14)`.
 - **Registry.sol**: This is how we upgrade all proceeding contracts.
 	- Contains a `string => address` mapping of names to addresses.
 	- When a contract is upgraded, the mapping is changed. All depedendant contracts (`Treasury`, and anything below) will use the new addresses on subsequent calls.
