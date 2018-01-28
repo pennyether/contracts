@@ -96,6 +96,10 @@ contract Comptroller {
 	/*************************************************************/
 	/********** DURING CROWDSALE *********************************/
 	/*************************************************************/
+	function () public payable {
+		buyTokens();
+	}
+	
 	// Allows the sender to buy tokens.
 	// Must send units of GWei, nothing lower.
 	function buyTokens()

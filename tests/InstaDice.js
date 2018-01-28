@@ -66,28 +66,35 @@ describe('InstaDice', function(){
     });
 
     describe("Bankroll", function(){
-        describe(".addBankroll()", function(){
-            it("Anyone can add bankroll", function(){
-                return assertAddsBankroll(.5e18, {from: anon});
+        describe(".addFunding()", function(){
+            it("Anyone can add funding", function(){
+                return assertAddsFunding(.5e18, {from: anon});
             });
         })
         
-        describe(".removeBankroll()", function(){
+        describe(".removeFunding()", function(){
             it("Anon cannot remove bankroll", function(){
                 return createDefaultTxTester()
-                    .doTx([dice, "removeBankroll", .1e18, {from: anon}])
+                    .doTx([dice, "removeFunding", .1e18, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Cannot remove more than bankroll", async function(){
-                const bankroll = await dice.minBankroll();
+                const bankroll = await dice.bankroll();
                 return createDefaultTxTester()
-                    .doTx([dice, "removeBankroll", bankroll.plus(1), {from: anon}])
+                    .doTx([dice, "removeFunding", bankroll.plus(1), {from: anon}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("Cannot remove more than amount funded", async function(){
+                const funding = await dice.funding();
+                return createDefaultTxTester()
+                    .doTx([dice, "removeFunding", funding.plus(1), {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Works for admin", function(){
-                return assertRemovesBankroll(.1e18)
+                return assertRemovesFunding(.1e18)
             });
         });
     });
@@ -100,6 +107,7 @@ describe('InstaDice', function(){
                 .start();
         });
         it("works from admin", function(){
+            this.logInfo(`Admin can change minBet, maxBet, minNumber, maxNumber, and feeBips`);
             return createDefaultTxTester()
                 .doTx([dice, "changeSettings", MIN_BET, MAX_BET, MIN_NUMBER, MAX_NUMBER, FEE_BIPS, {from: admin}])
                 .assertSuccess()
@@ -137,7 +145,7 @@ describe('InstaDice', function(){
         });
         describe("Rolling...", function(){
             it("Player1 can roll", function(){
-            return assertCanRoll(player1, .01e18, 50);
+                return assertCanRoll(player1, .01e18, 50);
             });
             it("Player1 can roll again", function(){
                 return assertCanRoll(player1, .01e18, 50);
@@ -150,22 +158,24 @@ describe('InstaDice', function(){
             });
         });
         describe("Cannot wager more than bankroll could afford to pay", function(){
-            it("Reduce bankroll to small amount", async function(){
-                const minBankroll = await dice.minBankroll();
+            it("Reduce funding to small amount", async function(){
+                this.logInfo(`Remove funding so that bankroll is very small.`);
+                const funding = await dice.funding();
                 const bankroll = await dice.bankroll();
                 var amtToRemove;
-                if (minBankroll.gt(bankroll)){
-                    console.log(`Dice is below minBankroll. Will remove nearly entire bankroll.`);
+                if (funding.gt(bankroll)){
+                    console.log(`Bankroll is below funding. Will remove nearly entire bankroll.`);
                     amtToRemove = bankroll.minus(1);
                 } else {
-                    console.log(`Dice is above minBankroll. Will remove nearly entire minBankroll.`);
-                    amtToRemove = minBankroll.minus(1);
+                    console.log(`Bankroll is above funding. Will remove nearly entire funding.`);
+                    amtToRemove = funding.minus(1);
                 }
-                await assertRemovesBankroll(amtToRemove);
+                await assertRemovesFunding(amtToRemove);
             });
             it("Should not allow a bet", async function(){
+                this.logInfo(`Player should not be able to place a wager that could result`);
+                this.logInfo(` in a payout more than the bankroll.`);
                 const bankroll = await dice.bankroll();
-                console.log(`Dice bankroll: ${bankroll}.`);
                 return assertCannotRoll(player1, MAX_BET, MIN_NUMBER, "Bankroll too small.");
             });
         });
@@ -173,18 +183,20 @@ describe('InstaDice', function(){
 
     describe("Taking profits", function(){
         it("Try to generate a profit", async function(){
+            this.logInfo(`Depending on the above rolls, may or may not have a profit.`);
+
             var profits = await dice.getProfits();
             const bankroll = await dice.bankroll();
-            const minBankroll = await dice.minBankroll();
+            const funding = await dice.funding();
             if (profits.gt(0)) {
-                console.log(`Has profits of ${profits}`);
+                this.logInfo(`InstaDice has profits of: ${profits}.`);
                 return;
             }
-            console.log(`InstaDice has no profits. Will try to get some.`);
-            console.log(`Bankroll: ${bankroll}, minBankroll: ${minBankroll}`);
-            console.log(`Upping bankroll...`);
-            await assertAddsBankroll(10e18);
-            console.log(`Now betting a large amount with small odds...`);
+            this.logInfo(`InstaDice has no profits. Will try to get some.`);
+            this.logInfo(`Bankroll: ${bankroll}, Funding: ${funding}`);
+            this.logInfo(`Upping funding first, so we can take a large bet.`);
+            await assertAddsFunding(1e18);
+            this.logInfo(`Now betting a large amount with small odds...`);
             await createDefaultTxTester()
                 .doTx([dice, "roll", MIN_NUMBER, {from: player1, value: .1e18}])
                 .assertSuccess()
@@ -196,7 +208,7 @@ describe('InstaDice', function(){
 
             profits = await dice.getProfits();
             if (profits.gt(0)) {
-                console.log(`Now it has profits of ${profits}.`);
+                this.logInfo(`Now it has profits of ${profits}.`);
             } else {
                 throw new Error(`Failed to generate a profits... try test again.`);
             }
@@ -208,10 +220,12 @@ describe('InstaDice', function(){
                 .start();
         });
         it("Collects profits", async function(){
+            this.logInfo(`Should collect the difference between bankroll and funding.`);
             const expProfits = await dice.getProfits();
             const bankroll = await dice.bankroll();
-            const minBankroll = await dice.minBankroll();
-            assert(bankroll.gt(minBankroll), "Bankroll should be more than minBankroll");
+            const funding = await dice.funding();
+            this.logInfo(`Bankroll: ${bankroll}, Funding: ${funding}, Profits: ${expProfits}`);
+            assert(bankroll.gt(funding), "Bankroll should be more than funding");
             return createDefaultTxTester()
                 .startLedger([dice, dummyTreasury, admin])
                 .doTx([dice, "sendProfits", {from: admin}])
@@ -224,35 +238,25 @@ describe('InstaDice', function(){
                     time: null,
                     recipient: dummyTreasury,
                     amount: expProfits,
-                    minBankroll: minBankroll,
-                    bankroll: minBankroll
+                    funding: funding,
+                    bankroll: funding
                 })
-                .assertCallReturns([dice, "bankroll"], minBankroll)
-                .assertCallReturns([dice, "minBankroll"], minBankroll)
+                .assertCallReturns([dice, "bankroll"], funding)
+                .assertCallReturns([dice, "funding"], funding)
                 .doFn(assertBalanceGtBankroll)
                 .start();
         });
     });
 
     describe("Users can manually collect", function(){
-        it("Do it once", async function(){
-            console.log(`Having player1 bet, very likely to win.`);
+        it("Roll, and collect manually", async function(){
+            this.logInfo(`Having player1 bet, very likely to win.`);
             await assertCanRoll(player1, MIN_BET, MAX_NUMBER);
-            console.log('');
-            console.log('Collecting payout manually...');
+            this.logInfo('');
+            this.logInfo('Collecting payout manually...');
             await assertCanPayoutRoll(await dice.curId());
-            console.log('');
-            console.log('Collecting payout manually (should not pay twice)');
-            await assertCanPayoutRoll(await dice.curId());
-        });
-        it("Do it again", async function(){
-            console.log(`Having player1 bet, very likely to win.`);
-            await assertCanRoll(player1, MIN_BET, MAX_NUMBER);
-            console.log('');
-            console.log('Collecting payout manually...');
-            await assertCanPayoutRoll(await dice.curId());
-            console.log('');
-            console.log('Collecting payout manually (should not pay twice)');
+            this.logInfo('');
+            this.logInfo('Collecting payout manually again should do nothing.');
             await assertCanPayoutRoll(await dice.curId());
         });
     });
@@ -322,58 +326,58 @@ describe('InstaDice', function(){
     })
 
     async function getExpectedProfits() {
-        const minBankroll = await dice.minBankroll();
+        const funding = await dice.funding();
         const bankroll = await dice.bankroll();
-        return bankroll.gt(minBankroll)
-            ? bankroll.minus(minBankroll)
+        return bankroll.gt(funding)
+            ? bankroll.minus(funding)
             : 0;
     }
 
-    async function assertAddsBankroll(amount) {
+    async function assertAddsFunding(amount) {
         amount = new BigNumber(amount);
         const expBankroll = (await dice.bankroll()).plus(amount);
-        const expMinBankroll = (await dice.minBankroll()).plus(amount);
+        const expFunding = (await dice.funding()).plus(amount);
         return createDefaultTxTester()
             .startLedger([anon, dice])
-            .doTx([dice, "addBankroll", {from: anon, value: amount}])
+            .doTx([dice, "addFunding", {from: anon, value: amount}])
             .assertSuccess()
             .stopLedger()
                 .assertDelta(dice, amount)
                 .assertDeltaMinusTxFee(anon, amount.mul(-1))
-            .assertOnlyLog("BankrollAdded", {
+            .assertOnlyLog("FundingAdded", {
                 time: null,
                 sender: anon,
                 amount: amount,
-                minBankroll: expMinBankroll,
+                funding: expFunding,
                 bankroll: expBankroll
             })
             .assertCallReturns([dice, "bankroll"], expBankroll)
-            .assertCallReturns([dice, "minBankroll"], expMinBankroll)
+            .assertCallReturns([dice, "funding"], expFunding)
             .doFn(assertBalanceGtBankroll)
             .start();
     }
 
-    async function assertRemovesBankroll(amount) {
+    async function assertRemovesFunding(amount) {
         amount = new BigNumber(amount);
         const expBankroll = (await dice.bankroll()).minus(amount);
-        const expMinBankroll = (await dice.minBankroll()).minus(amount);
+        const expFunding = (await dice.funding()).minus(amount);
         return createDefaultTxTester()
             .startLedger([admin, dice, dummyTreasury])
-            .doTx([dice, "removeBankroll", amount, {from: admin}])
+            .doTx([dice, "removeFunding", amount, {from: admin}])
             .assertSuccess()
             .stopLedger()
                 .assertDelta(dice, amount.mul(-1))
                 .assertDelta(dummyTreasury, amount)
                 .assertLostTxFee(admin)
-            .assertOnlyLog("BankrollRemoved", {
+            .assertOnlyLog("FundingRemoved", {
                 time: null,
                 recipient: dummyTreasury,
                 amount: amount,
-                minBankroll: expMinBankroll,
+                funding: expFunding,
                 bankroll: expBankroll
             })
             .assertCallReturns([dice, "bankroll"], expBankroll)
-            .assertCallReturns([dice, "minBankroll"], expMinBankroll)
+            .assertCallReturns([dice, "funding"], expFunding)
             .doFn(assertBalanceGtBankroll)
             .start();
     }
@@ -546,7 +550,7 @@ describe('InstaDice', function(){
         const balance = testUtil.getBalance(dice);
         const bankroll = await dice.bankroll();
         if (!bankroll.gt(balance)){
-            console.log(`✓ Balance >= bankroll (${balance} > ${bankroll})`);
+            console.log(`✓ Balance >= bankroll (${balance} >= ${bankroll})`);
         } else {
             console.log(`Bankroll: ${bankroll}, balance: ${balance}`);
             throw new Error(`Bankroll should never be greater than balance!`);

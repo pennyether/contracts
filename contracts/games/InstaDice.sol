@@ -30,7 +30,7 @@ contract InstaDice is
 	uint[] public unresolvedRolls;
 
 	// if bankroll is ever above this, we can send profits
-	uint128 public minBankroll;
+	uint128 public funding;
 
 	// Admin controlled settings
 	uint64 public maxBet = .3 ether;	// 
@@ -50,9 +50,9 @@ contract InstaDice is
 
 	// Admin events
 	event SettingsChanged(uint time, address indexed sender);
-	event BankrollAdded(uint time, address indexed sender, uint amount, uint minBankroll, uint bankroll);
-	event BankrollRemoved(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
-	event ProfitsSent(uint time, address indexed recipient, uint amount, uint minBankroll, uint bankroll);
+	event FundingAdded(uint time, address indexed sender, uint amount, uint funding, uint bankroll);
+	event FundingRemoved(uint time, address indexed recipient, uint amount, uint funding, uint bankroll);
+	event ProfitsSent(uint time, address indexed recipient, uint amount, uint funding, uint bankroll);
 
 	function InstaDice(address _registry)
         UsingTreasury(_registry)
@@ -88,22 +88,22 @@ contract InstaDice is
 		SettingsChanged(now, msg.sender);
 	}
 
-	// Decreases minBankroll and bankroll by _amount
-	function removeBankroll(uint128 _amount)
+	// Decreases funding and bankroll by _amount
+	function removeFunding(uint128 _amount)
 		public
 		fromAdmin
 	{
 		require(bankroll >= _amount);
-		require(minBankroll >= _amount);
-		minBankroll -= _amount;
+		require(funding >= _amount);
+		funding -= _amount;
 		bankroll -= _amount;
 		// send it to treasury
 		address _tr = getTreasury();
 		require(_tr.call.value(_amount)());
-		BankrollRemoved(now, _tr, _amount, minBankroll, bankroll);
+		FundingRemoved(now, _tr, _amount, funding, bankroll);
 	}
 
-	// Sends the difference between bankroll and minBankroll
+	// Sends the difference between bankroll and funding
 	function sendProfits()
 		public
 		fromAdmin
@@ -111,11 +111,11 @@ contract InstaDice is
 	{
 		_profits = getProfits();
 		if (_profits == 0) return;
-		bankroll = minBankroll;
+		bankroll = funding;
 		// send it to treasury
 		address _tr = getTreasury();
 		require(_tr.call.value(_profits)());
-		ProfitsSent(now, _tr, _profits, minBankroll, bankroll);
+		ProfitsSent(now, _tr, _profits, funding, bankroll);
 	}
 	
 
@@ -226,14 +226,14 @@ contract InstaDice is
 		return _numResolved;
 	}
 	
-	// Increase minBankroll and bankroll by whatever value is sent
-	function addBankroll()
+	// Increase funding and bankroll by whatever value is sent
+	function addFunding()
 		public
 		payable 
 	{
-		minBankroll += uint128(msg.value);
+		funding += uint128(msg.value);
 	    bankroll += uint128(msg.value);
-	    BankrollAdded(now, msg.sender, msg.value, minBankroll, bankroll);
+	    FundingAdded(now, msg.sender, msg.value, funding, bankroll);
 	}
 
 	////////////////////////////////////////////////////
@@ -341,10 +341,8 @@ contract InstaDice is
 		constant
 		returns (uint _amount)
 	{
-		// Balance should always be >= bankroll
-		assert(this.balance >= bankroll);
-		if (bankroll <= minBankroll) return;
-		return bankroll - minBankroll;
+		if (bankroll <= funding) return;
+		return bankroll - funding;
 	}
 
 
