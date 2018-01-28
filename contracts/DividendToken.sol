@@ -203,6 +203,10 @@ contract DividendToken {
 		returns (uint _amount)
 	{
 		uint _pointsPerToken = totalPointsPerToken - lastPointsPerToken[_account];
+		// the upper bound on this number is:
+		//   ((1e32 * DIVIDEND_AMT) / totalSupply) * balances[_account]
+		// since totalSupply >= balances[_account], this will overflow only if
+		//   DIVIDEND_AMT is around 1e45 wei. Not ever going to happen.
 		return _pointsPerToken * balances[_account];
 	}
 
