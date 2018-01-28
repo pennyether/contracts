@@ -15,8 +15,7 @@ It transfers out ONLY in these conditions:
 	- to comptroller
 		- When: When comptroller lowers the bankroll due
 		        to an investor burning tokens.
-		- Amount: The amount of bankroll that was added
-		          when those tokens were minted.
+		- Amount: The amount of bankroll removed
 	- to registry.getMainController()
 		- When: Whenever MainController requests funds.
 		- Amount: limited by dailyFundLimit per day.
@@ -84,6 +83,7 @@ contract Treasury is
 	// prevents a function from being called again before it has completed
 	bool private locked;
 	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
+	// for functions only callable by Comptroller
 	modifier fromComptroller() { require(msg.sender==comptroller); _; }
 
 	// EVENTS
@@ -168,17 +168,9 @@ contract Treasury is
 
 
 	/*************************************************************/
-	/******* DEPOSTING, FUNDING, DISTRIUTING *********************/
+	/******* COMPTROLLER FUNCTIONS *******************************/
 	/*************************************************************/
-	// Can receive deposits from anyone (eg: PennyAuctions, other games)
-	function () public payable {
-		totalRevenue += msg.value;
-		RevenueReceived(now, msg.sender, msg.value);
-	}
-
-	// Called by the Comptroller anytime it has received an investment.
-	// The investment adds bankroll, and mints tokens in return.
-	// The tokens can be burnt to redeem their bankroll.
+	// Called by the Comptroller after ICO to set bankroll
 	function addToBankroll()
 		public
 		payable
@@ -201,6 +193,16 @@ contract Treasury is
 		bankroll -= _amount;
 		require(_recipient.call.value(_amount)());
 		BankrollChanged(now, _oldValue, bankroll);
+	}
+
+
+	/*************************************************************/
+	/******* DEPOSTING, FUNDING, DISTRIBUTING ********************/
+	/*************************************************************/
+	// Can receive deposits from anyone (eg: PennyAuctions, other games)
+	function () public payable {
+		totalRevenue += msg.value;
+		RevenueReceived(now, msg.sender, msg.value);
 	}
 
 	// Sends any surplus balance to the token, and a reward to the caller.

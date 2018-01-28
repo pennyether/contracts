@@ -52,7 +52,7 @@ contract Comptroller {
 	// events
 	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
 	event BuyTokensFailure(uint time, address indexed sender, string reason);
-	event SaleInitalized(uint time);		// emitted when owner calls .initSale()
+	event SaleInitalized(uint time);		// emitted when wallet calls .initSale()
 	event SaleStarted(uint time);			// emitted upon first tokens bought
 	event SaleSuccessful(uint time);		// emitted when sale ends (may happen early)
 	event SaleFailed(uint time);			// emitted if softCap not reached
@@ -66,9 +66,8 @@ contract Comptroller {
 		treasury = _ICompTreasury(_treasury);
 		token = new DividendToken();
 		locker = new DividendTokenLocker(token, _wallet);
-		// In case the softCap is not met, PennyEther should own 100%.
-		// So we give the locker 1 token for now.
-		token.mintTokens(locker, 1);
+		// When initialized, the wallet should own the only token.
+		token.mintTokens(wallet, 1);
 	}
 
 	/*************************************************************/
@@ -99,7 +98,7 @@ contract Comptroller {
 	function () public payable {
 		buyTokens();
 	}
-	
+
 	// Allows the sender to buy tokens.
 	// Must send units of GWei, nothing lower.
 	function buyTokens()
@@ -177,10 +176,10 @@ contract Comptroller {
 
 		// Mint 1/8 to wallet, and 1/8 to locker
 		// Ownership will be: funders: 80%, locker: 10%, wallet: 10%
-		// Locker already has 1 token, so subtract it.
+		// Wallet already has 1 token, so subtract it.
 		uint _totalMinted = token.totalSupply();
-		token.mintTokens(wallet, _totalMinted/8);
-		token.mintTokens(locker, _totalMinted/8 - 1);
+		token.mintTokens(wallet, _totalMinted/8 - 1);
+		token.mintTokens(locker, _totalMinted/8);
 
 		// Allow tokens to be transferrable
 		token.setFrozen(false);

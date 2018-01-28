@@ -117,7 +117,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertCallReturns([comptroller, "treasury"], treasury.address)
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "wasSaleEnded"], false)
-                    .assertCallReturns([token, "balanceOf", locker.address], 1)
+                    .assertCallReturns([token, "balanceOf", wallet], 1)
                     .start();
             })
             it(".buyTokens() doesn't work (sale not yet started)", function(){
@@ -289,82 +289,87 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 });
             }
         });
+
         if (MEET_SOFT_CAP) {
-            describe(".sendRefund() does nothing (soft cap met)", function(){
-                it(".sendRefund() for account1 fails", function(){
-                    return createDefaultTxTester()
-                        .doTx([comptroller, "sendRefund", {from: account1}])
-                        .assertInvalidOpCode()
-                        .start();
-                });
-            })
-            describe("Burning works", function(){
-                it("Doens't work for user with no tokens", function(){
-                    return createDefaultTxTester()
-                        .doTx([comptroller, "burnTokens", 1e18, {from: accountWithNoTokens}])
-                        .assertInvalidOpCode()
-                        .start();
+            describe("After the ICO (soft cap met)", function(){
+                describe(".sendRefund() does nothing (soft cap met)", function(){
+                    it(".sendRefund() for account1 fails", function(){
+                        return createDefaultTxTester()
+                            .doTx([comptroller, "sendRefund", {from: account1}])
+                            .assertInvalidOpCode()
+                            .start();
+                    });
                 })
-                it("Burning half of account1's tokens works", async function(){
-                    const amt = (await token.balanceOf(account1)).div(2);
-                    return assertCanBurnTokens(account1, amt, this.logInfo);
+                describe("Burning works", function(){
+                    it("Doens't work for user with no tokens", function(){
+                        return createDefaultTxTester()
+                            .doTx([comptroller, "burnTokens", 1e18, {from: accountWithNoTokens}])
+                            .assertInvalidOpCode()
+                            .start();
+                    })
+                    it("Burning half of account1's tokens works", async function(){
+                        const amt = (await token.balanceOf(account1)).div(2);
+                        return assertCanBurnTokens(account1, amt, this.logInfo);
+                    });
+                    it("Burning account1's remaining tokens tokens works", async function(){
+                        const remaining = await token.balanceOf(account1);
+                        this.logInfo("This tests that sending a large amount will burn the remaining tokens.");
+                        this.logInfo(`Account1 has ${toEth(remaining, "tokens")} remaining, will try to burn double that.`);
+                        return assertCanBurnTokens(account1, remaining.mul(2), this.logInfo);
+                    });
+                    it("Burn all of account2's tokens", async function(){
+                        const acct2remaining = await token.balanceOf(account2);
+                        await assertCanBurnTokens(account2, acct2remaining, this.logInfo);
+                    });
+                    it("Burn all of owner's tokens", async function(){
+                        const walletRemaining = await token.balanceOf(wallet);
+                        await assertCanBurnTokens(wallet, walletRemaining, this.logInfo);
+                    })
                 });
-                it("Burning account1's remaining tokens tokens works", async function(){
-                    const remaining = await token.balanceOf(account1);
-                    this.logInfo("This tests that sending a large amount will burn the remaining tokens.");
-                    this.logInfo(`Account1 has ${toEth(remaining, "tokens")} remaining, will try to burn double that.`);
-                    return assertCanBurnTokens(account1, remaining.mul(2), this.logInfo);
-                });
-                it("Burn all of account2's tokens", async function(){
-                    const acct2remaining = await token.balanceOf(account2);
-                    await assertCanBurnTokens(account2, acct2remaining, this.logInfo);
-                });
-                it("Burn all of owner's tokens", async function(){
-                    const walletRemaining = await token.balanceOf(wallet);
-                    await assertCanBurnTokens(wallet, walletRemaining, this.logInfo);
-                })
-            });
-            describe("Burning works with limited Treasury funds", function(){
-                it("Drain Treasury for 16 days, so it's balance is low.", async function(){
-                    await testUtil.fastForward(24*60*60);
-                    for (var i=0; i<16; i++){
-                        await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
+                describe("Burning works with limited Treasury funds", function(){
+                    it("Drain Treasury for 16 days, so it's balance is low.", async function(){
                         await testUtil.fastForward(24*60*60);
-                    }
+                        for (var i=0; i<16; i++){
+                            await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
+                            await testUtil.fastForward(24*60*60);
+                        }
+                    });
+                    it("Now burn all of account3's tokens", async function(){
+                        const acc3tokens = (await token.balanceOf(account3));
+                        const acc3wei = acc3tokens.div(2);
+                        const tBalance = testUtil.getBalance(treasury);
+                        this.logInfo(`Account3 can burn ${toEth(acc3tokens, "tokens")} for ${toEth(acc3wei)}...`);
+                        this.logInfo(`But treasury only has ${toEth(tBalance)}.`);
+                        assert(tBalance.lt(acc3wei), "Treasury should not have enough balance.");
+                        return assertCanBurnTokens(account3, acc3tokens.mul(2), this.logInfo);
+                    });
                 });
-                it("Now burn all of account3's tokens", async function(){
-                    const acc3tokens = (await token.balanceOf(account3));
-                    const acc3wei = acc3tokens.div(2);
-                    const tBalance = testUtil.getBalance(treasury);
-                    this.logInfo(`Account3 can burn ${toEth(acc3tokens, "tokens")} for ${toEth(acc3wei)}...`);
-                    this.logInfo(`But treasury only has ${toEth(tBalance)}.`);
-                    assert(tBalance.lt(acc3wei), "Treasury should not have enough balance.");
-                    return assertCanBurnTokens(account3, acc3tokens.mul(2), this.logInfo);
-                });
-            })
+            });
         } else {
-            describe("Burning does nothing (softCap not met)", function(){
-                it("account1 cannot burn any tokens", function(){
-                    return assertCannotBurnTokens(account1, 1e18);
+            describe("After the ICO (soft cap not met)", function(){
+                describe("Burning does nothing (softCap not met)", function(){
+                    it("account1 cannot burn any tokens", function(){
+                        return assertCannotBurnTokens(account1, 1e18);
+                    });
                 });
-            });
-            describe("Wallet owns PennyEther", function(){
-                it("Wallet owns more than 99.9999999% of tokens", async function(){
-                    const walletTokens = await token.balanceOf(wallet);
-                    const totalSupply = await token.totalSupply();
-                    console.log(`Wallet owns ${toEth(walletTokens, "tokens")} of ${toEth(totalSupply, "tokens")}`);
-                    assert(walletTokens.div(totalSupply).gt(.999999999), "Wallet owns more than 99.9999999%");
+                describe("Wallet owns PennyEther", function(){
+                    it("Wallet owns more than 99.9999999% of tokens", async function(){
+                        const walletTokens = await token.balanceOf(wallet);
+                        const totalSupply = await token.totalSupply();
+                        console.log(`Wallet owns ${toEth(walletTokens, "tokens")} of ${toEth(totalSupply, "tokens")}`);
+                        assert(walletTokens.div(totalSupply).gt(.999999999), "Wallet owns more than 99.9999999%");
+                    });
                 });
-            });
-            describe("Refunding works", function(){
-                it("Can refund account1", function(){
-                    return assertCanSendRefund(account1, SOFT_CAP.div(2));
-                });
-                it("Has no remaining balance", function(){
-                    this.logInfo("Everyone has been refunded.");
-                    return createDefaultTxTester()
-                        .assertBalance(treasury, 0)
-                        .start();
+                describe("Refunding works", function(){
+                    it("Can refund account1", function(){
+                        return assertCanSendRefund(account1, SOFT_CAP.div(2));
+                    });
+                    it("Has no remaining balance", function(){
+                        this.logInfo("Everyone has been refunded.");
+                        return createDefaultTxTester()
+                            .assertBalance(treasury, 0)
+                            .start();
+                    });
                 });
             });
         }
