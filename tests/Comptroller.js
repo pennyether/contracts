@@ -294,18 +294,12 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             describe("After the ICO (soft cap met)", function(){
                 describe(".sendRefund() does nothing (soft cap met)", function(){
                     it(".sendRefund() for account1 fails", function(){
-                        return createDefaultTxTester()
-                            .doTx([comptroller, "sendRefund", {from: account1}])
-                            .assertInvalidOpCode()
-                            .start();
+                        return assertCannotSendRefund(account1);
                     });
                 })
                 describe("Burning works", function(){
                     it("Doens't work for user with no tokens", function(){
-                        return createDefaultTxTester()
-                            .doTx([comptroller, "burnTokens", 1e18, {from: accountWithNoTokens}])
-                            .assertInvalidOpCode()
-                            .start();
+                        return assertCannotBurnTokens(accountWithNoTokens, 1e18);
                     })
                     it("Burning half of account1's tokens works", async function(){
                         const amt = (await token.balanceOf(account1)).div(2);
@@ -327,7 +321,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     })
                 });
                 describe("Burning works with limited Treasury funds", function(){
-                    it("Drain Treasury for 16 days, so it's balance is low.", async function(){
+                    it("Drain Treasury for 16 days, so its balance is low.", async function(){
                         await testUtil.fastForward(24*60*60);
                         for (var i=0; i<16; i++){
                             await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
@@ -344,14 +338,14 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         return assertCanBurnTokens(account3, acc3tokens.mul(2), this.logInfo);
                     });
                 });
+                describe(".drainTreasury() does not work", function(){
+                    it("wallet cannot drain treasury", function(){
+                        return assertCannotDrainTreasury(wallet);
+                    });
+                })
             });
         } else {
             describe("After the ICO (soft cap not met)", function(){
-                describe("Burning does nothing (softCap not met)", function(){
-                    it("account1 cannot burn any tokens", function(){
-                        return assertCannotBurnTokens(account1, 1e18);
-                    });
-                });
                 describe("Wallet owns PennyEther", function(){
                     it("Wallet owns more than 99.9999999% of tokens", async function(){
                         const walletTokens = await token.balanceOf(wallet);
@@ -360,17 +354,33 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         assert(walletTokens.div(totalSupply).gt(.999999999), "Wallet owns more than 99.9999999%");
                     });
                 });
+                describe("Burning does nothing (softCap not met)", function(){
+                    it("account1 cannot burn any tokens", function(){
+                        return assertCannotBurnTokens(account1, 1e18);
+                    });
+                });
                 describe("Refunding works", function(){
                     it("Can refund account1", function(){
                         return assertCanSendRefund(account1, SOFT_CAP.div(2));
                     });
-                    it("Has no remaining balance", function(){
+                    it("Cannot refund account1 again", function(){
+                        return assertCannotSendRefund(account1);
+                    })
+                    it("Comptroller has no remaining balance", function(){
                         this.logInfo("Everyone has been refunded.");
                         return createDefaultTxTester()
-                            .assertBalance(treasury, 0)
+                            .assertBalance(comptroller, 0)
                             .start();
                     });
                 });
+                describe(".drainTreasury() works", function(){
+                    it("wallet can drain treasury", async function(){
+                        await assertCanDrainTreasury(wallet);
+                    });
+                    it("anon cannot drain treasury", async function(){
+                        await assertCannotDrainTreasury(anon); 
+                    });
+                })
             });
         }
 
@@ -571,9 +581,9 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 .assertDeltaMinusTxFee(account, expAmt)
                 .start();
         }
-        function assertCannotSendRefund(){
+        function assertCannotSendRefund(account){
             return createDefaultTxTester()
-                .doTx([comptroller, "sendRefund", {from: anon}])
+                .doTx([comptroller, "sendRefund", {from: account}])
                 .assertInvalidOpCode()
                 .start();
         }
@@ -584,6 +594,28 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 .assertInvalidOpCode()
                 .start();
         }
+
+        async function assertCanDrainTreasury(account){
+            await treasury.sendTransaction({from: anon, value: 100});
+            const expAmt = await testUtil.getBalance(treasury);
+            return createDefaultTxTester()
+                .startLedger([comptroller, treasury, account])
+                .doTx([comptroller, "drainTreasury", {from: account}])
+                .assertSuccess()
+                .stopLedger()
+                    .assertDelta(comptroller, 0)
+                    .assertDelta(treasury, expAmt.mul(-1))
+                    .assertDeltaMinusTxFee(account, expAmt)
+                .start();
+        }
+        async function assertCannotDrainTreasury(account) {
+            await treasury.sendTransaction({from: anon, value: 100});
+            return createDefaultTxTester()
+                .doTx([comptroller, "drainTreasury", {from: account}])
+                .assertInvalidOpCode()
+                .start();
+        }
+
         function describeSaleNotEnded() {
             describe("Sale has not ended yet.", async function(){
                 const blocktime = testUtil.getBlockTime();
@@ -604,6 +636,9 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 it(".sendRefund() doesn't work.", function(){
                     return assertCannotSendRefund();
                 });
+                it(".drainTreasury() doesn't work.", function(){
+                    return assertCannotDrainTreasury();
+                })
             });
         }
         function toEth(n, str) {

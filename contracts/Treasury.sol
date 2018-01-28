@@ -170,7 +170,7 @@ contract Treasury is
 	/*************************************************************/
 	/******* COMPTROLLER FUNCTIONS *******************************/
 	/*************************************************************/
-	// Called by the Comptroller after ICO to set bankroll
+	// Called by the Comptroller after ICO
 	function addToBankroll()
 		public
 		payable
@@ -193,6 +193,14 @@ contract Treasury is
 		bankroll -= _amount;
 		require(_recipient.call.value(_amount)());
 		BankrollChanged(now, _oldValue, bankroll);
+	}
+
+	// Comptroller can call this only if SoftCap is not met.
+	function drain(address _recipient)
+		public
+		fromComptroller
+	{
+		require(_recipient.call.value(this.balance)());
 	}
 
 

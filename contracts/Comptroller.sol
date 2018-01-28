@@ -23,8 +23,13 @@ Other notes:
 	- Once sale of tokens has started, cannot be stopped.
 */
 interface _ICompTreasury {
+	// after ICO, will add funds to bankroll.
 	function addToBankroll() public payable;
+	// after ICO, if softcap met, will allow users to burn tokens.
 	function removeFromBankroll(uint _amount, address _recipient) public;
+	// after ICO, if softcap not met, will allow wallet to get treasury funds.
+	function drain(address _recipient) public;
+	// when ending ICO, will ensure Treasury has a full balance.
 	function getMinBalanceToDistribute() public constant returns (uint _amount);
 }
 contract Comptroller {
@@ -245,13 +250,22 @@ contract Comptroller {
 	{
 		// Ensure sale ended unsuccessfully.
 		require(wasSaleEnded && !wasSaleSuccessful);
-		require(token.balanceOf(msg.sender) > 0);
-		// Burn all of user's tokens, and send them the amt they sent us.
-		uint _numTokens = token.balanceOf(msg.sender);
+		require(amtFunded[msg.sender] > 0);
+		// Send the user the amount they funded
 		uint _amt = amtFunded[msg.sender];
-		token.burnTokens(msg.sender, _numTokens);
+		amtFunded[msg.sender] = 0;
 		require(msg.sender.call.value(_amt)());
-		UserRefunded(now, msg.sender, _numTokens, _amt);
+		UserRefunded(now, msg.sender, token.balanceOf(msg.sender), _amt);
+	}
+
+	// If sale was unsuccessful, allow wallet to drain the treasury.
+	// Note: this does not effect refunds, they are held in Comptroller.
+	function drainTreasury()
+		public
+	{
+		require(wasSaleEnded && !wasSaleSuccessful);
+		require(msg.sender == wallet);
+		treasury.drain(wallet);
 	}
 
 	/*************************************************************/
