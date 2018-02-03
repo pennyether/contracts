@@ -62,6 +62,7 @@ contract DividendToken {
 		public
 	{
 		// POINTS_PER_WEI is 1e32 -- no overflow unless we get 1e45 wei (1e27 ETH)
+		if (msg.value==0) return;
 		totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
 		totalDividends += msg.value;
 		DividendReceived(msg.sender, msg.value);

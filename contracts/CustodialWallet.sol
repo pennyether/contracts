@@ -51,6 +51,7 @@ contract CustodialWallet {
             CallFailure(now, _to, _msg);
     }
     
+    // Sends entire balance to _recipient, and changes supervisor
     function collect(address _recipient, address _newSupervisor)
         public
         fromSupervisor
@@ -64,8 +65,7 @@ contract CustodialWallet {
             CollectFailure(now, _recipient, _amt);
     }
     
-    // Whenever this is called, the supervisor must change as well.
-    // This enforces that the wallet of owner is always cold.
+    // Changes the custodian, as well as the supervisor
     function setCustodian(address _newCustodian, address _newSupervisor)
         public
         fromSupervisor
@@ -74,7 +74,7 @@ contract CustodialWallet {
         _setSupervisor(_newSupervisor);
     }
 
-    // Callable by owner in case supervisor can not be used.
+    // Changes the supervisor, as well as the owner
     function setSupervisor(address _newSupervisor, address _newOwner)
         public
         fromOwner
@@ -90,24 +90,24 @@ contract CustodialWallet {
         private
     {
         require(_newCustodian > 0);
-        CustodianChanged(now, custodian, _newCustodian);
         custodian = _newCustodian;
+        CustodianChanged(now, custodian, _newCustodian);
     }
 
     function _setSupervisor(address _newSupervisor)
         private
     {
         require(_newSupervisor > 0);
-        SupervisorChanged(now, supervisor, _newSupervisor);
         supervisor = _newSupervisor;
+        SupervisorChanged(now, supervisor, _newSupervisor);
     }
 
     function _setOwner(address _newOwner)
         private
     {
         require(_newOwner > 0);
-        OwnerChanged(now, owner, _newOwner);
         owner = _newOwner;
+        OwnerChanged(now, owner, _newOwner);
     }
 
     function () public payable {}

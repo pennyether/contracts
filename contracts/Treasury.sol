@@ -228,9 +228,11 @@ contract Treasury is
 			return;
 		}
 
-		// calculate _reward and _amount, and send _amount
+		// calculate _reward and _amount
 		uint _reward = _surplus / distributeRewardDenom;
 		_amount = _surplus - _reward;
+		// this should never happen, but it's possible the
+		// Token is bad (eg, it rejects payment or throws)
 		if (!token.call.value(_amount)()) {
 			DistributeFailure(now, token, _amount);
 			return (false, 0);

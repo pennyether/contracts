@@ -150,28 +150,29 @@ contract MainController is
 	/*************************************************************/
 	/************ CONSTANTS **************************************/
 	/*************************************************************/
-	// Gets the total reward amount if one were to call pac.refreshPennyAuctions()
-	// Note: this is an estimate -- it's possible that a call to <auction>.collectFees()
-	//		 can fail to send fees to its collector, in which case those fees wont be
-	//		 actually counted and rewarded upon.
-	function getRefreshPennyAuctionsReward()
+	// Gets whether or not PennyAuctions can be refreshed, and how much reward
+	//  will be paid for doing a refresh.
+	function canRefreshPennyAuctions()
 		public
 		constant 
-		returns (uint _amount)
+		returns (bool _canRefresh, uint _reward)
 	{
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _fees = _pac.getAvailableFees();
 		uint _numEnded = _pac.getNumEndedAuctions();
-		uint _reward = (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
-		return getTreasury().canFund(_reward) ? _reward : 0;
+		_canRefresh = _fees > 0 || _numEnded > 0;
+		if (!_canRefresh) { return (false, 0); }
+
+		_reward = (_numEnded * paEndReward) + (_fees / paFeeCollectRewardDenom);
+		_reward = getTreasury().canFund(_reward) ? _reward : 0;
+		return (_canRefresh, _reward);
 	}
 
-	// Finds a definedAuction() that can be started, and returns the reward and index.
-	// If reward is > 0, you can call .startPennyAuction(_index) to receive it.
-	function getStartPennyAuctionReward()
+	// Finds the first definedAuction that can be started.
+	function canStartPennyAuction()
 		public
 		constant
-		returns (uint _amount, uint _index)
+		returns (bool _canStart, uint _index, uint _reward)
 	{
 		IPennyAuctionController _pac = getPennyAuctionController();
 		uint _numIndexes = _pac.numDefinedAuctions();
@@ -179,8 +180,8 @@ contract MainController is
 			if (!_pac.getIsStartable(_index)) continue;
 			if (!getTreasury().canFund(_pac.getInitialPrize(_index) + paStartReward))
 				continue;
-			return (paStartReward, _index);
+			return (true, _index, paStartReward);
 		}
-		return (0, 0);
+		return (false, 0, 0);
 	}
 }
