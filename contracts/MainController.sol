@@ -33,6 +33,7 @@ contract MainController is
 	event Error(uint time, string msg);
 	event PennyAuctionRewardsChanged(uint time);
 	event PennyAuctionStarted(uint time, uint index, address indexed addr);
+	event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
 	event RewardPaid(uint time, address indexed recipient, string note, uint amount);
 	event RewardNotPaid(uint time, address indexed recipient, string note, uint amount);
 
@@ -104,7 +105,7 @@ contract MainController is
 			RewardPaid(now, msg.sender, "Called .startPennyAuction()", _reward);
 		} else {
 			_t.acceptRefund.value(_reward)("Could not pay reward for .startPennyAuction()");
-			RewardNotPaid(now, msg.sender, "Started a PennyAuction", _reward);
+			RewardNotPaid(now, msg.sender, ".startPennyAuction() could not send reward.", _reward);
 		}
 		return;
 	}
@@ -117,6 +118,7 @@ contract MainController is
 	{
 		// do the call
 		(_numAuctionsEnded, _feesCollected) = getPennyAuctionController().refreshAuctions();
+		PennyAuctionsRefreshed(now, _numAuctionsEnded, _feesCollected);
 
 		// compute reward
 		uint _reward = (_numAuctionsEnded * paEndReward)
@@ -139,7 +141,7 @@ contract MainController is
 			RewardPaid(now, msg.sender, "Called .refreshPennyAuctions()", _reward);
 		} else {
 			_t.acceptRefund.value(_reward)("Could not pay reward for .refreshPennyAuctions()");
-			RewardNotPaid(now, msg.sender, ".refreshPennyAuctions() couldnt send reward.", _reward);
+			RewardNotPaid(now, msg.sender, ".refreshPennyAuction() could not send reward.", _reward);
 		}
 		return;
 	}

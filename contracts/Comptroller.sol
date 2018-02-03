@@ -5,22 +5,26 @@ import "./DividendTokenLocker.sol";
 
 /*
 A Comptroller:
-	- Accepts ETH via .mintTokens()
+	- Accepts ETH to .buyTokens()
 	- Refunds ETH via .burnTokens()
-	- Ensures PennyEtherTokenLocker has 20% of tokens. 
+	- Ensures PennyEtherTokenLocker has 10% of tokens. 
 
 As the owner of Token contract, it can call:
-	- token.mintTokens(address, amount)
-	- token.burnTokens(address, amount) 
+	- token.mintTokens(address, amount) [only during CrowdSale]
+	- token.burnTokens(address, amount) [only when SoftCap Met]
 
 As the owner of the owner of the Treasury, it can call:
 	- treasury.addToBankroll(amount) 
-	- treasury.removeFromBankroll(amount)
+		- after the ICO, sends Ether to treasury as bankroll
+	- treasury.removeFromBankroll(amount, recipient)
+		- after CrowdSale, when a user burns tokens
+	- treasury.drain(address)
+		- after CrowdSale, if SoftCap not met
 
 Other notes:
-	- The treasury may only be set once and cannot be changed.
-	- The token locker may only be set once and cannot be changed.
-	- Once sale of tokens has started, cannot be stopped.
+	- All addresses are final, and cannot be changed
+	- Once sale has started, it cannot be stopped
+
 */
 interface _ICompTreasury {
 	// after ICO, will add funds to bankroll.
@@ -51,17 +55,18 @@ contract Comptroller {
 	bool public wasSaleStarted;				// True when sale is started
 	bool public wasSaleEnded;				// True when sale is ended
 	bool public wasSaleSuccessful;			// True if softCap met
-	// Stores amtFunded for useres contributing before softCap
+	// Stores amtFunded for useres contributing before softCap is met
 	mapping (address => uint) public amtFunded;	
 
-	// events
-	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
-	event BuyTokensFailure(uint time, address indexed sender, string reason);
+	// Sale Events
 	event SaleInitalized(uint time);		// emitted when wallet calls .initSale()
 	event SaleStarted(uint time);			// emitted upon first tokens bought
 	event SaleSuccessful(uint time);		// emitted when sale ends (may happen early)
 	event SaleFailed(uint time);			// emitted if softCap not reached
-	// Emitted after sale when a user burns their tokens via .burnTokens() or .sendRefund()
+	// During sale
+	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
+	event BuyTokensFailure(uint time, address indexed sender, string reason);
+	// After sale, via .burnTokens() or .sendRefund()
 	event UserRefunded(uint time, address indexed sender, uint numTokens, uint refund);
 
 	function Comptroller(address _wallet, address _treasury)
@@ -173,14 +178,14 @@ contract Comptroller {
 		wasSaleEnded = true;
 		wasSaleSuccessful = totalRaised >= softCap;
 		if (!wasSaleSuccessful) {
-			// wallet should own close to 100%
+			// mint a ton of tokens to wallet, so they own ~100%
 			token.mintTokens(wallet, 1e30);
 			SaleFailed(now);
 			return;
 		}
 
 		// Mint 1/8 to wallet, and 1/8 to locker
-		// Ownership will be: funders: 80%, locker: 10%, wallet: 10%
+		// Disribution will be: funders: 80%, locker: 10%, wallet: 10%
 		// Wallet already has 1 token, so subtract it.
 		uint _totalMinted = token.totalSupply();
 		token.mintTokens(wallet, _totalMinted/8 - 1);
@@ -273,7 +278,7 @@ contract Comptroller {
 	/*************************************************************/
 	// Returns the total amount of tokens minted at a given _ethAmt raised.
 	// This hard codes the following:
-	//	 - Start at 50% bonus, linear decay to 0% bonus at 20,000 ether.
+	//	 - Start at 50% bonus, linear decay to 0% bonus at bonusCap.
 	function getTokensMintedAt(uint _ethAmt)
 		public
 		view
@@ -288,7 +293,7 @@ contract Comptroller {
 		} else {
 			// Use a closed form integral to compute tokens.
 			//   First make a function for tokensPerEth:
-			//     tokensPerEth = 3/2 - x/(2c), where c is bonus cutoff
+			//     tokensPerEth = 3/2 - x/(2c), where c is bonusCap
 			//	   let's try som values:
 			//     with c=20000: (0, 1.5), (10000, 1.25), (20000, 1)
 			//   Next, create a closed form integral:
@@ -302,11 +307,11 @@ contract Comptroller {
 	}
 
 	// Returns how many tokens would be issued for _ethAmt sent.
-	function getTokensFromEth(uint _ethAmt)
+	function getTokensFromEth(uint _amt)
 		public
 		view
 		returns (uint _numTokens)
 	{
-		return getTokensMintedAt(totalRaised + _ethAmt) - getTokensMintedAt(totalRaised);
+		return getTokensMintedAt(totalRaised + _amt) - getTokensMintedAt(totalRaised);
 	}
 }

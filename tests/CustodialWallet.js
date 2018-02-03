@@ -17,6 +17,7 @@ describe('CustodialWallet', function(){
     const cust2 = accounts[7];
     const cust3 = accounts[8];
     const anon = accounts[9];
+    const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var cWallet;
     var dumbContract;
 
@@ -29,7 +30,8 @@ describe('CustodialWallet', function(){
     	cust1: cust1,
     	cust2: cust2,
     	cust3: cust3,
-    	anon: anon
+    	anon: anon,
+        NO_ADDRESS: NO_ADDRESS
     };
 
     before("Create CustodialWallet and DumbContract", async function(){
@@ -39,6 +41,19 @@ describe('CustodialWallet', function(){
         await createDefaultTxTester()
             .doNewTx(CustodialWallet, [cust1, supervisor1, owner1], {from: anon})
             .assertSuccess()
+            .assertLogCount(3)
+                .assertLog("CustodianChanged", {
+                    prevAddr: NO_ADDRESS,
+                    newAddr: cust1
+                })
+                .assertLog("SupervisorChanged", {
+                    prevAddr: NO_ADDRESS,
+                    newAddr: supervisor1
+                })
+                .assertLog("OwnerChanged", {
+                    prevAddr: NO_ADDRESS,
+                    newAddr: owner1
+                })
             .withTxResult((res, plugins)=>{
                 cWallet = res.contract;
                 plugins.addAddresses({cWallet: cWallet.address});
@@ -69,7 +84,7 @@ describe('CustodialWallet', function(){
             this.logInfo("Attempts a call to dumbContract.setVals(5,6)");
 	    	const DATA = dumbContract.contract.setVals.getData(5, 6);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: anon}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "setVals", {from: anon}])
 	    		.assertInvalidOpCode()
 	    		.start();
 	    });
@@ -77,8 +92,12 @@ describe('CustodialWallet', function(){
             this.logInfo("Attempts a call to dumbContract.setVals(5,6)");
 	    	const DATA = dumbContract.contract.setVals.getData(5, 6);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "setVals", {from: cust1}])
 	    		.assertSuccess()
+                .assertOnlyLog("CallSuccess", {
+                    to: dumbContract.address,
+                    msg: "setVals"
+                })
 	    		.assertCallReturns([dumbContract, "val1"], 5)
 	    		.assertCallReturns([dumbContract, "val2"], 6)
 	    		.start();
@@ -89,8 +108,12 @@ describe('CustodialWallet', function(){
 	    	const AMT = new BigNumber(1.23456e16);
 	    	return createDefaultTxTester()
 	    		.startLedger([cust1, cWallet, dumbContract])
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1, value: AMT}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "payToSetVal2", {from: cust1, value: AMT}])
 	    		.assertSuccess()
+                .assertOnlyLog("CallSuccess", {
+                    to: dumbContract.address,
+                    msg: "payToSetVal2"
+                })
 	    			.assertCallReturns([dumbContract, "val2"], 100)
 	    		.stopLedger()
 	    			.assertDeltaMinusTxFee(cust1, AMT.mul(-1))
@@ -104,8 +127,12 @@ describe('CustodialWallet', function(){
 	    	const AMT = await testUtil.getBalance(dumbContract);
 	    	return createDefaultTxTester()
 	    		.startLedger([cust1, cWallet, dumbContract])
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "sendBalance", {from: cust1}])
 	    		.assertSuccess()
+                .assertOnlyLog("CallSuccess", {
+                    to: dumbContract.address,
+                    msg: "sendBalance"
+                })
 	    		.stopLedger()
 	    			.assertLostTxFee(cust1)
 	    			.assertDelta(cWallet, AMT)
@@ -140,6 +167,15 @@ describe('CustodialWallet', function(){
     			.startLedger([supervisor1, anon, cWallet])
     			.doTx([cWallet, "collect", anon, supervisor2, {from: supervisor1}])
     			.assertSuccess()
+                    .assertLogCount(2)
+                    .assertLog("CollectSuccess", {
+                        recipient: anon,
+                        amt: AMT
+                    })
+                    .assertLog("SupervisorChanged", {
+                        prevAddr: supervisor1,
+                        newAddr: supervisor2
+                    })
     			.stopLedger()
     				.assertLostTxFee(supervisor1)
     				.assertDelta(anon, AMT)
@@ -167,6 +203,15 @@ describe('CustodialWallet', function(){
     		return createDefaultTxTester()
     			.doTx([cWallet, "setCustodian", cust2, supervisor3, {from: supervisor2}])
     			.assertSuccess()
+                .assertLogCount(2)
+                .assertLog("CustodianChanged", {
+                    prevAddr: cust1,
+                    newAddr: cust2
+                })
+                .assertLog("SupervisorChanged", {
+                    prevAddr: supervisor2,
+                    newAddr: supervisor3
+                })
     			.assertCallReturns([cWallet, "custodian"], cust2)
     			.assertCallReturns([cWallet, "supervisor"], supervisor3)
     			.start();
@@ -184,7 +229,7 @@ describe('CustodialWallet', function(){
             this.logInfo("Attempts to call dumbContract.setVals(10,20)");
 	    	const DATA = dumbContract.contract.setVals.getData(10, 20);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust1}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "setVals", {from: cust1}])
 	    		.assertInvalidOpCode()
 	    		.start();
 	    });
@@ -192,8 +237,9 @@ describe('CustodialWallet', function(){
             this.logInfo("Attempts to call dumbContract.setVals(10,20)");
 	    	const DATA = dumbContract.contract.setVals.getData(10, 20);
 	    	return createDefaultTxTester()
-	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, {from: cust2}])
+	    		.doTx([cWallet, "doCall", dumbContract.address, DATA, "setVals", {from: cust2}])
 	    		.assertSuccess()
+                .assertOnlyLog("CallSuccess")
 	    		.assertCallReturns([dumbContract, "val1"], 10)
 	    		.assertCallReturns([dumbContract, "val2"], 20)
 	    		.start();
@@ -217,6 +263,15 @@ describe('CustodialWallet', function(){
             return createDefaultTxTester()
                 .doTx([cWallet, "setSupervisor", supervisor1, owner2, {from: owner1}])
                 .assertSuccess()
+                    .assertLogCount(2)
+                    .assertLog("SupervisorChanged", {
+                        prevAddr: supervisor3,
+                        newAddr: supervisor1
+                    })
+                    .assertLog("OwnerChanged", {
+                        prevAddr: owner1,
+                        newAddr: owner2
+                    })
                 .assertCallReturns([cWallet, "supervisor"], supervisor1)
                 .assertCallReturns([cWallet, "owner"], owner2)
                 .start();

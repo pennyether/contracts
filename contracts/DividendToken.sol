@@ -18,7 +18,6 @@ contract DividendToken {
 	bool public isFrozen;	// if true, tokens cannot be transferred
 	mapping (address => uint) balances;
 	mapping (address => mapping (address => uint)) allowed;
-	event TransferFrom(address indexed spender, address indexed from, address indexed to, uint amount);
 	event TokensMinted(address indexed account, uint amount, uint newTotalSupply);
 	event TokensBurned(address indexed account, uint amount, uint newTotalSupply);
 
@@ -158,8 +157,9 @@ contract DividendToken {
 		updateCreditedPoints(msg.sender);
 		uint _amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
 		creditedPoints[msg.sender] = 0;
+		collectedDividends += _amount;
 		CollectedDividends(msg.sender, _amount);
-		msg.sender.transfer(_amount);
+		require(msg.sender.call.value(_amount)());
 	}
 
 

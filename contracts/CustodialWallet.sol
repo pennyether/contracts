@@ -22,32 +22,46 @@ contract CustodialWallet {
     modifier fromOwner() { require(msg.sender == owner); _; }
     modifier fromSupervisor() { require(msg.sender == supervisor); _; }
     modifier fromCustodian() { require(msg.sender == custodian); _; }
+
+    event CallSuccess(uint time, address indexed to, string msg);
+    event CallFailure(uint time, address indexed to, string msg);
+    event CollectSuccess(uint time, address indexed recipient, uint amt);
+    event CollectFailure(uint time, address indexed recipient, uint amt);
+    event CustodianChanged(uint time, address indexed prevAddr, address indexed newAddr);
+    event SupervisorChanged(uint time, address indexed prevAddr, address indexed newAddr);
+    event OwnerChanged(uint time, address indexed prevAddr, address indexed newAddr);
     
     function CustodialWallet(address _custodian, address _supervisor, address _owner)
         public
     {
-        custodian = _custodian;
-        supervisor = _supervisor;
-        owner = _owner;
+        _setCustodian(_custodian);
+        _setSupervisor(_supervisor);
+        _setOwner(_owner);
     }
     
-    function doCall(address _to, bytes _data)
+    function doCall(address _to, bytes _data, string _msg)
         public
         payable
         fromCustodian
         returns (bool _success)
     {
-        return _to.call.value(msg.value)(_data);
+        if (_to.call.value(msg.value)(_data))
+            CallSuccess(now, _to, _msg);
+        else
+            CallFailure(now, _to, _msg);
     }
     
-    function collect(address _to, address _newSupervisor)
+    function collect(address _recipient, address _newSupervisor)
         public
         fromSupervisor
         returns (bool _success)
     {
-        require(_newSupervisor != 0);
-        supervisor = _newSupervisor;
-        return _to.call.value(this.balance)();
+        _setSupervisor(_newSupervisor);
+        uint _amt = this.balance;
+        if (_recipient.call.value(this.balance)())
+            CollectSuccess(now, _recipient, _amt);
+        else
+            CollectFailure(now, _recipient, _amt);
     }
     
     // Whenever this is called, the supervisor must change as well.
@@ -56,9 +70,8 @@ contract CustodialWallet {
         public
         fromSupervisor
     {
-        require(_newSupervisor != 0);
-        custodian = _newCustodian;
-        supervisor = _newSupervisor;
+        _setCustodian(_newCustodian);
+        _setSupervisor(_newSupervisor);
     }
 
     // Callable by owner in case supervisor can not be used.
@@ -66,9 +79,34 @@ contract CustodialWallet {
         public
         fromOwner
     {
-        require(_newOwner != 0);
-        require(_newSupervisor != 0);
+        _setSupervisor(_newSupervisor);
+        _setOwner(_newOwner);
+    }
+
+    ////////////////////////////////////////////////////////
+    ///////////////// PRIVATE SETTERS //////////////////////
+    ////////////////////////////////////////////////////////
+    function _setCustodian(address _newCustodian)
+        private
+    {
+        require(_newCustodian > 0);
+        CustodianChanged(now, custodian, _newCustodian);
+        custodian = _newCustodian;
+    }
+
+    function _setSupervisor(address _newSupervisor)
+        private
+    {
+        require(_newSupervisor > 0);
+        SupervisorChanged(now, supervisor, _newSupervisor);
         supervisor = _newSupervisor;
+    }
+
+    function _setOwner(address _newOwner)
+        private
+    {
+        require(_newOwner > 0);
+        OwnerChanged(now, owner, _newOwner);
         owner = _newOwner;
     }
 

@@ -182,6 +182,8 @@ contract InstaDice is
 	function payoutRoll(uint32 _id)
 		public
 	{
+		// use latest roll if _id==0
+		if (_id==0) _id = curId;
 		// do not attempt to resolve if its unresolvable.
 		// this would add it to unresolved queue.
 		Roll storage r = rolls[_id];
