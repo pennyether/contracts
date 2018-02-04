@@ -8,12 +8,12 @@ contract InstaDice is
 	UsingAdmin
 {
 	struct Roll {
-		uint32 id;
 		address user;
-		uint64 bet;
-		uint8 number;
-	    uint32 block;
-		uint8 result;
+		uint64 bet;		// max of 18 ether
+		uint8 number;	// max of 255
+		uint80 payout;	// max of > 1m ether
+	    uint32 block;	// max of 4b (120 yrs from now)
+		uint8 result;	// max of 255
 		bool isPaid;
 	}
 	// keep track of all rolls
@@ -42,9 +42,9 @@ contract InstaDice is
 	uint8 constant public version = 1;
 	
 	// Events
-	event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number);
+	event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint payout);
 	event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
-	event RollResolved(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint8 result, uint payout);
+	event RollResolved(uint time, uint32 indexed id, address indexed user, uint8 result, uint payout);
 	event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
 	event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
 
@@ -93,8 +93,9 @@ contract InstaDice is
 		public
 		fromAdmin
 	{
-		require(bankroll >= _amount);
-		require(funding >= _amount);
+		if (_amount > this.balance) _amount = uint128(this.balance);
+		require(_amount <= bankroll);
+		require(_amount <= funding);
 		funding -= _amount;
 		bankroll -= _amount;
 		// send it to treasury
@@ -106,7 +107,6 @@ contract InstaDice is
 	// Sends the difference between bankroll and funding
 	function sendProfits()
 		public
-		fromAdmin
 		returns (uint _profits)
 	{
 		_profits = getProfits();
@@ -142,7 +142,7 @@ contract InstaDice is
 	{
 	    // make sure we have the bankroll to pay if they win
 	    uint64 _bet = uint64(msg.value);
-	    uint128 _payout = computePayout(_bet, _number);
+	    uint80 _payout = computePayout(_bet, _number);
 	    if (_payout > bankroll + msg.value) {
 	    	errorAndRefund("Bankroll too small.", _bet, _number);
 	    	return;
@@ -154,11 +154,11 @@ contract InstaDice is
 	    // increment curId, add a new roll
 	    curId++;
 	    rolls[curId] = Roll({
-	        id: curId,
+	    	user: msg.sender,
 	        bet: _bet,
-	        block: uint32(block.number),
-	        user: msg.sender,
 	        number: _number,
+	        payout: _payout,
+	        block: uint32(block.number),
 	        result: 0,
 	        isPaid: false
 	    });
@@ -167,7 +167,7 @@ contract InstaDice is
 	    // bankroll will be freed up when roll is resolved.
 	    totalWagered += _bet;
 	    bankroll = bankroll + uint128(msg.value) - _payout;
-	    RollWagered(now, curId, msg.sender, _bet, _number);
+	    RollWagered(now, curId, msg.sender, _bet, _number, _payout);
 	}
 	// refunds user the full value, and logs an error
 	function errorAndRefund(string _msg, uint _bet, uint8 _number)
@@ -247,12 +247,12 @@ contract InstaDice is
 	//       They are moved to an array to be cleaned up later.
 	function resolveRoll(uint32 _id)
 		private
-		returns (uint128)
+		returns (uint80 _payout)
 	{
 	    Roll storage r = rolls[_id];
 
 	    // return if invalid roll
-	    if (r.id == 0) return;
+	    if (r.block == 0) return;
 	    // can't resolve right now -- push to unresolvable
 	    if (r.block == block.number) {
 	    	unresolvedRolls.push(_id);
@@ -261,35 +261,35 @@ contract InstaDice is
 	    // already resolved. return the payout owed.
 	    if (r.result != 0){ 
 	    	return r.result <= r.number
-	    		? computePayout(r.bet, r.number)
+	    		? r.payout
 	    		: 0;
 	    }
 	    
 	    // get the result, isWinner, and payout
 	    uint8 _result = computeResult(r.block, _id);
 	    bool _isWinner = _result <= r.number;
-	    uint128 _payout = computePayout(r.bet, r.number);
+	    _payout = _isWinner ? r.payout : 0;
 
 	    // update roll result so we know it's been resolved
 	    r.result = _result;
-	    RollResolved(now, _id, r.user, r.bet, r.number, r.result, _isWinner ? _payout : 0);
+	    RollResolved(now, _id, r.user, _result, _payout);
 
 	    // If they won, try to pay them. (.send() to limit gas)
 	    // If they lost, increment our bankroll
 	    if (_isWinner) {
-	    	r.isPaid = true;
 	    	totalWon += _payout;
+	    	r.isPaid = true;
 	        if (r.user.send(_payout)) {
 	        	PayoutSuccess(now, _id, r.user, _payout);
 	        } else {
 	        	r.isPaid = false;
 	        	PayoutFailure(now, _id, r.user, _payout);
 	        }
-	        return _payout;
 	    } else {
-	        bankroll += _payout;
-	        return;
+	    	// increment by actual payout
+	        bankroll += r.payout;
 	    }
+	    return _payout;
 	}
 
 
@@ -326,7 +326,7 @@ contract InstaDice is
 		require(_id <= curId && _id > 0);
 		Roll storage r = rolls[_id];
 		return getRollResult(_id) <= r.number
-			? computePayout(r.bet, r.number)
+			? r.payout
 			: 0;
 	}
 
@@ -368,11 +368,11 @@ contract InstaDice is
 	function computePayout(uint64 _bet, uint8 _number)
 	    private
 	    constant
-	    returns (uint128 _wei)
+	    returns (uint80 _wei)
 	{
-		// This is safely castable to uint128 (max value of 1e38)
-		// Since maxbet is 1e18, and max multiple is 100
-	    return uint128(
+		// This is safely castable to uint80 (max value of 1e24, ~1m Ether)
+		// Since maxbet is 1e18, and max multiple is 100, max result is 1e21.
+	    return uint80(
 	    	// The forumula: feeBips/10000 * 100/_number * _bet
 	    	// For accuracy, we multiply by 1e32 and divide by it at the end.
 	    	// We move multiplication to front and division to back

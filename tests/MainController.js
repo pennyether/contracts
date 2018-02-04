@@ -200,16 +200,16 @@ describe("MainController", function(){
 		});
 	});
 
-	it(".getStartPennyAuctionReward() returns index 0", function(){
+	it(".canStartPennyAuction() returns index 0", function(){
 		return createDefaultTxTester()
-			.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 0])
+			.assertCallReturns([mainController, "canStartPennyAuction"], [true, 0, PA_START_REWARD])
 			.start();
 	});
 
 	describe(".startPennyAuction()", async function(){
 		before("Rewards are set up correctly", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 0])
+				.assertCallReturns([mainController, "canStartPennyAuction"], [true, 0, PA_START_REWARD])
 				.assertCallReturns([mainController, "paStartReward"], PA_START_REWARD)
 				.assertCallReturns([mainController, "paEndReward"], PA_END_REWARD)
 				.assertCallReturns([mainController, "paFeeCollectRewardDenom"], PA_FEE_COLLECT_REWARD_DENOM)
@@ -310,9 +310,9 @@ describe("MainController", function(){
 				.start();
 		});
 
-		it(".getStartPennyAuctionReward() returns index 3", function(){
+		it(".canStartPennyAuction() returns index 3", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 3])
+				.assertCallReturns([mainController, "canStartPennyAuction"], [true, 3, PA_START_REWARD])
 				.start();
 		})
 
@@ -320,9 +320,9 @@ describe("MainController", function(){
 			return startAuction(3);
 		})
 
-		it(".getStartPennyAuctionReward() returns nothing", function(){
+		it(".canStartPennyAuction() returns nothing", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [0, 0])
+				.assertCallReturns([mainController, "canStartPennyAuction"], [false, 0, 0])
 				.start();
 		});
 	});
@@ -340,9 +340,9 @@ describe("MainController", function(){
 				})
 				.start()
 		});
-		it(".getRefreshPennyAuctionsReward() returns 0", function(){
+		it(".canRefreshPennyAuctions() returns [false, 0]", function(){
 			return createDefaultTxTester()
-				.assertCallThrows([mainController, "getRefreshPennyAuctionsReward"], 0)
+				.assertCallThrows([mainController, "canRefreshPennyAuctions"], [false, 0])
 				.start();
 		});
 		it(".refreshPennyAuctions() returns error (No reward to be paid)", function(){
@@ -351,7 +351,9 @@ describe("MainController", function(){
 				.startLedger([treasury, nonAdmin])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertOnlyErrorLog("No reward to be paid.")
+					.assertLogCount(2)
+					.assertLog("PennyAuctionsRefreshed")
+					.assertLog("Error", {msg: "No reward to be paid."})
 				.stopLedger()
 					.assertNoDelta(treasury)
 					.assertLostTxFee(nonAdmin)
@@ -363,19 +365,19 @@ describe("MainController", function(){
             await auction3.sendTransaction({from: bidder2, value: BID_PRICE_3});
             await auction3.sendTransaction({from: bidder1, value: BID_PRICE_3});
 		});
-		it(".getRefreshPennyAuctionsReward() returns percentage of fees", async function(){
+		it(".canRefreshPennyAuctions() returns percentage of fees", async function(){
 			const totalFees = (await auction0.fees()).plus(await auction3.fees());
 			const expectedBonus = totalFees.div(PA_FEE_COLLECT_REWARD_DENOM);
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], expectedBonus)
+				.assertCallReturns([mainController, "canRefreshPennyAuctions"], [true, expectedBonus])
 				.start();
 		});
 		it(".refreshPennyAuctions() collects fees", async function(){
 			return refreshAuctions();
 		});
-		it(".getRefreshPennyAuctionsReward() returns 0", function(){
+		it(".canRefreshPennyAuctions() returns 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], 0)
+				.assertCallReturns([mainController, "canRefreshPennyAuctions"], [false, 0])
 				.start();
 		});
 		it(".refreshPennyAuctions() returns error", function(){
@@ -384,7 +386,11 @@ describe("MainController", function(){
 				.startLedger([treasury, nonAdmin])
 				.doTx(callParams)
 				.assertSuccess()
-					.assertOnlyErrorLog("No reward to be paid.")
+					.assertLog("PennyAuctionsRefreshed", {
+						numEnded: 0,
+						feesCollected: 0
+					})
+					.assertLog("Error", {msg: "No reward to be paid."})
 				.stopLedger()
 					.assertNoDelta(treasury)
 					.assertLostTxFee(nonAdmin)
@@ -414,34 +420,22 @@ describe("MainController", function(){
 				.assertCallReturns([auction3, "isEnded"], false)
 				.start()
 		});
-		it(".getRefreshPennyAuctionsReward() returns endBonus", function(){
+		it(".canRefreshPennyAuctions() returns endBonus", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], PA_END_REWARD)
+				.assertCallReturns([mainController, "canRefreshPennyAuctions"], [true, PA_END_REWARD])
 				.start();
 		});
 		it(".refreshPennyAuctions() works", function(){
 			return refreshAuctions();
 		});
-		it(".getStartPennyAuctionReward() returns index 0", function(){
+		it(".canStartPennyAuction() returns index 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, 0])
+				.assertCallReturns([mainController, "canStartPennyAuction"], [true, 0, PA_START_REWARD])
 				.start();
 		});
-		it(".getRefreshPennyAuctionsReward() returns 0", function(){
+		it(".canRefreshPennyAuctions() returns 0", function(){
 			return createDefaultTxTester()
-				.assertCallReturns([mainController, "getRefreshPennyAuctionsReward"], 0)
-				.start();
-		});
-		it(".refreshPennyAuctions() returns error", function(){
-			const callParams = [mainController, "refreshPennyAuctions", {from: nonAdmin}];
-			return createDefaultTxTester()
-				.startLedger([treasury, nonAdmin])
-				.doTx(callParams)
-				.assertSuccess()
-					.assertOnlyErrorLog("No reward to be paid.")
-				.stopLedger()
-					.assertNoDelta(treasury)
-					.assertLostTxFee(nonAdmin)
+				.assertCallReturns([mainController, "canRefreshPennyAuctions"], [false, 0])
 				.start();
 		});
 	});
@@ -452,7 +446,7 @@ describe("MainController", function(){
 		const initialPrize = await pac.getInitialPrize(index);
 		const callParams = [mainController, "startPennyAuction", index, {from: nonAdmin}];
 		return createDefaultTxTester()
-			.assertCallReturns([mainController, "getStartPennyAuctionReward"], [PA_START_REWARD, index])
+			.assertCallReturns([mainController, "canStartPennyAuction"], [true, index, PA_START_REWARD])
 			//.assertCallReturns(callParams, [true, null])
 			.startLedger([treasury, pac, nonAdmin, paf])
 			.startWatching([treasury, pac, paf])
@@ -508,14 +502,18 @@ describe("MainController", function(){
 	async function refreshAuctions(){
 		const expectedFees = await pac.getAvailableFees();
 		const expectedEnded = await pac.getNumEndedAuctions();
-		const expectedReward = await mainController.getRefreshPennyAuctionsReward();
+		const expectedReward = (await mainController.canRefreshPennyAuctions())[1];
 		const callParams = [mainController, "refreshPennyAuctions", {from: nonAdmin}]
 		const tester = createDefaultTxTester()
 			.startLedger([treasury, nonAdmin])
 			.startWatching([treasury, pac])
 			.doTx(callParams)
 			.assertSuccess()
-				.assertLogCount(1)
+				.assertLogCount(2)
+				.assertLog("PennyAuctionsRefreshed", {
+					numEnded: expectedEnded,
+					feesCollected: expectedFees
+				})
 				.assertLog("RewardPaid", {
 					time: null,
 					recipient: nonAdmin,
