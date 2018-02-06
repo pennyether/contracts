@@ -4,15 +4,26 @@ import "./roles/UsingPennyAuctionController.sol";
 import "./roles/UsingTreasury.sol";
 import "./roles/UsingAdmin.sol";
 
-/**
-The MainController interfaces with all GameControllers.
-	- It is the only contract capable of receiving funds from Treasury
-	- It is the starting point for the UI
-	- Rewards users for calling utility functions
+/*********************************************************
+******************* MAIN CONTROLLER **********************
+**********************************************************
 
-For now, there is only one type of game controller, but there may be more
-added in the future.  As such, it's best if the MainController contains zero state
-so that swapping in another MainController is trivial.
+UI: https://www.pennyether.com/status/system#maincontroller
+
+The MainController interfaces with all GameControllers.
+	- It is the only contract capable of receiving funds
+	  from Treasury
+	- It uses funds to fund GameControllers:
+		- PennyAuctionController requires funds to start
+		  new Penny Auctions
+		- Future controllers will similarly require funds.
+	- Rewards users for calling Tasks, which keep PennyEther
+	  running autonomously.
+
+MainController should contain close to zero state, so that
+when new GameControllers are added, it is easy to deploy
+a new version of MainController.
+
 */
 contract MainController is 
 	UsingPennyAuctionController,

@@ -1,11 +1,12 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 import "../interfaces/IRegistry.sol";
 
-/**
-A base class that when inherited from provides:
-	- a fromOwner modifier
-	- the ability to get addresses by name
+
+/******* USING Registry **************************
+Gives the inherting contract access to:
+	.addressOf(bytes32): returns current address mapped to the name.
+	[modifier] .fromOwner(): requires the sender is owner.
 */
 contract UsingRegistry {
 	IRegistry private registry;

@@ -1,36 +1,49 @@
 pragma solidity ^0.4.19;
 
+/*****************************************************
+******************** IMPORTS *************************
+*****************************************************/
+
 import "./roles/UsingMainController.sol";
 import "./roles/UsingAdmin.sol";
 
-/*
 
-Treasury safeguards the bankroll, collects revenue, and 
-pays profits to the token.
+
+
+/*****************************************************
+************* PENNYETHER TREASURY ********************
+******************************************************
+
+UI: https://www.pennyether.com/status/treasury
+
+The Treasury:
+	- Hold the TokenHolder's bankroll.
+	- Collects revenue
+	- Pays profits to the Token
+	- Funds MainController a limited amount per day.
 
 It transfers out ONLY in these conditions:
-	- to token
+	- To Token
 		- When: balance > (bankroll + 14*dailyFundLimit)
-		- Amount: the surplus profits.
-	- to comptroller
+		- Amount: the profits, anything over:
+			 bankroll + 14*dailyFundLimit
+	- To Comptroller
 		- When: When comptroller lowers the bankroll due
 		        to an investor burning tokens.
 		- Amount: The amount of bankroll removed
-	- to registry.getMainController()
+	- To registry.getMainController()
 		- When: Whenever MainController requests funds.
 		- Amount: limited by dailyFundLimit per day.
 		          Note: dailyFundLimit can not be changed
 		          by more than 5% per day.
+	- Other
+		ONLY IF the CrowdSale is unsuccessful, Comptroller
+		can send funds to whomever it chooses.
 
 To safeguard the bankroll, there is a buffer of 14 days
 of funding between the bankroll and paying out profits.
 That is, Treasury will only pay profits if the balance
 exceeds the bankroll by 14 days of funding.
-
-In a worst-case scenario where Treasury is being depleted
-by `dailyFundLimit` per day, this ensures the bankroll
-can pay back users for their burnt tokens for at least
-14 days.
 
 To incentivize a steady flow of dividends, anybody can 
 call .distributeToToken() and receive a small percentage
@@ -39,11 +52,18 @@ by the admin, and limited to at most 1%.
 
 Roles:
 	Owner:
-		- can set Comptroller and Token, once.
+		- can set Comptroller and Token addresses, once.
 	Comptroller:
-		- can alter the bankroll
+		- can add and remove bankroll. In practice, will
+		  only add Bankroll after ICO, and remove when
+		  a Token Holder burns their tokens.
+		- can drain the entire Treasury. THIS CAN ONLY
+		  BE CALLED IF THE CROWDSALE IS UNSUCCESSFUL.
 	Token:
 		- receives profits via .distributeToToken()
+	MainController:
+		- can request funding via .fundMainController(),
+		  up to dailyFundLimit per day.
 	Admin:
 		- can set dailyFundLimit, once
 		- can change dailyFundLimit +/- 5% per day
@@ -55,18 +75,18 @@ contract Treasury is
 	UsingMainController,
 	UsingAdmin
 {
-	// Settable once, address that dividends are sent to.
+	// Settable once (by owner), address that dividends are sent to.
 	address public token;
-	// Settable once, address that can adjust bankroll.
+	// Settable once (by owner), address that can adjust bankroll.
 	address public comptroller;
-	// minimum amount before allow distribution
+	// Amount of Ether bankrolled by Token Holders
 	uint public bankroll;
 	
-	// settable by admin, can increase +/-5%
-	uint public dailyFundLimit;
-	uint public dayDailyFundLimitChanged;
-	uint public dayLastFunded;
-	uint public amtFundedToday;
+	// Daily fund limit stuff
+	uint public dailyFundLimit;	 // settable once, can be changed +/-5%
+	uint public dayDailyFundLimitChanged;	// date last changed
+	uint public dayLastFunded;				// date last funded
+	uint public amtFundedToday;				// amt funded today
 
 	// when someone calls distribute, they get a small reward
 	// 100 = 1%, 1000 = .1%, etc
@@ -80,14 +100,11 @@ contract Treasury is
 	uint[] public distributionDates;
 	uint[] public distributionAmounts;
 
-	// prevents a function from being called again before it has completed
-	bool private locked;
-	modifier noRentry() { require(!locked); locked = true; _; locked = false; }
 	// for functions only callable by Comptroller
 	modifier fromComptroller() { require(msg.sender==comptroller); _; }
 
 	// EVENTS
-	// admin stuff
+	// admin/owner triggered events
 	event TokenSet(uint time, address sender, address token);
 	event ComptrollerSet(uint time, address sender, address comptroller);
 	event BankrollChanged(uint time, uint oldValue, uint newValue);
@@ -103,6 +120,9 @@ contract Treasury is
 	event FundFailure(uint time, string reason, address indexed recipient, string note, uint value);
 	event RefundReceived(uint time, string note, address indexed sender, uint value);
 
+	// UsingMainController and UsingAdmin use the Registry to provide:
+	// - getMainController(), getAdmin()
+	// - modifiers: fromMainController(), fromAdmin()
 	function Treasury(address _registry)
 		UsingMainController(_registry)
 		UsingAdmin(_registry)
@@ -195,7 +215,8 @@ contract Treasury is
 		BankrollChanged(now, _oldValue, bankroll);
 	}
 
-	// Comptroller can call this only if SoftCap is not met.
+	// Comptroller can call this ONLY IF SoftCap is not met.
+	// see: Comptroller.sol for more details.
 	function drain(address _recipient)
 		public
 		fromComptroller
@@ -251,12 +272,9 @@ contract Treasury is
 
 	// Gives the MainController funds so it can start games.
 	// Will fund at most dailyFundLimit per day.
-	// Since we don't trust "MainController", noRentry modifier
-	// ensures this is only called once at a time.
 	function fundMainController(uint _amount, string _note)
 		public
 		fromMainController
-		noRentry
 		returns (bool _success)
 	{
 		address _mainController = address(getMainController());
@@ -268,9 +286,9 @@ contract Treasury is
 		}
 		// increase/reset amtFundedToday and set dayLastFunded to today.
 		if (today() > dayLastFunded) amtFundedToday = 0;
-		totalFunded += _amount;
 		amtFundedToday += _amount;
 		dayLastFunded = today();
+		totalFunded += _amount;
 		// send the wei, log, return
 		require(_mainController.call.value(_amount)());
 		FundSuccess(now, _mainController, _note, _amount);

@@ -1,5 +1,25 @@
 pragma solidity ^0.4.19;
 
+/*********************************************************
+******************* DIVIDEND TOKEN ***********************
+**********************************************************
+
+UI: https://www.pennyether.com/status/tokens
+
+An ERC20 token that can accept Ether and distribute it
+perfectly to all Token Holders relative to each account's
+balance at the time the dividend is received.
+
+Notes:
+	- Accounts can view or receive dividends owed at any time
+	- Dividends received are immediately credited to all
+	  current Token Holders and can be redeemed at any time.
+	- Per above, upon transfers, dividends are not
+	  transferred. They are kept by the original sender, and
+	  not credited to the receiver.
+	- Uses "pull" instead of "push". That is token holders
+	  must pull their own dividends.
+*/
 contract DividendToken {
 	// Comptroller can call .mintTokens() and .burnTokens().
 	address public comptroller = msg.sender;
@@ -35,13 +55,10 @@ contract DividendToken {
 	//	 can be credited (`totalPointsPerToken` - `lastPointsPerToken`) * balance.
 	//
 	// - .updateCreditedPoints(_account) will increment creditedPoints[account]
-	//   by the points they are (see above). It then sets lastPointsPerToken[account]
+	//   by the points they are owned. It then sets lastPointsPerToken[account]
 	//   to the current totalPointsPerToken, so they will only be credited for
 	//	 future dividends. This is called before an account balance changes
 	//	 (transfer, mint, burn), or before .collectOwedDividends() is called.
-	//
-	// - .updateCreditedPoints() is called anytime tokens are minted, burned,
-	//   or transferred. This ensures dividends are not transferrable.
 	//
 	// - .collectOwedDividends() calls .updateCreditedPoints(), converts points
 	//   to wei and pays account, then resets creditedPoints[account] to 0.

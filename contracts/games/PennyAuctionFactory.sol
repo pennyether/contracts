@@ -5,12 +5,12 @@ import "../roles/UsingTreasury.sol";
 
 /**
 The PennyAuctionFactory creates instances of PennyAuctions.
-    - It sets _collector to the Registry's current value of Treasury
+    - It sets _collector to the Registry's value of Treasury
     - It stores the address in lastCreatedAuction, so that the caller
       has a way to retrieve the value in case they are using a 
       low-level call.
     - It emits an event, this can be used to verify an Auction
-      originated from PennyAuctionFactory.
+      originated from this PennyAuctionFactory.
 */
 contract PennyAuctionFactory is
     UsingPennyAuctionController,

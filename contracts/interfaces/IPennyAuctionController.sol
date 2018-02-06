@@ -1,4 +1,9 @@
 pragma solidity ^0.4.19;
+
+/******* IPennyAuctionController **************************
+when contracts inheriting UsingPennyAuctionController call
+.getPennyAuctionController(), they are returned an instace of this.
+*/
 interface IPennyAuctionController {
 	function refreshAuctions() public returns (uint _numAuctionsEnded, uint _feesSent);
 	function startDefinedAuction(uint _index) payable public returns (bool _success, address _auction);

@@ -1,13 +1,18 @@
 pragma solidity ^0.4.19;
 
-/*
-Registry allows the owner (whoever created the contract)
-to map names to addresses.  Anyone can find a mapped
-address by calling addressOf(), which throws if there
-is no mapping.
+/*****************************************************
+************* PENNYETHER REGISTRY ********************
+******************************************************
 
-To remove a mapping, the owner can register an address
-as 0.
+UI: http://localhost:8080/status/system#registry
+
+Registry allows a permanent owner to map names to addresses.
+Anyone can find a mapped address by calling .addressOf(),
+which throws if there is no mapping.
+
+Notes:
+    - Owner can never be changed.
+    - To remove a mapping, register an address to 0.
 */
 contract Registry {
     // the permanent owner of the registry

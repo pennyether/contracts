@@ -3,6 +3,41 @@ pragma solidity ^0.4.19;
 import "../roles/UsingTreasury.sol";
 import "../roles/UsingAdmin.sol";
 
+
+/*********************************************************
+*********************** INSTADICE ************************
+**********************************************************
+
+This contract allows for users to wager a limited
+amount on the outcome of a random roll between [1, 100].
+The user may choose a number, and if the roll is less than
+or equal ot that number, they will win a payout that is
+inversely proportional to the number they chose (lower numbers
+pay out more).
+
+When a roll is wagered, the bankroll is reduced by the
+potential payout amount, ensuring that all rolls, if won,
+can be paid for.
+
+When a roll is "resolved", it means the result was determined
+and the payout either paid to the user (if they won), or
+sent back into the bankroll (if they lost). Each time
+somebody rolls, they resolve the previous roll. UNLESS: 
+more than one roll occurs in the same block. In this case,
+the unresolvable roll is pushed to "unresolvedRolls" where
+it can be resolved later, via ".resolveUnresolved()"
+
+Note about randomness:
+  Although using blockhash for randomness is not advised,
+  it is perfectly acceptable if the results of the block
+  are not worth an expected value greater than that of:
+    (full block reward - uncle block reward) = ~.625 Eth
+
+  In other words, a miner is better of mining honestly and
+  getting a full block reward than trying to game this contract,
+  unless the maximum bet is increased to about .625, which
+  this contract forbids.
+*/
 contract InstaDice is
 	UsingTreasury,
 	UsingAdmin
@@ -27,7 +62,7 @@ contract InstaDice is
 
 	// a queue of unresolved rolls.
 	uint32 public unresolvedRollsPtr;
-	uint[] public unresolvedRolls;
+	uint32[] public unresolvedRolls;
 
 	// if bankroll is ever above this, we can send profits
 	uint128 public funding;
@@ -216,7 +251,7 @@ contract InstaDice is
 		uint32 _rollId;
 		for (uint _i = 0; _i < _num; _i++) {
 			// quit loop if we can't resolve this one.
-			_rollId = uint32(unresolvedRolls[unresolvedRollsPtr + _i]);
+			_rollId = unresolvedRolls[unresolvedRollsPtr + _i];
 			if (rolls[_rollId].block == block.number) break;
 			// resolve, delete, and increment count.
 			resolveRoll(_rollId);
@@ -237,6 +272,7 @@ contract InstaDice is
 	    bankroll += uint128(msg.value);
 	    FundingAdded(now, msg.sender, msg.value, funding, bankroll);
 	}
+
 
 	////////////////////////////////////////////////////
 	////// PRIVATE FUNCTIONS ///////////////////////////

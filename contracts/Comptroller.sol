@@ -3,17 +3,49 @@ pragma solidity ^0.4.19;
 import "./DividendToken.sol";
 import "./DividendTokenLocker.sol";
 
-/*
-A Comptroller:
-	- Accepts ETH to .buyTokens()
-	- Refunds ETH via .burnTokens()
-	- Ensures PennyEtherTokenLocker has 10% of tokens. 
 
-As the owner of Token contract, it can call:
-	- token.mintTokens(address, amount) [only during CrowdSale]
+/*********************************************************
+*********************** COMPTROLLER **********************
+**********************************************************
+
+UI: https://www.pennyether.com/status/system#comptroller
+
+The Comptroller:
+	- Creates DividendToken and DividendTokenLocker
+	- Manages the CrowdSale:
+		- Mints tokens in exchange for Eth
+		- Monitors dates and amount raised
+	- After unsuccessful CrowdSale (soft cap not met):
+		- Allows funders to receive a full refund
+		- Allows "wallet" to drain Treasury
+	- After successful CrowdSale (soft cap met):
+		- Sends bankroll to Treasury
+		- Mints tokens for TokenLocker and Wallet
+	  	- Allows users to burn tokens for a refund:
+	  		- Tells Treasury to send some bankroll to Token Holder
+			- Ensures PennyEtherTokenLocker stays at 10%
+
+Permissons:
+	- wallet (permanent):
+		- can set CrowdSale parameters
+		- upon failed CrowdSale, can drain Treasury
+	- Anybody:
+		- During CrowdSale:
+			- Can send Ether to get tokens
+			- Can start/end the sale, provided conditions are met.
+		- After successful CrowdSale:
+			- Can burn tokens for a .5 Ether refund
+		- After unsuccessful Crowdsale:
+			- Can receive a full refund
+
+The Comptroller is the owner of the Token Contract, and has
+special permissions on the Treasury contact.
+
+  * As the owner of Token contract, Comptroller can call:
+ 	- token.mintTokens(address, amount) [only during CrowdSale]
 	- token.burnTokens(address, amount) [only when SoftCap Met]
 
-As the owner of the owner of the Treasury, it can call:
+  * As the owner of the owner of the Treasury, it can call:
 	- treasury.addToBankroll(amount) 
 		- after the ICO, sends Ether to treasury as bankroll
 	- treasury.removeFromBankroll(amount, recipient)
@@ -26,6 +58,8 @@ Other notes:
 	- Once sale has started, it cannot be stopped
 
 */
+
+// This is the interface to the Treasury.
 interface _ICompTreasury {
 	// after ICO, will add funds to bankroll.
 	function addToBankroll() public payable;
@@ -80,8 +114,9 @@ contract Comptroller {
 		token.mintTokens(wallet, 1);
 	}
 
+
 	/*************************************************************/
-	/********** WALLET FUNCTIONS *********************************/
+	/********** WALLET (OWNER) FUNCTIONS *************************/
 	/*************************************************************/
 	// Sets parameters of the CrowdSale
 	// Cannot be called once the crowdsale has started.
@@ -99,6 +134,18 @@ contract Comptroller {
 		hardCap = _hardCap;
 		bonusCap = _bonusCap;
 		SaleInitalized(now);
+	}
+
+	// ONLY IF sale was unsuccessful, allow wallet to drain the treasury.
+	// This exists to give "wallet" control over Treasury funds if
+	// 	 CrowdSale fails. Otherwise, those funds would be unrecoverable.
+	// Note: this does not effect refunds, they are held in Comptroller.
+	function drainTreasury()
+		public
+	{
+		require(msg.sender == wallet);
+		require(wasSaleEnded && !wasSaleSuccessful);
+		treasury.drain(wallet);
 	}
 
 
@@ -212,6 +259,7 @@ contract Comptroller {
 		SaleSuccessful(now);
 	}
 
+
 	/*************************************************************/
 	/********** AFTER CROWDSALE **********************************/
 	/*************************************************************/
@@ -263,15 +311,6 @@ contract Comptroller {
 		UserRefunded(now, msg.sender, token.balanceOf(msg.sender), _amt);
 	}
 
-	// If sale was unsuccessful, allow wallet to drain the treasury.
-	// Note: this does not effect refunds, they are held in Comptroller.
-	function drainTreasury()
-		public
-	{
-		require(wasSaleEnded && !wasSaleSuccessful);
-		require(msg.sender == wallet);
-		treasury.drain(wallet);
-	}
 
 	/*************************************************************/
 	/********** PURE/VIEW ****************************************/
@@ -279,6 +318,7 @@ contract Comptroller {
 	// Returns the total amount of tokens minted at a given _ethAmt raised.
 	// This hard codes the following:
 	//	 - Start at 50% bonus, linear decay to 0% bonus at bonusCap.
+	// The math behind it is explaind in comments.
 	function getTokensMintedAt(uint _ethAmt)
 		public
 		view
@@ -294,19 +334,20 @@ contract Comptroller {
 			// Use a closed form integral to compute tokens.
 			//   First make a function for tokensPerEth:
 			//     tokensPerEth = 3/2 - x/(2c), where c is bonusCap
-			//	   let's try som values:
-			//     with c=20000: (0, 1.5), (10000, 1.25), (20000, 1)
+			//	   Let's try some values:
+			//       with c=20000: (0, 1.5), (10000, 1.25), (20000, 1)
 			//   Next, create a closed form integral:
 			//     integral(3/2 - x/(2c), x) = 3x/2 - x^2/(4c)
-			//     let's try some values:
-			//     with c=20000: (0, 0), (10000, 13750), (20000, 25000)
+			//     Let's try some values:
+			//       with c=20000: (0, 0), (10000, 13750), (20000, 25000)
 			// Note: _ethAmt <= 20000, so there's no risk of overflow.
 			//   eg: (20000e18)^2 is ~1e45.. well under 1e77
 			_numTokens = (3*_ethAmt/2) - (_ethAmt*_ethAmt)/(4*bonusCap);
 		}
 	}
 
-	// Returns how many tokens would be issued for _ethAmt sent.
+	// Returns how many tokens would be issued for _ethAmt sent,
+	// depending on current totalRaised.
 	function getTokensFromEth(uint _amt)
 		public
 		view

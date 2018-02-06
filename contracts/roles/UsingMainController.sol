@@ -1,8 +1,15 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 import "./UsingRegistry.sol";
 import "../interfaces/IMainController.sol";
 
+
+/******* USING MAINCONTROLLER ******************
+Gives the inherting contract access to:
+	.getMainController(): returns current IMainController instance
+	[modifier] .fromMainController: requires the sender is
+	  the MainController.
+*/
 contract UsingMainController is
 	UsingRegistry
 {

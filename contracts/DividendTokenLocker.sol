@@ -1,8 +1,14 @@
 pragma solidity ^0.4.19;
 
-/**
-  A contract that can only do one thing:
-  	- call ".collectDividends()" on some other contract
+/*********************************************************
+*************** DIVIDEND TOKEN LOCKER ********************
+**********************************************************
+
+This contract holds a balance of tokens. Those tokens
+cannot be transferred or burned.
+
+Locker does only one thing, via the owner calling .collect():
+  	- call ".collectDividends()" on the DividendToken
   	- send entire balance to an unchangeable "owner"
 */
 contract IDividendToken {

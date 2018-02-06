@@ -1,8 +1,14 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 import "./UsingRegistry.sol";
 import "../interfaces/ITreasury.sol";
 
+
+/******* USING TREASURY **************************
+Gives the inherting contract access to:
+	.getTreasury(): returns current ITreasury instance
+	[modifier] .fromTreasury(): requires the sender is current Treasury
+*/
 contract UsingTreasury is
 	UsingRegistry
 {

@@ -1,19 +1,30 @@
 pragma solidity ^0.4.0;
 
-/**
- * Allows a custodian to control a wallet, and allows
- * Supervisor and Owner accounts to be used once for any
- * action. (This helps enforce that they are "cold" wallets)
- *
- *  - Custodian can:
- *      - make calls on behalf of the wallet
- *  - Supervisor can:
- *      - change the custodian
- *      - collect the balance of the contract
- *      - in both cases, must provide a new supervisor.
- *  - Owner can:
- *      - change the supervisor
- *      - must provide a new owner
+/*********************************************************
+***************** Custodial Wallet ***********************
+**********************************************************
+
+UI: https://www.pennyether.com/status/system#wallet
+
+This wallet is intended to be the permanent "owner" for any
+important contracts. Instead of changing the owner, one
+would change the "custodian" of this wallet. This ensures
+ownership of contracts is always recoverable.
+
+Supervisor and Owner accounts are inteded to be cold
+wallets, and as such, can be changed any time they are used.
+For added security, Supervisor and Owner wallets can be
+multi-sig wallets.
+
+- Custodian can:
+   - make calls on behalf of the wallet
+- Supervisor can:
+   - change the custodian
+   - collect the balance of the contract
+   - in both cases, must provide a new supervisor.
+- Owner can:
+   - change the supervisor
+   - must provide a new owner
  */
 contract CustodialWallet {
     address public owner;
@@ -39,33 +50,45 @@ contract CustodialWallet {
         _setOwner(_owner);
     }
     
+    // Does a call on behalf of this wallet.
+    // Only custodian can do this.
     function doCall(address _to, bytes _data, string _msg)
         public
         payable
         fromCustodian
         returns (bool _success)
     {
-        if (_to.call.value(msg.value)(_data))
+        if (_to.call.value(msg.value)(_data)){
             CallSuccess(now, _to, _msg);
-        else
+            return true;
+        }else {
             CallFailure(now, _to, _msg);
+            return false;
+        }
     }
     
     // Sends entire balance to _recipient, and changes supervisor
+    // Only supervisor can call this, and must change supervisor address.
     function collect(address _recipient, address _newSupervisor)
         public
         fromSupervisor
         returns (bool _success)
     {
         _setSupervisor(_newSupervisor);
+        require(_recipient != 0);
+
         uint _amt = this.balance;
-        if (_recipient.call.value(this.balance)())
+        if (_recipient.call.value(this.balance)()){
             CollectSuccess(now, _recipient, _amt);
-        else
+            return true;
+        } else {
             CollectFailure(now, _recipient, _amt);
+            return false;
+        }
     }
     
-    // Changes the custodian, as well as the supervisor
+    // Changes the custodian
+    // Only supervisor can call this, and must change supervisor address.
     function setCustodian(address _newCustodian, address _newSupervisor)
         public
         fromSupervisor
@@ -75,6 +98,7 @@ contract CustodialWallet {
     }
 
     // Changes the supervisor, as well as the owner
+    // Only owner can call this, and must change owner address.
     function setSupervisor(address _newSupervisor, address _newOwner)
         public
         fromOwner
