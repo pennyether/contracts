@@ -107,8 +107,9 @@ function saveAllTests() {
 					<title>PennyEther Contract Test Results</title>
 				</head>
 				<body style='padding: 20px;'>
-					<ul>Test Results</ul>
+					<ul>
 					${links.join("\n")}
+					</ul>
 				</body>
 			</html>
 		`

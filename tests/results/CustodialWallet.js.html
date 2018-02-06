@@ -24,116 +24,37 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">CustodialWallet<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Create CustodialWallet and DumbContract </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create the Custodial Wallet that we will be testing.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: CustodialWallet.new(<u>cust1</u>, <u>supervisor1</u>, <u>owner1</u>, {from: <u>anon</u>}) was successful (block 2935, 403778 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a 'dumb contract' that has a few functions cWallet will call.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: DumbContract.new(, {from: <u>anon</u>}) was successful (block 2936, 153310 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:         0x3a60b591a65dbef1a8968cedc021c25e1a0b1998<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  cust1:        0x16cd66b081a5b88f214b860f82fb0e6fc1847489<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  cust2:        0xdf93b5a1303c1be0e813eea372f2da26a79f7673<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  cust3:        0xd3f522f17cd81e89a5782bae4369f53601002884<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  cWallet:      0xb21a2298eced458ade09f1e4101a06adfb9a1154<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dumbContract: 0x83823f6fb00c442858114d8a1b85161a5c0fe230<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner1:       0xc39835f05a1b5b9842f5ec18071f016cede36a1e<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner2:       0xd9c62d731859585ac42b48238ec038f5fe6d6a7c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  supervisor1:  0x1f2b8d5c1bda3cad17f7c0d64bc806a6650fd904<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  supervisor2:  0xd2d3ac1472ab9b192e59bafca86b4372ea1f26f6<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  supervisor3:  0xf0d5c1619b8efc164535c315b383d682f8be46c9<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (756 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> Has correct state </span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.custodian.call() should equal <u>cust1</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.supervisor.call() should equal <u>supervisor1</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.owner.call() should equal <u>owner1</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (65 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.doCall<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot do calls from non custodian </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts a call to dumbContract.setVals(5,6)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0x2c074f74000000000...", {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can do calls from custodian </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts a call to dumbContract.setVals(5,6)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0x2c074f74000000000...", {from: <u>cust1</u>}) was successful (block 2938, 66032 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dumbContract</u>.val1.call() should equal 5<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dumbContract</u>.val2.call() should equal 6<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (228 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can do payable calls </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts a call to dumbContract.payToSetVal2(100), sending some ETH<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0x4f2a4b46000000000...", {from: <u>cust1</u>, value: 0.0123456 ETH}) was successful (block 2939, 37449 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dumbContract</u>.val2.call() should equal 100<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>cust1</u> gained -0.0123456 ETH but lost txFee (187.245 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>cWallet</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dumbContract</u> changed by 0.0123456 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (974 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can do calls that get it payed </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts a call to dumbContract.sendBalance.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0xe7422d29", {from: <u>cust1</u>}) was successful (block 2940, 33500 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>cust1</u> lost txFee (-167.5 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>cWallet</u> changed by 0.0123456 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dumbContract</u> changed by -0.0123456 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (927 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.collect()<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot be called by anon </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.collect(<u>anon</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (6 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not work from custodian </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.collect(<u>anon</u>, {from: <u>cust1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (3 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not work if no new supervisor provided </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.collect(<u>anon</u>, {from: <u>supervisor1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.collect(<u>anon</u>, <u>supervisor2</u>, {from: <u>supervisor1</u>}) was successful (block 2941, 38092 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>supervisor1</u> lost txFee (-190.46 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> changed by 0.0123456 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>cWallet</u> changed by -0.0123456 ETH.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.supervisor.call() should equal <u>supervisor2</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (938 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.setCustodian()<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot be called by anon </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setCustodian(<u>cust2</u>, <u>supervisor2</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not change if new supervisor is unset </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setCustodian(<u>cust2</u>, 0, {from: <u>supervisor2</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setCustodian(<u>cust2</u>, <u>supervisor3</u>, {from: <u>supervisor2</u>}) was successful (block 2944, 35345 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.custodian.call() should equal <u>cust2</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.supervisor.call() should equal <u>supervisor3</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (275 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not work again with old supervisor </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setCustodian(<u>cust2</u>, <u>supervisor3</u>, {from: <u>supervisor2</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.doCall(), again<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot do calls from old custodian </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts to call dumbContract.setVals(10,20)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0x2c074f74000000000...", {from: <u>cust1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Can do calls from new custodian </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Attempts to call dumbContract.setVals(10,20)<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.doCall(<u>dumbContract</u>, "0x2c074f74000000000...", {from: <u>cust2</u>}) was successful (block 2947, 36032 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dumbContract</u>.val1.call() should equal 10<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dumbContract</u>.val2.call() should equal 20<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (244 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.setSupervisor()<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot be called by anon </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setSupervisor(<u>supervisor1</u>, <u>owner2</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not change if new supervisor is unset </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setSupervisor(<u>supervisor1</u>, 0, {from: <u>owner1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setSupervisor(<u>supervisor1</u>, <u>owner2</u>, {from: <u>owner1</u>}) was successful (block 2950, 35421 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.supervisor.call() should equal <u>supervisor1</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>cWallet</u>.owner.call() should equal <u>owner2</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (234 ms)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Will not work again with old owner </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>cWallet</u>.setSupervisor(<u>supervisor1</u>, <u>anon</u>, {from: <u>owner1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: CustodialWallet.new(<u>cust1</u>, <u>supervisor1</u>, <u>owner1</u>, {from: <u>anon</u>}) was successful (block 816, 633984 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 3 logs found<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#A00"><span style="color:#A00"><b>(1)</b><span style="color:#A00"> [failed TxTester.assertLog("Custodian...", [object ...]<span style="color:#000"> </span></span></span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> Has correct state <span style="color:#0AA">(skipped: before failed)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>.doCall</b> <b><span style="color:#0AA">(skipped: before failed)<span style="color:#000"><b></b> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>.collect()</b> <b><span style="color:#0AA">(skipped: before failed)<span style="color:#000"><b></b> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>.setCustodian()</b> <b><span style="color:#0AA">(skipped: before failed)<span style="color:#000"><b></b> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>.doCall(), again</b> <b><span style="color:#0AA">(skipped: before failed)<span style="color:#000"><b></b> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>.setSupervisor()</b> <b><span style="color:#0AA">(skipped: before failed)<span style="color:#000"><b></b> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">caught node.before failure<span style="color:#000"> <b><span style="color:#AAA">failed TxTester.assertLog("Custodian...", [object Object]):<span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">CustodianChanged.args.prevAddr' incorrect: expected '0x28428219b2a75191775d55abfa0c9b49b6d068e0' to equal '0x0000000000000000000000000000000000000000'<span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">AssertionError: CustodianChanged.args.prevAddr' incorrect: expected '0x28428219b2a75191775d55abfa0c9b49b6d068e0' to equal '0x0000000000000000000000000000000000000000'<span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">    at Function.assert.strEqual (/Users/sam/dev/ethereum/pennyether-contracts/js/tx-tester/util.js:12:13)<span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">    at /Users/sam/dev/ethereum/pennyether-contracts/js/tx-tester/util.js:48:14<span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">    at <anonymous><span style="color:#000">
+<span style="color:#AAA">│  │     <span style="color:#000"><b><span style="color:#AAA">    at process._tickCallback (internal/process/next_tick.js:169:7)<span style="color:#000"> </span></span></b></span></span></span></span></b></span></span></span></span></b></span></span></span></span></b></span></span></span></span></b></span></span></span></span></b></span></span></span></span></b></span></span></b></span></span> 
 
-  =========== <span style="color:#0A0"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
+  =========== <span style="color:#A00"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
 
-  <span style="color:#0A0"><b>19</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 4.94s
+  <span style="color:#0A0"><b>0</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>1</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>6</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 0.58s
 
-</span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+  <span style="color:#A00"><b>(1)</b><span style="color:#000">: Occurred in '<b>before: Create CustodialWallet and DumbContract</b>'
+  ----------------------------------
+  failed TxTester.assertLog("Custodian...", [object Object]):
+  CustodianChanged.args.prevAddr' incorrect: expected '0x28428219b2a75191775d55abfa0c9b49b6d068e0' to equal '0x0000000000000000000000000000000000000000'
+  AssertionError: CustodianChanged.args.prevAddr' incorrect: expected '0x28428219b2a75191775d55abfa0c9b49b6d068e0' to equal '0x0000000000000000000000000000000000000000'
+      at Function.assert.strEqual (/Users/sam/dev/ethereum/pennyether-contracts/js/tx-tester/util.js:12:13)
+      at /Users/sam/dev/ethereum/pennyether-contracts/js/tx-tester/util.js:48:14
+      at <anonymous>
+      at process._tickCallback (internal/process/next_tick.js:169:7)
+
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>
 </html>
