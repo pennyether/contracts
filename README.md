@@ -6,7 +6,7 @@ This repo also contains some pretty useful open sourced testing tools for testin
 
 ## Test Results
 
-We've run exhaustive tests and saved them to `/tests/results/index.html`. If you'd like to, follow the instructions below to run the tests.
+We've run exhaustive tests and saved them to `/tests/results/index.html`. If you'd like to run the tests yourself, follow the instructions below.
 
 ## To Run Tests
 
@@ -31,7 +31,7 @@ If you receive an error that Web3 couldn't connect, make sure you have `testrpc`
 Here's a rundown of our contracts, and how they interact with one another. For more details about what all of this means, please see our whitepaper.
 
 
-- **Comptroller.sol**: Controls tokens and talks to `Treasury`. Everything below is tested, and an audit is available here.
+- **Comptroller.sol**: Runs CrowdSale, controls tokens, and talks to `Treasury`.
 
 	- **Creates `DividendToken`**:
 		- A standard `ERC20` token
@@ -79,7 +79,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 	- `/contracts/roles` contains all roles.
 	- `/contracts/interfaces` contains the interfaces returned by the roles.
 - **MainController.sol**: This contract keeps PennyEther running autonomously by overseeing all `GameControllers`.
-	- It rewards users for calling functions that help the system:
+	- It rewards users for calling functions that help the system, called `Tasks`:
 		- Starting a Penny Auction: Creates a new `Penny Auction` contract that will send all fees earned to `Treasury`
 		- Refreshing Penny Auctions:
 			- Causes all running Penny Auctions to send their accrued fees to `Treasury`
