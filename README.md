@@ -30,10 +30,8 @@ If you receive an error that Web3 couldn't connect, make sure you have `testrpc`
 
 Here's a rundown of our contracts, and how they interact with one another. For more details about what all of this means, please see our whitepaper.
 
-
-- **Comptroller.sol**: Runs CrowdSale, controls tokens, and talks to `Treasury`.
-
-	- **Creates `DividendToken`**:
+- <a id="comptroller"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Comptroller.sol">**Comptroller.sol**</a>: Runs CrowdSale, controls tokens, and talks to `Treasury`.
+	- <a id="dividendtoken"></a>**Creates <a href="https://github.com/pennyether/contracts/tree/master/contracts/DividendToken.sol">`DividendToken`</a>**:
 		- A standard `ERC20` token
 		- Any `ETH` sent to it will be distributed across all token holders relative to `balanceOfTokenHolder / totalSupply`.
 		- `.getOwedDividends(<address>)` returns the amount of Ether owed to `<address>`
@@ -41,7 +39,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 		- When tokens are transferred, minted, or burned, `owedDividends` is updated for both the sender and receiver. Therefore, *dividends of tokens are not transferred, only the tokens themselves.*
 		- Tokens can be frozen (this will only happen during the CrowdSale).
 
-	- **Creates `TokenLocker`**:
+	- <a id="tokenlocker"></a>**Creates <a href="https://github.com/pennyether/contracts/tree/master/contracts/DividendTokenLocker.sol">`TokenLocker`</a>**:
 		- This contract will hold `10%` of the `totalSupply` of tokens after the CrowdSale ends.
 		- PennyEther can claim the `owedDividends`, but nothing else. We cannot burn or transfer these tokens.
 
@@ -64,34 +62,28 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 		- Tokens can be burned. Burning `1 Token` will remove `.5 ETH` from `Treasury`'s bankroll, and refund the user that `.5 ETH`. It will also burn `.125 Tokens` from `TokenLocker`, to ensure `TokenLocker` always has 10% of `totalSupply`.
 			- Note: In the unlikely case that `Treasury` does not have sufficient funds to pay for burning all of a user's tokens, it will burn as many tokens as possible. The rest can be burned if/when `Treasury` gains a balance.
 
-- **Treasury.sol**: Holds the bankroll, pays dividends on demand.
+- <a id="treasury"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Treasury.sol">**Treasury.sol**</a>: Holds the bankroll, pays dividends on demand.
 	- Is able to fund `MainController` a limited amount per day.
 	- Allows `Comptroller` to tell `Treasury` to remove bankroll and send it to a user.
 	- Allows anyone to trigger a dividend event by calling `.distributeToToken()`, provided `(Treasury balance) > (daily limit * 14)`.
-- **Registry.sol**: This is how we upgrade all proceeding contracts.
+- <a id="registry"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Registry.sol">**Registry.sol**</a>: This is how we upgrade all versioned contracts.
 	- Contains a `string => address` mapping of names to addresses.
 	- When a contract is upgraded, the mapping is changed. All depedendant contracts (`Treasury`, and anything below) will use the new addresses on subsequent calls.
-	- Since contracts interact with registered contracts quite frequently, we created inheritible classes for each, called **`roles`**.
-		- An example of this is `Treasury` which inherits `roles/UsingMainController`.
-		- Whenever `Treasury` needs to get the address of the current `MainController`, it uses the inherited `getMainController()` method. 
-		- Whenever it needs to ensure a call is from `MainController`, it uses the inherited `fromMainController` function modifier.
-		- `getMainController` will return an `IMainController` object, which is an interface that defines what methods are availabled.
-	- `/contracts/roles` contains all roles.
-	- `/contracts/interfaces` contains the interfaces returned by the roles.
-- **MainController.sol**: This contract keeps PennyEther running autonomously by overseeing all `GameControllers`.
+	- Only the owner wallet can change mappings.
+- <a id="maincontroller"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/MainController.sol">**MainController.sol**</a>: This contract keeps PennyEther running autonomously by overseeing all `GameControllers`.
 	- It rewards users for calling functions that help the system, called `Tasks`:
 		- Starting a Penny Auction: Creates a new `Penny Auction` contract that will send all fees earned to `Treasury`
 		- Refreshing Penny Auctions:
 			- Causes all running Penny Auctions to send their accrued fees to `Treasury`
 			- For any auctions that are complete, pays the winner and moves the auction to *endedAuctions* so that another can be started in its place.
 	- When new types of games are added, this will be upgraded to provide additional rewards to ensure PennyEther remains autonomous.
-- **PennyAuctionController.sol**: The `Game Controller` for Penny Auctions.  It manages all running and ended PennyAuctions. To prevent copycats, this contract will be made open source after the ICO. Tests and the ABI are available in this repo.
-- **InstaDice.sol**: The `Game Controller` for InstaDice.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuctionController.sol">**PennyAuctionController.sol**</a>: The `Game Controller` for Penny Auctions.  It manages all running and ended PennyAuctions. To prevent copycats, this contract will be made open source after the ICO. Tests and the ABI are available in this repo.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/InstaDice.sol">**InstaDice.sol**</a>: The `Game Controller` for InstaDice.
 	- Allows anyone to add bankroll (realistically, only PennyEther will do this)
 	- Allows users to send ETH in return for a chance at winning more.
-- **PennyAuctionFactory.sol**: A contact that can create `PennyAuction.sol` contract instances. This exists on its own for etherscan verification purposes, as well as to simplify to codebase.
-- **PennyAuction.sol**: A new instance of this contract is created for each Penny Auction.
-- **CustodialWallet.sol**: This contract essentially owns PennyEther, and uses a 2-tier cold wallet ownership structure.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuctionFactory.sol">**PennyAuctionFactory.sol**</a>: A contact that can create `PennyAuction.sol` contract instances. This exists on its own for etherscan verification purposes, as well as to simplify to codebase.
+- <a id="pennyauction"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuction.sol">**PennyAuction.sol**</a>: A new instance of this contract is created for each Penny Auction.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/CustodialWallet.sol">**CustodialWallet.sol**</a>: This contract essentially owns PennyEther, and uses a 2-tier cold wallet ownership structure.
 	- The `custodian` can make calls on behalf of this wallet.
 	- The `supervisor` (cold wallet) can:
 		- Obtain the balance of the contract
@@ -99,7 +91,18 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 	- The `owner` (very cold wallet) can:
 		- Change the `supervisor` (and must provide a new `owner` wallet)
 
-## Testing
+### Roles
+
+Since contracts interact with registered contracts quite frequently, we created inheritible classes for each, called **`roles`**.
+
+- An example of this is <a href="https://github.com/pennyether/contracts/tree/master/contracts/Treasury.sol">`Treasury`</a> which inherits <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles/UsingMainController.sol">`roles/UsingMainController`</a>.
+- Whenever `Treasury` needs to get the address of the current `MainController`, it uses the inherited `getMainController()` method. 
+- Whenever it needs to ensure a call is from `MainController`, it uses the inherited `fromMainController()` function modifier.
+- `getMainController()` will return an `IMainController` object, which is an interface that defines what methods are available.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles">`/contracts/roles`</a> contains all roles.
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles">`/contracts/interfaces`</a> contains the interfaces returned by the roles.
+
+## <a id="testing"></a>Testing
 
 ### Tests
 
@@ -153,7 +156,7 @@ createDefaultTxTester()
 // Prints out really nice looking log. You'll have to try it for yourself to see.
 ```
 
-## Security
+## <a id="security"></a>Security
 
 One of our goals is to ensure Penny Ether can run itself, with very limited input from the owner or admin. Additionally, we've set up the system so that _even if_ an adversary were to gain ownership control (or we turned evil), the damage possible is _severely_ limited.
 
