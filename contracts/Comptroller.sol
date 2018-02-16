@@ -16,14 +16,13 @@ The Comptroller:
 		- Mints tokens in exchange for Eth
 		- Monitors dates and amount raised
 	- After unsuccessful CrowdSale (soft cap not met):
-		- Allows funders to receive a full refund
-		- Allows "wallet" to drain Treasury
+		- Allows funders to receive a full refund via .sendRefund()
+		- Allows "wallet" to drain Treasury via .drainTreasury()
 	- After successful CrowdSale (soft cap met):
-		- Sends bankroll to Treasury
-		- Mints tokens for TokenLocker and Wallet
-	  	- Allows users to burn tokens for a refund:
-	  		- Tells Treasury to send some bankroll to Token Holder
-			- Ensures PennyEtherTokenLocker stays at 10%
+		- Mints 20% tokens to TokenLocker, for vesting
+		- Sends bankroll to Treasury (.5 Ether per Token Minted)
+	  	- Allows users to burn tokens for a refund via .burnTokens()
+	  		- This removes bankroll from Treasury
 
 Permissons:
 	- wallet (permanent):
@@ -31,44 +30,45 @@ Permissons:
 		- upon failed CrowdSale, can drain Treasury
 	- Anybody:
 		- During CrowdSale:
-			- Can send Ether to get tokens
-			- Can start/end the sale, provided conditions are met.
+			- Can send Ether to get tokens, provided conditions are met.
+			- Can end the sale, provided conditions are met.
 		- After successful CrowdSale:
 			- Can burn tokens for a .5 Ether refund
 		- After unsuccessful Crowdsale:
-			- Can receive a full refund
+			- Can receive a full refund via .sendRefund
 
 The Comptroller is the owner of the Token Contract, and has
 special permissions on the Treasury contact.
 
-  * As the owner of Token contract, Comptroller can call:
+  - As the owner of Token contract, Comptroller can call:
  	- token.mintTokens(address, amount) [only during CrowdSale]
 	- token.burnTokens(address, amount) [only when SoftCap Met]
+	- These calls only occur during the CrowdSale, and never again.
 
-  * As the owner of the owner of the Treasury, it can call:
-	- treasury.addToBankroll(amount) 
-		- after the ICO, sends Ether to treasury as bankroll
-	- treasury.removeFromBankroll(amount, recipient)
-		- after CrowdSale, when a user burns tokens
-	- treasury.drain(address)
-		- after CrowdSale, if SoftCap not met
+  - As the owner of the owner of the Treasury, it can call:
+  	- After CrowdSale, if softCap met:
+		- treasury.addToBankroll(): sends .5 Ether per Token
+		- treasury.removeFromBankroll(): removes .5 Ether per Token burned
+	- After CrowdSale, if softCap not met:
+		- treasury.drain(address): removes all funds from Treasury
 
 Other notes:
 	- All addresses are final, and cannot be changed
 	- Once sale has started, it cannot be stopped
+	- No owner intervention allowed, no emergency features
 
 */
 
 // This is the interface to the Treasury.
 interface _ICompTreasury {
-	// after ICO, will add funds to bankroll.
+	// after CrowdSale, will add funds to bankroll.
 	function addToBankroll() public payable;
-	// after ICO, if softcap met, will allow users to burn tokens.
+	// after CrowdSale, if softcap met, will allow users to burn tokens.
 	function removeFromBankroll(uint _amount, address _recipient) public;
-	// after ICO, if softcap not met, will allow wallet to get treasury funds.
+	// after CrowdSale, if softcap not met, will allow wallet to get treasury funds.
 	function drain(address _recipient) public;
-	// when ending ICO, will ensure Treasury has a full balance.
-	function getMinBalanceToDistribute() public constant returns (uint _amount);
+	// after CrowdSale, used to ensure Treasury has a full balance.
+	function getDividendThreshold() public constant returns (uint _amount);
 }
 contract Comptroller {
 	// These values are set in the constructor and can never be changed.
@@ -86,9 +86,9 @@ contract Comptroller {
 
 	// CrowdSale Variables
 	uint public totalRaised;
-	bool public wasSaleStarted;				// True when sale is started
-	bool public wasSaleEnded;				// True when sale is ended
-	bool public wasSaleSuccessful;			// True if softCap met
+	bool public wasSaleStarted;				// True if sale was started
+	bool public wasSaleEnded;				// True if sale was ended
+	bool public wasSaleSuccessful;			// True if softCap was met
 	// Stores amtFunded for useres contributing before softCap is met
 	mapping (address => uint) public amtFunded;	
 
@@ -111,7 +111,9 @@ contract Comptroller {
 		token = new DividendToken();
 		locker = new DividendTokenLocker(token, _wallet);
 		// When initialized, the wallet should own the only token.
+		// Ensure it is not transferrable, since we'll burn it after CrowdSale.
 		token.mintTokens(wallet, 1);
+		token.setFrozen(true);
 	}
 
 
@@ -124,7 +126,6 @@ contract Comptroller {
 		public
 	{
 		require(msg.sender == wallet);
-		require(treasury != address(0));
 		require(!wasSaleStarted);
 		require(_softCap <= _hardCap);
 		require(_bonusCap <= _hardCap);
@@ -144,7 +145,7 @@ contract Comptroller {
 		public
 	{
 		require(msg.sender == wallet);
-		require(wasSaleEnded && !wasSaleSuccessful);
+		require(wasSaleStarted && !wasSaleSuccessful);
 		treasury.drain(wallet);
 	}
 
@@ -162,17 +163,21 @@ contract Comptroller {
 		public
 		payable
 	{
-		// Ensure sale is ongoing, and that amount is even GWei
+		// If sale has not yet started, refund
 		if (dateSaleStarted==0 || now < dateSaleStarted)
 			return errorAndRefund("CrowdSale has not yet started.");
+
+		// Set sale as started (even though it may already be completed)
+		// This handles the case of zero CrowdSale participants
+		if (!wasSaleStarted) startSale();
+
+		// If sale has ended, or msg.value is not even amt of gWei, refund
 		if (now > dateSaleEnded)
 			return errorAndRefund("CrowdSale has ended.");
 		if (totalRaised >= hardCap)
 			return errorAndRefund("HardCap has been reached.");
 		if (msg.value % 1000000000 != 0)
 			return errorAndRefund("Must send an even amount of GWei.");
-
-		if (!wasSaleStarted) startSale();
 
 		// Only allow up to (hardCap - totalRaised) to be raised.
 		uint _amt = (totalRaised + msg.value) > hardCap
@@ -186,16 +191,15 @@ contract Comptroller {
 		BuyTokensSuccess(now, msg.sender, _amt, _numTokens);
 
 		// In case softCap not met, we may need to refund the user.
+		// Increment the amount they funded
 		if (totalRaised < softCap) {
 			amtFunded[msg.sender] += _amt;
 		}
 
-		// If totalRaised is hardCap, end the sale and refund user excess
-		if (totalRaised >= hardCap) {
-			// A re-entry here would do nothing, hardCap has been reached
-			if (msg.value > _amt)
-				require(msg.sender.call.value(msg.value - _amt)());
-		}
+		// Refund the user any excess amount.
+		// A re-entry here would do nothing, hardCap has been reached
+		if (msg.value > _amt)
+			require(msg.sender.call.value(msg.value - _amt)());
 	}
 		// Refunds user, logs error reason
 		function errorAndRefund(string _reason)
@@ -208,7 +212,6 @@ contract Comptroller {
 			private
 		{
 			wasSaleStarted = true;
-			token.setFrozen(true);
 			SaleStarted(now);
 		}
 
@@ -221,39 +224,42 @@ contract Comptroller {
 		// Require hardCap met, or date is after sale ended.
 		require(totalRaised >= hardCap || now > dateSaleEnded);
 		
-		// Mark sale as over. If softcap not met, nothing else to do.
+		// Mark sale as over.
 		wasSaleEnded = true;
 		wasSaleSuccessful = totalRaised >= softCap;
+
+		// If softCap not met:
+		//   Mint a ton of tokens to wallet, so they own ~100%
+		//   This ensures wallet receives nearly 100% of dividends.
 		if (!wasSaleSuccessful) {
-			// mint a ton of tokens to wallet, so they own ~100%
 			token.mintTokens(wallet, 1e30);
 			SaleFailed(now);
 			return;
 		}
 
-		// Mint 1/8 to wallet, and 1/8 to locker
-		// Disribution will be: funders: 80%, locker: 10%, wallet: 10%
-		// Wallet already has 1 token, so subtract it.
-		uint _totalMinted = token.totalSupply();
-		token.mintTokens(wallet, _totalMinted/8 - 1);
-		token.mintTokens(locker, _totalMinted/8);
-
-		// Allow tokens to be transferrable
+		// Burn owner's 1 token, and allow tokens to be transferred.
+		token.burnTokens(wallet, 1);
 		token.setFrozen(false);
 
-		// Move half of burnable-tokens' ETH value to bankroll
-		_totalMinted += token.balanceOf(wallet);
-		treasury.addToBankroll.value(_totalMinted / 2)();
+		// Mint 1/4 to locker, and start vesting.
+		uint _lockerAmt = token.totalSupply() / 4;
+		token.mintTokens(locker, _lockerAmt);
+		locker.startVesting(600);
 
-		// Ensure treasury is fully topped off
-		uint _threshold = treasury.getMinBalanceToDistribute();
+		// Move half of tokens' ETH value to bankroll
+		treasury.addToBankroll.value(token.totalSupply() / 2)();
+
+		// Ensure Treasury balance is at getDividendThreshold()
+		// If dailyFundLimit is some huge value, its possible we cant afford
+		// In that case, send the rest of balance to treasury.
+		uint _threshold = treasury.getDividendThreshold();
 		if (treasury.balance < _threshold) {
 			uint _required = _threshold - treasury.balance;
 			if (_required > this.balance) _required = this.balance;
 			require(treasury.call.value(_required)());
 		}
 		
-		// send remaining balance to wallet
+		// Send remaining balance to wallet
 		if (this.balance > 0)
 			require(wallet.call.value(this.balance)());
 		SaleSuccessful(now);
@@ -275,26 +281,25 @@ contract Comptroller {
 		require(wasSaleEnded && wasSaleSuccessful);
 
 		// If number is too large, use their whole balance.
+		// Throw if they have no tokens to burn.
 		if (_numTokens > token.balanceOf(msg.sender)) {
 			_numTokens = token.balanceOf(msg.sender);
 		}
+		require(_numTokens > 0);
+
 		// Should get back 50% as wei.
-		uint _wei = _numTokens / 2;
 		// If Treasury can't afford, lower amount of tokens.
-		if (treasury.balance < _wei){
-			_wei = treasury.balance;
-			_numTokens = _wei * 2;
+		uint _burnRefund = _numTokens / 2;
+		if (treasury.balance < _burnRefund){
+			_burnRefund = treasury.balance;
+			_numTokens = _burnRefund * 2;
 		}
-		// Require a minimum of 1Gwei to limit rounding errors.
-		require(_wei > 1000000000);
-		// Burn user's tokens
+
+		// Burn user's tokens, and send bankroll to user
+		// .removeFromBankroll will fail if unable to send.
 		token.burnTokens(msg.sender, _numTokens);
-		// For every 9 user tokens burned, burn 1 locker token.
-		// This keeps locker at 10% ownership
-		token.burnTokens(locker, _numTokens / 9);
-		// removeFromBankroll. This sends it to the user (or fails).
-		treasury.removeFromBankroll(_wei, msg.sender);
-		UserRefunded(now, msg.sender, _numTokens, _wei);
+		treasury.removeFromBankroll(_burnRefund, msg.sender);
+		UserRefunded(now, msg.sender, _numTokens, _burnRefund);
 	}
 
 	// If sale was unsuccessful, allow users to get full refund.
@@ -304,7 +309,7 @@ contract Comptroller {
 		// Ensure sale ended unsuccessfully.
 		require(wasSaleEnded && !wasSaleSuccessful);
 		require(amtFunded[msg.sender] > 0);
-		// Send the user the amount they funded
+		// Send the user the amount they funded, or fail
 		uint _amt = amtFunded[msg.sender];
 		amtFunded[msg.sender] = 0;
 		require(msg.sender.call.value(_amt)());
