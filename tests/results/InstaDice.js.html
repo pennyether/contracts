@@ -24,39 +24,39 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">InstaDice<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up registry, treasury, and create comptroller. </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a Registry, with ADMIN and TREASURY set.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 1187, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 1188, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>dummyTreasury</u>, {from: <u>owner</u>}) was successful (block 1189, 45675 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 1580, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 1581, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>dummyTreasury</u>, {from: <u>owner</u>}) was successful (block 1582, 45675 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create the dice contract that we will be testing.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: InstaDice.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1190, 1981839 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: InstaDice.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1583, 2006808 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:         0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:          0x0d31b8a0ac02e2d75d5d8a38ff9f720faad4776c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dice:          0x3cd8137345bdb6b5f2c6ea567eaff9a64195f963<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dice:          0x4b7897c7d67a5cda35157775a1a4b8ea2d059815<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  dummyTreasury: 0x6d6e7efa4f8ce4932ba3a95641a88e05b2bf2c57<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner:         0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  player1:       0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  player2:       0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  player3:       0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:      0x97540cf87b65c5c0025d2c08935335b191468985<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1087 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:      0xfd94dc83de2549672e288f4dce1c858ceac87d15<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1009 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Bankroll<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.addFunding()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Anyone can add funding </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 0.5 ETH}) was successful (block 1191, 49565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 0.5 ETH}) was successful (block 1584, 49565 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 0.5 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -0.5 ETH but lost txFee (247.825 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundingAdded(time, sender, amount, funding, bankroll)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.5 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 0.5 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (500000000000000000 >= 500000000000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (875 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1000 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.removeFunding()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Anon cannot remove bankroll </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.1 ETH, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (39 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works for admin </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.1 ETH, {from: <u>admin</u>}) was successful (block 1193, 50352 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.1 ETH, {from: <u>admin</u>}) was successful (block 1586, 50352 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.1 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyTreasury</u> changed by 0.1 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>admin</u> lost txFee (-251.76 GWei)<span style="color:#000"> </span></span></span></span> 
@@ -64,11 +64,11 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.4 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 0.4 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (400000000000000000 >= 400000000000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1273 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1197 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Removes all funding when passed large number<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> remove all funding </span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">10000000000000000000 exceeds balance, should remove only 400000000000000000.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.4 ETH, {from: <u>admin</u>}) was successful (block 1194, 35352 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.4 ETH, {from: <u>admin</u>}) was successful (block 1587, 35352 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.4 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyTreasury</u> changed by 0.4 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>admin</u> lost txFee (-176.76 GWei)<span style="color:#000"> </span></span></span></span> 
@@ -76,140 +76,140 @@
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (0 >= 0)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1124 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1090 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Add some bankroll back </span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 0.5 ETH}) was successful (block 1195, 49565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 0.5 ETH}) was successful (block 1588, 49565 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 0.5 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -0.5 ETH but lost txFee (247.825 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundingAdded(time, sender, amount, funding, bankroll)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.5 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 0.5 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (500000000000000000 >= 500000000000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (814 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (798 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.changeSettings()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> is not callable from anon </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.changeSettings(1000000000, 0.6 ETH, 5, 99, 125, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (39 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (42 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from admin </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Admin can change minBet, maxBet, minNumber, maxNumber, and feeBips<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.changeSettings(1000000000, 0.6 ETH, 5, 99, 125, {from: <u>admin</u>}) was successful (block 1197, 38280 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.changeSettings(1000000000, 0.6 ETH, 5, 99, 125, {from: <u>admin</u>}) was successful (block 1590, 38280 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SettingsChanged(time, sender)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.minBet.call() should equal 1000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.maxBet.call() should equal 0.6 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.minNumber.call() should equal 5<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.maxNumber.call() should equal 99<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.feeBips.call() should equal 125<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (278 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (269 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Rolling<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Restrictions<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot roll tiny amount </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 999999999 Wei, from: <u>player1</u>}) was successful (block 1198, 33587 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 999999999 Wei, from: <u>player1</u>}) was successful (block 1591, 33587 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollRefunded(time, user, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> lost txFee (-167.935 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.curId.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (755 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (690 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot roll huge amount </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.600000000000000001 ETH, from: <u>player1</u>}) was successful (block 1199, 33893 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.600000000000000001 ETH, from: <u>player1</u>}) was successful (block 1592, 33893 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollRefunded(time, user, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> lost txFee (-169.465 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.curId.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (702 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (656 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot roll with number too small </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(4, {value: 0.1 ETH, from: <u>player1</u>}) was successful (block 1200, 33089 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(4, {value: 0.1 ETH, from: <u>player1</u>}) was successful (block 1593, 33089 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollRefunded(time, user, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> lost txFee (-165.445 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.curId.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (678 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (624 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot roll with number too large </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(100, {value: 0.1 ETH, from: <u>player1</u>}) was successful (block 1201, 33344 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(100, {value: 0.1 ETH, from: <u>player1</u>}) was successful (block 1594, 33344 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollRefunded(time, user, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> lost txFee (-166.72 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.curId.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (685 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (663 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Rolling...<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Player1 can roll </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.01 ETH, from: <u>player1</u>}) was successful (block 1202, 121011 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.01 ETH, from: <u>player1</u>}) was successful (block 1595, 121011 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 0.01 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> gained -0.01 ETH but lost txFee (605.055 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered(time, id, user, bet, number, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWagered.call() should equal 0.01 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWon.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(1) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1202, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(1) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1595, 0]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.49025 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 41 for a payout of 19750000000000000.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 25 for a payout of 19750000000000000.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Dice thinks this result will be: 101. [may be incorrect]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (510000000000000000 >= 490250000000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1123 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1085 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Player1 can roll again </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet won with roll of 41 for payout of 19750000000000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet won with roll of 25 for payout of 19750000000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">The last bet was by this user -- they should get some ETH back.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.01 ETH, from: <u>player1</u>}) was successful (block 1203, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(50, {value: 0.01 ETH, from: <u>player1</u>}) was successful (block 1596, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.00975 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> gained 0.00975 ETH but lost txFee (681.87 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 3 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered(time, id, user, bet, number, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWagered.call() should equal 0.02 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWon.call() should equal 0.01975 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(2) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1203, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(2) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1596, 0]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollResolved(time, id, user, result, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PayoutSuccess(time, id, user, payout)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(1) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1202, 41, true]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(1) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1595, 25, true]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.4805 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 80 for a payout of 0.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 70 for a payout of 0.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Dice thinks this result will be: 101. [may be incorrect]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (500250000000000000 >= 480500000000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1261 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1257 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Player2 can roll </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet lost with roll of 80 for payout of 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet lost with roll of 70 for payout of 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Expecting bankroll to be higher by 19750000000000000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(80, {value: 0.01 ETH, from: <u>player2</u>}) was successful (block 1204, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(80, {value: 0.01 ETH, from: <u>player2</u>}) was successful (block 1597, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 0.01 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player2</u> gained -0.01 ETH but lost txFee (604.955 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered(time, id, user, bet, number, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWagered.call() should equal 0.03 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWon.call() should equal 0.01975 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(3) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1204, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(3) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1597, 0]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollResolved(time, id, user, result, payout)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(2) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1203, 80, false]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(2) should equal [<u>player1</u>, 0.01 ETH, 50, 0.01975 ETH, 1596, 70, false]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.49790625 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 1 for a payout of 12343750000000000.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 45 for a payout of 12343750000000000.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Dice thinks this result will be: 101. [may be incorrect]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (510250000000000000 >= 497906250000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1311 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1285 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Player2 can roll again </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet won with roll of 1 for payout of 12343750000000000<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet won with roll of 45 for payout of 12343750000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">The last bet was by this user -- they should get some ETH back.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(80, {value: 0.01 ETH, from: <u>player2</u>}) was successful (block 1205, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(80, {value: 0.01 ETH, from: <u>player2</u>}) was successful (block 1598, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.00234375 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player2</u> gained 0.00234375 ETH but lost txFee (681.87 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 3 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered(time, id, user, bet, number, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWagered.call() should equal 0.04 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWon.call() should equal 0.03209375 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(4) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1205, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(4) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1598, 0]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollResolved(time, id, user, result, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PayoutSuccess(time, id, user, payout)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(3) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1204, 1, true]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(3) should equal [<u>player2</u>, 0.01 ETH, 80, 0.01234375 ETH, 1597, 45, true]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 0.4955625 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 45 for a payout of 12343750000000000.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 58 for a payout of 12343750000000000.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Dice thinks this result will be: 101. [may be incorrect]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (507906250000000000 >= 495562500000000000)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1280 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1270 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Cannot wager more than bankroll could afford to pay<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Reduce funding to small amount </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Remove funding so that bankroll is very small.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankroll is below funding. Will remove nearly entire bankroll.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.495562499999999999 ETH, {from: <u>admin</u>}) was successful (block 1206, 50480 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.removeFunding(0.495562499999999999 ETH, {from: <u>admin</u>}) was successful (block 1599, 50480 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.495562499999999999 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyTreasury</u> changed by 0.495562499999999999 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>admin</u> lost txFee (-252.4 GWei)<span style="color:#000"> </span></span></span></span> 
@@ -217,23 +217,23 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 0.004437500000000001 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (12343750000000001 >= 1)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1158 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1084 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Should not allow a bet </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Player should not be able to place a wager that could result<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555"> in a payout more than the bankroll.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {value: 0.6 ETH, from: <u>player1</u>}) was successful (block 1207, 34639 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {value: 0.6 ETH, from: <u>player1</u>}) was successful (block 1600, 34639 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollRefunded(time, user, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> lost txFee (-173.195 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.curId.call() should equal 4<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (706 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (705 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Taking profits<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Try to generate a profit </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Depending on the above rolls, may or may not have a profit.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">InstaDice has no profits. Will try to get some.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Bankroll: 1, Funding: 4437500000000001<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Upping funding first, so we can take a large bet.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 1 ETH}) was successful (block 1208, 34565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.addFunding({from: <u>anon</u>, value: 1 ETH}) was successful (block 1601, 34565 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 1 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -1 ETH but lost txFee (172.825 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundingAdded(time, sender, amount, funding, bankroll)' log was the only log<span style="color:#000"> </span></span></span></span> 
@@ -241,41 +241,48 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 1.004437500000000001 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (1012343750000000001 >= 1000000000000000001)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Now betting a large amount with small odds...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {from: <u>player1</u>, value: 0.05 ETH}) was successful (block 1209, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {from: <u>player1</u>, value: 0.05 ETH}) was successful (block 1602, 136374 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered()' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {from: <u>player1</u>, value: 1000000000 Wei}) was successful (block 1210, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(5, {from: <u>player1</u>, value: 1000000000 Wei}) was successful (block 1603, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered()' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Now it has profits of 45562481250000000.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1395 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1332 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Collects profits </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Should collect the difference between bankroll and funding.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Bankroll: 1049999981250000001, Funding: 1004437500000000001, Profits: 45562481250000000<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#A00"><span style="color:#A00"><b>(1)</b><span style="color:#A00"> [failed TxTester.assertSuccess():<span style="color:#000">
-<span style="color:#AAA">│  │  │  │     <span style="color:#000"><span style="color:#A00">tx: <u>dice</u>...]<span style="color:#000"> </span></span></span></span></span></span></span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.sendProfits({from: <u>anon</u>}) was successful (block 1604, 41565 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -0.04556248125 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dummyTreasury</u> changed by 0.04556248125 ETH.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> lost txFee (-207.825 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ProfitsSent(time, recipient, amount, funding, bankroll)' log was the only log<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 1.004437500000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.funding.call() should equal 1.004437500000000001 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (1004437519750000001 >= 1004437500000000001)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1000 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Users can manually collect<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Roll, and collect manually </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Having player1 bet, very likely to win.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet lost with roll of 44 for payout of 0<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Last bet lost with roll of 55 for payout of 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Expecting bankroll to be higher by 19750000000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(99, {value: 1000000000 Wei, from: <u>player1</u>}) was successful (block 1212, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.roll(99, {value: 1000000000 Wei, from: <u>player1</u>}) was successful (block 1605, 120991 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 1000000000 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> gained -1000000000 Wei but lost txFee (604.955 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollWagered(time, id, user, bet, number, payout)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWagered.call() should equal 0.090000002 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.totalWon.call() should equal 0.0444375 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(7) should equal [<u>player1</u>, 1000000000, 99, 997474747, 1212, 0]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 0.045562501002525253 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(7) should equal [<u>player1</u>, 1000000000, 99, 997474747, 1605, 0]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.getProfits.call() should equal 19752525253<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RollResolved(time, id, user, result, payout)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(6) should equal [<u>player1</u>, 1000000000, 5, 19750000000, 1210, 44, false]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 1.050000001002525254 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 69 for a payout of 997474747.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.rolls.call(6) should equal [<u>player1</u>, 1000000000, 5, 19750000000, 1603, 55, false]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>dice</u>.bankroll.call() should equal 1.004437519752525254 ETH<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">This roll will have a result of 67 for a payout of 997474747.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Dice thinks this result will be: 101. [may be incorrect]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (1050000002000000001 >= 1050000001002525254)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance >= bankroll (1004437520750000001 >= 1004437519752525254)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Collecting payout manually...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">IsResolved: false, expPayout: 997474747<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.payoutRoll(7, {from: <u>anon</u>}) was successful (block 1213, 53226 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.payoutRoll(7, {from: <u>anon</u>}) was successful (block 1606, 53226 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by -997474747 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> changed by 997474747 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
@@ -284,43 +291,17 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Collecting payout manually again should do nothing.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">IsResolved: true, expPayout: 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.payoutRoll(7, {from: <u>anon</u>}) was successful (block 1214, 24233 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>dice</u>.payoutRoll(7, {from: <u>anon</u>}) was successful (block 1607, 24233 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>dice</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>player1</u> changed by 0 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 0 logs found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (2498 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (2346 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b>Unresolveable rolls</b> <b><span style="color:#0AA">(skipped: marked as skip)<span style="color:#000"><b></b> </span></span></b></span></span> 
 
-  =========== <span style="color:#A00"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
+  =========== <span style="color:#555"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
 
-  <span style="color:#0A0"><b>19</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>1</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>1</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 19.61s
+  <span style="color:#0A0"><b>20</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>1</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 19.65s
 
-  <span style="color:#A00"><b>(1)</b><span style="color:#000">: Occurred in '<b>Collects profits</b>'
-  ----------------------------------
-  failed TxTester.assertSuccess():
-  tx: <u>dice</u>.sendProfits({from: <u>anon</u>}), got this error: Error: VM Exception while processing transaction: revert
-      at Object.InvalidResponse (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/errors.js:38:16)
-      at /Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/requestmanager.js:86:36
-      at XMLHttpRequest.request.onreadystatechange (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/httpprovider.js:128:7)
-      at XMLHttpRequestEventTarget.dispatchEvent (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:64:18)
-      at XMLHttpRequest._setReadyState (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:354:12)
-      at XMLHttpRequest._onHttpResponseEnd (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:509:12)
-      at IncomingMessage.<anonymous> (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:469:24)
-      at emitNone (events.js:110:20)
-      at IncomingMessage.emit (events.js:207:7)
-      at endReadableNT (_stream_readable.js:1045:12)
-  Error: VM Exception while processing transaction: revert
-      at Object.InvalidResponse (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/errors.js:38:16)
-      at /Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/requestmanager.js:86:36
-      at XMLHttpRequest.request.onreadystatechange (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/web3/lib/web3/httpprovider.js:128:7)
-      at XMLHttpRequestEventTarget.dispatchEvent (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:64:18)
-      at XMLHttpRequest._setReadyState (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:354:12)
-      at XMLHttpRequest._onHttpResponseEnd (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:509:12)
-      at IncomingMessage.<anonymous> (/Users/sam/dev/ethereum/pennyether-contracts/node_modules/xhr2/lib/xhr2.js:469:24)
-      at emitNone (events.js:110:20)
-      at IncomingMessage.emit (events.js:207:7)
-      at endReadableNT (_stream_readable.js:1045:12)
-
-</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>
 </html>

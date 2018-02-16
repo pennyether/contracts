@@ -77,6 +77,7 @@ function saveAllTests() {
 	const testFiles = [
 		"CustodialWallet.js",
 		"DividendToken.js",
+		"DividendTokenLocker.js",
 		"Treasury.js",
 		"Comptroller.js",
 		"MainController.js",

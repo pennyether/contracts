@@ -24,24 +24,24 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">MainController<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set it all up </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 1138, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 1531, 196991 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a Treasury, pointing to Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1139, 1558411 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1532, 1561295 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a MainController, pointing to Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: MainController.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1140, 1414206 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: MainController.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1533, 1414142 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a PennyAuctionController, pointing to Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: PennyAuctionController.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1141, 1512009 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: PennyAuctionController.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1534, 1512009 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a PennyAuctionFactory, pointing to Registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: PennyAuctionFactory.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1142, 1517944 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: PennyAuctionFactory.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 1535, 1517944 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Fund the Treasury<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 0.25 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Set up Registry to point to created contracts.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 1144, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 1145, 45675 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>mainController</u>, {from: <u>owner</u>}) was successful (block 1146, 46123 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("PENNY_AUCTION_CONTR...", <u>pac</u>, {from: <u>owner</u>}) was successful (block 1147, 46699 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("PENNY_AUCTION_FACTO...", <u>paf</u>, {from: <u>owner</u>}) was successful (block 1148, 46507 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1 ETH, {from: <u>admin</u>}) was successful (block 1149, 67486 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 1537, 45483 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 1538, 45675 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("MAIN_CONTROLLER", <u>mainController</u>, {from: <u>owner</u>}) was successful (block 1539, 46123 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("PENNY_AUCTION_CONTR...", <u>pac</u>, {from: <u>owner</u>}) was successful (block 1540, 46699 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("PENNY_AUCTION_FACTO...", <u>paf</u>, {from: <u>owner</u>}) was successful (block 1541, 46507 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.setDailyFundLimit(1 ETH, {from: <u>admin</u>}) was successful (block 1542, 67464 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.getAdmin.call() should equal <u>admin</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.getTreasury.call() should equal <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.getPennyAuctionController.call() should equal <u>pac</u><span style="color:#000"> </span></span></span></span> 
@@ -52,76 +52,76 @@
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:           0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  bidder1:        0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  bidder2:        0x6d6e7efa4f8ce4932ba3a95641a88e05b2bf2c57<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  mainController: 0xc9fda23a944629937bced3c4765d9ba29785daa1<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  mainController: 0x2c82782be565ecc3b237319950309916229db65d<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  NO_ADDRESS:     0x0000000000000000000000000000000000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  nonAdmin:       0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner:          0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  pac:            0xf06b3715daa97a73f4dba53f64998fbd4ae56ebd<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  paf:            0x0bbf1586a32392e2bf6312027b4280abb62c5798<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:       0x29079efd4da0b2c22fc2444a0d02730b3dc2556f<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:       0x81ca4ece6f758ddc1f883e6de16f7e30f1999e86<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (3194 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  pac:            0x1152e9868978d6cd885c4c4c91df1830f7af98cb<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  paf:            0xb52f6648e8df7bf01ad67c29fe4a9494c7a81527<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:       0x2f26ce0ef937a75b8c1cf2d9f8f587a8cb66a71a<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:       0x6f336f37194b6651ceb7599e5f928528e9b0e753<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (2839 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Set up and enable defined auctions.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(0, "First Auction", 0.05 ETH, 1000 GWei, 200 GWei, 2, 15, {from: <u>admin</u>}) was successful (block 1150, 170621 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(1, "Second Auction (Inv...", 0.04 ETH, 1000 GWei, 200 GWei, 0, 5, {from: <u>admin</u>}) was successful (block 1151, 182719 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(2, "Third Auction (Giga...", 10000000 ETH, 1000 GWei, 200 GWei, 2, 5, {from: <u>admin</u>}) was successful (block 1152, 197783 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(3, "Fourth Auction", 0.025 ETH, 0.01 ETH, 0.002 ETH, 2, 40, {from: <u>admin</u>}) was successful (block 1153, 155749 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(0, {from: <u>admin</u>}) was successful (block 1154, 46481 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1155, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(2, {from: <u>admin</u>}) was successful (block 1156, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(3, {from: <u>admin</u>}) was successful (block 1157, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(0, "First Auction", 0.05 ETH, 1000 GWei, 200 GWei, 2, 15, {from: <u>admin</u>}) was successful (block 1543, 170621 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(1, "Second Auction (Inv...", 0.04 ETH, 1000 GWei, 200 GWei, 0, 5, {from: <u>admin</u>}) was successful (block 1544, 182719 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(2, "Third Auction (Giga...", 10000000 ETH, 1000 GWei, 200 GWei, 2, 5, {from: <u>admin</u>}) was successful (block 1545, 197783 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.editDefinedAuction(3, "Fourth Auction", 0.025 ETH, 0.01 ETH, 0.002 ETH, 2, 40, {from: <u>admin</u>}) was successful (block 1546, 155749 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(0, {from: <u>admin</u>}) was successful (block 1547, 46481 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1548, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(2, {from: <u>admin</u>}) was successful (block 1549, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(3, {from: <u>admin</u>}) was successful (block 1550, 46545 gas used)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#AAA">✓ <u>pac</u>.numDefinedAuctions.call() should equal 4<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.setPennyAuctionRewards()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Initialized to 0 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paStartReward.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paEndReward.call() should equal 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paFeeCollectRewardDenom.call() should equal 1000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (52 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (44 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Not callable by nonAdmin </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.setPennyAuctionRewards.call(1000 GWei, 1000 GWei, 1000, {from: <u>nonAdmin</u>}) should throw<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.setPennyAuctionRewards(1000 GWei, 1000 GWei, 1000, {from: <u>nonAdmin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (41 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Works. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.setPennyAuctionRewards(1000 GWei, 1000 GWei, 1000, {from: <u>admin</u>}) was successful (block 1159, 71712 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.setPennyAuctionRewards(1000 GWei, 1000 GWei, 1000, {from: <u>admin</u>}) was successful (block 1552, 71712 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionRewardsChanged(time)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paStartReward.call() should equal 1000 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paEndReward.call() should equal 1000 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paFeeCollectRewardDenom.call() should equal 1000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (203 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (206 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> .canStartPennyAuction() returns index 0 </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 0, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (56 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (54 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.startPennyAuction()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Rewards are set up correctly </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 0, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paStartReward.call() should equal 1000 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paEndReward.call() should equal 1000 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.paFeeCollectRewardDenom.call() should equal 1000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (101 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (103 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Returns false when called on nonEnabled index </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1160, 16455 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1553, 16455 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.startPennyAuction.call(1, {from: <u>nonAdmin</u>}) should equal [false, <u>NO_ADDRESS</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(1, {from: <u>nonAdmin</u>}) was successful (block 1161, 29876 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(1, {from: <u>nonAdmin</u>}) was successful (block 1554, 29876 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg: DefinedAuction is not currently startable.)' event was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> lost txFee (-149.38 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 0 events from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getAuction.call(1) should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1162, 46545 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (940 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.enableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1555, 46545 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (947 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Returns false when cannot get funds. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.startPennyAuction.call(2, {from: <u>nonAdmin</u>}) should equal [false, <u>NO_ADDRESS</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(2, {from: <u>nonAdmin</u>}) was successful (block 1163, 58309 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(2, {from: <u>nonAdmin</u>}) was successful (block 1556, 47619 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg: Unable to receive funds.)' event was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundFailure(reason, note)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getAuction.call(2) should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (582 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (596 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Returns false when PennyAuctionFactory fails. (call throws) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.startPennyAuction.call(1, {from: <u>nonAdmin</u>, gas: 2000000}) should throw<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(1, {from: <u>nonAdmin</u>, gas: 2000000}) was successful (block 1164, 199964 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(1, {from: <u>nonAdmin</u>, gas: 2000000}) was successful (block 1557, 189274 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg: PennyAuctionController.startDefinedAuction() failed.)' event was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> lost txFee (-999.82 GWei)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> lost txFee (-946.37 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 2 events from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(note)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
@@ -131,10 +131,10 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DefinedAuctionInvalid(time, index)' event was found from <u>pac</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getAuction.call(1) should equal <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.amtFundedToday.call() should equal 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1155 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1075 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Starts auction0 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 0, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(0, {from: <u>nonAdmin</u>}) was successful (block 1166, 1069058 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(0, {from: <u>nonAdmin</u>}) was successful (block 1559, 1058368 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionStarted(time, index, addr)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(time, recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -145,16 +145,16 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionStarted(time, index, addr)' was the only event from <u>pac</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionCreated(time, addr, collector, initialPrize, bidPrice, bidIncr, bidAddBlocks, initialBlocks)' was the only event from <u>paf</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1514 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1548 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot start it again </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.startPennyAuction.call(0, {from: <u>nonAdmin</u>}) should equal [false, <u>NO_ADDRESS</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(0, {from: <u>nonAdmin</u>}) was successful (block 1167, 30107 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(0, {from: <u>nonAdmin</u>}) was successful (block 1560, 30107 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg: DefinedAuction is not currently startable.)' event was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (80 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (79 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Start third auction<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: make sure only 3 is startable </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1168, 31455 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(2, {from: <u>admin</u>}) was successful (block 1169, 16455 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(1, {from: <u>admin</u>}) was successful (block 1561, 31455 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>pac</u>.disableDefinedAuction(2, {from: <u>admin</u>}) was successful (block 1562, 16455 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getIsStartable.call(0) should equal false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getIsStartable.call(1) should equal false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getIsStartable.call(2) should equal false<span style="color:#000"> </span></span></span></span> 
@@ -162,10 +162,10 @@
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (667 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canStartPennyAuction() returns index 3 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 3, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (63 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (66 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .startPennyAuction(3) works </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 3, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(3, {from: <u>nonAdmin</u>}) was successful (block 1170, 1024122 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.startPennyAuction(3, {from: <u>nonAdmin</u>}) was successful (block 1563, 1013432 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionStarted(time, index, addr)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(time, recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -176,33 +176,33 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionStarted(time, index, addr)' was the only event from <u>pac</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionCreated(time, addr, collector, initialPrize, bidPrice, bidIncr, bidAddBlocks, initialBlocks)' was the only event from <u>paf</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' was the only event from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1341 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1437 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canStartPennyAuction() returns nothing </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [false, 0, 0]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (62 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (68 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.refreshPennyAuctions()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Ensure two auctions are open </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getAuction.call(0) should equal {not: <u>NO_ADDRESS</u>}<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>pac</u>.getAuction.call(3) should equal {not: <u>NO_ADDRESS</u>}<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (80 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (70 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canRefreshPennyAuctions() returns [false, 0] </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canRefreshPennyAuctions.call() should throw<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (60 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (65 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refreshPennyAuctions() returns error (No reward to be paid) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1171, 56546 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1564, 56546 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionsRefreshed()' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> lost txFee (-282.73 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (678 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (707 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> do some bidding </span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (561 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (608 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canRefreshPennyAuctions() returns percentage of fees </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canRefreshPennyAuctions.call() should equal [true, 17.6 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (257 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (266 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refreshPennyAuctions() collects fees </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1176, 167035 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1569, 156345 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionsRefreshed(numEnded, feesCollected)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(time, recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -210,17 +210,17 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> Lost txFee, got reward.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FeesSent(time, amount)' event was found from <u>pac</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1059 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1095 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canRefreshPennyAuctions() returns 0 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canRefreshPennyAuctions.call() should equal [false, 0]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (76 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (69 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refreshPennyAuctions() returns error </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1177, 56546 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1570, 56546 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionsRefreshed(numEnded, feesCollected)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'Error(msg)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> lost txFee (-282.73 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (703 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (761 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">After one auction done<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: fast forward so auction0 is ended </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction0</u>.isEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
@@ -229,12 +229,12 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mining 8 blocks so auction0 ends...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction0</u>.isEnded.call() should equal true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>auction3</u>.isEnded.call() should equal false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (967 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (990 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canRefreshPennyAuctions() returns endBonus </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canRefreshPennyAuctions.call() should equal [true, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (87 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (80 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refreshPennyAuctions() works </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1186, 232217 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mainController</u>.refreshPennyAuctions({from: <u>nonAdmin</u>}) was successful (block 1579, 221527 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'PennyAuctionsRefreshed(numEnded, feesCollected)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RewardPaid(time, recipient, note, amount)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -242,17 +242,17 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>nonAdmin</u> Lost txFee, got reward.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'FundSuccess(time, recipient, note, value)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'AuctionEnded()' event was found from <u>pac</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1107 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1069 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canStartPennyAuction() returns index 0 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canStartPennyAuction.call() should equal [true, 0, 1000 GWei]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (62 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (50 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .canRefreshPennyAuctions() returns 0 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mainController</u>.canRefreshPennyAuctions.call() should equal [false, 0]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (49 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (54 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED </b><span style="color:#000">  ===========
 
-  <span style="color:#0A0"><b>22</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 17.44s
+  <span style="color:#0A0"><b>22</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 17.40s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>
