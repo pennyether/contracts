@@ -157,6 +157,7 @@ contract DividendToken {
 		TokensBurned(_account, _amount, totalSupply);
 	}
 
+	// when set to true, prevents tokens from being transferred
 	function setFrozen(bool _isFrozen)
 		onlyComptroller
 		public
