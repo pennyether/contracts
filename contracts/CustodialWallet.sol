@@ -114,24 +114,24 @@ contract CustodialWallet {
         private
     {
         require(_newCustodian > 0);
-        custodian = _newCustodian;
         CustodianChanged(now, custodian, _newCustodian);
+        custodian = _newCustodian;
     }
 
     function _setSupervisor(address _newSupervisor)
         private
     {
         require(_newSupervisor > 0);
-        supervisor = _newSupervisor;
         SupervisorChanged(now, supervisor, _newSupervisor);
+        supervisor = _newSupervisor;
     }
 
     function _setOwner(address _newOwner)
         private
     {
         require(_newOwner > 0);
-        owner = _newOwner;
         OwnerChanged(now, owner, _newOwner);
+        owner = _newOwner;
     }
 
     function () public payable {}
