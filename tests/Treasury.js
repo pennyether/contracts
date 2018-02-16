@@ -345,26 +345,27 @@ describe('Treasury', function(){
             });
         });
         describe(".removeFromBankroll cannot remove more than balance", async function(){
-            before("Distribute, then fund 14 * DAILY_LIMIT + 1", function(){
-                describe("Ensure bankroll is equal to distribution threshold", function(){
+            const bufferDays = await treasury.bufferDays();
+            before(`Distribute, then fund ${bufferDays} * DAILY_LIMIT + 1`, function(){
+                describe("Ensure bankroll is equal to DividendThreshold", function(){
                     this.logInfo("We deposit ETH, then distribute to token.");
-                    this.logInfo("The balance should then be bankroll + 14*daily_limit.");
+                    this.logInfo(`The balance should then be: bankroll + ${bufferDays}*daily_limit.`);
                     itCanReceiveDeposit(1e12);
                     itCanDistribute();
                     it("Bankroll == Dividend Threshold", async function(){
-                        const expBalance = (await treasury.bankroll()).plus(DAILY_LIMIT.mul(14));
+                        const expBalance = await treasury.getDividendThreshold();
                         const balance = testUtil.getBalance(treasury);
-                        this.logInfo(`Balance: ${balance}, 14*dailyLimit: ${expBalance}`);
+                        this.logInfo(`Balance: ${balance}, Dividend Threshold: ${expBalance}`);
                         assert(expBalance.equals(balance));
                     });
                 });
                 
-                describe("Funds 14*DAILY_LIMIT + 1", async function(){
-                    this.logInfo("We fund the full daily_limit 15 days in a row.");
+                describe(`Funds ${bufferDays}*DAILY_LIMIT + 1`, async function(){
+                    this.logInfo(`We fund the dailyFundLimit ${bufferDays} days in a row.`);
                     this.logInfo("This ensures the balance is less than the bankroll.");
                     this.logInfo("This is a situation where the Treasury is not fully solvent.");
                     await testUtil.fastForward(24*60*60);
-                    for (var i=0; i<14; i++){
+                    for (var i=0; i<bufferDays; i++){
                         await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
                         await testUtil.fastForward(24*60*60);
                     }
@@ -479,9 +480,11 @@ describe('Treasury', function(){
     async function itCanDistribute() {
         it(`Can distribute to token`, async function(){
             const bankroll = await treasury.bankroll();
+            const expDivThreshold = (await treasury.bufferDays())
+                .mul(await treasury.dailyFundLimit())
+                .plus(bankroll);
             const surplus = testUtil.getBalance(treasury)
-                .minus(bankroll)
-                .minus(DAILY_LIMIT.mul(14));
+                .minus(expDivThreshold);
             const expectedReward = surplus.div(await treasury.distributeRewardDenom()).floor();
             const expectedToDistribute = surplus.minus(expectedReward);
             const prevTotalDistributed = await treasury.totalDistributed();
@@ -505,7 +508,7 @@ describe('Treasury', function(){
                     .assertDelta(dummyToken, expectedToDistribute)
                     .assertDelta(treasury, surplus.mul(-1))
                     .assertDeltaMinusTxFee(anon, expectedReward)
-                    .assertBalance(treasury, bankroll.plus(DAILY_LIMIT.mul(14)))
+                    .assertBalance(treasury, expDivThreshold)
                 .assertCallReturns([treasury, "totalDistributed"],
                     prevTotalDistributed.plus(expectedToDistribute))
                 .doFn(assertIsBalanced)

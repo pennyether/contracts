@@ -24,9 +24,9 @@ The Treasury:
 
 It transfers out ONLY in these conditions:
 	- To Token
-		- When: balance > (bankroll + 14*dailyFundLimit)
-		- Amount: the profits, anything over:
-			 bankroll + 14*dailyFundLimit
+		- When: balance > dividendThreshold
+		- Amount: the profits, anything over: dividendThreshold
+			- value is: bankroll + 30*dailyFundLimit
 	- To Comptroller
 		- When: When comptroller lowers the bankroll due
 		        to an investor burning tokens.
@@ -35,7 +35,7 @@ It transfers out ONLY in these conditions:
 		- When: Whenever MainController requests funds.
 		- Amount: limited by dailyFundLimit per day.
 		          Note: dailyFundLimit can not be changed
-		          by more than 5% per day.
+		            by more than 5% per day.
 	- Other
 		ONLY IF the CrowdSale is unsuccessful, Comptroller
 		can send funds to whomever it chooses.
@@ -87,12 +87,15 @@ contract Treasury is
 	uint public dayDailyFundLimitChanged;	// date last changed
 	uint public dayLastFunded;				// date last funded
 	uint public amtFundedToday;				// amt funded today
+	// Number of days of dailyFundLimit required
+	//  before profits can be sent to the token.
+	uint public constant bufferDays = 30;
 
-	// when someone calls distribute, they get a small reward
-	// 100 = 1%, 1000 = .1%, etc
+	// When someone calls distribute, they get a small reward
+	//  100 = 1%, 1000 = .1%, etc
 	uint public distributeRewardDenom = 1000;
 
-	// stats
+	// Stats
 	uint public totalRevenue;			// total revenues received
 	uint public totalFunded;			// total funds sent
 	uint public totalRewarded;			// total rewards paid
@@ -181,6 +184,7 @@ contract Treasury is
 		fromAdmin
 	{
 		require(_newValue >= 100);
+		require(_newValue <= 10000);
 		uint _oldValue = distributeRewardDenom;
 		distributeRewardDenom = _newValue;
 		DistributeRewardChanged(now, msg.sender, _oldValue, _newValue);
@@ -331,18 +335,18 @@ contract Treasury is
   		returns (uint)
   	{
   		if (token == address(0)) return 0;
-  		uint _minBalance = getMinBalanceToDistribute();
+  		uint _minBalance = getDividendThreshold();
   		if (this.balance <= _minBalance) return 0;
   		return this.balance - _minBalance;
   	}
 
   	// returns the bankroll plus a buffer of 14 days of funding.
-  	function getMinBalanceToDistribute()
+  	function getDividendThreshold()
   		public
   		constant
   		returns (uint)
   	{
-  		return bankroll + (14 * dailyFundLimit);
+  		return bankroll + (bufferDays * dailyFundLimit);
   	}
 
   	// returns reward to be received if getDistributeReward() is called
