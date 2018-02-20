@@ -52,7 +52,7 @@ function createPlugins(testUtil, ledger) {
 				fnOrPromiseOrArray = () => contract[fnName].apply(contract, args);
 				ctx.txName = name || `tx: ${str(contract)}.${fnName}(${argsStr})`;
 				if (!contract[fnName] || !contract[fnName].apply)
-					throw new Error(`"${name}"" is not a method of ${str(contract)}`);
+					throw new Error(`"${fnName}"" is not a method of ${str(contract)}`);
 			} else {
 				ctx.txName = name || `${fnOrPromiseOrArray.toString()}`;
 			}
@@ -179,7 +179,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
-			assert.isAtMost(gasUsed, val);
+			assert(new BigNumber(gasUsed).lt(val));
 			console.log(`✓ less than ${val} gas used (${gasUsed})`);
 		},
 		assertGasUsedGt: function(val) {
@@ -188,7 +188,7 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
-			assert.isAtLeast(gasUsed, val);
+			assert(new BigNumber(gasUsed).gt(val));
 			console.log(`✓ more than ${val} gas used (${gasUsed})`);
 		},
 		printTxResult: function(){

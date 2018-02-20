@@ -55,7 +55,9 @@ contract DividendTokenLocker {
 	// Starts the vesting process for the current balance.
 	// TokenLocker will ensure a minimum balance is maintained
 	//  based off of the vestingAmt and vestingDays.
-	function startVesting(uint _vestingDays) {
+	function startVesting(uint _vestingDays)
+		public
+	{
 		require(msg.sender == creator);
 		uint _numTokens = token.balanceOf(this);
 		vestingAmt = _numTokens;
