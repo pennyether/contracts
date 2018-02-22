@@ -50,7 +50,7 @@ function createPlugins(testUtil, ledger) {
 				const args = fnOrPromiseOrArray.slice(2);
 				const argsStr = args ? str(args, true) : "";
 				fnOrPromiseOrArray = () => contract[fnName].apply(contract, args);
-				ctx.txName = name || `tx: ${str(contract)}.${fnName}(${argsStr})`;
+				ctx.txName = `tx: ${name}` || `tx: ${str(contract)}.${fnName}(${argsStr})`;
 				if (!contract[fnName] || !contract[fnName].apply)
 					throw new Error(`"${fnName}"" is not a method of ${str(contract)}`);
 			} else {

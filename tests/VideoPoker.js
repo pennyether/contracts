@@ -18,8 +18,12 @@ describe('VideoPoker', function(){
     var vp;
     var registry;
 
-    const MIN_BET = new BigNumber(.001e18);
-    const MAX_BET = new BigNumber(.5e18);
+    const DEFAULT_MIN_BET = new BigNumber(.001e18);
+    const DEFAULT_MAX_BET = new BigNumber(.5e18);
+    const DEFAULT_PAYTABLE = [0, 800, 50, 25, 9, 6, 4, 3, 2, 1, 0];
+    const MIN_BET = new BigNumber(.0005e18);
+    const MAX_BET = new BigNumber(.2e18);
+    const PAYTABLE = DEFAULT_PAYTABLE.slice().map(x=> x>0 ? x+1 : 0);
 
     before("Set up VideoPoker contract.", async function(){
         const addresses = {
@@ -59,6 +63,28 @@ describe('VideoPoker', function(){
         await createDefaultTxTester().printNamedAddresses().start();
     });
 
+    describe("Check settings", function(){
+        it("Current paytable is the default", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([vp, "curPayTableId"], 0)
+                .assertCallReturns([vp, "numPayTables"], 1)
+                .assertCallReturns([vp, "getPayTable", 0], DEFAULT_PAYTABLE)
+                .start();
+        });
+        it("minBet and maxBet are as expected", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([vp, "minBet"], DEFAULT_MIN_BET)
+                .assertCallReturns([vp, "maxBet"], DEFAULT_MAX_BET)
+                .assertCallReturns([vp, "curMaxBet"], 0)
+                .start();
+        });
+        it("curMaxBet is 0, since there's no balance", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([vp, "curMaxBet"], 0)
+                .start();
+        });
+    });
+
     describe("Funding", function(){
         describe(".addFunding()", function(){
             it("Anyone can add funding", function(){
@@ -76,19 +102,67 @@ describe('VideoPoker', function(){
             it("Works for admin", function(){
                 return assertRemovesFunding(.1e18)
             });
-            describe("Removes all funding when passed large number", function(){
-                it("remove all funding", function(){
-                    return assertRemovesFunding(10e18);  
-                });
-                it("Add some funding back", function(){
-                    return assertAddsFunding(2e18);    
-                });
+            it("Removes all funding when passed large number", function(){
+                return assertRemovesFunding(10e18);  
             });
+            it("Add some funding back", function(){
+                return assertAddsFunding(5e18);    
+            });
+        });
+
+        it(".curMaxBet() is correct value.", async function(){
+            return assertCurMaxBet();
         });
     });
 
     describe("Admin Functions", function(){
+        // todo: test setting paytables
+        describe(".addPayTable()", function(){
+            const newPayTable = PAYTABLE.slice(1, -1);
+            const callParams = [vp, "addPayTable"].concat(newPayTable);
+            it("is not callable from anon", function(){
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: anon}))
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("works from admin", async function(){
+                const expPtId = await vp.numPayTables();
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: admin}))
+                    .assertSuccess()
+                    .assertOnlyLog("PayTableAdded", {
+                        time: null,
+                        admin: admin,
+                        payTableId: expPtId
+                    })
+                    .assertCallReturns([vp, "getPayTable", expPtId], PAYTABLE)
+                    .assertCallReturns([vp, "numPayTables"], expPtId.plus(1))
+                    .start();
+            });
+        });
 
+        describe(".changeSettings()", function(){
+            const callParams = [vp, "changeSettings", MIN_BET, MAX_BET, 1];
+            it("is not callable from anon", function(){
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: anon}))
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("works from admin", function(){
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: admin}))
+                    .assertSuccess()
+                    .assertOnlyLog("SettingsChanged", {
+                        time: null,
+                        admin: admin
+                    })
+                    .assertCallReturns([vp, "minBet"], MIN_BET)
+                    .assertCallReturns([vp, "maxBet"], MAX_BET)
+                    .start();
+            });
+        })
     });
 
     describe("Do some games", async function(){
@@ -99,6 +173,7 @@ describe('VideoPoker', function(){
 
     function assertDoesAGame(){
         const BET = new BigNumber(.001e18);
+        var game;
         var iBlockhash;
         var GAME_ID;
         var DRAW_ARR = [1, 0, 0, 1, 1];
@@ -113,11 +188,12 @@ describe('VideoPoker', function(){
                 .assertSuccess()
                 .assertGasUsedLt(73000)
                 .assertOnlyLog("BetSuccess", {})
-                .withTxResult((res)=>{
-                    iBlockhash = new BigNumber(res.receipt.blockHash);
+                .withTxResult(async function(res){
+                    game = await getGame(GAME_ID);
+                    iBlockhash = res.receipt.blockHash;
                     expIHand = getIHand(iBlockhash, GAME_ID);
                     console.log(`Initial hand should be: ${expIHand}`);
-                    return testUtil.mineBlocks(1);
+                    testUtil.mineBlocks(1);
                 })
                 .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
                 .start();
@@ -167,19 +243,26 @@ describe('VideoPoker', function(){
     }
 
     async function assertBets(player, bet) {
+        var expId = (await vp.curId()).plus(1);
+        var expLogs = [];
+        // see if there is enough funding. if not, expect error.
+        (function(){
+
+        }());
+
         await createDefaultTxTester()
-                .doTx([vp, "bet", {value: .1e18, from: player1}])
-                .assertSuccess()
-                .assertGasUsedLt(71000)
-                .assertOnlyLog("BetSuccess", {})
-                .withTxResult((res)=>{
-                    const blockhash = res.receipt.blockHash;
-                    expIHand = getIHand(blockhash, GAME_ID);
-                    console.log(`Initial hand should be: ${expIHand}`);
-                    return testUtil.mineBlocks(1);
-                })
-                .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
-                .start();
+            .doTx([vp, "bet", {value: .1e18, from: player1}])
+            .assertSuccess()
+            .assertGasUsedLt(71000)
+            .assertOnlyLog("BetSuccess", {})
+            .withTxResult((res)=>{
+                const blockhash = res.receipt.blockHash;
+                expIHand = getIHand(blockhash, GAME_ID);
+                console.log(`Initial hand should be: ${expIHand}`);
+                return testUtil.mineBlocks(1);
+            })
+            .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
+            .start();
     }
     async function assertDraws(player, id) {
 
@@ -237,6 +320,18 @@ describe('VideoPoker', function(){
                 funding: expFunding
             })
             .assertCallReturns([vp, "funding"], expFunding)
+            .start();
+    }
+
+    async function assertCurMaxBet(){
+        const balance = await testUtil.getBalance(vp.address);
+        const funding = await vp.funding();
+        const min = BigNumber.min(balance, funding);
+        const curPayTableId = await vp.curPayTableId();
+        const rfMultiple = (await vp.getPayTable(curPayTableId))[1].mul(2);
+        const expCurMaxBet = min.div(rfMultiple);
+        return createDefaultTxTester()
+            .assertCallReturns([vp, "curMaxBet"], expCurMaxBet)
             .start();
     }
 });
@@ -370,6 +465,8 @@ function Hand(numOrArray) {
     }
 }
 
+// - blockhash: a string of hexEncoded 256 bit number
+// - gameId: a number or BigNumber
 function getIHand(blockhash, gameId) {
     const idHex = toPaddedHex(gameId, 32);
     const hexHash = web3.sha3(blockhash + idHex, {encoding: "hex"});

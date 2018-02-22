@@ -14,7 +14,7 @@ contract VideoPoker is
         address user;
         // 2nd 256-bit block
         uint64 bet;         // max of 18 Ether (set on bet)
-        uint8 payTableId;   // the PayTable used (set on bet)
+        uint16 payTableId;   // the PayTable used (set on bet)
         uint32 iBlock;      // initial hand block (set on bet)
         uint32 iHand;       // initial hand (set on draw/finalize)
         uint8 draws;        // bitmap of which cards to draw (set on draw/finalize)
@@ -39,7 +39,7 @@ contract VideoPoker is
     mapping(uint32=>Game) public games;
     
     // Credits
-    mapping(address => uint) credits;
+    mapping(address => uint) public credits;
     
     // Admin controlled settings
     uint64 public maxBet = .5 ether;
@@ -47,14 +47,13 @@ contract VideoPoker is
 
     // Note: Pay tables cannot be changed once added.
     // However, admin can change the current PayTable
-    uint8 public curPayTableId = 0;
-    uint8 public numPayTables = 0;
-    mapping(uint8=>uint16[12]) payTables;
+    uint16 public curPayTableId = 0;
+    uint16 public numPayTables = 0;
+    mapping(uint16=>uint16[12]) payTables;
     
     // Admin Events
-    event PayTableAdded(uint time, uint payTableIndex);
-    event SettingsChanged(uint time, address indexed sender);
-
+    event PayTableAdded(uint time, address admin, uint payTableId);
+    event SettingsChanged(uint time, address admin);
     // Game Events
     event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet);
     event BetFailure(uint time, address indexed user, uint bet, string msg);
@@ -97,6 +96,7 @@ contract VideoPoker is
         minBet = _minBet;
         maxBet = _maxBet;
         curPayTableId = _payTableId;
+        SettingsChanged(now, msg.sender);
     }
     
     // Allows admin to permanently add a PayTable
@@ -108,6 +108,7 @@ contract VideoPoker is
         fromAdmin
     {
         _addPayTable(_rf, _sf, _foak, _fh, _fl, _st, _toak, _tp, _jb);
+        PayTableAdded(now, msg.sender, numPayTables-1);
     }
     
 
