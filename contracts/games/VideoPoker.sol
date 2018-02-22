@@ -259,7 +259,7 @@ contract VideoPoker is
     //   - 22k: tx overhead
     //   - 21k, 36k, 49k: see _finalize()
     //   -  1k: SLOADs, execution
-    function finalize(uint32 _id)
+    function finalize(uint32 _id, bytes32 _hashCheck)
         public
         returns (bool _didFinalize)
     {
@@ -276,7 +276,7 @@ contract VideoPoker is
         if (_game.handRank != uint8(HandRank.Undefined))
             return _finalizeFailure(_id, "Game already finalized.");
 
-        _finalize(_game, _id);
+        _finalize(_game, _id, _hashCheck);
         return true;
     }
         function _finalizeFailure(uint32 _id, string _msg)
@@ -396,8 +396,9 @@ contract VideoPoker is
         uint32 _iHand;
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
         if (_iBlockHash != 0) {
+            // Ensure they are drawing against expected hand
             if (_iBlockHash != _hashCheck) {
-                return _drawFailure(_id, _draws, "HashCheck Failed. Perhaps a reorg occurred.");
+                return _drawFailure(_id, _draws, "HashCheck Failed. Try refreshing game.");
             }
             _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
         } else {
@@ -439,7 +440,7 @@ contract VideoPoker is
     //   - 5k or 20k: 1 update/write to credits[user]
     //   - 2k: event: AccountCredited
     //   - 1k: SLOADs, execution
-    function _finalize(Game storage _game, uint32 _id)
+    function _finalize(Game storage _game, uint32 _id, bytes32 _hashCheck)
         private
     {
         // Require game is not already finalized
@@ -455,6 +456,11 @@ contract VideoPoker is
         if (_game.draws == 0) {
             _blockhash = block.blockhash(_game.iBlock);
             if (_blockhash != 0) {
+                // ensure they are drawing against expected hand
+                if (_blockhash != _hashCheck) {
+                    _finalizeFailure(_id, "HashCheck Failed. Try refreshing game.");
+                    return;
+                }
                 // draw 5 cards into iHand, use as dHand
                 _iHand = getHand(uint(keccak256(_blockhash, _id)));
                 _dHand = _iHand;
