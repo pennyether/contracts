@@ -348,8 +348,8 @@ contract InstaDice is
 	// Returns whether or not could payout 10 x _payout.
 	// This ensures that even with 10 winning rolls in
 	// 255 blocks, all can still be paid.
-	function canPayout(uint80 _payout) public view returns (bool) {
-		return (_payout * 10) <= this.balance;
+	function canPayout(uint _payout) public view returns (bool) {
+		return _payout * 10 <= this.balance;
 	}
 
 	// Given a _bet amount and a roll _number, returns possible payout.
