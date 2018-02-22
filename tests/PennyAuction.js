@@ -275,19 +275,22 @@ function testWithParams(name, params) {
                                 console.log("All txs executed on same block, in expected order.");
                             });
                         })
-                        .doTx(() => tx1)
+                        .doTx(() => tx1, "First bid.")
                             .assertSuccess()
                             .assertOnlyLog('BidOccurred', {bidder: bidderFirst, time: null})
-                        .doTx(() => tx2)
+                            .assertGasUsedLt(36000)
+                        .doTx(() => tx2, "Second bid, causes refund.")
                             .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('BidRefundSuccess', {bidder: bidderFirst, time: null})
                             .assertLog('BidOccurred', {bidder: bidderSecond, time: null})
-                        .doTx(() => tx3)
+                            .assertGasUsedLt(41000)
+                        .doTx(() => tx3, "Third bid, causes refund.")
                             .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('BidRefundSuccess', {bidder: bidderSecond, time: null})
                             .assertLog('BidOccurred', {bidder: bidderThird, time: null})
+                            .assertGasUsedLt(41000)
                             .assertCallReturns([auction, 'prize'], newPrize, "is incremented only once")
                             .assertCallReturns([auction, 'fees'], newFees, "is incremented only once")
                             .assertCallReturns([auction, 'numBids'], newNumBids, "is incremented only once")
@@ -349,16 +352,17 @@ function testWithParams(name, params) {
                                 console.log("Both txs executed on same block, in expected order.");
                             });
                         })
-                        .doTx(() => tx1)
+                        .doTx(() => tx1, "Malicious Bidder bids")
                             .assertSuccess()
                             // Below will not be in logs (since the 'to:' was not auction, not maliciousBidder)
                             // The next tx test case covers this anyway: BidRefundFailure to maliciousBidder
                             //.assertOnlyLog('BidOccurred', {time: null, bidder: maliciousBidder.address})
-                        .doTx(() => tx2)
+                        .doTx(() => tx2, "Next bid, causes refund failure")
                             .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('BidRefundFailure', {time: null, bidder: maliciousBidder.address})
                             .assertLog('BidOccurred', {time: null, bidder: bidderSecond})
+                            .assertGasUsedLt(43000)
                             .assertCallReturns([auction, 'prize'], newPrize, "is incremented twice")
                             .assertCallReturns([auction, 'fees'], newFees, "is incremented twice")
                             .assertCallReturns([auction, 'numBids'], newNumBids, "is incremented twice")
@@ -407,7 +411,7 @@ function testWithParams(name, params) {
                     it("Deplete the prize() to near 0", async function(){
                         const prize = await auction.prize();
                         const numBids = prize.div(BID_INCR.mul(-1)).floor();
-                        console.log(`Prize should be depleted after ${numBids} bids, and fail on next.`);
+                        this.logInfo(`Prize should be depleted after ${numBids} bids, and fail on next.`);
                         const bidders = [bidder1, bidder2];
                         for (var i=0; i<numBids-1; i++) {
                             console.log(`Bid #${i+1} from bidder ${(i%2)+1}...`);
@@ -416,17 +420,19 @@ function testWithParams(name, params) {
                                 .silence()
                                 .doTx(()=>auction.sendTransaction({from: curBidder, value: BID_PRICE}))
                                 .assertSuccess()
+                                .assertOnlyLog("BidOccurred")
                                 .start();
                         }
-                        console.log("Bidding with maliciousBidder so they it's the winner.");
+                        this.logInfo("Bidding with maliciousBidder so that it's the winner.");
                         await createDefaultTxTester()
                                 .doTx(() => maliciousBidder.doBid(auction.address, {from: anon}))
                                 .assertSuccess()
+                                .assertCallReturns([auction, "currentWinner"], maliciousBidder.address)
                                 .start();    
                     });
                     it("Next bid should fail", async function(){
                         const curPrize = await auction.prize();
-                        console.log(`${curPrize} prize remaining. Bidding now should fail.`);
+                        this.logInfo(`${curPrize} prize remaining. Bidding now should fail.`);
                         const errMsg = "Bidding would result in a negative prize.";
                         await ensureNotBiddable(nonBidder, BID_PRICE, errMsg);    
                     });
@@ -443,7 +449,7 @@ function testWithParams(name, params) {
                 });
                 it("fastforward to make blocksRemaining() 0", async function(){
                     const numBlocks = (await auction.getBlocksRemaining()).plus(1);
-                    console.log(`Mining ${numBlocks} blocks...`);
+                    this.logInfo(`Mining ${numBlocks} blocks...`);
                     await testUtil.mineBlocks(numBlocks);
                     
                 });
@@ -559,13 +565,13 @@ function testWithParams(name, params) {
                     .assertDeltaMinusTxFee(bidder, BID_PRICE.mul(-1), "decreased by BID_PRICE and txFee")
                 .assertSuccess()
                     .assertOnlyLog('BidOccurred', {bidder: bidder, time: null})
+                .assertGasUsedLt(36000)
                     .assertCallReturns([auction, 'numBids'], newNumBids, "increased by 1")
                     .assertCallReturns([auction, 'totalFees'], newTotalFees)
                     .assertCallReturns([auction, 'prize'], newPrize, "increased by prizeIncr")
                     .assertCallReturns([auction, 'fees'], newFees, "increased by feeIncr")
                     .assertCallReturns([auction, 'currentWinner'], bidder, "is new currentWinner")
                     .assertCallReturns([auction, 'blockEnded'], newBlockEnded, "increased by bidAddBlocks")
-                
                 .start();
         }
         // makes sure the user cannot bid.
