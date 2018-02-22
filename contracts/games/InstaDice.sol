@@ -1,7 +1,6 @@
 pragma solidity ^0.4.19;
 
-import "../roles/UsingTreasury.sol";
-import "../roles/UsingAdmin.sol";
+import "../Fundable.sol";
 
 
 /*********************************************************
@@ -35,8 +34,7 @@ Note about randomness:
   this contract forbids.
 */
 contract InstaDice is
-	UsingTreasury,
-	UsingAdmin
+	Fundable
 {
 	struct Roll {
         // [1st 256 bit segment]
@@ -64,9 +62,6 @@ contract InstaDice is
     }
     Vars vars;
 
-	// If balance is ever above this, we can send profits
-	uint128 public funding;
-
 	// Admin controlled settings
 	uint64 public maxBet = .3 ether;	// 
 	uint64 public minBet = .001 ether;	//
@@ -92,8 +87,7 @@ contract InstaDice is
     event ProfitsSent(uint time, address indexed recipient, uint amount, uint funding);
 
 	function InstaDice(address _registry)
-        UsingTreasury(_registry)
-        UsingAdmin(_registry)
+        Fundable(_registry)
         public
 	{
         vars.finalizeId = 1;
@@ -127,20 +121,6 @@ contract InstaDice is
 		feeBips = _feeBips;
 		SettingsChanged(now, msg.sender);
 	}
-
-	// Decreases funding by _amount
-	function removeFunding(uint128 _amount)
-		public
-		fromAdmin
-	{
-		if (_amount > this.balance) _amount = uint128(this.balance);
-		require(_amount <= funding);
-		funding -= _amount;
-		// send it to treasury
-		address _tr = getTreasury();
-		require(_tr.call.value(_amount)());
-		FundingRemoved(now, _tr, _amount, funding);
-	}
 	
 
 	///////////////////////////////////////////////////
@@ -154,26 +134,26 @@ contract InstaDice is
     //
     // Painstakingly optimized for Gas Cost:
     //
-    //   - no resolving:                 74094
-    //      - 21k: tx overhead
+    //   - no resolving:                 74k
+    //      - 22k: tx overhead
     //      - 40k: 2 writes: roll
     //      - 5k: 1 update: curId
     //      - 3k: event (RollWagered)
     //      - 4k: SLOADs, execution 
     //
-    //   - resolving one losing roll:    90619 
+    //   - resolving one losing roll:    90k 
     //      - 74k: [above]
     //      - 10k: 2 updates: roll.result, finalizeId
     //      - 3k: event (RollFinalized)
     //      - 3k: SLOADs, execution
     //
-    //   - resolving two losing rolls:  107104
+    //   - resolving two losing rolls:  107k
     //      - 73k: above
     //      - 16k: resolving first roll [above]
     //      - 16k: resolving second roll [above]
     //      - 2k: SLOADs, execution
     //
-    //   - resolving a winning roll:    111828
+    //   - resolving a winning roll:    112k
     //      - 73k: [above]
     //      - 21k: send winnings
     //      - 10k: 3 updates: [roll.result,isPaid], [totalWonGwei,finalizeId]
@@ -184,24 +164,24 @@ contract InstaDice is
 		payable
 	{
         // ensure bet and number are valid
-        uint64 _bet = uint64(msg.value);
         if (_number < minNumber)
-            return _errorAndRefund("Roll number too small.", _bet, _number);
+            return _errorAndRefund("Roll number too small.", msg.value, _number);
         if (_number > maxNumber)
-            return _errorAndRefund("Roll number too large.", _bet, _number);
-        if (_bet < minBet)
-            return _errorAndRefund("Bet too small.", _bet, _number);
-        if (_bet > maxBet)
-            return _errorAndRefund("Bet too large.", _bet, _number);
+            return _errorAndRefund("Roll number too large.", msg.value, _number);
+        if (msg.value < minBet)
+            return _errorAndRefund("Bet too small.", msg.value, _number);
+        if (msg.value > maxBet)
+            return _errorAndRefund("Bet too large.", msg.value, _number);
 
-        // compute payout, ensure we can pay it
+        // safe to cast: msg.value < minBet < .625 ETH < 2**64
+        uint64 _bet = uint64(msg.value);
 	    uint80 _payout = computePayout(_bet, _number);
 	    if (!canPayout(_payout)){
 	    	return _errorAndRefund("May be unable to payout on a win.", _bet, _number);
         }
         
         // Increment stats and curId together (saves gas)
-        vars.totalWageredGwei += uint64(_bet / 1e9);
+        vars.totalWageredGwei += _bet / 1e9;
         vars.curId++;
 
         // Add new roll
@@ -254,28 +234,6 @@ contract InstaDice is
 		}
 		return _numFinalized;
 	}
-	
-	// Increase funding by whatever value is sent
-	function addFunding()
-		public
-		payable 
-	{
-		funding += uint128(msg.value);
-	    FundingAdded(now, msg.sender, msg.value, funding);
-	}
-
-    // Sends the difference between balance and funding
-    function sendProfits()
-        public
-        returns (uint _profits)
-    {
-        _profits = getProfits();
-        if (_profits == 0) return;
-        // send it to treasury
-        address _tr = getTreasury();
-        require(_tr.call.value(_profits)());
-        ProfitsSent(now, _tr, _profits, funding);
-    }
 
 	////////////////////////////////////////////////////
 	////// PRIVATE FUNCTIONS ///////////////////////////
@@ -387,6 +345,32 @@ contract InstaDice is
 	////// PUBLIC VIEWS ///////////////////////////////
 	///////////////////////////////////////////////////
 
+	// Returns whether or not could payout 10 x _payout.
+	// This ensures that even with 10 winning rolls in
+	// 255 blocks, all can still be paid.
+	function canPayout(uint80 _payout) public view returns (bool) {
+		return (_payout * 10) <= this.balance;
+	}
+
+	// Given a _bet amount and a roll _number, returns possible payout.
+    function computePayout(uint64 _bet, uint8 _number)
+        private
+        view
+        returns (uint80 _wei)
+    {
+        // This is safely castable to uint80 (max value of 1e24, ~1m Ether)
+        // Since maxbet is 1e18, and max multiple is 100, max result is 1e21.
+        return uint80(
+            // The forumula: feeBips/10000 * 100/_number * _bet
+            // For accuracy, we multiply by 1e32 and divide by it at the end.
+            // We move multiplication to front and division to back
+            // The largest this can get (before dividing at the end) is:
+            // 1e32 * 1e5 (bips) * 1e2 (100) * 1e18 (max bet) = 1e57
+            // This is well under uint256 overflow of 1e77 
+            uint256(1e32) * (10000-feeBips) * 100 * _bet / _number / 10000 / 1e32
+        );
+    }
+
 	// Return the result, or compute it and return it.
 	// Note: providers may compute the result incorrectly
 	//       due to a delay in updating block.blockhash().
@@ -430,44 +414,6 @@ contract InstaDice is
         if (_blockHash == 0) { return 101; }
         return uint8(uint(keccak256(_blockHash, _id)) % 100 + 1);
     }
-    
-    // Given a _bet amount and a roll _number, returns possible payout.
-    function computePayout(uint64 _bet, uint8 _number)
-        private
-        view
-        returns (uint80 _wei)
-    {
-        // This is safely castable to uint80 (max value of 1e24, ~1m Ether)
-        // Since maxbet is 1e18, and max multiple is 100, max result is 1e21.
-        return uint80(
-            // The forumula: feeBips/10000 * 100/_number * _bet
-            // For accuracy, we multiply by 1e32 and divide by it at the end.
-            // We move multiplication to front and division to back
-            // The largest this can get (before dividing at the end) is:
-            // 1e32 * 1e5 (bips) * 1e2 (100) * 1e18 (max bet) = 1e57
-            // This is well under uint256 overflow of 1e77 
-            uint256(1e32) * (10000-feeBips) * 100 * _bet / _number / 10000 / 1e32
-        );
-    }
-
-	// Returns the difference between this.balance and funding
-	// If negative, returns 0.
-	function getProfits()
-		public
-		view
-		returns (uint _amount)
-	{
-		uint _balance = this.balance;
-		if (_balance <= funding) return;
-		return _balance - funding;
-	}
-
-	// Returns whether or not could payout 10 x _payout.
-	// This ensures that even with 10 winning rolls in
-	// _ONE_ block, all can still be paid.
-	function canPayout(uint80 _payout) public view returns (bool) {
-		return (_payout * 10) <= this.balance;
-	}
 
     // Getters for vars
     function curId() public view returns (uint32) {
