@@ -10,11 +10,9 @@ contract VideoPoker is
     // All the data needed for each game.
     struct Game {
         // 1st 256-bit block
-        uint32 id;
-        address user;
-        // 2nd 256-bit block
+        uint32 userId;
         uint64 bet;         // max of 18 Ether (set on bet)
-        uint16 payTableId;   // the PayTable used (set on bet)
+        uint16 payTableId;  // the PayTable used (set on bet)
         uint32 iBlock;      // initial hand block (set on bet)
         uint32 iHand;       // initial hand (set on draw/finalize)
         uint8 draws;        // bitmap of which cards to draw (set on draw/finalize)
@@ -27,11 +25,15 @@ contract VideoPoker is
     // We put them in a struct with the hopes that optimizer
     //   will do one write if any/all of them change.
     struct Vars {
-        uint32 curId;               // changes on bet
-        uint64 totalWageredGwei;    // changes on bet
-        uint64 totalWonGwei;        // changes on win finalization
-        uint88 totalCredits;        // up to 300m Ether
-        bool isSet;                 // set to true to normalize gas cost
+        // [1st 256-bit block]
+        uint32 curId;               // (changes on bet)
+        uint64 totalWageredGwei;    // (changes on bet)
+        uint32 curUserId;           // (changes on bet, maybe)
+        uint128 empty1;             // [intentionally left empty]
+        // [2nd 256-bit block]
+        uint64 totalWonGwei;        // (changes on finalization win)
+        uint88 totalCredits;        // (changes on finalization win)
+        uint8 empty2;               // set to true to normalize gas cost
     }
     Vars vars;
     
@@ -40,6 +42,12 @@ contract VideoPoker is
     
     // Credits
     mapping(address => uint) public credits;
+    // Store a two-way mapping of address <=> userId
+    // If we've seen a user before, betting will be just 1 write
+    //  per Game struct vs 2 writes.
+    // The trade-off is 3 writes for new users. Seems fair.
+    mapping (address => uint32) public userIds;
+    mapping (uint32 => address) public userAddresses;
     
     // Admin controlled settings
     uint64 public maxBet = .5 ether;
@@ -77,7 +85,8 @@ contract VideoPoker is
     {
         // Add the default PayTable.
         _addPayTable(800, 50, 25, 9, 6, 4, 3, 2, 1);
-        vars.isSet = true;
+        vars.empty1 = 1;
+        vars.empty2 = 1;
     }
     
     
@@ -131,39 +140,11 @@ contract VideoPoker is
         _uncreditUser(msg.sender, _amt);
     }
 
-    // Allows a user to create a game from Credits.
-    //
-    // Gas Cost: 80k
-    //   - 22k: tx overhead
-    //   - 46k: see _createNewGame()
-    //   -  2k: curMaxBet()
-    //   -  4k: 2 events: BetSuccess, CreditsUser
-    //   -  5k: update credits[user]
-    //   -  1k: SLOAD, execution
-    function betWithCredits(uint64 _bet)
-        public
-    {
-        if (_bet > maxBet)
-            return _betFailure("Bet too large.", _bet, false);
-        if (_bet < minBet)
-            return _betFailure("Bet too small.", _bet, false);
-        if (_bet > curMaxBet())
-            return _betFailure("The bankroll is too low.", _bet, false);
-        if (_bet > credits[msg.sender])
-            return _betFailure("Insufficient credits", _bet, false);
-
-        // no uint64 overflow: _bet < maxBet < .625 ETH < 2e64
-        uint32 _id = _createNewGame(uint64(_bet), msg.sender);
-        credits[msg.sender] -= _bet;
-        CreditsUsed(now, msg.sender, _id, _bet);
-        BetSuccess(now, msg.sender, _id, _bet);
-    }
-
     // Allows a user to create a game from Ether sent.
     //
-    // Gas Cost: 74k
+    // Gas Cost: 53k (prev player), 93k (new player)
     //   - 22k: tx overhead
-    //   - 46k: see _createNewGame()
+    //   - 26k, 66k: see _createNewGame()
     //   -  2k: curMaxBet()
     //   -  2k: event
     //   -  1k: SLOAD, execution
@@ -180,7 +161,34 @@ contract VideoPoker is
             return _betFailure("The bankroll is too low.", _bet, true);
 
         // no uint64 overflow: _bet < maxBet < .625 ETH < 2e64
-        uint32 _id = _createNewGame(uint64(_bet), msg.sender);
+        uint32 _id = _createNewGame(uint64(_bet));
+        BetSuccess(now, msg.sender, _id, _bet);
+    }
+
+    // Allows a user to create a game from Credits.
+    //
+    // Gas Cost: 60k
+    //   - 22k: tx overhead
+    //   - 26k: see _createNewGame()
+    //   -  2k: curMaxBet()
+    //   -  4k: 2 events: BetSuccess, CreditsUsed
+    //   -  5k: update credits[user]
+    //   -  1k: SLOAD, execution
+    function betWithCredits(uint64 _bet)
+        public
+    {
+        if (_bet > maxBet)
+            return _betFailure("Bet too large.", _bet, false);
+        if (_bet < minBet)
+            return _betFailure("Bet too small.", _bet, false);
+        if (_bet > curMaxBet())
+            return _betFailure("The bankroll is too low.", _bet, false);
+        if (_bet > credits[msg.sender])
+            return _betFailure("Insufficient credits", _bet, false);
+
+        uint32 _id = _createNewGame(uint64(_bet));
+        credits[msg.sender] -= _bet;
+        CreditsUsed(now, msg.sender, _id, _bet);
         BetSuccess(now, msg.sender, _id, _bet);
     }
 
@@ -200,17 +208,18 @@ contract VideoPoker is
     //  - If user unable to resolve initial hand, sets draws to 5
     //  - This always sets game.dBlock
     //
-    // Gas Cost: ~34k
+    // Gas Cost: ~36k
     //   - 22k: tx
-    //   - 10k: see _draw()
+    //   - 12k: see _draw()
     //   -  2k: SLOADs, execution
     function draw(uint32 _id, uint8 _draws, bytes32 _hashCheck)
         public
     {
         Game storage _game = games[_id];
+        address _user = userAddresses[_game.userId];
         if (_game.iBlock == 0)
             return _drawFailure(_id, _draws, "Invalid game Id.");
-        if (_game.user != msg.sender)
+        if (_user != msg.sender)
             return _drawFailure(_id, _draws, "This is not your game.");
         if (_game.iBlock == block.number)
             return _drawFailure(_id, _draws, "Initial cards not dealt yet.");
@@ -221,7 +230,7 @@ contract VideoPoker is
         if (_draws == 0)
             return _drawFailure(_id, _draws, "Cannot draw 0 cards. Use finalize instead.");
         
-        _draw(_game, _draws, _hashCheck);
+        _draw(_game, _id, _draws, _hashCheck);
     }
         function _drawFailure(uint32 _id, uint8 _draws, string _msg)
             private
@@ -230,13 +239,15 @@ contract VideoPoker is
         }
       
 
-    // function finalizeAndBet(uint32 _id, uint _bet) {
-
+    // function finalizeAndBet(uint32 _id, uint64 _bet)
+    //     public
+    //     payable
+    // {
+    //     bool _didFinalize = finalize(_id);
+    //     if (!_didFinalize)
+    //         _betFailure("Failed to finalize prior game.", _bet, false)
     // }
     // function finalizeAndCashout(uint32 _id) {
-
-    // }
-    // function finalizeToCredits(uint32 _id) {
 
     // }
 
@@ -248,14 +259,15 @@ contract VideoPoker is
     //   - 22k: tx overhead
     //   - 21k, 36k, 49k: see _finalize()
     //   -  1k: SLOADs, execution
-    function finalize(uint32 _id, bool _payoutToCredits)
+    function finalize(uint32 _id)
         public
         returns (bool _didFinalize)
     {
         Game storage _game = games[_id];
+        address _user = userAddresses[_game.userId];
         if (_game.iBlock == 0)
             return _finalizeFailure(_id, "Invalid game Id.");
-        if (_game.user != msg.sender)
+        if (_user != msg.sender)
             return _finalizeFailure(_id, "This is not your game.");
         if (_game.iBlock == block.number)
             return _finalizeFailure(_id, "Initial hand not yet dealt.");
@@ -264,7 +276,7 @@ contract VideoPoker is
         if (_game.handRank != uint8(HandRank.Undefined))
             return _finalizeFailure(_id, "Game already finalized.");
 
-        _finalize(_game);
+        _finalize(_game, _id);
         return true;
     }
         function _finalizeFailure(uint32 _id, string _msg)
@@ -334,35 +346,50 @@ contract VideoPoker is
     // Creates a new game with the specified bet and current PayTable.
     // Does no validation of the _bet size.
     //
-    // Gas Cost: 46k
-    //   - 40k: 2 writes: Game
-    //   -  5k: 1 update: curId / totalWageredGwei
-    //   -  1k: SLOAD, execution
-    function _createNewGame(uint64 _bet, address _user)
+    // Gas Cost: 26k, 66k
+    //   Overhead:
+    //     - 20k: 1 writes: Game
+    //     -  5k: 1 update: vars
+    //     -  1k: SLOAD, execution
+    //   New User:
+    //     - 40k: 2 writes: userIds, userAddresses
+    //   Repeat User:
+    //     -  0k: nothing extra
+    function _createNewGame(uint64 _bet)
         private
-        returns (uint32 _id)
+        returns (uint32 _curId)
     {
+        _curId =  vars.curId + 1;
+        uint64 _totalWagered = vars.totalWageredGwei + _bet;
+        uint32 _curUserId = vars.curUserId;
+        uint32 _userId = userIds[msg.sender];
+        if (_userId == 0) {
+            _curUserId++;
+            userIds[msg.sender] = _curUserId;
+            userAddresses[_curUserId] = msg.sender;
+            _userId = _curUserId;
+        }
         // increment vars
-        vars.totalWageredGwei += _bet / 1e9;
-        vars.curId++;
+        vars.curId = _curId;
+        vars.totalWageredGwei = _totalWagered;
+        vars.curUserId = _curUserId;
 
-        _id = vars.curId;
-        Game storage _game = games[_id];
-        _game.id = _id;
-        _game.user = _user;
+        uint16 _payTableId = curPayTableId;
+        Game storage _game = games[_curId];
+        _game.userId = _userId;
         _game.bet = _bet;
-        _game.payTableId = curPayTableId;
+        _game.payTableId = _payTableId;
         _game.iBlock = uint32(block.number);        
-        return _id;
+        return _curId;
     }
 
     // Gets initialHand, and stores .draws and .dBlock.
-    // Gas Cost: 10k
+    // Gas Cost: 12k
     //   - 3k: getHand()
     //   - 5k: 1 update: iHand, draws, dBlock
-    //   - 2: event: DrawSuccess
+    //   - 2k: event: DrawSuccess
     //   - 2k (maybe): DrawWarning
-    function _draw(Game storage _game, uint8 _draws, bytes32 _hashCheck)
+    function _draw(Game storage _game, uint32 _id, uint8 _draws, bytes32 _hashCheck)
         private
     {
         // Deal the initial hand, or set draws to 5.
@@ -370,11 +397,11 @@ contract VideoPoker is
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
         if (_iBlockHash != 0) {
             if (_iBlockHash != _hashCheck) {
-                return _drawFailure(_game.id, _draws, "HashCheck Failed. Perhaps a reorg occurred.");
+                return _drawFailure(_id, _draws, "HashCheck Failed. Perhaps a reorg occurred.");
             }
-            _iHand = getHand(uint(keccak256(_iBlockHash, _game.id)));
+            _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
         } else {
-            DrawWarning(now, msg.sender, _game.id, _draws, 
+            DrawWarning(now, msg.sender, _id, _draws, 
                 "Initial hand no longer available. Drawing 5 cards.");
             _draws = 63;
         }
@@ -384,7 +411,7 @@ contract VideoPoker is
         _game.draws = _draws;
         _game.dBlock = uint32(block.number);
 
-        DrawSuccess(now, msg.sender, _game.id, _draws);
+        DrawSuccess(now, msg.sender, _id, _draws);
     }
 
     // Resolves game based on .iHand and .draws, crediting user on a win.
@@ -412,13 +439,14 @@ contract VideoPoker is
     //   - 5k or 20k: 1 update/write to credits[user]
     //   - 2k: event: AccountCredited
     //   - 1k: SLOADs, execution
-    function _finalize(Game storage _game)
+    function _finalize(Game storage _game, uint32 _id)
         private
     {
         // Require game is not already finalized
         assert(_game.handRank == uint8(HandRank.Undefined));
 
         // Compute _dHand
+        address _user = userAddresses[_game.userId];
         uint32 _dHand;
         bytes32 _blockhash;
         uint32 _iHand;      // set if draws are 0, and iBlock is fresh
@@ -428,29 +456,29 @@ contract VideoPoker is
             _blockhash = block.blockhash(_game.iBlock);
             if (_blockhash != 0) {
                 // draw 5 cards into iHand, use as dHand
-                _iHand = getHand(uint(keccak256(_blockhash, _game.id)));
+                _iHand = getHand(uint(keccak256(_blockhash, _id)));
                 _dHand = _iHand;
             } else {
                 // draw 5 cards right now into dHand
-                FinalizeWarning(now, _game.user, _game.id, "Initial hand not available. Drawing 5 cards.");
+                FinalizeWarning(now, _user, _id, "Initial hand not available. Drawing 5 cards.");
                 _draws = 63;
                 _dBlock = uint32(block.number - 1);
                 _blockhash = block.blockhash(_dBlock);
-                _dHand = getHand(uint(keccak256(_blockhash, _game.id)));
+                _dHand = getHand(uint(keccak256(_blockhash, _id)));
             }
         } else {
             _blockhash = block.blockhash(_game.dBlock);
             if (_blockhash != 0) {
                 // draw cards to iHand, use as dHand
-                _dHand = drawToHand(uint(keccak256(_blockhash, _game.id)), _game.iHand, _game.draws);
+                _dHand = drawToHand(uint(keccak256(_blockhash, _id)), _game.iHand, _game.draws);
             } else {
                 // cannot draw any cards. use iHand.
                 if (_game.iHand == 0){
                     _dHand = 0;
-                    FinalizeWarning(now, _game.user, _game.id, "Draw cards not available, and no initial hand.");
+                    FinalizeWarning(now, _user, _id, "Draw cards not available, and no initial hand.");
                 } else {
                     _dHand = _game.iHand;
-                    FinalizeWarning(now, _game.user, _game.id, "Draw cards not available. Using initial hand.");
+                    FinalizeWarning(now, _user, _id, "Draw cards not available. Using initial hand.");
                 }
             }
         }
@@ -471,8 +499,8 @@ contract VideoPoker is
 
         // Compute _payout, credit user, emit event.
         uint _payout = payTables[_game.payTableId][_handRank] * uint(_game.bet);
-        if (_payout > 0) _creditUser(_game.user, _payout, _game.id);
-        FinalizeSuccess(now, _game.user, _game.id, _game.handRank, _payout);
+        if (_payout > 0) _creditUser(_user, _payout, _id);
+        FinalizeSuccess(now, _user, _id, _game.handRank, _payout);
     }
 
 

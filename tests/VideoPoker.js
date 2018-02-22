@@ -183,10 +183,11 @@ describe('VideoPoker', function(){
         var expHandRank;
         it("Accepts a bet", async function(){
             GAME_ID = (await vp.curId()).plus(1)
+            const existingUser = (await vp.userIds(player1)).gt(0);
+            const expGas = existingUser ? 54000 : 94000;
             await createDefaultTxTester()
                 .doTx([vp, "bet", {value: .001e18, from: player1}])
                 .assertSuccess()
-                .assertGasUsedLt(73000)
                 .assertOnlyLog("BetSuccess", {})
                 .withTxResult(async function(res){
                     game = await getGame(GAME_ID);
@@ -195,6 +196,7 @@ describe('VideoPoker', function(){
                     console.log(`Initial hand should be: ${expIHand}`);
                     testUtil.mineBlocks(1);
                 })
+                .assertGasUsedLt(expGas)
                 .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
                 .start();
         });
@@ -202,7 +204,6 @@ describe('VideoPoker', function(){
             await createDefaultTxTester()
                 .doTx([vp, "draw", GAME_ID, DRAW_UINT8, iBlockhash, {from: player1}])
                 .assertSuccess()
-                .assertGasUsedLt(42000)
                 .assertOnlyLog("DrawSuccess")
                 .withTxResult((res)=>{
                     const dBlockhash = res.receipt.blockHash;
@@ -211,17 +212,22 @@ describe('VideoPoker', function(){
                     console.log(`Final hand should be: ${expDHand}, with rank: ${expHandRank}`);
                     return testUtil.mineBlocks(1);
                 })
+                .assertGasUsedLt(37000)
                 .assertCallReturns([vp, "getDHand", GAME_ID], ()=>expDHand.toNumber())
                 .assertCallReturns([vp, "getDHandRank", GAME_ID], ()=>expHandRank)
                 .start();
         });
         it("Finalizes", async function(){
             var game;
+            const hasCredits = (await vp.credits(player1)).gt(0);
+            const expGas = expHandRank <= 9
+                ? (hasCredits ? 60000 : 72000)
+                : 45000;
             await createDefaultTxTester()
                 .doTx([vp, "finalize", GAME_ID, false, {from: player1}])
                 .assertSuccess()
-                .assertGasUsedLt(75000)
                 .assertOnlyLog("FinalizeSuccess")
+                .assertGasUsedLt(expGas)
                 .start(); 
         })
     }
