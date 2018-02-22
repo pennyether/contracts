@@ -176,9 +176,9 @@ contract InstaDice is
         // safe to cast: msg.value < minBet < .625 ETH < 2**64
         uint64 _bet = uint64(msg.value);
 	    uint80 _payout = computePayout(_bet, _number);
-	    if (!canPayout(_payout)){
-	    	return _errorAndRefund("May be unable to payout on a win.", _bet, _number);
-        }
+	    // For some reason, doing this before _payout DESTROYS gas optmization.
+	    if (_bet > curMaxBet())
+        	return _errorAndRefund("May be unable to payout on a win.", msg.value, _number);
         
         // Increment stats and curId together (saves gas)
         vars.totalWageredGwei += _bet / 1e9;
@@ -345,19 +345,28 @@ contract InstaDice is
 	////// PUBLIC VIEWS ///////////////////////////////
 	///////////////////////////////////////////////////
 
-	// Returns whether or not could payout 10 x _payout.
-	// This ensures that even with 10 winning rolls in
-	// 255 blocks, all can still be paid.
-	function canPayout(uint _payout) public view returns (bool) {
-		return _payout * 10 <= this.balance;
-	}
+	// Returns the largest bet that leverages us 10x.
+	// The only time a user won't get paid is if there are
+	//   10 wins of the highest wager and lowest odds that
+	//   get finalized within 255 blocks from now.
+    function curMaxBet() public view returns (uint) {
+        // Upcast to uint for cheaper math below.
+        uint _funding = funding;
+        uint _balance = this.balance;
+        // Available balance is min(balance, funding)
+        uint _available = (_balance > _funding ? _funding : _balance);
+        // Return largest bet such that 10*bet*payout = _available
+        return _available / (10 * 100 / minNumber);
+    }
 
-	// Given a _bet amount and a roll _number, returns possible payout.
-    function computePayout(uint64 _bet, uint8 _number)
+	// Computes the payout amount for the current _feeBips
+    function computePayout(uint _bet, uint _number)
         private
         view
         returns (uint80 _wei)
     {
+    	// Cast to uint, makes below math cheaper.
+    	uint _feeBips = feeBips;
         // This is safely castable to uint80 (max value of 1e24, ~1m Ether)
         // Since maxbet is 1e18, and max multiple is 100, max result is 1e21.
         return uint80(
@@ -365,7 +374,7 @@ contract InstaDice is
             // For accuracy, we multiply by 1e32 and divide by it at the end.
             // We move multiplication to front and division to back
             // The largest this can get (before dividing at the end) is:
-            // 1e32 * 1e5 (bips) * 1e2 (100) * 1e18 (max bet) = 1e57
+            //   1e32 * 1e5 (bips) * 1e2 (100) * 1e18 (max bet) = 1e57
             // This is well under uint256 overflow of 1e77 
             uint256(1e32) * (10000-feeBips) * 100 * _bet / _number / 10000 / 1e32
         );
