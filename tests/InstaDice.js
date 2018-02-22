@@ -484,7 +484,7 @@ describe('InstaDice', function(){
             .stopLedger()
                 .assertDelta(dice, bet.minus(expPayouts))
                 .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings))
-            //.assertGasUsedLt(expGasUsed)
+            .assertGasUsedLt(expGasUsed)
             .assertCallReturns([dice, "curId"], expId)
             .assertCallReturns([dice, "finalizeId"], expFinalizeId)
             .assertCallReturns([dice, "totalWagered"], expTotalWagered)
