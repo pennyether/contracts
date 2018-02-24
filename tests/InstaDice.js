@@ -405,6 +405,18 @@ describe('InstaDice', function(){
         const expPayout = computePayout(bet, number);
         const expTotalWagered = (await dice.totalWagered()).plus(bet.div(1e9).floor().mul(1e9));
         
+        var expGasUsed = new BigNumber(56000);
+        var expCurUserId = await dice.curUserId();
+        var expUserId = await dice.userIds(player);
+        if (expUserId.equals(0)) {
+            expGasUsed = expGasUsed.plus(40000);
+            expCurUserId = expCurUserId.plus(1);
+            expUserId = expCurUserId;
+            console.log(`This roll should assign userId ${expUserId} to the bettor.`);
+        } else {
+            console.log(`This bettor has user id of ${expUserId}.`);
+        }
+
         var expLogs = [["RollWagered", {
             id: expId,
             user: player,
@@ -418,12 +430,8 @@ describe('InstaDice', function(){
         var expPlayerWinnings = new BigNumber(0);
         var expPayouts = new BigNumber(0);
 
-        var expGasUsed = new BigNumber(56000);
-        const existingUser = (await dice.userIds(player)).gt(0);
-        if (!existingUser) expGasUsed = expGasUsed.plus(40000);
-        
-
-        // determine what will get finalized
+        // Determines what will get finalized, and updates
+        //  the expectations based on that.
         async function simulateFinalizeNext() {
             const id = expFinalizeId;
 
@@ -436,13 +444,13 @@ describe('InstaDice', function(){
 
             const curBlock = testUtil.getBlockNumber();
             if (curBlock <= roll.block) {
-                console.log(`Should not finalize roll #${id} - it's on this block.`);
+                console.log(`Finalizing roll #${id}: Should not finalize, is on this block.`);
                 expGasUsed = expGasUsed.plus(1000);
                 return;
             }
 
             if (roll.result.gt(0)) {
-                console.log(`Should skip finalizing roll #${id} - it's already finalized.`);
+                console.log(`Finalizing roll #${id}: Should not finalized, it's already finalized.`);
                 // increments finalizeId, reads from storage a lot.
                 expGasUsed = expGasUsed.plus(7000);
                 expFinalizeId = expFinalizeId.plus(1);
@@ -456,19 +464,10 @@ describe('InstaDice', function(){
                 ? new BigNumber(0)
                 : roll.payout;
 
-            // Update expected values
-            expFinalizeId = expFinalizeId.plus(1);
-            expLogs.push(["RollFinalized", {
-                time: null,
-                id: id,
-                user: roll.user,
-                result: result,
-                payout: payout
-            }]);
-
             // Update expected stuff if they won
             if (payout.gt(0)) {
-                console.log(`Roll #${id} should finalize with result ${result} against ${roll.number} and win.`);
+                console.log(`Finalizing roll #${id}: WIN with roll of ${result} and number ${roll.number}.`);
+                console.log(`Will expect to see correct deltas and PayoutSuccess log.`);
                 expTotalWon = expTotalWon.plus(payout.div(1e9).floor().mul(1e9));
                 expPlayerWinnings = roll.user == player
                     ? expPlayerWinnings.plus(payout)
@@ -481,40 +480,62 @@ describe('InstaDice', function(){
                     payout: payout
                 }]);
                 expGasUsed = expGasUsed.plus(40000);
-                return true;
             } else {
-                console.log(`Roll #${id} should finalize with result ${result} against ${roll.number} and lose.`);
+                console.log(`Finalizing roll #${id}: LOSS with roll of ${result} and number ${roll.number}.`);
                 expGasUsed = expGasUsed.plus(16000);
             }
+
+            // Update expected values
+            expFinalizeId = expFinalizeId.plus(1);
+            expLogs.push(["RollFinalized", {
+                time: null,
+                id: id,
+                user: roll.user,
+                result: result,
+                payout: payout
+            }]);
+            console.log(`Will expect to correct RollFinalized log for roll #${id}.`);
+
+            return payout.gt(0);
         }
 
-        // simulate finalizing next stuff.
+        // Simulate finalizing next stuff.
         const willDoPayout = await simulateFinalizeNext();
         if (!willDoPayout) await simulateFinalizeNext();
 
-        // Do tests.
+        // Do TX, assert proper deltas and logs
+        var blockNumber;
         const txTester = createDefaultTxTester()
             .startLedger([player, dice])
             .doTx([dice, "roll", number, {value: bet, from: player}])
                 .assertSuccess()
             .doFn(async function(ctx){
+                blockNumber = ctx.txRes.receipt.blockNumber
                 await testUtil.mineBlocks(1);
             })
             .stopLedger()
                 .assertDelta(dice, bet.minus(expPayouts))
-                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings));
+                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings))
+            .assertLogCount(expLogs.length);
 
         expLogs.forEach((arr) => {
             txTester.assertLog(arr[0], arr[1])
         });
 
+        // Assert calls are accurate
         txTester
-            .assertGasUsedLt(expGasUsed)
+            .assertCallReturns([dice, "rolls", expId], ()=>[
+                expId, expUserId, bet, number, expPayout, blockNumber, 0, false
+            ])
             .assertCallReturns([dice, "curId"], expId)
+            .assertCallReturns([dice, "curUserId"], expCurUserId)
+            .assertCallReturns([dice, "userIds", player], expUserId)
+            .assertCallReturns([dice, "userAddresses", expUserId], player)
             .assertCallReturns([dice, "finalizeId"], expFinalizeId)
             .assertCallReturns([dice, "totalWagered"], expTotalWagered)
             .assertCallReturns([dice, "totalWon"], expTotalWon)
-            .assertLogCount(expLogs.length);
+            .assertGasUsedLt(expGasUsed)
+            
 
         // Assert this roll has expected result.
         var expResult;
