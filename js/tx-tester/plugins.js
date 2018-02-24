@@ -181,17 +181,20 @@ function createPlugins(testUtil, ledger) {
 			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
 			const gasUsed = ctx.txRes.receipt.gasUsed;
-			assert(new BigNumber(gasUsed).lt(val));
-			console.log(`✓ less than ${val} gas used (${gasUsed})`);
+			const msg = `less than ${val} gas used (${gasUsed})`;
+			assert(new BigNumber(gasUsed).lt(val), msg);
+			console.log(`✓ ${msg}`);
 		},
 		assertGasUsedGt: function(val) {
 			const ctx = this;
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 			if (!ctx.txRes) throw new Error("Expected 'doTx' to succeed.");
 
+
 			const gasUsed = ctx.txRes.receipt.gasUsed;
-			assert(new BigNumber(gasUsed).gt(val));
-			console.log(`✓ more than ${val} gas used (${gasUsed})`);
+			const msg = `more than ${val} gas used (${gasUsed})`;
+			assert(new BigNumber(gasUsed).gt(val), msg);
+			console.log(`✓ ${msg}`);
 		},
 		printTxResult: function(){
 			const ctx = this;

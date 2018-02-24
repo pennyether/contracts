@@ -417,28 +417,35 @@ describe('InstaDice', function(){
         var expTotalWon = await dice.totalWon();
         var expPlayerWinnings = new BigNumber(0);
         var expPayouts = new BigNumber(0);
-        var expGasUsed = new BigNumber(75000);
+
+        var expGasUsed = new BigNumber(56000);
+        const existingUser = (await dice.userIds(player)).gt(0);
+        if (!existingUser) expGasUsed = expGasUsed.plus(40000);
+        
 
         // determine what will get finalized
         async function simulateFinalizeNext() {
             const id = expFinalizeId;
-            if (id.gte(expId)) {
-                console.log(`Nothing to finalize.`);
-                return;
-            }
 
             const roll = await getRoll(id);
-            if (roll.result.gt(0)) {
-                console.log(`Should skip finalizing roll #${id} - it's already finalized.`);
-                // increments finalizeId, reads from storage a lot.
-                expGasUsed = expGasUsed.plus(7000);
-                expFinalizeId = expFinalizeId.plus(1);
+            if (roll.id.equals(0)) {
+                console.log(`Nothing to finalize.`);
+                expGasUsed = expGasUsed.plus(1000);
                 return;
             }
 
             const curBlock = testUtil.getBlockNumber();
             if (curBlock <= roll.block) {
                 console.log(`Should not finalize roll #${id} - it's on this block.`);
+                expGasUsed = expGasUsed.plus(1000);
+                return;
+            }
+
+            if (roll.result.gt(0)) {
+                console.log(`Should skip finalizing roll #${id} - it's already finalized.`);
+                // increments finalizeId, reads from storage a lot.
+                expGasUsed = expGasUsed.plus(7000);
+                expFinalizeId = expFinalizeId.plus(1);
                 return;
             }
 
@@ -476,8 +483,8 @@ describe('InstaDice', function(){
                 expGasUsed = expGasUsed.plus(40000);
                 return true;
             } else {
-                expGasUsed = expGasUsed.plus(16000);
                 console.log(`Roll #${id} should finalize with result ${result} against ${roll.number} and lose.`);
+                expGasUsed = expGasUsed.plus(16000);
             }
         }
 
@@ -490,25 +497,29 @@ describe('InstaDice', function(){
             .startLedger([player, dice])
             .doTx([dice, "roll", number, {value: bet, from: player}])
                 .assertSuccess()
+            .doFn(async function(ctx){
+                await testUtil.mineBlocks(1);
+            })
             .stopLedger()
                 .assertDelta(dice, bet.minus(expPayouts))
-                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings))
-            //.assertGasUsedLt(expGasUsed)
+                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings));
+
+        expLogs.forEach((arr) => {
+            txTester.assertLog(arr[0], arr[1])
+        });
+
+        txTester
+            .assertGasUsedLt(expGasUsed)
             .assertCallReturns([dice, "curId"], expId)
             .assertCallReturns([dice, "finalizeId"], expFinalizeId)
             .assertCallReturns([dice, "totalWagered"], expTotalWagered)
             .assertCallReturns([dice, "totalWon"], expTotalWon)
             .assertLogCount(expLogs.length);
 
-        expLogs.forEach((arr) => {
-            txTester.assertLog(arr[0], arr[1]);
-        });
-
         // Assert this roll has expected result.
         var expResult;
         return txTester
             .doFn(async function(ctx){
-                await testUtil.mineBlocks(1);
                 const blockHash = ctx.txRes.receipt.blockHash;
                 expResult = computeResult(blockHash, expId);
                 const winStr = expResult.lte(number) ? "win" : "lose"

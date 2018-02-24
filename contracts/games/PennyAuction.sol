@@ -44,7 +44,10 @@ contract PennyAuction {
         uint32 lastBidBlock;    // block of the last bid
         bool isPaid;            // whether or not the winner has been paid
     }
-    struct Const {
+
+    // These values are set on construction and don't change.
+    // We store in a struct for gas-efficient reading/writing.
+    struct Settings {
         // [first 256-bit segment]
         address collector;       // address that fees get sent to
         uint64 initialPrizeGwei; // (Gwei > 0) amt initially staked
@@ -55,7 +58,7 @@ contract PennyAuction {
     }
 
     Vars vars;
-    Const const;
+    Settings settings;
     uint constant version = 1;
 
     event SendPrizeError(uint time, string msg);
@@ -95,14 +98,14 @@ contract PennyAuction {
         // These can be safely cast to int64 because they are each < 1e24 (see above),
         // 1e24 divided by 1e9 is 1e15. Max int64 val is ~1e19, so plenty of room.
         // For block numbers, uint32 is good up to ~4e12, a long time from now.
-        const.collector = _collector;
-        const.initialPrizeGwei = uint64(_initialPrize / 1e9);
-        const.bidPriceGwei = uint64(_bidPrice / 1e9);
-        const.bidIncrGwei = int64(_bidIncr / 1e9);
-        const.bidAddBlocks = uint32(_bidAddBlocks);
+        settings.collector = _collector;
+        settings.initialPrizeGwei = uint64(_initialPrize / 1e9);
+        settings.bidPriceGwei = uint64(_bidPrice / 1e9);
+        settings.bidIncrGwei = int64(_bidIncr / 1e9);
+        settings.bidAddBlocks = uint32(_bidAddBlocks);
 
         // Initialize the auction variables.
-        vars.prizeGwei = const.initialPrizeGwei;
+        vars.prizeGwei = settings.initialPrizeGwei;
         vars.currentWinner = _collector;
         vars.lastBidBlock = uint32(block.number);
         vars.blockEnded = uint32(block.number + _initialBlocks);
@@ -149,7 +152,7 @@ contract PennyAuction {
             return errorAndRefund("You are already the current winner.");
         if (msg.value != bidPrice())
             return errorAndRefund("Value sent must match bidPrice.");
-        int _newPrizeGwei = int(vars.prizeGwei) + const.bidIncrGwei;
+        int _newPrizeGwei = int(vars.prizeGwei) + settings.bidIncrGwei;
         if (_newPrizeGwei < 0)
             return errorAndRefund("Bidding would result in a negative prize.");
 
@@ -168,7 +171,7 @@ contract PennyAuction {
             vars.currentWinner = msg.sender;
             vars.numBids++;
             vars.prizeGwei = uint64(_newPrizeGwei);
-            vars.blockEnded += uint32(const.bidAddBlocks);
+            vars.blockEnded += uint32(settings.bidAddBlocks);
             vars.lastBidBlock = uint32(block.number);
         }
         if (!_isClean && _isRefundSuccess){
@@ -259,8 +262,8 @@ contract PennyAuction {
     {
         if (fees() == 0) return;
         _feesSent = fees();
-        require(const.collector.call.value(_feesSent)());
-        FeesSent(now, const.collector, _feesSent);
+        require(settings.collector.call.value(_feesSent)());
+        FeesSent(now, settings.collector, _feesSent);
     }
 
 
@@ -274,8 +277,8 @@ contract PennyAuction {
         return vars.currentWinner;
     }
     function prize() public view returns (uint) {
-        int _initialPrize = int(const.initialPrizeGwei) * 1e9;
-        int _bidIncrs = int(const.bidIncrGwei) * vars.numBids * 1e9;
+        int _initialPrize = int(settings.initialPrizeGwei) * 1e9;
+        int _bidIncrs = int(settings.bidIncrGwei) * vars.numBids * 1e9;
         return uint(_initialPrize + _bidIncrs);
     }
     function numBids() public view returns (uint) {
@@ -292,24 +295,24 @@ contract PennyAuction {
     }
     ///////////////////////////////////////////////////////////
 
-    // Expose all Consts //////////////////////////////////////
+    // Expose all Settings //////////////////////////////////////
     function collector() public view returns (address) {
-        return const.collector;
+        return settings.collector;
     }
     function initialPrize() public view returns (uint){
-        return uint(const.initialPrizeGwei) * 1e9;
+        return uint(settings.initialPrizeGwei) * 1e9;
     }
     function bidPrice() public view returns (uint) {
-        return uint(const.bidPriceGwei) * 1e9;
+        return uint(settings.bidPriceGwei) * 1e9;
     }
     function bidIncr() public view returns (int) {
-        return int(const.bidIncrGwei) * 1e9;
+        return int(settings.bidIncrGwei) * 1e9;
     }
     function fees() public view returns (uint) {
         return vars.isPaid ? this.balance : this.balance - prize();
     }
     function bidAddBlocks() public view returns (uint) {
-        return const.bidAddBlocks;
+        return settings.bidAddBlocks;
     }
     ///////////////////////////////////////////////////////////
 
@@ -322,7 +325,7 @@ contract PennyAuction {
         return vars.blockEnded - block.number;
     }
     function totalFees() public view returns (uint) {
-        int _feePerBidGwei = int(const.bidPriceGwei) - const.bidIncrGwei;
+        int _feePerBidGwei = int(settings.bidPriceGwei) - settings.bidIncrGwei;
         return uint(_feePerBidGwei * vars.numBids * 1e9);
     }
     ///////////////////////////////////////////////////////////
