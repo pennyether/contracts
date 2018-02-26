@@ -36,7 +36,7 @@ contract PennyAuction {
     struct Vars {
         // [first 256-bit segment]
         address currentWinner;  // address of last bidder
-        uint64 prizeGwei;        // (Gwei) the current prize
+        uint64 prizeGwei;       // (Gwei) the current prize
         uint32 numBids;         // total number of bids
 
         // [second 256-bit segment]
@@ -260,8 +260,8 @@ contract PennyAuction {
         public
         returns (uint _feesSent)
     {
-        if (fees() == 0) return;
         _feesSent = fees();
+        if (_feesSent == 0) return;
         require(settings.collector.call.value(_feesSent)());
         FeesSent(now, settings.collector, _feesSent);
     }
@@ -269,7 +269,7 @@ contract PennyAuction {
 
 
     /*************************************************************/
-    /********** PUBLIC VIEW **************************************/
+    /********** PUBLIC VIEWS *************************************/
     /*************************************************************/
 
     // Expose all Vars ////////////////////////////////////////
@@ -277,9 +277,7 @@ contract PennyAuction {
         return vars.currentWinner;
     }
     function prize() public view returns (uint) {
-        int _initialPrize = int(settings.initialPrizeGwei) * 1e9;
-        int _bidIncrs = int(settings.bidIncrGwei) * vars.numBids * 1e9;
-        return uint(_initialPrize + _bidIncrs);
+        return uint(vars.prizeGwei) * 1e9;
     }
     function numBids() public view returns (uint) {
         return vars.numBids;
