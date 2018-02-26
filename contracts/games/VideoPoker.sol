@@ -9,7 +9,7 @@ contract VideoPoker is
 {
     // All the data needed for each game.
     struct Game {
-        // 1st 256-bit block
+        // [1st 256-bit block]
         uint32 userId;
         uint64 bet;         // max of 18 Ether (set on bet)
         uint16 payTableId;  // the PayTable used (set on bet)
@@ -29,7 +29,8 @@ contract VideoPoker is
         uint32 curId;               // (changes on bet)
         uint64 totalWageredGwei;    // (changes on bet)
         uint32 curUserId;           // (changes on bet, maybe)
-        uint128 empty1;             // [intentionally left empty]
+        uint128 empty1;             // intentionally left empty, so the below
+                                    //   updates occur in the same update
         // [2nd 256-bit block]
         uint64 totalWonGwei;        // (changes on finalization win)
         uint88 totalCredits;        // (changes on finalization win)
@@ -38,10 +39,11 @@ contract VideoPoker is
     Vars vars;
     
     // A Mapping of all games
-    mapping(uint32=>Game) public games;
+    mapping(uint32 => Game) public games;
     
-    // Credits
+    // Credits we owe the user
     mapping(address => uint) public credits;
+
     // Store a two-way mapping of address <=> userId
     // If we've seen a user before, betting will be just 1 write
     //  per Game struct vs 2 writes.
@@ -85,6 +87,7 @@ contract VideoPoker is
     {
         // Add the default PayTable.
         _addPayTable(800, 50, 25, 9, 6, 4, 3, 2, 1);
+        // write to vars, to lower gas-cost for the first game.
         vars.empty1 = 1;
         vars.empty2 = 1;
     }
@@ -121,9 +124,9 @@ contract VideoPoker is
     }
     
 
-    /**************************************************/
-    /****** PUBLIC FUNCTIONS **************************/
-    /**************************************************/
+    /************************************************************/
+    /****************** PUBLIC FUNCTIONS ************************/
+    /************************************************************/
 
     // Allows a user to add credits to their account.
     function addCredits()
@@ -247,8 +250,9 @@ contract VideoPoker is
     //     if (!_didFinalize)
     //         _betFailure("Failed to finalize prior game.", _bet, false)
     // }
+    //
     // function finalizeAndCashout(uint32 _id) {
-
+    //
     // }
 
 
@@ -288,9 +292,9 @@ contract VideoPoker is
         }
 
 
-    /*******************************************************/
-    /************** PRIVATE FUNCTIONS **********************/
-    /*******************************************************/
+    /************************************************************/
+    /****************** PRIVATE FUNCTIONS ***********************/
+    /************************************************************/
 
     // Appends a PayTable to the mapping.
     // It ensures sane values. (Double the defaults)
@@ -359,8 +363,7 @@ contract VideoPoker is
         private
         returns (uint32 _curId)
     {
-        _curId =  vars.curId + 1;
-        uint64 _totalWagered = vars.totalWageredGwei + _bet;
+        // get or create user id
         uint32 _curUserId = vars.curUserId;
         uint32 _userId = userIds[msg.sender];
         if (_userId == 0) {
@@ -369,11 +372,15 @@ contract VideoPoker is
             userAddresses[_curUserId] = msg.sender;
             _userId = _curUserId;
         }
+
         // increment vars
+        _curId =  vars.curId + 1;
+        uint64 _totalWagered = vars.totalWageredGwei + _bet / 1e9;
         vars.curId = _curId;
         vars.totalWageredGwei = _totalWagered;
         vars.curUserId = _curUserId;
 
+        // save game
         uint16 _payTableId = curPayTableId;
         Game storage _game = games[_curId];
         _game.userId = _userId;
@@ -388,10 +395,13 @@ contract VideoPoker is
     //   - 3k: getHand()
     //   - 5k: 1 update: iHand, draws, dBlock
     //   - 2k: event: DrawSuccess
-    //   - 2k (maybe): DrawWarning
+    //   - 2k: (maybe): DrawWarning
     function _draw(Game storage _game, uint32 _id, uint8 _draws, bytes32 _hashCheck)
         private
     {
+        // assert hand is not already drawn
+        assert(_game.dBlock == 0);
+
         // Deal the initial hand, or set draws to 5.
         uint32 _iHand;
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
@@ -402,8 +412,7 @@ contract VideoPoker is
             }
             _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
         } else {
-            DrawWarning(now, msg.sender, _id, _draws, 
-                "Initial hand no longer available. Drawing 5 cards.");
+            DrawWarning(now, msg.sender, _id, _draws, "Initial hand not available. Drawing 5 cards.");
             _draws = 63;
         }
 
@@ -419,23 +428,23 @@ contract VideoPoker is
     // This always sets game.dHand and game.handRank.
     //
     // There are four possible scenarios:
-    //   User draws 0 cards, and iBlock is fresh:
-    //     - draw 5 cards into iHand, set dHand to iHand
-    //   User draws 0 cards, and iBlock is too old:
-    //     - draw 5 cards using prev block, set dHand and dBlock
     //   User draws N cads, and dBlock is fresh:
     //     - draw N cards into iHand, this is dHand
     //   User draws N cards, and dBlock is too old:
     //     - set dHand to iHand (note: iHand may be empty)
+    //   User draws 0 cards, and iBlock is fresh:
+    //     - draw 5 cards into iHand, set dHand to iHand
+    //   User draws 0 cards, and iBlock is too old:
+    //     - fail: set draws to 5, return. (user should call finalize again)
     //
     // Gas Cost: 21k loss, 36k win, 49k new win
-    //   - 6k: drawToHand()
+    //   - 6k: if draws > 0: drawToHand()
     //   - 7k: getHandRank()
     //   - 5k: 1 update: Game
     //   - 2k: FinalizeSuccess
     //   - 2k (maybe): FinalizeWarning
     //   - 1k: SLOADs, execution
-    //   On Win:
+    //   On Win: +13k, or +28k
     //   - 5k: 1 updates: totalCredits, totalWon
     //   - 5k or 20k: 1 update/write to credits[user]
     //   - 2k: event: AccountCredited
@@ -448,12 +457,25 @@ contract VideoPoker is
 
         // Compute _dHand
         address _user = userAddresses[_game.userId];
-        uint32 _dHand;
         bytes32 _blockhash;
-        uint32 _iHand;      // set if draws are 0, and iBlock is fresh
-        uint32 _dBlock;     // set if draws are 0, and iBlock is old
-        uint8 _draws;       // set if draws are 0, and iBlock is old
-        if (_game.draws == 0) {
+        uint32 _dHand;
+        uint32 _iHand;  // set if draws are 0, and iBlock is fresh
+        if (_game.draws != 0) {
+            _blockhash = block.blockhash(_game.dBlock);
+            if (_blockhash != 0) {
+                // draw cards to iHand, use as dHand
+                _dHand = drawToHand(uint(keccak256(_blockhash, _id)), _game.iHand, _game.draws);
+            } else {
+                // cannot draw any cards. use iHand.
+                if (_game.iHand != 0){
+                    _dHand = _game.iHand;
+                    FinalizeWarning(now, _user, _id, "Draw cards not available. Using initial hand.");
+                } else {
+                    _dHand = 0;
+                    FinalizeWarning(now, _user, _id, "Draw cards not available, and no initial hand.");
+                }
+            }
+        } else {
             _blockhash = block.blockhash(_game.iBlock);
             if (_blockhash != 0) {
                 // ensure they are drawing against expected hand
@@ -465,27 +487,12 @@ contract VideoPoker is
                 _iHand = getHand(uint(keccak256(_blockhash, _id)));
                 _dHand = _iHand;
             } else {
-                // draw 5 cards right now into dHand
-                FinalizeWarning(now, _user, _id, "Initial hand not available. Drawing 5 cards.");
-                _draws = 63;
-                _dBlock = uint32(block.number - 1);
-                _blockhash = block.blockhash(_dBlock);
-                _dHand = getHand(uint(keccak256(_blockhash, _id)));
-            }
-        } else {
-            _blockhash = block.blockhash(_game.dBlock);
-            if (_blockhash != 0) {
-                // draw cards to iHand, use as dHand
-                _dHand = drawToHand(uint(keccak256(_blockhash, _id)), _game.iHand, _game.draws);
-            } else {
-                // cannot draw any cards. use iHand.
-                if (_game.iHand == 0){
-                    _dHand = 0;
-                    FinalizeWarning(now, _user, _id, "Draw cards not available, and no initial hand.");
-                } else {
-                    _dHand = _game.iHand;
-                    FinalizeWarning(now, _user, _id, "Draw cards not available. Using initial hand.");
-                }
+                // can't finalize with iHand. Draw 5 cards.
+                _finalizeFailure(_id, "Initial hand not available. Drawing 5 new cards.");
+                _game.draws = 63;
+                _game.dBlock = uint32(block.number);
+                DrawSuccess(now, _user, _id, 63);
+                return;
             }
         }
 
@@ -496,10 +503,7 @@ contract VideoPoker is
 
         // if draws were 0, and could draw iHand, set iHand.
         if (_iHand > 0) _game.iHand = _iHand;
-        // // if draws were 0, and could not draw iHand, set these.
-        if (_dBlock > 0) _game.dBlock = _dBlock;
-        if (_draws > 0) _game.draws = _draws;
-        // // always set dHand and handRank
+        // always set dHand and handRank
         _game.dHand = _dHand;
         _game.handRank = _handRank;
 
@@ -511,9 +515,9 @@ contract VideoPoker is
 
 
 
-    /**********************************************************/
-    /****************** PUBLIC VIEWS **************************/
-    /**********************************************************/
+    /************************************************************/
+    /******************** PUBLIC VIEWS **************************/
+    /************************************************************/
 
     // OVERRIDES: Fundable.getProfits()
     // Ensures contract always has at least funding + totalCredits.
@@ -530,7 +534,7 @@ contract VideoPoker is
 
     // Returns the largest bet such that we could pay out two RoyalFlushes.
     // The likelihood that two RoyalFlushes (with max bet size) are 
-    // won within a 255 block period is extremely low.
+    //  won within a 255 block period is extremely low.
     function curMaxBet() public view returns (uint) {
         // Upcast to uint for cheaper math below.
         uint _credits = vars.totalCredits;
@@ -554,35 +558,39 @@ contract VideoPoker is
         return payTables[_payTableId];
     }
 
+    // Gets the initial hand of a game.
     function getIHand(uint32 _id)
         public
         view
         returns (uint32)
     {
         Game memory _game = games[_id];
-        if (_game.iBlock == 0) return;
         if (_game.iHand != 0) return _game.iHand;
+        if (_game.iBlock == 0) return;
         
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
         if (_iBlockHash == 0) return;
         return getHand(uint(keccak256(_iBlockHash, _id)));
     }
 
+    // Get the final hand of a game.
+    // This will return iHand if there are no draws yet.
     function getDHand(uint32 _id)
         public
         view
         returns (uint32)
     {
         Game memory _game = games[_id];
-        if (_game.dBlock == 0) return;
         if (_game.dHand != 0) return _game.dHand;
         if (_game.draws == 0) return _game.iHand;
+        if (_game.dBlock == 0) return;
 
         bytes32 _dBlockHash = block.blockhash(_game.dBlock);
         if (_dBlockHash == 0) return _game.iHand;
         return drawToHand(uint(keccak256(_dBlockHash, _id)), _game.iHand, _game.draws);
     }
 
+    // Returns the hand rank and payout of a Game.
     function getDHandRank(uint32 _id)
         public
         view
@@ -594,11 +602,15 @@ contract VideoPoker is
             : uint8(getHandRank(_dHand));
     }
 
+    // Expose Vars //////////////////////////////////////
     function curId() public view returns (uint32) {
         return vars.curId;
     }
     function totalWagered() public view returns (uint) {
         return uint(vars.totalWageredGwei) * 1e9;
+    }
+    function curUserId() public view returns (uint) {
+        return uint(vars.curUserId);
     }
     function totalWon() public view returns (uint) {
         return uint(vars.totalWonGwei) * 1e9;
@@ -606,4 +618,5 @@ contract VideoPoker is
     function totalCredits() public view returns (uint) {
         return vars.totalCredits;
     }
+    /////////////////////////////////////////////////////
 }

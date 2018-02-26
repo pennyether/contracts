@@ -13,6 +13,7 @@ describe('VideoPoker', function(){
     const player1 = accounts[2];
     const player2 = accounts[3];
     const player3 = accounts[4];
+    const players = [player1, player2, player3];
     const dummyTreasury = accounts[5];
     const anon = accounts[6];
     var vp;
@@ -165,11 +166,311 @@ describe('VideoPoker', function(){
         })
     });
 
-    describe("Do some games", async function(){
-        assertDoesAGame();
-        assertDoesAGame();
-        assertDoesAGame();
+
+    describe("Do a bunch of games.", async function(){
+        const minBet = await vp.minBet();
+        const maxBet = await vp.maxBet();
+        //describeDoesGame(playerNum, betSize, drawsArr, iHandTimeout, dHandTimeout)
+        describeDoesGame("Bet too small", 1, minBet.minus(1));
+        describeDoesGame("Bet too large", 2, minBet.plus(1));
+        describeDoesGame("Bet above curMaxBet", 1, "curMaxBet");
+        describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,1]);
+        describeDoesGame("Bet and draw", 1, minBet, [0,0,0,1,0]);
+        describeDoesGame("Bet and draw", 2, minBet, [0,0,1,0,0]);
+        describeDoesGame("Bet and draw", 1, minBet, [0,1,0,0,0]);
+        describeDoesGame("Bet and draw", 2, minBet, [1,0,0,0,0]);
+        describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
+        describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,0]);
+        describeDoesGame("Bet and draw", 1, minBet, [0,1,0,1,0]);
+        describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
+        describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
+        describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
+        describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
+        describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
+        describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
+        describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
+        describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
+        describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
+
+    // Some things to test:
+    //   - Drawing 0 cards (skip to finalize)
+    //   - Drawing 5 cards
+    //   - Make sure finalizing fails before drawing
+    //   - Try to double-finalize
+    //   - Betting:
+    //      - can't bet above curMax()
+    //      - can't be above max
+    //      - can't be below min
+    //   - Drawing:
+    //      - check for:
+    //          - invalid game
+    //          - wrong user
+    //          - must wait for initial block
+    //          - between 1 and 4 draws
+    //          - not already called
+    //      - test hashCheck works
+    //      - warning: sets to full draw if initial hand is old
+    //   - Finalizing:
+    //      - check for:
+    //          - invalid game
+    //          - wrong user
+    //          - no initial hand
+    //          - same block
+    //          - already finalized
+    //      - 1-5 draws:
+    //          - if dBlock is fresh:
+    //              - works
+    //          - if dBlock is old:
+    //              - warning: use iHand
+    //      - 0 draws:
+    //          - if iBlock is fresh:
+    //              - use initial hand
+    //          - if iBlock is old:
+    //              - fail: set draws to 5, recall.
+    //      - On win:
+    //          - credits account
+    //          - increments total owed
+
+
+    // Ensure all of these conditions are met via calls to describeDoesGame.
+    var conditions = {
+        bet: {
+            minBet: false,
+            maxBet: false,
+            curMaxBet: false
+        },
+        draw: {
+            permutation: {
+                // 0 - 32
+            },
+            iHandTimeout: false,
+        },
+        finalize: {
+            iHandTimeout: false,
+            dHandTimeout: false,
+            bothHandTimeout: false,
+            noDraws: {
+                iHandTimeout: false,
+                bothHandTimeout: false
+            },
+            win: false
+        },
+    };
+
+    async function describeDoesGame(title, playerNum, betSize, drawsArr, iHandTimeout, dHandTimeout) {
+        if (!drawsArr) drawsArr = [0,0,0,0,];
+        const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
+
+        describe(title, async function(){
+            betSize = betSize == "curMaxBet"
+                ? (await vp.curMaxBet()).plus(1)
+                : new BigNumber(betSize);
+
+            // determine if bet is too large, and assert if it can or cannot bet.
+            var shouldPass = true;
+            const expectedId = (await vp.curId()).plus(1);
+
+            // Do initial bet, which we may expect to fail.
+            const logInfo = this.logInfo;
+            await (async function(){
+                const curMaxBet = await vp.curMaxBet();
+                const maxBet = await vp.maxBet();
+                const minBet = await vp.minBet();
+                var shouldPass = true;
+                if (betSize.lt(minBet)) {
+                    conditions.bet.minBet = true;
+                    logInfo(`This tests the minBet condition.`);
+                    shouldPass = false;
+                }
+                if (betSize.gt(maxBet)) {
+                    conditions.bet.maxBet = true;
+                    logInfo(`This tests the maxBet condition.`);
+                    shouldPass = false;
+                }
+                if (betSize.gt(curMaxBet)) {
+                    conditions.bet.curMaxBet = true;
+                    logInfo(`This tests the curMaxBet condition.`);
+                    logInfo(`VideoPoker cannot afford to pay out two max-bet Royal Flushes.`);
+                    shouldPass = false;
+                }
+                // Make sure it bets correctly. This includes failures for any reason.
+                itBets(playerNum, betSize);
+            }());
+
+            if (!shouldPass) {
+                this.logInfo("Will not test drawing or finalizing -- the bet should fail.");
+                return;
+            }
+
+            // Update conditions, and do draw.
+            conditions.draw.permutation[drawsNum] = true;
+            if (iHandTimeout) conditions.draw.iHandTimeout = true;
+            // Make sure it draws correctly. This includes failures/warnings.
+            itDraws(expectedId, playerNum, drawsNum, iHandTimeout);
+            
+            // todo: remove
+            this.logInfo("Not testing anything else yet...");
+            return;
+
+            // Update conditions, and do finalization.
+            if (drawsNum != 0) {
+                if (iHandTimeout && !dHandTimeout)
+                    conditions.finalize.iHandTimeout = true;
+                if (!iHandTimeout && dHandTimeout)
+                    conditions.finalize.dHandTimeout = true;    
+            } else {
+                if (iHandTimeout && !dHandTimeout)
+                    conditions.finalize.noDraws.iHandTimeout = true;
+                if (iHandTimeout && dHandTimeout)
+                    conditions.finalize.noDraws.bothHandTimeout = true;
+                
+            }
+            // Make sure it finalizes correctly. This includes failures/warnings.
+            itFinalizes(expectedId, playerNum, dHandTimeout);
+        });
+    }
+
+    // Tests that attempting to bet works properly.
+    async function itBets(playerNum, betSize) {
+        it(`Player ${playerNum+1} tries to bet ${eth(betSize)}.`, async function(){
+            // computed expected gas, logs
+            const player = players[playerNum-1];
+            var expGas = new BigNumber(27000);
+            var expLogs = [];
+            var expSuccess = true;
+            var expUserId;
+            var expCurId = await vp.curId();
+            const expGameId = expCurId.plus(1);
+
+            // Test bet size, record expected error message.
+            var errMsg;
+            if (betSize.lt(await vp.minBet())) {
+                errMsg = "Bet too small.";
+            } else if (betSize.gt(await vp.maxBet())) {
+                errMsg = "Bet too large.";
+            } else if (betSize.gt(await vp.curMaxBet())) {
+                errMsg = "The bankroll is too low.";
+            }
+
+            // Determine which log should be pushed.
+            const shouldSucceed = !errMsg;
+            if (shouldSucceed) {
+                expLogs.push(["BetSuccess", {
+                    time: null,
+                    user: player,
+                    id: expGameId,
+                    bet: betSize
+                }]);
+                expGas = expGas.plus(26000);    // 1 write, 1 update, SLOADs
+                expCurId = expGameId;
+            } else {
+                expLogs.push(["BetFailure", {
+                    user: player,
+                    bet: betSize,
+                    msg: errMsg
+                }]);
+                expGas = expGas.plus(11000);    // refund ETH
+            }
+
+            // whether or not should create a new user id
+            var expUserId = await vp.userIds(player);
+            var expCurUserId = await vp.curUserId();
+            if (shouldSucceed && expUserId.equals(0)) {
+                expUserId = expCurUserId.plus(1);
+                expCurUserId = expUserId;
+                expGas = expGas.plus(41000);    // 2 writes, SLOADs
+            }
+
+            // do TX, and assert success and proper deltas and logs
+            const txTester = createDefaultTxTester()
+                .startLedger([vp, player])
+                .doTx([vp, "bet", {from: player, value: betSize}])
+                .stopLedger()
+                .assertSuccess();
+
+            // assert delta
+            var expIHand;
+            if (shouldSucceed) {
+                txTester
+                    .assertDelta(vp, betSize)
+                    .assertDeltaMinusTxFee(player, betSize.mul(-1));
+            } else {
+                txTester
+                    .assertNoDelta(vp)
+                    .assertDeltaMinusTxFee(player, 0);
+            }
+
+            // assert logs
+            txTester.assertLogCount(expLogs.length);
+            expLogs.forEach(function(l){
+                txTester.assertLog(l[0], l[1]);
+            })
+
+            // assert game is saved correctly, and .getIHand() works
+            if (shouldSucceed) {
+                const expPayTableId = await vp.curPayTableId();
+                var expBlockNumber = testUtil.getBlock();
+                var expIHand;
+                txTester
+                    .withTxResult((res)=>{
+                        expBlockNumber = res.receipt.blockNumber;
+                        expIHand = getIHand(res.receipt.blockHash, expGameId);
+                        // mine a block so .getIHand() works in ganache
+                        testUtil.mineBlocks(1);
+                    })
+                    .assertCallReturns([vp, "games", expGameId],
+                        ()=>[expUserId, betSize, expPayTableId, expBlockNumber, 0, 0, 0, 0, 0])
+                    .assertCallReturns([vp, "getIHand", expGameId], ()=>expIHand.toNumber());
+            }
+
+            // assert proper gasUsed
+            return txTester
+                .assertCallReturns([vp, "curId"], expCurId)
+                .assertCallReturns([vp, "curUserId"], expCurUserId)
+                .assertGasUsedLt(expGas)
+                .start();
+        });
+    }
+
+    // Tests that attempting to draw works properly.
+    // If doTimeout is true, will mineBlocks to ensure hash is old and not used.
+    async function itDraws(id, playerNum, draws, doTimeout) {
+        // computed expected gas, logs
+        it(`Draws game ${id} with ${draws}`, async function(){
+            const player = players[playerNum-1];
+            const game = await getGame(id);
+            var expGas = new BigNumber(27000);
+            var expLogs = [];
+            var expSuccess = true;
+            var expUserId;
+        });
+
+        // test that id is correct
+        // test that player is correct (for given id)
+        // test that draws is not 0, or > 63
+        // test that is not already drawn
+
+        // do TX with invalid hashCheck
+
+        // do TX, assert success, no deltas, and proper logs
+
+        // assert saved game has expected state
+
+
+        // for successful cases, retest that drawing fails (already drawn)
+    }
+
+    // For the given game state, and doTimeout, ensure everything works as expected.
+    // If doTimeout is true, will mineBlocks to ensure hash is old and not used.
+    async function itFinalizes(id, player, doTimeout) {
+        // computed expected gas
+        // computed expected logs
+        // test that id is correct
+        // test that player is correct
+        // test that is not already defined
+    }
 
     function assertDoesAGame(){
         const BET = new BigNumber(.001e18);
@@ -234,47 +535,19 @@ describe('VideoPoker', function(){
 
     async function getGame(id) {
         const arr = await vp.games(id);
+        const userId = arr[0];
+        const userAddr = await vp.userAddresses[userId];
         return {
-            id: arr[0],
-            user: arr[1],
-            bet: arr[2],
-            payTableId: arr[3],
-            iBlock: arr[4],
-            iHand: arr[5],
-            draws: arr[6],
-            dBlock: arr[7],
-            dHand: arr[8],
-            handRank: arr[9]
+            user: userAddr,
+            bet: arr[1],
+            payTableId: arr[2],
+            iBlock: arr[3],
+            iHand: arr[4],
+            draws: arr[5],
+            dBlock: arr[6],
+            dHand: arr[7],
+            handRank: arr[8]
         };
-    }
-
-    async function assertBets(player, bet) {
-        var expId = (await vp.curId()).plus(1);
-        var expLogs = [];
-        // see if there is enough funding. if not, expect error.
-        (function(){
-
-        }());
-
-        await createDefaultTxTester()
-            .doTx([vp, "bet", {value: .1e18, from: player1}])
-            .assertSuccess()
-            .assertGasUsedLt(71000)
-            .assertOnlyLog("BetSuccess", {})
-            .withTxResult((res)=>{
-                const blockhash = res.receipt.blockHash;
-                expIHand = getIHand(blockhash, GAME_ID);
-                console.log(`Initial hand should be: ${expIHand}`);
-                return testUtil.mineBlocks(1);
-            })
-            .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
-            .start();
-    }
-    async function assertDraws(player, id) {
-
-    }
-    async function assertFinalizes(player, id) {
-
     }
 
     async function assertAddsFunding(amount) {
@@ -532,3 +805,7 @@ function cardToUnicode(i){
     return String.fromCodePoint(code);
 }
 
+function eth(val) {
+    val = new BigNumber(val);
+    return val.div(1e18).toFixed(5) + " ETH";
+}

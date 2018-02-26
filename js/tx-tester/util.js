@@ -148,6 +148,7 @@ function createUtil(web3, assert){
 			if (!Number.isInteger(numBlocks))
 				throw new Error("Passed a non-number: " + numBlocks);
 
+			const before = _self.getBlockNumber();
 			for (var i=0; i<numBlocks; i++){
 				web3.currentProvider.send({
 		            jsonrpc: "2.0",
@@ -156,6 +157,8 @@ function createUtil(web3, assert){
 		            id: new Date().getTime()
 		        });
 			}
+			const after = _self.getBlockNumber();
+			console.log(`Mined ${numBlocks} blocks. BlockNumber increased from ${before} to ${after}.`)
 		},
 
 		getBlockNumber: function() {
@@ -166,7 +169,7 @@ function createUtil(web3, assert){
 		    return web3.eth.getBalance(address);
 		},
 		getBlock: function (blockHash){
-		    return web3.eth.getBlock(blockHash)
+		    return web3.eth.getBlock(blockHash || 'latest');
 		},
 		getBlockTime: function (blockHash){
 			return _self.getBlock(blockHash || 'latest').timestamp;
