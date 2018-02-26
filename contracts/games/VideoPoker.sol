@@ -211,9 +211,9 @@ contract VideoPoker is
     //  - If user unable to resolve initial hand, sets draws to 5
     //  - This always sets game.dBlock
     //
-    // Gas Cost: ~36k
+    // Gas Cost: ~37k
     //   - 22k: tx
-    //   - 12k: see _draw()
+    //   - 13k: see _draw()
     //   -  2k: SLOADs, execution
     function draw(uint32 _id, uint8 _draws, bytes32 _hashCheck)
         public
@@ -391,11 +391,12 @@ contract VideoPoker is
     }
 
     // Gets initialHand, and stores .draws and .dBlock.
-    // Gas Cost: 12k
+    // Gas Cost: 13k
     //   - 3k: getHand()
     //   - 5k: 1 update: iHand, draws, dBlock
     //   - 2k: event: DrawSuccess
     //   - 2k: (maybe): DrawWarning
+    //   - 1k: SLOADs, other
     function _draw(Game storage _game, uint32 _id, uint8 _draws, bytes32 _hashCheck)
         private
     {

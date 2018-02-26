@@ -172,26 +172,26 @@ describe('VideoPoker', function(){
         const maxBet = await vp.maxBet();
         //describeDoesGame(playerNum, betSize, drawsArr, iHandTimeout, dHandTimeout)
         describeDoesGame("Bet too small", 1, minBet.minus(1));
-        describeDoesGame("Bet too large", 2, minBet.plus(1));
+        describeDoesGame("Bet too large", 2, maxBet.plus(1));
         describeDoesGame("Bet above curMaxBet", 1, "curMaxBet");
         describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,1]);
-        describeDoesGame("Bet and draw", 1, minBet, [0,0,0,1,0]);
-        describeDoesGame("Bet and draw", 2, minBet, [0,0,1,0,0]);
-        describeDoesGame("Bet and draw", 1, minBet, [0,1,0,0,0]);
-        describeDoesGame("Bet and draw", 2, minBet, [1,0,0,0,0]);
-        describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
-        describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,0]);
-        describeDoesGame("Bet and draw", 1, minBet, [0,1,0,1,0]);
-        describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
-        describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
-        describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
-        describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
-        describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
-        describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
-        describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
-        describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
-        describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
-        describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
+        // describeDoesGame("Bet and draw", 1, minBet, [0,0,0,1,0]);
+        // describeDoesGame("Bet and draw", 2, minBet, [0,0,1,0,0]);
+        // describeDoesGame("Bet and draw", 1, minBet, [0,1,0,0,0]);
+        // describeDoesGame("Bet and draw", 2, minBet, [1,0,0,0,0]);
+        // describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
+        // describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,0]);
+        // describeDoesGame("Bet and draw", 1, minBet, [0,1,0,1,0]);
+        // describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
+        // describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
+        // describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
+        // describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
+        // describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
+        // describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
+        // describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
+        // describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
+        // describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
+        // describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
 
     // Some things to test:
@@ -260,7 +260,7 @@ describe('VideoPoker', function(){
     };
 
     async function describeDoesGame(title, playerNum, betSize, drawsArr, iHandTimeout, dHandTimeout) {
-        if (!drawsArr) drawsArr = [0,0,0,0,];
+        if (!drawsArr) drawsArr = [0,0,0,0,0];
         const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
 
         describe(title, async function(){
@@ -269,16 +269,15 @@ describe('VideoPoker', function(){
                 : new BigNumber(betSize);
 
             // determine if bet is too large, and assert if it can or cannot bet.
-            var shouldPass = true;
             const expectedId = (await vp.curId()).plus(1);
 
             // Do initial bet, which we may expect to fail.
+            var shouldPass = true;
             const logInfo = this.logInfo;
             await (async function(){
                 const curMaxBet = await vp.curMaxBet();
                 const maxBet = await vp.maxBet();
                 const minBet = await vp.minBet();
-                var shouldPass = true;
                 if (betSize.lt(minBet)) {
                     conditions.bet.minBet = true;
                     logInfo(`This tests the minBet condition.`);
@@ -308,10 +307,10 @@ describe('VideoPoker', function(){
             conditions.draw.permutation[drawsNum] = true;
             if (iHandTimeout) conditions.draw.iHandTimeout = true;
             // Make sure it draws correctly. This includes failures/warnings.
-            itDraws(expectedId, playerNum, drawsNum, iHandTimeout);
+            itDraws(expectedId, playerNum, drawsArr, iHandTimeout);
             
             // todo: remove
-            this.logInfo("Not testing anything else yet...");
+            this.logInfo("Not testing finalization yet...");
             return;
 
             // Update conditions, and do finalization.
@@ -339,7 +338,6 @@ describe('VideoPoker', function(){
             const player = players[playerNum-1];
             var expGas = new BigNumber(27000);
             var expLogs = [];
-            var expSuccess = true;
             var expUserId;
             var expCurId = await vp.curId();
             const expGameId = expCurId.plus(1);
@@ -357,6 +355,7 @@ describe('VideoPoker', function(){
             // Determine which log should be pushed.
             const shouldSucceed = !errMsg;
             if (shouldSucceed) {
+                console.log(`Bet should succeed.`);
                 expLogs.push(["BetSuccess", {
                     time: null,
                     user: player,
@@ -366,6 +365,7 @@ describe('VideoPoker', function(){
                 expGas = expGas.plus(26000);    // 1 write, 1 update, SLOADs
                 expCurId = expGameId;
             } else {
+                console.log(`Bet should fail due to: ${errMsg}`);
                 expLogs.push(["BetFailure", {
                     user: player,
                     bet: betSize,
@@ -391,7 +391,6 @@ describe('VideoPoker', function(){
                 .assertSuccess();
 
             // assert delta
-            var expIHand;
             if (shouldSucceed) {
                 txTester
                     .assertDelta(vp, betSize)
@@ -411,18 +410,19 @@ describe('VideoPoker', function(){
             // assert game is saved correctly, and .getIHand() works
             if (shouldSucceed) {
                 const expPayTableId = await vp.curPayTableId();
-                var expBlockNumber = testUtil.getBlock();
+                const expBlockNumber = testUtil.getBlockNumber() + 1;
                 var expIHand;
                 txTester
                     .withTxResult((res)=>{
-                        expBlockNumber = res.receipt.blockNumber;
-                        expIHand = getIHand(res.receipt.blockHash, expGameId);
+                        const iHand = getIHand(res.receipt.blockHash, expGameId);
+                        console.log(`Initial hand should be ${iHand}`);
+                        expIHand = iHand.toNumber();
                         // mine a block so .getIHand() works in ganache
                         testUtil.mineBlocks(1);
                     })
                     .assertCallReturns([vp, "games", expGameId],
                         ()=>[expUserId, betSize, expPayTableId, expBlockNumber, 0, 0, 0, 0, 0])
-                    .assertCallReturns([vp, "getIHand", expGameId], ()=>expIHand.toNumber());
+                    .assertCallReturns([vp, "getIHand", expGameId], ()=>expIHand);
             }
 
             // assert proper gasUsed
@@ -436,30 +436,134 @@ describe('VideoPoker', function(){
 
     // Tests that attempting to draw works properly.
     // If doTimeout is true, will mineBlocks to ensure hash is old and not used.
-    async function itDraws(id, playerNum, draws, doTimeout) {
+    async function itDraws(id, playerNum, drawsArr, doTimeout) {
         // computed expected gas, logs
-        it(`Draws game ${id} with ${draws}`, async function(){
+        it(`Draws game ${id} with ${drawsArr}`, async function(){
+            if (!drawsArr) drawsArr = [0,0,0,0,0];
+            const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
             const player = players[playerNum-1];
             const game = await getGame(id);
-            var expGas = new BigNumber(27000);
+            var expGas = new BigNumber(24000);
             var expLogs = [];
-            var expSuccess = true;
-            var expUserId;
+
+            var errMsg;
+            if (game.iBlock.equals(0)) {
+                errMsg = "Invalid game Id.";
+            } else if (game.iBlock.gte(testUtil.getBlockNumber())) {
+                errMsg = "Initial cards not dealt yet.";
+            } else if (game.user != player) {
+                console.log(`${game.user} ${player}`)
+                errMsg = "This is not your game.";
+            } else if (game.dBlock.gt(0)) {
+                errMsg = "Cards already drawn.";
+            } else if (drawsNum > 63) {
+                errMsg = "Invalid draws.";
+            } else if (drawsNum == 0) {
+                errMsg = "Cannot draw 0 cards. Use finalize instead.";
+            }
+
+            // Determine which log should be pushed.
+            const shouldSucceed = !errMsg;
+            if (shouldSucceed) {
+                console.log(`Drawing should succeed.`);
+                expLogs.push(["DrawSuccess", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    draw: drawsNum
+                }]);
+                expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
+            } else {
+                console.log(`Drawing should fail due to: ${errMsg}`);
+                expLogs.push(["DrawFailure", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    draw: drawsNum,
+                    msg: errMsg
+                }]);
+                expGas = expGas.plus(6000);    // 1 update, 1 event, other
+            }
+
+            // Do the timeout, add expected log
+            if (shouldSucceed && doTimeout) {
+                console.log("Mining 255 blocks to ensure iHand no longer exists.");
+                await testUtil.mineBlocks(255);
+                expLogs.push(["DrawWarning", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    draws: drawsNum,
+                    msg: "Initial hand not available. Drawing 5 cards."
+                }]);
+                expGas = expGas.plus(3000);
+                await createDefaultTxTester()
+                    .assertCallReturns([vp, "getIHand", id], 0)
+                    .start();
+            }
+
+            // Test that with invalid hashCheck it fails.
+            const hashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+            if (shouldSucceed && !doTimeout) {
+                console.log("Test that passing invalid hashCheck fails.");
+                await createDefaultTxTester()
+                    .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
+                    .assertSuccess()
+                    .assertOnlyLog("DrawFailure", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        draw: drawsNum,
+                        msg: "HashCheck Failed. Try refreshing game."
+                    })
+                    .start();
+                console.log("");
+            }
+
+            // Test that fails with invalid user id
+
+            // Do TX, and assert success and proper deltas and logs
+            console.log("Test that drawing works as expected.");
+            const txTester = createDefaultTxTester()
+                .startLedger([vp, player])
+                .doTx([vp, "draw", id, drawsNum, hashCheck, {from: player}])
+                .assertSuccess()
+                .stopLedger()
+                .assertNoDelta(vp)
+                .assertLostTxFee(player);
+
+            // assert logs
+            txTester.assertLogCount(expLogs.length);
+            expLogs.forEach(function(l){
+                txTester.assertLog(l[0], l[1]);
+            })
+
+            // assert game is saved correctly, and .getIHand() works
+            if (shouldSucceed) {
+                const expUserId = await vp.userIds(player);
+                const expBlockNumber = testUtil.getBlockNumber() + 1;
+                const expIHand = getIHand(testUtil.getBlock(game.iBlock).hash, id).toNumber();
+                var expDHand;
+                txTester
+                    .withTxResult((res)=>{
+                        const dHand = getDHand(res.receipt.blockHash, id, new Hand(expIHand), drawsNum);
+                        expDHand = dHand.toNumber();
+                        console.log(`After drawing, hand should be: ${dHand}`);
+                        // mine a block so .getDHand() works in ganache
+                        testUtil.mineBlocks(1);
+                    })
+                    .assertCallReturns([vp, "games", id],
+                        ()=>[expUserId, game.bet, game.payTableId, game.iBlock, expIHand, drawsNum, expBlockNumber, 0, 0])
+                    .assertCallReturns([vp, "getDHand", id], ()=>expDHand);
+            }
+
+            // assert proper gasUsed
+            return txTester
+                .assertGasUsedLt(expGas)
+                .start();
+
+            // Test that cannot draw again
         });
-
-        // test that id is correct
-        // test that player is correct (for given id)
-        // test that draws is not 0, or > 63
-        // test that is not already drawn
-
-        // do TX with invalid hashCheck
-
-        // do TX, assert success, no deltas, and proper logs
-
-        // assert saved game has expected state
-
-
-        // for successful cases, retest that drawing fails (already drawn)
     }
 
     // For the given game state, and doTimeout, ensure everything works as expected.
@@ -472,71 +576,10 @@ describe('VideoPoker', function(){
         // test that is not already defined
     }
 
-    function assertDoesAGame(){
-        const BET = new BigNumber(.001e18);
-        var game;
-        var iBlockhash;
-        var GAME_ID;
-        var DRAW_ARR = [1, 0, 0, 1, 1];
-        var DRAW_UINT8 = DRAW_ARR.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
-        var expIHand;
-        var expDHand;
-        var expHandRank;
-        it("Accepts a bet", async function(){
-            GAME_ID = (await vp.curId()).plus(1)
-            const existingUser = (await vp.userIds(player1)).gt(0);
-            const expGas = existingUser ? 54000 : 94000;
-            await createDefaultTxTester()
-                .doTx([vp, "bet", {value: .001e18, from: player1}])
-                .assertSuccess()
-                .assertOnlyLog("BetSuccess", {})
-                .withTxResult(async function(res){
-                    game = await getGame(GAME_ID);
-                    iBlockhash = res.receipt.blockHash;
-                    expIHand = getIHand(iBlockhash, GAME_ID);
-                    console.log(`Initial hand should be: ${expIHand}`);
-                    testUtil.mineBlocks(1);
-                })
-                .assertGasUsedLt(expGas)
-                .assertCallReturns([vp, "getIHand", GAME_ID], ()=>expIHand.toNumber())
-                .start();
-        });
-        it("Draws", async function(){
-            await createDefaultTxTester()
-                .doTx([vp, "draw", GAME_ID, DRAW_UINT8, iBlockhash, {from: player1}])
-                .assertSuccess()
-                .assertOnlyLog("DrawSuccess")
-                .withTxResult((res)=>{
-                    const dBlockhash = res.receipt.blockHash;
-                    expDHand = getDHand(dBlockhash, GAME_ID, expIHand, DRAW_ARR);
-                    expHandRank = expDHand.getRank();
-                    console.log(`Final hand should be: ${expDHand}, with rank: ${expHandRank}`);
-                    return testUtil.mineBlocks(1);
-                })
-                .assertGasUsedLt(37000)
-                .assertCallReturns([vp, "getDHand", GAME_ID], ()=>expDHand.toNumber())
-                .assertCallReturns([vp, "getDHandRank", GAME_ID], ()=>expHandRank)
-                .start();
-        });
-        it("Finalizes", async function(){
-            var game;
-            const hasCredits = (await vp.credits(player1)).gt(0);
-            const expGas = expHandRank <= 9
-                ? (hasCredits ? 60000 : 72000)
-                : 45000;
-            await createDefaultTxTester()
-                .doTx([vp, "finalize", GAME_ID, false, {from: player1}])
-                .assertSuccess()
-                .assertOnlyLog("FinalizeSuccess")
-                .assertGasUsedLt(expGas)
-                .start(); 
-        })
-    }
-
     async function getGame(id) {
         const arr = await vp.games(id);
         const userId = arr[0];
-        const userAddr = await vp.userAddresses[userId];
+        const userAddr = await vp.userAddresses(userId);
         return {
             user: userAddr,
             bet: arr[1],
@@ -756,9 +799,17 @@ function getIHand(blockhash, gameId) {
 // - blockhash: a string of hexEncoded 256 bit number
 // - gameId: a number or BigNumber
 // - iHand: should be a Hand object of the original hand.
-// - drawsArr: should be an array[5] => boolean
-//      where "true" means to replace that card in iHand
-function getDHand(blockhash, gameId, iHand, drawsArr) {
+// - drawsNum: from 0 to 63.
+function getDHand(blockhash, gameId, iHand, drawsNum) {
+    // populate drawsArr from drawsNum
+    const drawsArr = [0,0,0,0,0];
+    if (drawsNum & 1) drawsArr[0] = 1;
+    if (drawsNum & 2) drawsArr[1] = 1;
+    if (drawsNum & 4) drawsArr[2] = 1;
+    if (drawsNum & 8) drawsArr[3] = 1;
+    if (drawsNum & 16) drawsArr[4] = 1;
+    console.log(`Drawing ${drawsArr} to ${iHand}`);
+
     // get 5 new cards
     const idHex = toPaddedHex(gameId, 32);
     const hexHash = web3.sha3(blockhash + idHex, {encoding: "hex"});

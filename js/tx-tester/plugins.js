@@ -622,6 +622,7 @@ function str(val, hideBrackets) {
 		return at(val);
 	} else if (val.constructor.name == "BigNumber" || typeof val == 'number') {
 		val = new BigNumber(val);
+		if (val.abs().gt(1e20)) return `0x${val.toString(16).slice(0, 8)}...`;
 		if (val.abs().gt(1e12)) return wei(val);
 		else return val.toString();
 	} else if (typeof val == "object") {
