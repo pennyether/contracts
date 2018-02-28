@@ -497,14 +497,14 @@ contract VideoPoker is
             }
         }
 
-        // compute _handRank. be sure dHand is not empty
+        // Compute _handRank. be sure dHand is not empty
         uint8 _handRank = _dHand == 0
             ? uint8(HandRank.NotComputable)
             : uint8(getHandRank(_dHand));
 
-        // if draws were 0, and could draw iHand, set iHand.
+        // This only happens if draws==0, and iHand was drawable.
         if (_iHand > 0) _game.iHand = _iHand;
-        // always set dHand and handRank
+        // Always set dHand and handRank
         _game.dHand = _dHand;
         _game.handRank = _handRank;
 

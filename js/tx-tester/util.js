@@ -142,25 +142,40 @@ function createUtil(web3, assert){
 	            id: new Date().getTime()
 	        });
 		},
+
+		/**
+		Mines a certain number of blocks.
+		In order for this to work beyond 1 block, you need to modify
+		node_modules/ganache-cli/build/cli.node.js.
+		*/
 		mineBlocks: function(numBlocks){
 			if (numBlocks===undefined) numBlocks = 1;
 			if (numBlocks.toNumber) numBlocks = numBlocks.toNumber();
 			if (!Number.isInteger(numBlocks))
-				throw new Error("Passed a non-number: " + numBlocks);
+				throw new Error(`numBlocks must be a number or BigNumber: ${numBlocks}`);
+			if (numBlocks <= 0)
+				throw new Error(`numBlocks must be greater than 0: ${numBlocks}`);
 
 			const before = _self.getBlockNumber();
-			for (var i=0; i<numBlocks; i++){
+			var numMined = 0; var after;
+			while (numMined < numBlocks) {
 				web3.currentProvider.send({
 		            jsonrpc: "2.0",
 		            method: "evm_mine",
-		            params: null,
+		            params: [numBlocks],
 		            id: new Date().getTime()
 		        });
+		        after = _self.getBlockNumber();
+		        numMined = after - before;
+		        if (numBlocks > 1 && numMined == 1) {
+		        	console.log(`Your version of evm_mine does not support multiple blocks!`);
+		        	console.log(`This may take awhile...`);
+		        }
 			}
-			const after = _self.getBlockNumber();
-			console.log(`Mined ${numBlocks} blocks. BlockNumber increased from ${before} to ${after}.`)
+			console.log(`Mined ${numBlocks} blocks. BlockNumber increased from ${before} to ${after}.`);
 		},
 
+		// returns a regular number
 		getBlockNumber: function() {
 			return web3.eth.blockNumber;
 		},
@@ -171,6 +186,7 @@ function createUtil(web3, assert){
 		getBlock: function (blockHash){
 		    return web3.eth.getBlock(blockHash || 'latest');
 		},
+		// returns a regular number
 		getBlockTime: function (blockHash){
 			return _self.getBlock(blockHash || 'latest').timestamp;
 		},

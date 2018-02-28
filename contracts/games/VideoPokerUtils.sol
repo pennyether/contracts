@@ -54,8 +54,9 @@ contract VideoPokerUtils {
     	pure
     	returns (uint32)
     {
-        assert(_draws < 32);
+        assert(_draws <= 63);
         if (_draws == 0) return _hand;
+        if (_draws == 63) return getHand(_hash);
 
         // Create a mask of 1's where new cards should go.
         uint _newMask;

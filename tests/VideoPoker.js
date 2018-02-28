@@ -182,7 +182,7 @@ describe('VideoPoker', function(){
         // describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
         // describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,0]);
         // describeDoesGame("Bet and draw", 1, minBet, [0,1,0,1,0]);
-        // describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
+        describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
         // describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
         // describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
         // describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
@@ -393,15 +393,27 @@ describe('VideoPoker', function(){
             // assert delta
             if (shouldSucceed) {
                 txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Contract balance should increase.");
+                    })
                     .assertDelta(vp, betSize)
                     .assertDeltaMinusTxFee(player, betSize.mul(-1));
             } else {
                 txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Bet should be refunded.");
+                    })
                     .assertNoDelta(vp)
                     .assertDeltaMinusTxFee(player, 0);
             }
 
             // assert logs
+            txTester.doFn(()=>{
+                console.log("");
+                console.log("Assert correct logs.");
+            });
             txTester.assertLogCount(expLogs.length);
             expLogs.forEach(function(l){
                 txTester.assertLog(l[0], l[1]);
@@ -411,24 +423,55 @@ describe('VideoPoker', function(){
             if (shouldSucceed) {
                 const expPayTableId = await vp.curPayTableId();
                 const expBlockNumber = testUtil.getBlockNumber() + 1;
+                txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Assert game is stored correctly.");
+                    })
+                    .assertCallReturns([vp, "games", expGameId],
+                        ()=>[expUserId, betSize, expPayTableId, expBlockNumber, 0, 0, 0, 0, 0])
+            }
+
+            if (shouldSucceed) {
                 var expIHand;
                 txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Assert iHand returns as expected, based on blockhash.");
+                    })
                     .withTxResult((res)=>{
                         const iHand = getIHand(res.receipt.blockHash, expGameId);
                         console.log(`Initial hand should be ${iHand}`);
                         expIHand = iHand.toNumber();
-                        // mine a block so .getIHand() works in ganache
-                        testUtil.mineBlocks(1);
                     })
-                    .assertCallReturns([vp, "games", expGameId],
-                        ()=>[expUserId, betSize, expPayTableId, expBlockNumber, 0, 0, 0, 0, 0])
+                    .mineBlocks(1) // mine a block so .getIHand() works in ganache
                     .assertCallReturns([vp, "getIHand", expGameId], ()=>expIHand);
+            }
+
+            if (shouldSucceed) {
+                txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Assert curId and curUserId are correct.");
+                    })
+                    .assertCallReturns([vp, "curId"], expCurId)
+                    .assertCallReturns([vp, "curUserId"], expCurUserId);
+            } else {
+                txTester
+                    .doFn(()=>{
+                        console.log("");
+                        console.log("Assert curId and curUserId are unchanged.");
+                    })
+                    .assertCallReturns([vp, "curId"], expCurId)
+                    .assertCallReturns([vp, "curUserId"], expCurUserId);
             }
 
             // assert proper gasUsed
             return txTester
-                .assertCallReturns([vp, "curId"], expCurId)
-                .assertCallReturns([vp, "curUserId"], expCurUserId)
+                .doFn(()=>{
+                    console.log("");
+                    console.log("Assert expected gas usage.");
+                })
                 .assertGasUsedLt(expGas)
                 .start();
         });
@@ -449,10 +492,9 @@ describe('VideoPoker', function(){
             var errMsg;
             if (game.iBlock.equals(0)) {
                 errMsg = "Invalid game Id.";
-            } else if (game.iBlock.gte(testUtil.getBlockNumber())) {
+            } else if (game.iBlock.gt(testUtil.getBlockNumber())) {
                 errMsg = "Initial cards not dealt yet.";
             } else if (game.user != player) {
-                console.log(`${game.user} ${player}`)
                 errMsg = "This is not your game.";
             } else if (game.dBlock.gt(0)) {
                 errMsg = "Cards already drawn.";
@@ -463,18 +505,9 @@ describe('VideoPoker', function(){
             }
 
             // Determine which log should be pushed.
-            const shouldSucceed = !errMsg;
-            if (shouldSucceed) {
-                console.log(`Drawing should succeed.`);
-                expLogs.push(["DrawSuccess", {
-                    time: null,
-                    user: player,
-                    id: id,
-                    draw: drawsNum
-                }]);
-                expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
-            } else {
-                console.log(`Drawing should fail due to: ${errMsg}`);
+            const shouldFail = !!errMsg;
+            if (shouldFail) {
+                console.log(`Note: Drawing should fail due to: ${errMsg}`);
                 expLogs.push(["DrawFailure", {
                     time: null,
                     user: player,
@@ -482,29 +515,39 @@ describe('VideoPoker', function(){
                     draw: drawsNum,
                     msg: errMsg
                 }]);
-                expGas = expGas.plus(6000);    // 1 update, 1 event, other
-            }
-
-            // Do the timeout, add expected log
-            if (shouldSucceed && doTimeout) {
-                console.log("Mining 255 blocks to ensure iHand no longer exists.");
-                await testUtil.mineBlocks(255);
-                expLogs.push(["DrawWarning", {
-                    time: null,
-                    user: player,
-                    id: id,
-                    draws: drawsNum,
-                    msg: "Initial hand not available. Drawing 5 cards."
-                }]);
-                expGas = expGas.plus(3000);
-                await createDefaultTxTester()
-                    .assertCallReturns([vp, "getIHand", id], 0)
-                    .start();
+            } else {
+                if (!doTimeout) {
+                    console.log(`Note: Drawing should succeed.`);
+                    expLogs.push(["DrawSuccess", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        draw: drawsNum
+                    }]);
+                    expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
+                } else {
+                    console.log(`Note: Drawing should succeed (with timeout).`);
+                    expLogs.push(["DrawWarning", {
+                        time: null,
+                        user: player, 
+                        id: id,
+                        draw: drawsNum,
+                        msg: "Initial hand not available. Drawing 5 cards."
+                    }])
+                    expLogs.push(["DrawSuccess", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        draw: 63
+                    }]);
+                    expGas = expGas.plus(15000);    // 1 update, 2 events, getHand(), other
+                }
             }
 
             // Test that with invalid hashCheck it fails.
             const hashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
-            if (shouldSucceed && !doTimeout) {
+            if (!shouldFail) {
+                console.log("");
                 console.log("Test that passing invalid hashCheck fails.");
                 await createDefaultTxTester()
                     .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
@@ -517,14 +560,39 @@ describe('VideoPoker', function(){
                         msg: "HashCheck Failed. Try refreshing game."
                     })
                     .start();
+
                 console.log("");
+                console.log("Test that passing invalid userId fails.");
+                const nonPlayer = players[playerNum % 3];
+                await createDefaultTxTester()
+                    .doTx([vp, "draw", id, drawsNum, hashCheck, {from: nonPlayer}])
+                    .assertSuccess()
+                    .assertOnlyLog("DrawFailure", {
+                        time: null,
+                        user: nonPlayer,
+                        id: id,
+                        draw: drawsNum,
+                        msg: "This is not your game."
+                    })
+                    .start();
             }
 
-            // Test that fails with invalid user id
+            // create txTester object that we will add assertions to.
+            txTester = createDefaultTxTester();
 
-            // Do TX, and assert success and proper deltas and logs
-            console.log("Test that drawing works as expected.");
-            const txTester = createDefaultTxTester()
+            if (!shouldFail && doTimeout) {
+                txTester.doFn(()=>{
+                    console.log("");
+                    console.log("Fast-foward 256 blocks to simulate a timeout.");
+                }).mineBlocks(256);
+            }
+
+            // Do TX, and assert success and proper deltas
+            txTester
+                .doFn(()=>{
+                    console.log("");
+                    console.log("Assert that drawing works.");
+                })
                 .startLedger([vp, player])
                 .doTx([vp, "draw", id, drawsNum, hashCheck, {from: player}])
                 .assertSuccess()
@@ -532,37 +600,78 @@ describe('VideoPoker', function(){
                 .assertNoDelta(vp)
                 .assertLostTxFee(player);
 
-            // assert logs
+            // Assert logs
+            txTester.doFn(()=>{
+                console.log("");
+                console.log("Assert proper logs.");
+            });
             txTester.assertLogCount(expLogs.length);
             expLogs.forEach(function(l){
                 txTester.assertLog(l[0], l[1]);
             })
 
-            // assert game is saved correctly, and .getIHand() works
-            if (shouldSucceed) {
-                const expUserId = await vp.userIds(player);
-                const expBlockNumber = testUtil.getBlockNumber() + 1;
-                const expIHand = getIHand(testUtil.getBlock(game.iBlock).hash, id).toNumber();
+            // Assert game is stored correctly.
+            txTester.doFn(()=>{
+                console.log("");
+                console.log("Assert game is stored correctly.");
+                if (!shouldFail) {
+                    game.dBlock = testUtil.getBlockNumber()
+                    if (!doTimeout) {
+                        game.iHand = getIHand(testUtil.getBlock(game.iBlock).hash, id).toNumber();
+                        game.draws = drawsNum;
+                    } else {
+                        game.iHand = 0;
+                        game.draws = 63;
+                        console.log("Too many blocks passed! iHand should be 0, and draws should be 63.");
+                    }
+                } else {
+                    console.log("Game should remain unmodified.");
+                }
+            })
+            txTester.assertCallReturns([vp, "games", id], ()=>game.toArray());
+
+            // assert .getDHand works as expected
+            if (!shouldFail) {
                 var expDHand;
                 txTester
-                    .withTxResult((res)=>{
-                        const dHand = getDHand(res.receipt.blockHash, id, new Hand(expIHand), drawsNum);
-                        expDHand = dHand.toNumber();
-                        console.log(`After drawing, hand should be: ${dHand}`);
-                        // mine a block so .getDHand() works in ganache
-                        testUtil.mineBlocks(1);
+                    txTester.doFn(()=>{
+                        console.log("");
+                        console.log("Assert dHand is returned as expected.");
                     })
-                    .assertCallReturns([vp, "games", id],
-                        ()=>[expUserId, game.bet, game.payTableId, game.iBlock, expIHand, drawsNum, expBlockNumber, 0, 0])
+                    .withTxResult((res)=>{
+                        const dHand = getDHand(res.receipt.blockHash, id, new Hand(game.iHand), game.draws);
+                        expDHand = dHand.toNumber();
+                        console.log(`After drawing, dHand should be: ${dHand}`);
+                    })
+                    .mineBlocks(1) // mine a block so .getDHand() works in ganache
                     .assertCallReturns([vp, "getDHand", id], ()=>expDHand);
             }
 
-            // assert proper gasUsed
-            return txTester
+            // Assert proper gas used, and start the whole thing.
+            await txTester
+                .doFn(()=>{
+                    console.log("");
+                    console.log("Assert expected gas usage.");
+                })
                 .assertGasUsedLt(expGas)
                 .start();
 
             // Test that cannot draw again
+            if (!shouldFail) {
+                console.log("");
+                console.log("Test that user cannot draw again.");
+                await createDefaultTxTester()
+                    .doTx([vp, "draw", id, drawsNum, hashCheck, {from: player}])
+                    .assertSuccess()
+                    .assertOnlyLog("DrawFailure", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        draw: drawsNum,
+                        msg: "Cards already drawn."
+                    })
+                    .start();
+            }
         });
     }
 
@@ -580,7 +689,8 @@ describe('VideoPoker', function(){
         const arr = await vp.games(id);
         const userId = arr[0];
         const userAddr = await vp.userAddresses(userId);
-        return {
+        var obj = {
+            userId: userId,
             user: userAddr,
             bet: arr[1],
             payTableId: arr[2],
@@ -589,8 +699,13 @@ describe('VideoPoker', function(){
             draws: arr[5],
             dBlock: arr[6],
             dHand: arr[7],
-            handRank: arr[8]
+            handRank: arr[8],
+            toArray: function(){
+                return [obj.userId, obj.bet, obj.payTableId, obj.iBlock, obj.iHand,
+                        obj.draws, obj.dBlock, obj.dHand, obj.handRank];
+            }
         };
+        return obj;
     }
 
     async function assertAddsFunding(amount) {

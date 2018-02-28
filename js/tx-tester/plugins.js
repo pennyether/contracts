@@ -537,6 +537,9 @@ function createPlugins(testUtil, ledger) {
 			const balance = await testUtil.getBalance(address);
 			console.log(`Balance of ${at(address)} is: ${balance}`);
 		},
+		mineBlocks: async function(numBlocks) {
+			await testUtil.mineBlocks(numBlocks);
+		},
 
 
 		// other stuff
