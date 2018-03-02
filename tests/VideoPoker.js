@@ -170,69 +170,28 @@ describe('VideoPoker', function(){
     describe("Do a bunch of games.", async function(){
         const minBet = await vp.minBet();
         const maxBet = await vp.maxBet();
-        //describeDoesGame(playerNum, betSize, drawsArr, iHandTimeout, dHandTimeout)
         describeDoesGame("Bet too small", 1, minBet.minus(1));
         describeDoesGame("Bet too large", 2, maxBet.plus(1));
         describeDoesGame("Bet above curMaxBet", 1, "curMaxBet");
-        describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,1]);
-        // describeDoesGame("Bet and draw", 1, minBet, [0,0,0,1,0]);
-        // describeDoesGame("Bet and draw", 2, minBet, [0,0,1,0,0]);
-        // describeDoesGame("Bet and draw", 1, minBet, [0,1,0,0,0]);
-        // describeDoesGame("Bet and draw", 2, minBet, [1,0,0,0,0]);
-        // describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
-        // describeDoesGame("Bet and draw", 2, minBet, [0,0,0,0,0]);
-        // describeDoesGame("Bet and draw", 1, minBet, [0,1,0,1,0]);
+        describeDoesGame("Bet and draw first card", 2, minBet, [0,0,0,0,1]);
+        describeDoesGame("Bet and draw second card", 1, minBet, [0,0,0,1,0]);
+        describeDoesGame("Bet and draw third card", 2, minBet, [0,0,1,0,0]);
+        describeDoesGame("Bet and draw fourth", 1, minBet, [0,1,0,0,0]);
+        describeDoesGame("Bet and draw fifth", 2, minBet, [1,0,0,0,0]);
+        describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
+        describeDoesGame("Bet and draw nothing", 2, minBet, [0,0,0,0,0]);
+        describeDoesGame("Bet and draw two cards", 1, minBet, [0,1,0,1,0]);
         describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
-        // describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
-        // describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
-        // describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
-        // describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
-        // describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
-        // describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
-        // describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
-        // describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
-        // describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
+        describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
+        describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
+        describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
+        describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
+        describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
+        describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
+        describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
-
-    // Some things to test:
-    //   - Drawing 0 cards (skip to finalize)
-    //   - Drawing 5 cards
-    //   - Make sure finalizing fails before drawing
-    //   - Try to double-finalize
-    //   - Betting:
-    //      - can't bet above curMax()
-    //      - can't be above max
-    //      - can't be below min
-    //   - Drawing:
-    //      - check for:
-    //          - invalid game
-    //          - wrong user
-    //          - must wait for initial block
-    //          - between 1 and 4 draws
-    //          - not already called
-    //      - test hashCheck works
-    //      - warning: sets to full draw if initial hand is old
-    //   - Finalizing:
-    //      - check for:
-    //          - invalid game
-    //          - wrong user
-    //          - no initial hand
-    //          - same block
-    //          - already finalized
-    //      - 1-5 draws:
-    //          - if dBlock is fresh:
-    //              - works
-    //          - if dBlock is old:
-    //              - warning: use iHand
-    //      - 0 draws:
-    //          - if iBlock is fresh:
-    //              - use initial hand
-    //          - if iBlock is old:
-    //              - fail: set draws to 5, recall.
-    //      - On win:
-    //          - credits account
-    //          - increments total owed
-
 
     // Ensure all of these conditions are met via calls to describeDoesGame.
     var conditions = {
@@ -308,10 +267,6 @@ describe('VideoPoker', function(){
             if (iHandTimeout) conditions.draw.iHandTimeout = true;
             // Make sure it draws correctly. This includes failures/warnings.
             itDraws(expectedId, playerNum, drawsArr, iHandTimeout);
-            
-            // todo: remove
-            this.logInfo("Not testing finalization yet...");
-            return;
 
             // Update conditions, and do finalization.
             if (drawsNum != 0) {
@@ -480,20 +435,20 @@ describe('VideoPoker', function(){
     // Tests that attempting to draw works properly.
     // If doTimeout is true, will mineBlocks to ensure hash is old and not used.
     async function itDraws(id, playerNum, drawsArr, doTimeout) {
-        // computed expected gas, logs
-        it(`Draws game ${id} with ${drawsArr}`, async function(){
+        const timeoutStr = doTimeout ? ` after 256 blocks.` : ".";
+        it(`Draws game ${id} with ${drawsArr}${timeoutStr}`, async function(){
             if (!drawsArr) drawsArr = [0,0,0,0,0];
             const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
             const player = players[playerNum-1];
             const game = await getGame(id);
-            var expGas = new BigNumber(24000);
+            var expGas = new BigNumber(25000);
             var expLogs = [];
 
             var errMsg;
             if (game.iBlock.equals(0)) {
                 errMsg = "Invalid game Id.";
             } else if (game.iBlock.gt(testUtil.getBlockNumber())) {
-                errMsg = "Initial cards not dealt yet.";
+                errMsg = "Initial cards not available.";
             } else if (game.user != player) {
                 errMsg = "This is not your game.";
             } else if (game.dBlock.gt(0)) {
@@ -502,6 +457,8 @@ describe('VideoPoker', function(){
                 errMsg = "Invalid draws.";
             } else if (drawsNum == 0) {
                 errMsg = "Cannot draw 0 cards. Use finalize instead.";
+            } else if (game.handRank != 0) {
+                errMsg = "Game already finalized.";
             }
 
             // Determine which log should be pushed.
@@ -515,6 +472,7 @@ describe('VideoPoker', function(){
                     draw: drawsNum,
                     msg: errMsg
                 }]);
+                expGas = expGas.plus(7000);  // Event, SLOADs, not sure why so much.
             } else {
                 if (!doTimeout) {
                     console.log(`Note: Drawing should succeed.`);
@@ -526,13 +484,14 @@ describe('VideoPoker', function(){
                     }]);
                     expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
                 } else {
-                    console.log(`Note: Drawing should succeed (with timeout).`);
+                    const warnMsg = "Initial hand not available. Drawing 5 cards."
+                    console.log(`Note: Drawing should succeed with warning: ${warnMsg}`);
                     expLogs.push(["DrawWarning", {
                         time: null,
                         user: player, 
                         id: id,
                         draw: drawsNum,
-                        msg: "Initial hand not available. Drawing 5 cards."
+                        msg: warnMsg
                     }])
                     expLogs.push(["DrawSuccess", {
                         time: null,
@@ -550,6 +509,7 @@ describe('VideoPoker', function(){
                 console.log("");
                 console.log("Test that passing invalid hashCheck fails.");
                 await createDefaultTxTester()
+                    .mineBlocks(1)
                     .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
                     .assertSuccess()
                     .assertOnlyLog("DrawFailure", {
@@ -578,7 +538,7 @@ describe('VideoPoker', function(){
             }
 
             // create txTester object that we will add assertions to.
-            txTester = createDefaultTxTester();
+            const txTester = createDefaultTxTester();
 
             if (!shouldFail && doTimeout) {
                 txTester.doFn(()=>{
@@ -639,7 +599,7 @@ describe('VideoPoker', function(){
                         console.log("Assert dHand is returned as expected.");
                     })
                     .withTxResult((res)=>{
-                        const dHand = getDHand(res.receipt.blockHash, id, new Hand(game.iHand), game.draws);
+                        const dHand = getDHand(res.receipt.blockHash, id, game.iHand, game.draws);
                         expDHand = dHand.toNumber();
                         console.log(`After drawing, dHand should be: ${dHand}`);
                     })
@@ -675,14 +635,238 @@ describe('VideoPoker', function(){
         });
     }
 
-    // For the given game state, and doTimeout, ensure everything works as expected.
     // If doTimeout is true, will mineBlocks to ensure hash is old and not used.
-    async function itFinalizes(id, player, doTimeout) {
-        // computed expected gas
-        // computed expected logs
-        // test that id is correct
-        // test that player is correct
-        // test that is not already defined
+    async function itFinalizes(id, playerNum, doTimeout) {
+        const timeoutStr = doTimeout ? ` after 256 blocks.` : ".";
+        it(`Finalizes game ${id}${timeoutStr}`, async function(){
+            const curBlock = testUtil.getBlockNumber();
+            const player = players[playerNum-1];
+            const game = await getGame(id);
+            const shouldTimeout = doTimeout;
+            var expGame = game.clone();
+            var expGas = new BigNumber(24000);
+            var expLogs = [];
+
+            var errMsg;
+            if (game.iBlock.equals(0)) {
+                errMsg = "Invalid game Id.";
+            } else if (game.user != player) {
+                errMsg = "This is not your game.";
+            } else if (game.dBlock.gt(testUtil.getBlockNumber())) {
+                errMsg = "Draw cards not available.";
+            } else if (game.handRank != 0){
+                errMsg = "Game already finalized.";
+            }
+
+            // This sets the following variables:
+            var warnMsg;
+            var redoFinalize = false;
+            if (!errMsg) {
+                if (game.dBlock.equals(0)) {
+                    // The user is skipping drawing
+                    if (doTimeout) {
+                        // iHand not available. should draw 5 cards and fail.
+                        errMsg = "Initial hand not available. Drawing 5 new cards.";
+                        expLogs.push(["DrawSuccess", {
+                            time: null,
+                            user: player,
+                            id: id,
+                            draw: 63
+                        }]);
+                        // expGame.dBlock = <tx block number>. set this later.
+                        expGame.draws = 63;
+                        redoFinalize = true;
+                    } else {
+                        // Should finalize with iHand
+                        const blockhash = testUtil.getBlock(game.iBlock).hash;
+                        const iHand = getIHand(blockhash, id);
+                        expGame.iHand = iHand.toNumber();
+                        expGame.dHand = expGame.iHand;
+                        expGame.handRank = (new Hand(expGame.dHand)).getRank();
+                    }
+                } else {
+                    // The user has specified draws
+                    if (doTimeout) {
+                        // Draw cards not available. Use iHand, if they have one.
+                        warnMsg = game.iHand.equals(0)
+                            ? "Draw cards not available, and no initial hand."
+                            : "Draw cards not available. Using initial hand.";
+                        expGame.dHand = game.iHand;
+                        expGame.handRank = (new Hand(expGame.dHand)).getRank();
+                    } else {
+                        // Draw cards available.
+                        const blockhash = testUtil.getBlock(game.dBlock).hash;
+                        expGame.dHand = getDHand(blockhash, id, game.iHand, game.draws).toNumber();
+                        expGame.handRank = (new Hand(expGame.dHand)).getRank();
+                    }
+                }
+                expPayout = (await vp.getPayTable(game.payTableId))[expGame.handRank].mul(game.bet);
+            } else {
+                shouldTimeout = false;
+                expGame = game;
+            }
+
+            // if errMsg, we expect a failure.
+            // if warnMsg, we expect a success (and warning log)
+            const shouldFail = !!errMsg;
+            if (!shouldFail) {
+                // todo: calc everything from dHand.
+                const warnStr = warnMsg ? `, with warning: ${warnMsg}` : `.`;
+                console.log(`Note: Finalizing should succeed${warnStr}`);
+                console.log(`Note: Final hand should be: ${new Hand(expGame.dHand)}`);
+                expLogs.push(["FinalizeSuccess", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    result: expGame.handRank,
+                    payout: expPayout
+                }]);
+                if (warnMsg) {
+                    expLogs.push(["FinalizeWarning", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        msg: warnMsg
+                    }]);
+                }
+                if (expPayout.gt(0)) {
+                    console.log(`Note: Game should win ${eth(expPayout)} from handrank ${expGame.handRank}`);
+                    expLogs.push(["CreditsAdded", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        amt: expPayout
+                    }]);
+                } else {
+                    console.log("Note: Game should not win.");
+                }
+            } else {
+                console.log(`Note: Finalizing should fail due to: ${errMsg}`);
+                expLogs.push(["FinalizeFailure", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    msg: errMsg
+                }]);
+            }
+
+            // If draws == 0, check that omitting hashcheck fails
+            const hashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+            if (!shouldFail) {
+                if (game.draws.equals(0)){
+                    console.log("");
+                    console.log("Test that passing invalid hashCheck fails.");
+                    await createDefaultTxTester()
+                        .doTx([vp, "finalize", id, hashCheck.plus(1), {from: player}])
+                        .assertSuccess()
+                        .assertOnlyLog("FinalizeFailure", {
+                            time: null,
+                            user: player, 
+                            id: id,
+                            msg: "HashCheck Failed. Try refreshing game."
+                        })
+                        .start();
+                }
+                
+                console.log("");
+                console.log("Test that passing invalid userId fails.");
+                const nonPlayer = players[playerNum % 3];
+                await createDefaultTxTester()
+                    .doTx([vp, "finalize", id, hashCheck, {from: nonPlayer}])
+                    .assertSuccess()
+                    .assertOnlyLog("FinalizeFailure", {
+                        time: null,
+                        user: nonPlayer,
+                        id: id,
+                        msg: "This is not your game."
+                    })
+                    .start();
+            }
+
+            // create txTester to add assertions to.
+            const txTester = createDefaultTxTester();
+
+            if (shouldTimeout) {
+                txTester.doFn(()=>{
+                    console.log("");
+                    console.log("Fast-foward 256 blocks to simulate a timeout.");
+                }).mineBlocks(256);
+            }
+
+            // Do TX, and assert success and proper deltas
+            txTester
+                .doFn(()=>{
+                    console.log("");
+                    console.log("Assert that finalizing works.");
+                })
+                .startLedger([vp, player])
+                .doTx([vp, "finalize", id, hashCheck, {from: player}])
+                .assertSuccess()
+                .stopLedger()
+                .assertNoDelta(vp)
+                .assertLostTxFee(player);
+
+            // Assert logs
+            txTester.doFn(()=>{
+                console.log("");
+                console.log("Assert proper logs.");
+            });
+            txTester.assertLogCount(expLogs.length);
+            expLogs.forEach(function(l){
+                txTester.assertLog(l[0], l[1]);
+            })
+
+            // Assert game is stored correctly.
+            txTester.withTxResult((res)=>{
+                console.log("");
+                console.log("Assert game is stored correctly.");
+                if (redoFinalize){
+                    expGame.dBlock = res.receipt.blockNumber;
+                }
+            })
+            txTester.assertCallReturns([vp, "games", id], ()=>expGame.toArray());
+
+            // Assert credits are updated correctly
+            const expCredits = (await vp.credits(player)).plus(expPayout);
+            const expTotalCredits = (await vp.totalCredits()).plus(expPayout);
+            txTester.doFn(()=>{
+                const str = expPayout.gt(0) ? "increased" : "the same";
+                console.log("");
+                console.log(`Assert user credits are ${str}`);
+            });
+            txTester.assertCallReturns([vp, "credits", player], expCredits);
+            txTester.assertCallReturns([vp, "totalCredits"], expTotalCredits);
+
+            // Assert proper gas used, and start the whole thing.
+            await txTester
+                .doFn(()=>{
+                    console.log("");
+                    console.log("Assert expected gas usage.");
+                })
+                //.assertGasUsedLt(expGas)
+                .start();
+
+            // Test that cannot finalize again
+            if (!shouldFail) {
+                console.log("");
+                console.log("Test that user cannot finalize again.");
+                await createDefaultTxTester()
+                    .doTx([vp, "finalize", id, hashCheck, {from: player}])
+                    .assertSuccess()
+                    .assertOnlyLog("FinalizeFailure", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        msg: "Game already finalized."
+                    })
+                    .start();
+            }
+            if (redoFinalize) {
+                console.log("");
+                console.log("REDOing FINALIZE");
+                itFinalizes(id, playerNum);
+            }
+        });
     }
 
     async function getGame(id) {
@@ -701,8 +885,11 @@ describe('VideoPoker', function(){
             dHand: arr[7],
             handRank: arr[8],
             toArray: function(){
-                return [obj.userId, obj.bet, obj.payTableId, obj.iBlock, obj.iHand,
-                        obj.draws, obj.dBlock, obj.dHand, obj.handRank];
+                return [this.userId, this.bet, this.payTableId, this.iBlock, this.iHand,
+                        this.draws, this.dBlock, this.dHand, this.handRank];
+            },
+            clone: function(){
+                return Object.assign({}, obj);
             }
         };
         return obj;
@@ -838,7 +1025,7 @@ function Hand(numOrArray) {
     }
 
     this.getRank = function(){
-        if (_cards.length == 5) {
+        if (_cards.length == 5 && numOrArray != 0) {
             if (this.isRoyalFlush()) return 1;
             else if (this.isStraightFlush()) return 2;
             else if (this.isFourOfAKind()) return 3;
@@ -917,13 +1104,13 @@ function getIHand(blockhash, gameId) {
 // - drawsNum: from 0 to 63.
 function getDHand(blockhash, gameId, iHand, drawsNum) {
     // populate drawsArr from drawsNum
+    iHand = new Hand(iHand);
     const drawsArr = [0,0,0,0,0];
     if (drawsNum & 1) drawsArr[0] = 1;
     if (drawsNum & 2) drawsArr[1] = 1;
     if (drawsNum & 4) drawsArr[2] = 1;
     if (drawsNum & 8) drawsArr[3] = 1;
     if (drawsNum & 16) drawsArr[4] = 1;
-    console.log(`Drawing ${drawsArr} to ${iHand}`);
 
     // get 5 new cards
     const idHex = toPaddedHex(gameId, 32);
