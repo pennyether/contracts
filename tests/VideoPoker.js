@@ -193,24 +193,31 @@ describe('VideoPoker', function(){
         describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
 
+    describe("Ensure all conditions are met", async function(){
+        console.log(conditions);
+    });
+
     // Ensure all of these conditions are met via calls to describeDoesGame.
-    var conditions = {
+    const conditions = {
         bet: {
             minBet: false,
             maxBet: false,
             curMaxBet: false
         },
         draw: {
+            noTimeout: false,
+            iHandTimeout: false,
             permutation: {
                 // 0 - 32
-            },
-            iHandTimeout: false,
+            }
         },
         finalize: {
+            noTimeout: false,
             iHandTimeout: false,
             dHandTimeout: false,
             bothHandTimeout: false,
             noDraws: {
+                noTimeout: false,
                 iHandTimeout: false,
                 bothHandTimeout: false
             },
@@ -265,21 +272,27 @@ describe('VideoPoker', function(){
             // Update conditions, and do draw.
             conditions.draw.permutation[drawsNum] = true;
             if (iHandTimeout) conditions.draw.iHandTimeout = true;
+            else conditions.draw.noTimeout = true;
             // Make sure it draws correctly. This includes failures/warnings.
             itDraws(expectedId, playerNum, drawsArr, iHandTimeout);
 
             // Update conditions, and do finalization.
             if (drawsNum != 0) {
+                if (iHandTimeout && dHandTimeout)
+                    conditions.finalize.bothHandTimeout = true;
                 if (iHandTimeout && !dHandTimeout)
                     conditions.finalize.iHandTimeout = true;
                 if (!iHandTimeout && dHandTimeout)
-                    conditions.finalize.dHandTimeout = true;    
+                    conditions.finalize.dHandTimeout = true;
+                if (!iHandTimeout && !dHandTimeout)
+                    conditions.finalize.noTimeout = true;
             } else {
-                if (iHandTimeout && !dHandTimeout)
-                    conditions.finalize.noDraws.iHandTimeout = true;
                 if (iHandTimeout && dHandTimeout)
                     conditions.finalize.noDraws.bothHandTimeout = true;
-                
+                if (iHandTimeout && !dHandTimeout)
+                    conditions.finalize.noDraws.iHandTimeout = true;
+                if (!iHandTimeout && !dHandTimeout)
+                    conditions.finalize.noDraws.noTimeout = true;
             }
             // Make sure it finalizes correctly. This includes failures/warnings.
             itFinalizes(expectedId, playerNum, dHandTimeout);
@@ -336,6 +349,7 @@ describe('VideoPoker', function(){
                 expUserId = expCurUserId.plus(1);
                 expCurUserId = expUserId;
                 expGas = expGas.plus(41000);    // 2 writes, SLOADs
+                console.log(`Note: New user -- curUserId should change to ${expCurUserId}`);
             }
 
             // do TX, and assert success and proper deltas and logs
@@ -737,6 +751,7 @@ describe('VideoPoker', function(){
                         id: id,
                         amt: expPayout
                     }]);
+                    conditions.finalize.win = true;
                 } else {
                     console.log("Note: Game should not win.");
                 }
@@ -863,7 +878,7 @@ describe('VideoPoker', function(){
             }
             if (redoFinalize) {
                 console.log("");
-                console.log("REDOing FINALIZE");
+                console.log("Redo'ing finalize since it caused a 5-card draw.");
                 itFinalizes(id, playerNum);
             }
         });
