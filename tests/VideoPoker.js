@@ -178,24 +178,24 @@ describe('VideoPoker', function(){
         describeDoesGame("Bet too large", 2, maxBet.plus(1));
         describeDoesGame("Bet above curMaxBet", 1, "curMaxBet");
         describeDoesGame("Bet and draw invalid cards", 1, minBet, [0,0,0,0,0,1]);
-        // describeDoesGame("Bet and draw first card", 2, minBet, [0,0,0,0,1]);
-        // describeDoesGame("Bet and draw second card", 1, minBet, [0,0,0,1,0]);
-        // describeDoesGame("Bet and draw third card", 2, minBet, [0,0,1,0,0]);
-        // describeDoesGame("Bet and draw fourth", 1, minBet, [0,1,0,0,0]);
-        // describeDoesGame("Bet and draw fifth", 2, minBet, [1,0,0,0,0]);
-        // describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
-        // describeDoesGame("Bet and draw nothing", 2, minBet, [0,0,0,0,0]);
-        // describeDoesGame("Bet and draw two cards", 1, minBet, [0,1,0,1,0]);
-        // describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
-        // describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
-        // describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
-        // describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
-        // describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
-        // describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
-        // describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
-        // describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
-        // describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
-        // describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw first card", 2, minBet, [0,0,0,0,1]);
+        describeDoesGame("Bet and draw second card", 1, minBet, [0,0,0,1,0]);
+        describeDoesGame("Bet and draw third card", 2, minBet, [0,0,1,0,0]);
+        describeDoesGame("Bet and draw fourth", 1, minBet, [0,1,0,0,0]);
+        describeDoesGame("Bet and draw fifth", 2, minBet, [1,0,0,0,0]);
+        describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
+        describeDoesGame("Bet and draw nothing", 2, minBet, [0,0,0,0,0]);
+        describeDoesGame("Bet and draw two cards", 1, minBet, [0,1,0,1,0]);
+        describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
+        describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
+        describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
+        describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
+        describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
+        describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
+        describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
+        describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
+        describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
 
     describe("Ensure all conditions are met", async function(){
@@ -473,7 +473,6 @@ describe('VideoPoker', function(){
         it(`Draws game ${id} with ${drawsArr}${timeoutStr}`, async function(){
             if (!drawsArr) drawsArr = [0,0,0,0,0];
             const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
-            console.log(`drawsNum: ${drawsNum}`);
             const player = players[playerNum-1];
             const game = await getGame(id);
             var expGas = new BigNumber(25000);
@@ -543,6 +542,7 @@ describe('VideoPoker', function(){
             if (!shouldFail) {
                 console.log("");
                 console.log("Test that passing invalid hashCheck fails.");
+                console.log(`HashCheck: ${hashCheck.toString(16)}`);
                 await createDefaultTxTester()
                     .mineBlocks(1)
                     .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
@@ -792,6 +792,7 @@ describe('VideoPoker', function(){
                 if (game.draws.equals(0)){
                     console.log("");
                     console.log("Test that passing invalid hashCheck fails.");
+                    console.log(`HashCheck: ${hashCheck.toString(16)}`);
                     await createDefaultTxTester()
                         .doTx([vp, "finalize", id, hashCheck.plus(1), {from: player}])
                         .assertSuccess()
@@ -894,8 +895,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: 31,
-                        msg: "Game already finalized."
+                        draw: 31
                     })
                     .start();
 
@@ -907,8 +907,7 @@ describe('VideoPoker', function(){
                     .assertOnlyLog("FinalizeFailure", {
                         time: null,
                         user: player,
-                        id: id,
-                        msg: "Game already finalized."
+                        id: id
                     })
                     .start();
             }
