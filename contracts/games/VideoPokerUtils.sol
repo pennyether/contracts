@@ -82,6 +82,8 @@ contract VideoPokerUtils {
 		public
 		returns (HandRank)
 	{
+        if (_hand == 0) return HandRank.NotComputable;
+
         uint _card;
 		uint[] memory _valCounts = new uint[](13);
 		uint[] memory _suitCounts = new uint[](5);
@@ -101,10 +103,10 @@ contract VideoPokerUtils {
 		uint _val;
 		for (_i=0; _i<5; _i++) {
             _card = readFromCards(_hand, _i);
-			_val = _card % 13;
-			if (_val > 51) return HandRank.Undefined;
-
+            if (_card > 51) return HandRank.NotComputable;
+			
 			// update val and suit counts, and if it's a flush
+            _val = _card % 13;
 			_valCounts[_val]++;
 			_suitCounts[_card/13]++;
 			if (_suitCounts[_card/13] == 5) _hasFlush = true;
@@ -138,9 +140,9 @@ contract VideoPokerUtils {
 			// Two pair is their best hand (no straight or flush possible)
 			if (_numPairs==2) return HandRank.TwoPair;
 			// One pair is their best hand (no straight or flush possible)
-			if (_numPairs == 1 && _pairVal >= 10) return HandRank.JacksOrBetter;
+			if (_numPairs == 1 && (_pairVal >= 10 || _pairVal==0)) return HandRank.JacksOrBetter;
 			// They have a low pair (no straight or flush possible)
-			if (_numPairs == 1) return HandRank.HighCard;
+			return HandRank.HighCard;
 		}
 
 		// They have no pair. Do they have a straight?

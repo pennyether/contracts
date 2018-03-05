@@ -6,6 +6,11 @@ const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
+const pUtils = require("./helpers/PokerUtils.js").Create(web3);
+const Hand = pUtils.Hand;
+const getIHand = pUtils.getIHand;
+const getDHand = pUtils.getDHand;
+
 describe('VideoPoker', function(){
     const accounts = web3.eth.accounts;
     const regOwner = accounts[0];
@@ -166,35 +171,57 @@ describe('VideoPoker', function(){
         })
     });
 
-
     describe("Do a bunch of games.", async function(){
         const minBet = await vp.minBet();
         const maxBet = await vp.maxBet();
         describeDoesGame("Bet too small", 1, minBet.minus(1));
         describeDoesGame("Bet too large", 2, maxBet.plus(1));
         describeDoesGame("Bet above curMaxBet", 1, "curMaxBet");
-        describeDoesGame("Bet and draw first card", 2, minBet, [0,0,0,0,1]);
-        describeDoesGame("Bet and draw second card", 1, minBet, [0,0,0,1,0]);
-        describeDoesGame("Bet and draw third card", 2, minBet, [0,0,1,0,0]);
-        describeDoesGame("Bet and draw fourth", 1, minBet, [0,1,0,0,0]);
-        describeDoesGame("Bet and draw fifth", 2, minBet, [1,0,0,0,0]);
-        describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
-        describeDoesGame("Bet and draw nothing", 2, minBet, [0,0,0,0,0]);
-        describeDoesGame("Bet and draw two cards", 1, minBet, [0,1,0,1,0]);
-        describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
-        describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
-        describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
-        describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
-        describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
-        describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
-        describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
-        describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
-        describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
-        describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
+        describeDoesGame("Bet and draw invalid cards", 1, minBet, [0,0,0,0,0,1]);
+        // describeDoesGame("Bet and draw first card", 2, minBet, [0,0,0,0,1]);
+        // describeDoesGame("Bet and draw second card", 1, minBet, [0,0,0,1,0]);
+        // describeDoesGame("Bet and draw third card", 2, minBet, [0,0,1,0,0]);
+        // describeDoesGame("Bet and draw fourth", 1, minBet, [0,1,0,0,0]);
+        // describeDoesGame("Bet and draw fifth", 2, minBet, [1,0,0,0,0]);
+        // describeDoesGame("Bet and draw all cards", 1, minBet, [1,1,1,1,1]);
+        // describeDoesGame("Bet and draw nothing", 2, minBet, [0,0,0,0,0]);
+        // describeDoesGame("Bet and draw two cards", 1, minBet, [0,1,0,1,0]);
+        // describeDoesGame("Bet and draw, timeout initial hand", 2, minBet, [0,0,1,1,0], true);
+        // describeDoesGame("Bet and draw nothing, timeout initial hand", 1, minBet, [0,0,0,0,0], true);
+        // describeDoesGame("Bet and draw all cards, timeout initial hand", 2, minBet, [1,1,1,1,1], true);
+        // describeDoesGame("Bet and draw, timeout dHand", 1, minBet, [0,1,0,1,1], false, true);
+        // describeDoesGame("Bet and dont draw, timeout dHand", 2, minBet, [0,0,0,0,0], false, true);
+        // describeDoesGame("Bet and draw all cards, timeout dHand", 1, minBet, [1,1,1,1,1], false, true);
+        // describeDoesGame("Bet and draw, timeout both hands", 2, minBet, [1,0,1,0,1], true, true);
+        // describeDoesGame("Bet and dont draw, timeout both hands", 1, minBet, [0,0,0,0,0], true, true);
+        // describeDoesGame("Bet and draw all, timeout both hands", 3, minBet, [1,1,1,1,1], true, true);
+        // describeDoesGame("Bet and draw, timeout both hands", 3, minBet, [0,1,1,1,1], true, true);
     });
 
     describe("Ensure all conditions are met", async function(){
-        console.log(conditions);
+        Object.keys(conditions).forEach((action) => {
+            describe(`Conditions for ${action}`, function(){
+                const actionObj = conditions[action];
+                Object.keys(actionObj).forEach(condition => {
+                    const val = actionObj[condition];
+                    if (typeof val === 'object') {
+                        describe(`${action} with ${condition}`, function(){
+                            Object.keys(val).forEach(subcondition => {
+                                it(`${subcondition}`, function(){
+                                    if (val[subcondition] !== true)
+                                        throw new Error(`Condition: ${action}.${condition}.${subcondition} not tested.`);
+                                });
+                            })
+                        });
+                    } else {
+                        it(`${action} with ${condition}`, function(){
+                            if (val !== true)
+                                throw new Error(`Condition: ${action}.${condition} not tested.`);
+                        });
+                    }
+                })
+            });
+        })
     });
 
     // Ensure all of these conditions are met via calls to describeDoesGame.
@@ -205,11 +232,9 @@ describe('VideoPoker', function(){
             curMaxBet: false
         },
         draw: {
+            invalidDraws: false,
             noTimeout: false,
-            iHandTimeout: false,
-            permutation: {
-                // 0 - 32
-            }
+            iHandTimeout: false
         },
         finalize: {
             noTimeout: false,
@@ -246,18 +271,15 @@ describe('VideoPoker', function(){
                 const minBet = await vp.minBet();
                 if (betSize.lt(minBet)) {
                     conditions.bet.minBet = true;
-                    logInfo(`This tests the minBet condition.`);
                     shouldPass = false;
                 }
                 if (betSize.gt(maxBet)) {
                     conditions.bet.maxBet = true;
-                    logInfo(`This tests the maxBet condition.`);
                     shouldPass = false;
                 }
                 if (betSize.gt(curMaxBet)) {
                     conditions.bet.curMaxBet = true;
-                    logInfo(`This tests the curMaxBet condition.`);
-                    logInfo(`VideoPoker cannot afford to pay out two max-bet Royal Flushes.`);
+                    logInfo(`Note: VideoPoker cannot afford to pay out two max-bet Royal Flushes.`);
                     shouldPass = false;
                 }
                 // Make sure it bets correctly. This includes failures for any reason.
@@ -270,10 +292,9 @@ describe('VideoPoker', function(){
             }
 
             // Update conditions, and do draw.
-            conditions.draw.permutation[drawsNum] = true;
-            if (iHandTimeout) conditions.draw.iHandTimeout = true;
+            if (drawsNum > 31) conditions.draw.invalidDraws = true;
+            else if (iHandTimeout) conditions.draw.iHandTimeout = true;
             else conditions.draw.noTimeout = true;
-            // Make sure it draws correctly. This includes failures/warnings.
             itDraws(expectedId, playerNum, drawsArr, iHandTimeout);
 
             // Update conditions, and do finalization.
@@ -294,7 +315,6 @@ describe('VideoPoker', function(){
                 if (!iHandTimeout && !dHandTimeout)
                     conditions.finalize.noDraws.noTimeout = true;
             }
-            // Make sure it finalizes correctly. This includes failures/warnings.
             itFinalizes(expectedId, playerNum, dHandTimeout);
         });
     }
@@ -453,6 +473,7 @@ describe('VideoPoker', function(){
         it(`Draws game ${id} with ${drawsArr}${timeoutStr}`, async function(){
             if (!drawsArr) drawsArr = [0,0,0,0,0];
             const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
+            console.log(`drawsNum: ${drawsNum}`);
             const player = players[playerNum-1];
             const game = await getGame(id);
             var expGas = new BigNumber(25000);
@@ -467,7 +488,7 @@ describe('VideoPoker', function(){
                 errMsg = "This is not your game.";
             } else if (game.dBlock.gt(0)) {
                 errMsg = "Cards already drawn.";
-            } else if (drawsNum > 63) {
+            } else if (drawsNum > 31) {
                 errMsg = "Invalid draws.";
             } else if (drawsNum == 0) {
                 errMsg = "Cannot draw 0 cards. Use finalize instead.";
@@ -511,7 +532,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: 63
+                        draw: 31
                     }]);
                     expGas = expGas.plus(15000);    // 1 update, 2 events, getHand(), other
                 }
@@ -595,8 +616,8 @@ describe('VideoPoker', function(){
                         game.draws = drawsNum;
                     } else {
                         game.iHand = 0;
-                        game.draws = 63;
-                        console.log("Too many blocks passed! iHand should be 0, and draws should be 63.");
+                        game.draws = 31;
+                        console.log("Too many blocks passed! iHand should be 0, and draws should be 31.");
                     }
                 } else {
                     console.log("Game should remain unmodified.");
@@ -685,10 +706,10 @@ describe('VideoPoker', function(){
                             time: null,
                             user: player,
                             id: id,
-                            draw: 63
+                            draw: 31
                         }]);
                         // expGame.dBlock = <tx block number>. set this later.
-                        expGame.draws = 63;
+                        expGame.draws = 31;
                         redoFinalize = true;
                     } else {
                         // Should finalize with iHand
@@ -864,6 +885,21 @@ describe('VideoPoker', function(){
             // Test that cannot finalize again
             if (!shouldFail) {
                 console.log("");
+                console.log("Test that user cannot draw again.");
+                const drawHashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+                await createDefaultTxTester()
+                    .doTx([vp, "draw", id, 31, drawHashCheck, {from: player}])
+                    .assertSuccess()
+                    .assertOnlyLog("DrawFailure", {
+                        time: null,
+                        user: player,
+                        id: id,
+                        draw: 31,
+                        msg: "Game already finalized."
+                    })
+                    .start();
+
+                console.log("");
                 console.log("Test that user cannot finalize again.");
                 await createDefaultTxTester()
                     .doTx([vp, "finalize", id, hashCheck, {from: player}])
@@ -974,204 +1010,6 @@ describe('VideoPoker', function(){
             .start();
     }
 });
-
-function Hand(numOrArray) {
-    const _cards = (function(){
-        if (!numOrArray) return [];
-        function cardFromNum(cardNum) {
-            if (typeof cardNum !== "number" || cardNum > 51 || cardNum < 0) return null;
-            return {
-                cardNum: cardNum,
-                val: cardNum % 13,
-                suit: Math.floor(cardNum / 13),
-                isAce: cardNum % 13 == 0
-            };
-        }
-
-        var arr;
-        if (Array.isArray(numOrArray)){
-            arr = numOrArray.map(cardFromNum);  
-        } else {
-            numOrArray = numOrArray.toNumber ? numOrArray.toNumber() : numOrArray;
-            arr = [0,1,2,3,4].map(i => {
-                const mask = 63 * Math.pow(2, 6*i);
-                const cardNum = (numOrArray & mask) / Math.pow(2, 6*i);
-                return cardFromNum(cardNum);
-            });
-        }
-        arr = arr.filter(c => !!c);
-        if (arr.length != 5) arr = [];
-        return arr;
-    }());
-
-    this.cards = _cards;
-    
-    this.clone = function(){
-        return new Hand(_cards);
-    }
-
-    this.toNumber = function(){
-        var num = 0;
-        _cards.forEach((c,i) => {
-            const mask = c.cardNum * Math.pow(2, 6*i);
-            num = num + mask;
-        });
-        return num;
-    }
-
-    this.toString = function(){
-        if (_cards.length == 0) return '[InvalidHand]';
-        return _cards.map(c => {
-            const valStr = (function(val){
-                if (val == 0) return 'A';
-                if (val <= 9) return `${val+1}`;
-                if (val == 10) return "J";
-                if (val == 11) return "Q";
-                if (val == 12) return "K";
-            }(c.val));
-            const suitStr = (function(suit){
-                if (suit == 0) return 's';
-                if (suit == 1) return 'h';
-                if (suit == 2) return 'd';
-                if (suit == 3) return 'c';
-            }(c.suit));
-            return `${valStr}${suitStr}`;
-        }).join(", ") + ` (${this.toNumber()})`;
-    }
-
-    this.getRank = function(){
-        if (_cards.length == 5 && numOrArray != 0) {
-            if (this.isRoyalFlush()) return 1;
-            else if (this.isStraightFlush()) return 2;
-            else if (this.isFourOfAKind()) return 3;
-            else if (this.isFullHouse()) return 4;
-            else if (this.isFlush()) return 5;
-            else if (this.isStraight()) return 6;
-            else if (this.isThreeOfAKind()) return 7;
-            else if (this.isTwoPair()) return 8;
-            else if (this.isJacksOrBetter()) return 9;
-            else return 10;
-        } else {
-            return 11;
-        }
-    }
-
-    this.isRoyalFlush = function() {
-        const lowVal = min(_cards.map(c => c.val));
-        return this.isStraightFlush() && lowVal == 9;
-    }
-    this.isStraightFlush = function() {
-        return this.isStraight() && this.isFlush();
-    }
-    this.isFourOfAKind = function(){
-        return hasCounts([4,1]);
-    }
-    this.isFullHouse = function(){
-        return hasCounts([3,2]);
-    }
-    this.isFlush = function(){
-        return _cards.every(c => c.suit == _cards[0].suit);
-    }
-    this.isStraight = function(){
-        if (!hasCounts([1,1,1,1,1])) return;
-        const hasAce = _cards.some(c => c.isAce);
-        const highVal = max(_cards.map(c => c.val));
-        const lowVal = min(_cards.map(c => c.val));
-        return hasAce
-            ? highVal == 4 || lowVal == 9
-            : highVal - lowVal == 4;
-    }
-    this.isThreeOfAKind = function(){
-        return hasCounts([3,1,1]);
-    }
-    this.isTwoPair = function(){
-        return hasCounts([2,2,1]);
-    }
-    this.isJacksOrBetter = function(){
-        if (!hasCounts([2,1,1,1])) return;
-        const counts = (new Array(13)).fill(0);
-        _cards.forEach(c => counts[c.val]++);
-        return [10,11,12,13].some(val => counts[val]>1);
-    }
-
-    function min(arr){ return Math.min.apply(Math, arr); }
-    function max(arr){ return Math.max.apply(Math, arr); }
-    function hasCounts(arr) {
-        var counts = (new Array(13)).fill(0);
-        _cards.forEach(c => counts[c.val]++);
-        counts = counts.filter(c => !!c).sort();
-        return arr.sort().every((exp,i) => exp===counts[i]);
-    }
-}
-
-// - blockhash: a string of hexEncoded 256 bit number
-// - gameId: a number or BigNumber
-function getIHand(blockhash, gameId) {
-    const idHex = toPaddedHex(gameId, 32);
-    const hexHash = web3.sha3(blockhash + idHex, {encoding: "hex"});
-    const cardNums = getCardsFromHash(hexHash, 5);
-    return new Hand(cardNums);
-}
-
-// - blockhash: a string of hexEncoded 256 bit number
-// - gameId: a number or BigNumber
-// - iHand: should be a Hand object of the original hand.
-// - drawsNum: from 0 to 63.
-function getDHand(blockhash, gameId, iHand, drawsNum) {
-    // populate drawsArr from drawsNum
-    iHand = new Hand(iHand);
-    const drawsArr = [0,0,0,0,0];
-    if (drawsNum & 1) drawsArr[0] = 1;
-    if (drawsNum & 2) drawsArr[1] = 1;
-    if (drawsNum & 4) drawsArr[2] = 1;
-    if (drawsNum & 8) drawsArr[3] = 1;
-    if (drawsNum & 16) drawsArr[4] = 1;
-
-    // get 5 new cards
-    const idHex = toPaddedHex(gameId, 32);
-    const hexHash = web3.sha3(blockhash + idHex, {encoding: "hex"});
-    const excludedCardNums = iHand.cards.map(c => c.cardNum);
-    const newCards = getCardsFromHash(hexHash, 5, excludedCardNums);
-    const oldCards = iHand.cards.map(c => c.cardNum);
-
-    // get 5 cards
-    const cards = drawsArr.map((useNew, i)=>{
-        return useNew ? newCards[i] : oldCards[i];
-    })
-    return new Hand(cards);
-}
-
-function getCardsFromHash(hexHash, numCards, excludedCardNums) {
-    if (!excludedCardNums) excludedCardNums = [];
-    const cardNums = [];
-    while (cardNums.length < numCards) {
-        const cardNum = (new BigNumber(hexHash)).mod(52).toNumber();
-        if (excludedCardNums.indexOf(cardNum) === -1) {
-            excludedCardNums.push(cardNum);
-            cardNums.push(cardNum);
-        }
-        hexHash = web3.sha3(hexHash, {encoding: "hex"});
-    }
-    return cardNums;
-}
-
-function toPaddedHex(num, bits) {
-    num = new BigNumber(num);
-    const targetLen = Math.ceil(bits / 4);
-    const hexStr = num.toString(16);
-    if (hexStr.length > targetLen)
-        throw new Error(`Cannot convert ${num} to ${bits} bits... it's too large.`);
-    const zeroes = (new Array(targetLen-hexStr.length+1)).join("0");
-    return `${zeroes}${hexStr}`;
-}
-
-function cardToUnicode(i){
-    const suit = String.fromCharCode(Math.floor(i/13) + 'A'.charCodeAt(0));
-    var val = i % 13;
-    if (val > 10) val = val+1;
-    val = Number(val+1).toString(16);
-    return String.fromCodePoint(code);
-}
 
 function eth(val) {
     val = new BigNumber(val);

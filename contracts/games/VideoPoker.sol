@@ -228,12 +228,12 @@ contract VideoPoker is
             return _drawFailure(_id, _draws, "Initial cards not available.");
         if (_game.dBlock != 0)
             return _drawFailure(_id, _draws, "Cards already drawn.");
-        if (_draws > 63)
+        if (_draws > 31)
             return _drawFailure(_id, _draws, "Invalid draws.");
         if (_draws == 0)
             return _drawFailure(_id, _draws, "Cannot draw 0 cards. Use finalize instead.");
         if (_game.handRank != uint8(HandRank.Undefined))
-            return _drawFailure(_id, "Game already finalized.");
+            return _drawFailure(_id, _draws, "Game already finalized.");
         
         _draw(_game, _id, _draws, _hashCheck);
     }
@@ -416,7 +416,7 @@ contract VideoPoker is
             _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
         } else {
             DrawWarning(now, msg.sender, _id, _draws, "Initial hand not available. Drawing 5 cards.");
-            _draws = 63;
+            _draws = 31;
         }
 
         // update game
@@ -492,9 +492,9 @@ contract VideoPoker is
             } else {
                 // can't finalize with iHand. Draw 5 cards.
                 _finalizeFailure(_id, "Initial hand not available. Drawing 5 new cards.");
-                _game.draws = 63;
+                _game.draws = 31;
                 _game.dBlock = uint32(block.number);
-                DrawSuccess(now, _user, _id, 63);
+                DrawSuccess(now, _user, _id, 31);
                 return;
             }
         }
