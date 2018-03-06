@@ -36,8 +36,17 @@ contract VideoPoker is
         uint88 totalCredits;        // (changes on finalization win)
         uint8 empty2;               // set to true to normalize gas cost
     }
+
+    struct Settings {
+        uint64 minBet;
+        uint64 maxBet;
+        uint16 curPayTableId;
+        uint16 numPayTables;
+    }
+
+    Settings settings;
     Vars vars;
-    
+
     // A Mapping of all games
     mapping(uint32 => Game) public games;
     
@@ -50,16 +59,13 @@ contract VideoPoker is
     // The trade-off is 3 writes for new users. Seems fair.
     mapping (address => uint32) public userIds;
     mapping (uint32 => address) public userAddresses;
-    
-    // Admin controlled settings
-    uint64 public maxBet = .5 ether;
-    uint64 public minBet = .001 ether;
 
     // Note: Pay tables cannot be changed once added.
     // However, admin can change the current PayTable
-    uint16 public curPayTableId = 0;
-    uint16 public numPayTables = 0;
     mapping(uint16=>uint16[12]) payTables;
+
+    // version of the game
+    uint8 public constant version = 1;
     
     // Admin Events
     event PayTableAdded(uint time, address admin, uint payTableId);
@@ -90,6 +96,9 @@ contract VideoPoker is
         // write to vars, to lower gas-cost for the first game.
         vars.empty1 = 1;
         vars.empty2 = 1;
+        // initialize settings
+        settings.minBet = .001 ether;
+        settings.maxBet = .5 ether;
     }
     
     
@@ -104,10 +113,10 @@ contract VideoPoker is
     {
         require(_minBet <= _maxBet);
         require(_maxBet <= .625 ether);
-        require(_payTableId < numPayTables);
-        minBet = _minBet;
-        maxBet = _maxBet;
-        curPayTableId = _payTableId;
+        require(_payTableId < settings.numPayTables);
+        settings.minBet = _minBet;
+        settings.maxBet = _maxBet;
+        settings.curPayTableId = _payTableId;
         SettingsChanged(now, msg.sender);
     }
     
@@ -120,7 +129,7 @@ contract VideoPoker is
         fromAdmin
     {
         _addPayTable(_rf, _sf, _foak, _fh, _fl, _st, _toak, _tp, _jb);
-        PayTableAdded(now, msg.sender, numPayTables-1);
+        PayTableAdded(now, msg.sender, settings.numPayTables-1);
     }
     
 
@@ -156,9 +165,9 @@ contract VideoPoker is
         payable
     {
         uint _bet = msg.value;
-        if (_bet > maxBet)
+        if (_bet > settings.maxBet)
             return _betFailure("Bet too large.", _bet, true);
-        if (_bet < minBet)
+        if (_bet < settings.minBet)
             return _betFailure("Bet too small.", _bet, true);
         if (_bet > curMaxBet())
             return _betFailure("The bankroll is too low.", _bet, true);
@@ -180,9 +189,9 @@ contract VideoPoker is
     function betWithCredits(uint64 _bet)
         public
     {
-        if (_bet > maxBet)
+        if (_bet > settings.maxBet)
             return _betFailure("Bet too large.", _bet, false);
-        if (_bet < minBet)
+        if (_bet < settings.minBet)
             return _betFailure("Bet too small.", _bet, false);
         if (_bet > curMaxBet())
             return _betFailure("The bankroll is too low.", _bet, false);
@@ -321,8 +330,8 @@ contract VideoPoker is
         _pt[uint8(HandRank.TwoPair)] = _tp;
         _pt[uint8(HandRank.JacksOrBetter)] = _jb;
         _pt[uint8(HandRank.NotComputable)] = 0;
-        payTables[numPayTables] = _pt;
-        numPayTables++;
+        payTables[settings.numPayTables] = _pt;
+        settings.numPayTables++;
     }
 
     // Increases totalCredits and credits[user]
@@ -383,7 +392,7 @@ contract VideoPoker is
         vars.curUserId = _curUserId;
 
         // save game
-        uint16 _payTableId = curPayTableId;
+        uint16 _payTableId = settings.curPayTableId;
         Game storage _game = games[_curId];
         _game.userId = _userId;
         _game.bet = _bet;
@@ -549,7 +558,7 @@ contract VideoPoker is
         // Available balance is min(balance, funding) - totalCredits;
         uint _available = (_balance > _funding ? _funding : _balance) - _credits;
         // Return largest bet such that RF*2*bet = _available
-        return _available / (payTables[curPayTableId][uint(HandRank.RoyalFlush)] * 2);
+        return _available / (payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2);
     }
 
     function getPayTable(uint8 _payTableId)
@@ -557,7 +566,7 @@ contract VideoPoker is
         view
         returns (uint16[12])
     {
-        require(_payTableId < numPayTables);
+        require(_payTableId < settings.numPayTables);
         return payTables[_payTableId];
     }
 
@@ -621,5 +630,21 @@ contract VideoPoker is
     function totalCredits() public view returns (uint) {
         return vars.totalCredits;
     }
+    /////////////////////////////////////////////////////
+
+    // Expose Settings //////////////////////////////////
+    function minBet() public view returns (uint) {
+        return settings.minBet;
+    }
+    function maxBet() public view returns (uint) {
+        return settings.maxBet;
+    }
+    function curPayTableId() public view returns (uint) {
+        return settings.curPayTableId;
+    }
+    function numPayTables() public view returns (uint) {
+        return settings.numPayTables;
+    }
+
     /////////////////////////////////////////////////////
 }

@@ -542,7 +542,6 @@ describe('VideoPoker', function(){
             if (!shouldFail) {
                 console.log("");
                 console.log("Test that passing invalid hashCheck fails.");
-                console.log(`HashCheck: ${hashCheck.toString(16)}`);
                 await createDefaultTxTester()
                     .mineBlocks(1)
                     .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
@@ -587,6 +586,7 @@ describe('VideoPoker', function(){
                 .doFn(()=>{
                     console.log("");
                     console.log("Assert that drawing works.");
+                    console.log(`HashCheck (block ${game.iBlock}): ${hashCheck.toString(16)}`);
                 })
                 .startLedger([vp, player])
                 .doTx([vp, "draw", id, drawsNum, hashCheck, {from: player}])
@@ -792,7 +792,6 @@ describe('VideoPoker', function(){
                 if (game.draws.equals(0)){
                     console.log("");
                     console.log("Test that passing invalid hashCheck fails.");
-                    console.log(`HashCheck: ${hashCheck.toString(16)}`);
                     await createDefaultTxTester()
                         .doTx([vp, "finalize", id, hashCheck.plus(1), {from: player}])
                         .assertSuccess()
@@ -835,6 +834,7 @@ describe('VideoPoker', function(){
                 .doFn(()=>{
                     console.log("");
                     console.log("Assert that finalizing works.");
+                    console.log(`HashCheck (block ${game.iBlock}: ${hashCheck.toString(16)}`);
                 })
                 .startLedger([vp, player])
                 .doTx([vp, "finalize", id, hashCheck, {from: player}])

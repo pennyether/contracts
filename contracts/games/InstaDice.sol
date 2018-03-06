@@ -106,7 +106,7 @@ contract InstaDice is
         settings.maxBet = .3 ether;
         settings.minBet = .001 ether;
         settings.minNumber = 5;
-        settings.maxNumber = 99;
+        settings.maxNumber = 98;
         settings.feeBips = 100;
     }
 
@@ -220,9 +220,12 @@ contract InstaDice is
 		}
 
 	// Pays out a user for a roll, if they won and .isPaid is false.
+	// If sent 0, defaults to latest roll
 	function payoutRoll(uint32 _id)
 		public
 	{
+		if (_id == 0) _id = vars.curId;
+
 		Roll storage _r = rolls[_id];
 		// Ensure roll exists, and is not of the same block.
 		if (_r.block==0 || _r.block==block.number) return;
@@ -495,6 +498,9 @@ contract InstaDice is
     }
     function totalWon() public view returns (uint) {
         return uint(vars.totalWonGwei) * 1e9;
+    }
+    function getNumUnfinalized() public view returns (uint) {
+    	return (vars.finalizeId-1) - vars.curId;
     }
     //////////////////////////////////////////////////////
 
