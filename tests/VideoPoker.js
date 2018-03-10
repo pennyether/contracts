@@ -324,11 +324,13 @@ describe('VideoPoker', function(){
         it(`Player ${playerNum+1} tries to bet ${eth(betSize)}.`, async function(){
             // computed expected gas, logs
             const player = players[playerNum-1];
-            var expGas = new BigNumber(27000);
+            var expGas = new BigNumber(28000);
             var expLogs = [];
             var expUserId;
             var expCurId = await vp.curId();
             const expGameId = expCurId.plus(1);
+            const expPayTableId = await vp.curPayTableId();
+            const expUiId = Math.floor(Math.random()*1000000000);
 
             // Test bet size, record expected error message.
             var errMsg;
@@ -348,9 +350,11 @@ describe('VideoPoker', function(){
                     time: null,
                     user: player,
                     id: expGameId,
-                    bet: betSize
+                    bet: betSize,
+                    payTableId: expPayTableId,
+                    uiid: expUiId
                 }]);
-                expGas = expGas.plus(26000);    // 1 write, 1 update, SLOADs
+                expGas = expGas.plus(27000);    // 1 write, 1 update, SLOADs
                 expCurId = expGameId;
             } else {
                 console.log(`Bet should fail due to: ${errMsg}`);
@@ -375,7 +379,7 @@ describe('VideoPoker', function(){
             // do TX, and assert success and proper deltas and logs
             const txTester = createDefaultTxTester()
                 .startLedger([vp, player])
-                .doTx([vp, "bet", {from: player, value: betSize}])
+                .doTx([vp, "bet", [expUiId], {from: player, value: betSize}])
                 .stopLedger()
                 .assertSuccess();
 
@@ -410,7 +414,6 @@ describe('VideoPoker', function(){
 
             // assert game is saved correctly, and .getIHand() works
             if (shouldSucceed) {
-                const expPayTableId = await vp.curPayTableId();
                 const expBlockNumber = testUtil.getBlockNumber() + 1;
                 txTester
                     .doFn(()=>{
@@ -503,7 +506,7 @@ describe('VideoPoker', function(){
                     time: null,
                     user: player,
                     id: id,
-                    draw: drawsNum,
+                    draws: drawsNum,
                     msg: errMsg
                 }]);
                 expGas = expGas.plus(7000);  // Event, SLOADs, not sure why so much.
@@ -514,7 +517,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: drawsNum
+                        draws: drawsNum
                     }]);
                     expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
                 } else {
@@ -524,14 +527,14 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player, 
                         id: id,
-                        draw: drawsNum,
+                        draws: drawsNum,
                         msg: warnMsg
                     }])
                     expLogs.push(["DrawSuccess", {
                         time: null,
                         user: player,
                         id: id,
-                        draw: 31
+                        draws: 31
                     }]);
                     expGas = expGas.plus(15000);    // 1 update, 2 events, getHand(), other
                 }
@@ -550,7 +553,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: drawsNum,
+                        draws: drawsNum,
                         msg: "HashCheck Failed. Try refreshing game."
                     })
                     .start();
@@ -565,7 +568,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: nonPlayer,
                         id: id,
-                        draw: drawsNum,
+                        draws: drawsNum,
                         msg: "This is not your game."
                     })
                     .start();
@@ -662,7 +665,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: drawsNum,
+                        draws: drawsNum,
                         msg: "Cards already drawn."
                     })
                     .start();
@@ -706,7 +709,7 @@ describe('VideoPoker', function(){
                             time: null,
                             user: player,
                             id: id,
-                            draw: 31
+                            draws: 31
                         }]);
                         // expGame.dBlock = <tx block number>. set this later.
                         expGame.draws = 31;
@@ -895,7 +898,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        draw: 31
+                        draws: 31
                     })
                     .start();
 

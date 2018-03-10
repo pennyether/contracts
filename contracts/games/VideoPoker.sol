@@ -71,11 +71,11 @@ contract VideoPoker is
     event PayTableAdded(uint time, address admin, uint payTableId);
     event SettingsChanged(uint time, address admin);
     // Game Events
-    event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet);
+    event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet, uint payTableId, uint uiid);
     event BetFailure(uint time, address indexed user, uint bet, string msg);
-    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint8 draw);
-    event DrawWarning(uint time, address indexed user, uint32 indexed id, uint8 draw, string msg);
-    event DrawFailure(uint time, address indexed user, uint32 indexed id, uint8 draw, string msg);
+    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint8 draws);
+    event DrawWarning(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
+    event DrawFailure(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
     event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint8 result, uint payout);
     event FinalizeWarning(uint time, address indexed user, uint32 indexed id, string msg);
     event FinalizeFailure(uint time, address indexed user, uint32 indexed id, string msg);
@@ -154,13 +154,13 @@ contract VideoPoker is
 
     // Allows a user to create a game from Ether sent.
     //
-    // Gas Cost: 53k (prev player), 93k (new player)
+    // Gas Cost: 55k (prev player), 95k (new player)
     //   - 22k: tx overhead
     //   - 26k, 66k: see _createNewGame()
+    //   -  3k: event
     //   -  2k: curMaxBet()
-    //   -  2k: event
-    //   -  1k: SLOAD, execution
-    function bet()
+    //   -  2k: SLOAD, execution
+    function bet(uint _uiid)
         public
         payable
     {
@@ -174,19 +174,20 @@ contract VideoPoker is
 
         // no uint64 overflow: _bet < maxBet < .625 ETH < 2e64
         uint32 _id = _createNewGame(uint64(_bet));
-        BetSuccess(now, msg.sender, _id, _bet);
+        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId, _uiid);
     }
 
     // Allows a user to create a game from Credits.
     //
-    // Gas Cost: 60k
+    // Gas Cost: 61k
     //   - 22k: tx overhead
     //   - 26k: see _createNewGame()
+    //   -  3k: event
     //   -  2k: curMaxBet()
-    //   -  4k: 2 events: BetSuccess, CreditsUsed
+    //   -  2k: 1 event: CreditsUsed
     //   -  5k: update credits[user]
     //   -  1k: SLOAD, execution
-    function betWithCredits(uint64 _bet)
+    function betWithCredits(uint64 _bet, uint _uiid)
         public
     {
         if (_bet > settings.maxBet)
@@ -201,7 +202,7 @@ contract VideoPoker is
         uint32 _id = _createNewGame(uint64(_bet));
         credits[msg.sender] -= _bet;
         CreditsUsed(now, msg.sender, _id, _bet);
-        BetSuccess(now, msg.sender, _id, _bet);
+        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId, _uiid);
     }
 
         // Logs an error, and optionally refunds user the _bet
@@ -397,7 +398,7 @@ contract VideoPoker is
         _game.userId = _userId;
         _game.bet = _bet;
         _game.payTableId = _payTableId;
-        _game.iBlock = uint32(block.number);        
+        _game.iBlock = uint32(block.number);
         return _curId;
     }
 
@@ -419,7 +420,7 @@ contract VideoPoker is
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
         if (_iBlockHash != 0) {
             // Ensure they are drawing against expected hand
-            if (_iBlockHash != _hashCheck) {
+            if (uint(_iBlockHash) != uint(_hashCheck)) {
                 return _drawFailure(_id, _draws, "HashCheck Failed. Try refreshing game.");
             }
             _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
@@ -491,7 +492,7 @@ contract VideoPoker is
             _blockhash = block.blockhash(_game.iBlock);
             if (_blockhash != 0) {
                 // ensure they are drawing against expected hand
-                if (_blockhash != _hashCheck) {
+                if (uint(_blockhash) != uint(_hashCheck)) {
                     _finalizeFailure(_id, "HashCheck Failed. Try refreshing game.");
                     return;
                 }
@@ -561,13 +562,21 @@ contract VideoPoker is
         return _available / (payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2);
     }
 
-    function getPayTable(uint8 _payTableId)
+    function getPayTable(uint16 _payTableId)
         public
         view
         returns (uint16[12])
     {
         require(_payTableId < settings.numPayTables);
         return payTables[_payTableId];
+    }
+
+    function getCurPayTable()
+        public
+        view
+        returns (uint16[12])
+    {
+        return getPayTable(settings.curPayTableId);
     }
 
     // Gets the initial hand of a game.
