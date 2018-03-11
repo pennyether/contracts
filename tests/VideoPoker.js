@@ -869,6 +869,7 @@ describe('VideoPoker', function(){
             // Assert credits are updated correctly
             const expCredits = (await vp.credits(player)).plus(expPayout);
             const expTotalCredits = (await vp.totalCredits()).plus(expPayout);
+            const expTotalWon = (await vp.totalWon()).plus(expPayout.div(1e9).floor().mul(1e9));
             txTester.doFn(()=>{
                 const str = expPayout.gt(0) ? "increased" : "the same";
                 console.log("");
@@ -876,6 +877,7 @@ describe('VideoPoker', function(){
             });
             txTester.assertCallReturns([vp, "credits", player], expCredits);
             txTester.assertCallReturns([vp, "totalCredits"], expTotalCredits);
+            txTester.assertCallReturns([vp, "totalWon"], expTotalWon);
 
             // Assert proper gas used, and start the whole thing.
             await txTester

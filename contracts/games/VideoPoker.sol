@@ -341,7 +341,10 @@ contract VideoPoker is
         private
     {
         if (_amt == 0) return;
-        vars.totalCredits += uint88(_amt);
+        uint88 _totalCredits = vars.totalCredits + uint88(_amt);
+        uint64 _totalWonGwei = vars.totalWonGwei + uint64(_amt / 1e9);
+        vars.totalCredits = _totalCredits;
+        vars.totalWonGwei = _totalWonGwei;
         credits[_user] += _amt;
         CreditsAdded(now, _user, _gameId, _amt);
     }
