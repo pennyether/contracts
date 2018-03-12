@@ -163,7 +163,7 @@ contract InstaDice is
     //      - 55k, 95k: [above]
     //      -  1k: SLOADs, execution
     //
-    //   - resolving one losing roll:    72k, 90k (new roller)
+    //   - resolving one losing roll:    72k, 112k (new roller)
     //      - 55k, 95k: [above]
     //      - 10k: 2 updates: roll.result, finalizeId
     //      -  3k: event (RollFinalized)

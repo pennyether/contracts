@@ -73,10 +73,10 @@ contract VideoPoker is
     // Game Events
     event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet, uint payTableId, uint uiid);
     event BetFailure(uint time, address indexed user, uint bet, string msg);
-    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint8 draws);
+    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint32 iHand, uint8 draws);
     event DrawWarning(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
     event DrawFailure(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
-    event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint8 result, uint payout);
+    event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint32 dHand, uint8 handRank, uint payout);
     event FinalizeWarning(uint time, address indexed user, uint32 indexed id, string msg);
     event FinalizeFailure(uint time, address indexed user, uint32 indexed id, string msg);
     // If _payout = true on finalization
@@ -437,7 +437,7 @@ contract VideoPoker is
         _game.draws = _draws;
         _game.dBlock = uint32(block.number);
 
-        DrawSuccess(now, msg.sender, _id, _draws);
+        DrawSuccess(now, msg.sender, _id, _game.iHand, _draws);
     }
 
     // Resolves game based on .iHand and .draws, crediting user on a win.
@@ -507,7 +507,7 @@ contract VideoPoker is
                 _finalizeFailure(_id, "Initial hand not available. Drawing 5 new cards.");
                 _game.draws = 31;
                 _game.dBlock = uint32(block.number);
-                DrawSuccess(now, _user, _id, 31);
+                DrawSuccess(now, _user, _id, 0, 31);
                 return;
             }
         }
@@ -526,7 +526,7 @@ contract VideoPoker is
         // Compute _payout, credit user, emit event.
         uint _payout = payTables[_game.payTableId][_handRank] * uint(_game.bet);
         if (_payout > 0) _creditUser(_user, _payout, _id);
-        FinalizeSuccess(now, _user, _id, _game.handRank, _payout);
+        FinalizeSuccess(now, _user, _id, _game.dHand, _game.handRank, _payout);
     }
 
 
