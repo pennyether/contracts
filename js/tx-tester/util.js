@@ -52,8 +52,8 @@ function createUtil(web3, assert){
 			try {
 				filteredLogs = logs.filter(l => l.event === eventName);
 				if (filteredLogs.length == 0) throw new Error(`did not find any '${eventName}' event.`);
-				if (filteredLogs.length == 1) return validateArgs(filteredLogs[0]);
-				if (filteredLogs.length > 1) {
+				else if (filteredLogs.length == 1) await validateArgs(filteredLogs[0]);
+				else if (filteredLogs.length > 1) {
 					for (var i=0; i<filteredLogs.length; i++){
 						try {
 							await validateArgs(filteredLogs[i]);
