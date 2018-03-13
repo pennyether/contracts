@@ -31,6 +31,10 @@ describe('VideoPoker', function(){
     const MAX_BET = new BigNumber(.2e18);
     const PAYTABLE = DEFAULT_PAYTABLE.slice().map(x=> x>0 ? x+1 : 0);
 
+    const WARN_IHAND_TIMEOUT = 1;
+    const WARN_DHAND_TIMEOUT = 2;
+    const WARN_BOTH_TIMEOUT = 3;
+
     before("Set up VideoPoker contract.", async function(){
         const addresses = {
             admin: admin,
@@ -475,7 +479,7 @@ describe('VideoPoker', function(){
         const timeoutStr = doTimeout ? ` after 256 blocks.` : ".";
         it(`Draws game ${id} with ${drawsArr}${timeoutStr}`, async function(){
             if (!drawsArr) drawsArr = [0,0,0,0,0];
-            const drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
+            var drawsNum = drawsArr.reduce((c,e,i) => e ? c + Math.pow(2, i) : c, 0);
             const player = players[playerNum-1];
             const game = await getGame(id);
             var expGas = new BigNumber(25000);
@@ -511,45 +515,36 @@ describe('VideoPoker', function(){
                 }]);
                 expGas = expGas.plus(7000);  // Event, SLOADs, not sure why so much.
             } else {
+                const expDraws = doTimeout ? 31 : drawsNum;
+                const expWarnCode = doTimeout ? WARN_IHAND_TIMEOUT : 0;
                 if (!doTimeout) {
                     console.log(`Note: Drawing should succeed.`);
-                    expLogs.push(["DrawSuccess", {
-                        time: null,
-                        user: player,
-                        id: id,
-                        draws: drawsNum
-                    }]);
-                    expGas = expGas.plus(13000);    // 1 update, 1 event, getHand(), other
                 } else {
-                    const warnMsg = "Initial hand not available. Drawing 5 cards."
-                    console.log(`Note: Drawing should succeed with warning: ${warnMsg}`);
-                    expLogs.push(["DrawWarning", {
-                        time: null,
-                        user: player, 
-                        id: id,
-                        draws: drawsNum,
-                        msg: warnMsg
-                    }])
-                    expLogs.push(["DrawSuccess", {
-                        time: null,
-                        user: player,
-                        id: id,
-                        draws: 31
-                    }]);
-                    expGas = expGas.plus(15000);    // 1 update, 2 events, getHand(), other
+                    console.log(`Note: Drawing should succeed with warnCode ${expWarnCode} and draw all cards.`);
                 }
+
+                expLogs.push(["DrawSuccess", {
+                    time: null,
+                    user: player,
+                    id: id,
+                    iHand: null,
+                    draws: expDraws,
+                    warnCode: expWarnCode
+                }]);
+                expGas = expGas.plus(14000); // 1 update, 1 event, getHand(), other
             }
 
             // Test that with invalid hashCheck it fails.
-            const hashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+            const hashCheck = testUtil.getBlock(game.iBlock).hash;
             if (!shouldFail) {
+                const invalidHashCheck = testUtil.getBlock(game.iBlock.minus(1)).hash;
                 console.log("");
                 console.log("Test that passing invalid hashCheck fails.");
                 await createDefaultTxTester()
                     .mineBlocks(1)
-                    .doTx([vp, "draw", id, drawsNum, hashCheck.plus(1), {from: player}])
+                    .doTx([vp, "draw", id, drawsNum, invalidHashCheck, {from: player}])
                     .assertSuccess()
-                    .assertOnlyLog("DrawFailure", {
+                    .assertLog("DrawFailure", {
                         time: null,
                         user: player,
                         id: id,
@@ -589,7 +584,7 @@ describe('VideoPoker', function(){
                 .doFn(()=>{
                     console.log("");
                     console.log("Assert that drawing works.");
-                    console.log(`HashCheck (block ${game.iBlock}): ${hashCheck.toString(16)}`);
+                    console.log(`HashCheck (block ${game.iBlock}): ${hashCheck}`);
                 })
                 .startLedger([vp, player])
                 .doTx([vp, "draw", id, drawsNum, hashCheck, {from: player}])
@@ -639,6 +634,7 @@ describe('VideoPoker', function(){
                     .withTxResult((res)=>{
                         const dHand = getDHand(res.receipt.blockHash, id, game.iHand, game.draws);
                         expDHand = dHand.toNumber();
+                        console.log(`"${res.receipt.blockHash}", ${id}, ${game.iHand}, ${game.draws}`);
                         console.log(`After drawing, dHand should be: ${dHand}`);
                     })
                     .mineBlocks(1) // mine a block so .getDHand() works in ganache
@@ -697,21 +693,25 @@ describe('VideoPoker', function(){
             }
 
             // This sets the following variables:
-            var warnMsg;
+            var warnCode = 0;
             var redoFinalize = false;
             if (!errMsg) {
                 if (game.dBlock.equals(0)) {
                     // The user is skipping drawing
                     if (doTimeout) {
                         // iHand not available. should draw 5 cards and fail.
+                        // By setting errMsg, we will expect failure log below.
                         errMsg = "Initial hand not available. Drawing 5 new cards.";
                         expLogs.push(["DrawSuccess", {
                             time: null,
                             user: player,
                             id: id,
-                            draws: 31
+                            iHand: 0,
+                            draws: 31,
+                            warnCode: WARN_IHAND_TIMEOUT
                         }]);
                         // expGame.dBlock = <tx block number>. set this later.
+                        expGame.iHand = 0;
                         expGame.draws = 31;
                         redoFinalize = true;
                     } else {
@@ -726,9 +726,7 @@ describe('VideoPoker', function(){
                     // The user has specified draws
                     if (doTimeout) {
                         // Draw cards not available. Use iHand, if they have one.
-                        warnMsg = game.iHand.equals(0)
-                            ? "Draw cards not available, and no initial hand."
-                            : "Draw cards not available. Using initial hand.";
+                        warnCode = game.iHand.gt(0) ? WARN_DHAND_TIMEOUT : WARN_BOTH_TIMEOUT;
                         expGame.dHand = game.iHand;
                         expGame.handRank = (new Hand(expGame.dHand)).getRank();
                     } else {
@@ -745,28 +743,22 @@ describe('VideoPoker', function(){
             }
 
             // if errMsg, we expect a failure.
-            // if warnMsg, we expect a success (and warning log)
+            // else, we expect success (with possible warnCode)
             const shouldFail = !!errMsg;
             if (!shouldFail) {
                 // todo: calc everything from dHand.
-                const warnStr = warnMsg ? `, with warning: ${warnMsg}` : `.`;
+                const warnStr = warnCode ? `, with warnCode: ${warnCode}` : `.`;
                 console.log(`Note: Finalizing should succeed${warnStr}`);
                 console.log(`Note: Final hand should be: ${new Hand(expGame.dHand)}`);
                 expLogs.push(["FinalizeSuccess", {
                     time: null,
                     user: player,
                     id: id,
-                    result: expGame.handRank,
-                    payout: expPayout
+                    dHand: expGame.dHand,
+                    handRank: expGame.handRank,
+                    payout: expPayout,
+                    warnCode: warnCode
                 }]);
-                if (warnMsg) {
-                    expLogs.push(["FinalizeWarning", {
-                        time: null,
-                        user: player,
-                        id: id,
-                        msg: warnMsg
-                    }]);
-                }
                 if (expPayout.gt(0)) {
                     console.log(`Note: Game should win ${eth(expPayout)} from handrank ${expGame.handRank}`);
                     expLogs.push(["CreditsAdded", {
@@ -790,15 +782,16 @@ describe('VideoPoker', function(){
             }
 
             // If draws == 0, check that omitting hashcheck fails
-            const hashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+            const hashCheck = testUtil.getBlock(game.iBlock).hash;
             if (!shouldFail) {
                 if (game.draws.equals(0)){
+                    const invalidHashCheck = testUtil.getBlock(game.iBlock.minus(1)).hash;
                     console.log("");
                     console.log("Test that passing invalid hashCheck fails.");
                     await createDefaultTxTester()
-                        .doTx([vp, "finalize", id, hashCheck.plus(1), {from: player}])
+                        .doTx([vp, "finalize", id, invalidHashCheck, {from: player}])
                         .assertSuccess()
-                        .assertOnlyLog("FinalizeFailure", {
+                        .assertLog("FinalizeFailure", {
                             time: null,
                             user: player, 
                             id: id,
@@ -837,7 +830,7 @@ describe('VideoPoker', function(){
                 .doFn(()=>{
                     console.log("");
                     console.log("Assert that finalizing works.");
-                    console.log(`HashCheck (block ${game.iBlock}: ${hashCheck.toString(16)}`);
+                    console.log(`HashCheck (block ${game.iBlock}: ${hashCheck}`);
                 })
                 .startLedger([vp, player])
                 .doTx([vp, "finalize", id, hashCheck, {from: player}])
@@ -892,7 +885,7 @@ describe('VideoPoker', function(){
             if (!shouldFail) {
                 console.log("");
                 console.log("Test that user cannot draw again.");
-                const drawHashCheck = new BigNumber(testUtil.getBlock(game.iBlock).hash);
+                const drawHashCheck = testUtil.getBlock(game.iBlock).hash;
                 await createDefaultTxTester()
                     .doTx([vp, "draw", id, 31, drawHashCheck, {from: player}])
                     .assertSuccess()

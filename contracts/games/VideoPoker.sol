@@ -66,6 +66,9 @@ contract VideoPoker is
 
     // version of the game
     uint8 public constant version = 1;
+    uint8 constant WARN_IHAND_TIMEOUT = 1; // "Initial hand not available. Drawing 5 new cards."
+    uint8 constant WARN_DHAND_TIMEOUT = 2; // "Draw cards not available. Using initial hand."
+    uint8 constant WARN_BOTH_TIMEOUT = 3;  // "Draw cards not available, and no initial hand."
     
     // Admin Events
     event PayTableAdded(uint time, address admin, uint payTableId);
@@ -73,11 +76,9 @@ contract VideoPoker is
     // Game Events
     event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet, uint payTableId, uint uiid);
     event BetFailure(uint time, address indexed user, uint bet, string msg);
-    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint32 iHand, uint8 draws);
-    event DrawWarning(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
+    event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint32 iHand, uint8 draws, uint8 warnCode);
     event DrawFailure(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
-    event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint32 dHand, uint8 handRank, uint payout);
-    event FinalizeWarning(uint time, address indexed user, uint32 indexed id, string msg);
+    event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint32 dHand, uint8 handRank, uint payout, uint8 warnCode);
     event FinalizeFailure(uint time, address indexed user, uint32 indexed id, string msg);
     // If _payout = true on finalization
     event PayoutSuccess(uint time, address indexed user, uint32 indexed id, uint amt);
@@ -221,8 +222,8 @@ contract VideoPoker is
     //  - If user unable to resolve initial hand, sets draws to 5
     //  - This always sets game.dBlock
     //
-    // Gas Cost: ~37k
-    //   - 22k: tx
+    // Gas Cost: ~38k
+    //   - 23k: tx
     //   - 13k: see _draw()
     //   -  2k: SLOADs, execution
     function draw(uint32 _id, uint8 _draws, bytes32 _hashCheck)
@@ -409,9 +410,8 @@ contract VideoPoker is
     // Gas Cost: 13k
     //   - 3k: getHand()
     //   - 5k: 1 update: iHand, draws, dBlock
-    //   - 2k: event: DrawSuccess
-    //   - 2k: (maybe): DrawWarning
-    //   - 1k: SLOADs, other
+    //   - 3k: event: DrawSuccess
+    //   - 2k: SLOADs, other
     function _draw(Game storage _game, uint32 _id, uint8 _draws, bytes32 _hashCheck)
         private
     {
@@ -421,14 +421,15 @@ contract VideoPoker is
         // Deal the initial hand, or set draws to 5.
         uint32 _iHand;
         bytes32 _iBlockHash = block.blockhash(_game.iBlock);
+        uint8 _warnCode;
         if (_iBlockHash != 0) {
             // Ensure they are drawing against expected hand
-            if (uint(_iBlockHash) != uint(_hashCheck)) {
+            if (_iBlockHash != _hashCheck) {
                 return _drawFailure(_id, _draws, "HashCheck Failed. Try refreshing game.");
             }
             _iHand = getHand(uint(keccak256(_iBlockHash, _id)));
         } else {
-            DrawWarning(now, msg.sender, _id, _draws, "Initial hand not available. Drawing 5 cards.");
+            _warnCode = WARN_IHAND_TIMEOUT;
             _draws = 31;
         }
 
@@ -437,7 +438,7 @@ contract VideoPoker is
         _game.draws = _draws;
         _game.dBlock = uint32(block.number);
 
-        DrawSuccess(now, msg.sender, _id, _game.iHand, _draws);
+        DrawSuccess(now, msg.sender, _id, _game.iHand, _draws, _warnCode);
     }
 
     // Resolves game based on .iHand and .draws, crediting user on a win.
@@ -458,7 +459,6 @@ contract VideoPoker is
     //   - 7k: getHandRank()
     //   - 5k: 1 update: Game
     //   - 2k: FinalizeSuccess
-    //   - 2k (maybe): FinalizeWarning
     //   - 1k: SLOADs, execution
     //   On Win: +13k, or +28k
     //   - 5k: 1 updates: totalCredits, totalWon
@@ -476,6 +476,7 @@ contract VideoPoker is
         bytes32 _blockhash;
         uint32 _dHand;
         uint32 _iHand;  // set if draws are 0, and iBlock is fresh
+        uint8 _warnCode;
         if (_game.draws != 0) {
             _blockhash = block.blockhash(_game.dBlock);
             if (_blockhash != 0) {
@@ -485,17 +486,17 @@ contract VideoPoker is
                 // cannot draw any cards. use iHand.
                 if (_game.iHand != 0){
                     _dHand = _game.iHand;
-                    FinalizeWarning(now, _user, _id, "Draw cards not available. Using initial hand.");
+                    _warnCode = WARN_DHAND_TIMEOUT;
                 } else {
                     _dHand = 0;
-                    FinalizeWarning(now, _user, _id, "Draw cards not available, and no initial hand.");
+                    _warnCode = WARN_BOTH_TIMEOUT;
                 }
             }
         } else {
             _blockhash = block.blockhash(_game.iBlock);
             if (_blockhash != 0) {
                 // ensure they are drawing against expected hand
-                if (uint(_blockhash) != uint(_hashCheck)) {
+                if (_blockhash != _hashCheck) {
                     _finalizeFailure(_id, "HashCheck Failed. Try refreshing game.");
                     return;
                 }
@@ -507,7 +508,7 @@ contract VideoPoker is
                 _finalizeFailure(_id, "Initial hand not available. Drawing 5 new cards.");
                 _game.draws = 31;
                 _game.dBlock = uint32(block.number);
-                DrawSuccess(now, _user, _id, 0, 31);
+                DrawSuccess(now, _user, _id, 0, 31, WARN_IHAND_TIMEOUT);
                 return;
             }
         }
@@ -526,7 +527,7 @@ contract VideoPoker is
         // Compute _payout, credit user, emit event.
         uint _payout = payTables[_game.payTableId][_handRank] * uint(_game.bet);
         if (_payout > 0) _creditUser(_user, _payout, _id);
-        FinalizeSuccess(now, _user, _id, _game.dHand, _game.handRank, _payout);
+        FinalizeSuccess(now, _user, _id, _game.dHand, _game.handRank, _payout, _warnCode);
     }
 
 
