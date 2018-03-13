@@ -178,8 +178,8 @@ function Create(web3) {
 
     // - blockhash: a string of hexEncoded 256 bit number
     // - gameId: a number or BigNumber
-    // - iHand: should be a Hand object of the original hand.
-    // - drawsNum: from 0 to 63.
+    // - iHand: a Hand object of the original hand, or number
+    // - drawsNum: from 0 to 31.
     function getDHand(blockhash, gameId, iHand, drawsNum) {
         // get 5 new cards
         const idHex = toPaddedHex(gameId, 32);
@@ -187,10 +187,15 @@ function Create(web3) {
         return drawCardsFromHash(hexHash, iHand, drawsNum);
     }
 
+    // - hexHash: a string of hexEncoded 256 bit number
+    // - iHand: a Hand object of the original hand, or number
+    // - drawsNum: from 0 to 31
     function drawCardsFromHash(hexHash, iHand, drawsNum) {
-        // get 5 cards
         iHand = new Hand(iHand);
-        const excludedCardNums = iHand.cards.map(c => c.cardNum);
+        if (drawsNum > 31) throw new Error(`Invalid drawsNum: ${drawsNum}`);
+        if (!iHand.isValid() && drawsNum<31) throw new Error(`Cannot draw ${drawsNum} to an invalid hand.`);
+
+        const excludedCardNums = iHand.isValid() ? iHand.cards.map(c => c.cardNum) : [];
         const newCards = getCardsFromHash(hexHash, 5, excludedCardNums);
 
         // swap out oldCards for newCards.
