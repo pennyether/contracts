@@ -12,7 +12,7 @@ const drawCardsFromHash = pUtils.drawCardsFromHash;
 describe('VideoPokerUtils', function(){
 	const accounts = web3.eth.accounts;
     const anon = accounts[1];
-    const NUM_HANDS = 1000;
+    const NUM_HANDS = 100;
     var vpu;
 
 	before("Set up VideoPokerUtils contract.", async function(){
@@ -182,7 +182,6 @@ describe('VideoPokerUtils', function(){
     	}
 
     	const I_HANDS = [];
-    	const D_HANDS = [];
     	describe("Test drawing initial cards", function(){
     		it(`Generate and rank ${NUM_HANDS} hands.`, async function(){
 	        	for (var i=0; i<NUM_HANDS; i++) {
@@ -215,6 +214,7 @@ describe('VideoPokerUtils', function(){
     	});
 
     	describe("Test drawing cards", async function(){
+            const D_HANDS = [];
 	    	it("Draw cards randomly, ensure algorithm is correct.", async function(){
 	    		for (var i=0; i<I_HANDS.length; i++){
 	    			const iHand = I_HANDS[i];
@@ -223,7 +223,7 @@ describe('VideoPokerUtils', function(){
 	    			const expDHand = new Hand(drawCardsFromHash(seed, iHand.toNumber(), drawsNum));
 	    			const dHand = new Hand(await vpu.drawToHand(seed, iHand.toNumber(), drawsNum));
 	    			if (dHand.toNumber() !== expDHand.toNumber()) {
-	        			throw new Error(`Expected ${expDHand}, but got ${dHand}`);
+	        			 throw new Error(`Local: ${expDHand}, remote: ${dHand}, iHand: ${iHand}, drawsNum: ${drawsNum}`);
 	        		} else {
 	        			await assertRank(dHand, expDHand.getRank(), false);
 	        			const chunkSize = Math.floor(NUM_HANDS/10);
@@ -247,6 +247,41 @@ describe('VideoPokerUtils', function(){
 	        	testRankFrequency(D_HANDS);
 	        });
 	    });
+
+        describe("Test drawing against invalid hands", async function(){
+            const D_HANDS = [];
+            it("Draw cards randomly, ensure algorithm is correct.", async function(){
+                for (var i=0; i<I_HANDS.length; i++){
+                    const iHand = new Hand(0);
+                    const drawsNum = 31;
+                    const seed = web3.sha3(Math.random().toString());
+                    const expDHand = new Hand(drawCardsFromHash(seed, iHand.toNumber(), drawsNum));
+                    const dHand = new Hand(await vpu.drawToHand(seed, iHand.toNumber(), drawsNum));
+                    if (dHand.toNumber() !== expDHand.toNumber()) {
+                        throw new Error(`Local: ${expDHand}, remote: ${dHand}, iHand: ${iHand}, drawsNum: ${drawsNum}`);
+                    } else {
+                        await assertRank(dHand, expDHand.getRank(), false);
+                        const chunkSize = Math.floor(NUM_HANDS/10);
+                        const numHands = i+1;
+                        if (numHands >= chunkSize && numHands % chunkSize == 0)
+                            console.log(`Generated and ranked ${numHands} hands correctly. Latest one: ${dHand}`);
+                    }
+                    D_HANDS.push(expDHand);
+                }
+                console.log(`Done. Best hand: ${getBestHand(D_HANDS)}`);
+            });
+            it("Ensure no duplicate or invalid cards.", function(){
+                D_HANDS.forEach(hand => {
+                    if (!hand.isValid()) throw new Error(`Drew invalid hand: ${hand}`);
+                });
+            });
+            it("Ensure card distribution is correct.", function(){
+                testCardFrequency(D_HANDS);
+            });
+            it("Ensure hand rank distribution is correct", function(){
+                testRankFrequency(D_HANDS);
+            });
+        });
     });
 
 });

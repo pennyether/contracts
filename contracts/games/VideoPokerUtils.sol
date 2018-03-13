@@ -54,9 +54,12 @@ contract VideoPokerUtils {
     	pure
     	returns (uint32)
     {
-        assert(_draws <= 63);
+        // Draws must be valid. If no hand, must draw all 5 cards.
+        assert(_draws <= 31);
+        assert(_hand != 0 || _draws == 31);
+        // Shortcuts. Return _hand on no draws, or 5 cards on full draw.
         if (_draws == 0) return _hand;
-        if (_draws == 63) return getHand(_hash);
+        if (_draws == 31) return uint32(getCardsFromHash(_hash, 5, handToBitmap(_hand)));
 
         // Create a mask of 1's where new cards should go.
         uint _newMask;
@@ -65,7 +68,7 @@ contract VideoPokerUtils {
             _newMask |= 63 * (2**(6*_i));
         }
         // Create a mask of 0's where new cards should go.
-        // Be sure to use only first 30 bits.
+        // Be sure to use only first 30 bits (5 cards x 6 bits)
         uint _discardMask = ~_newMask & (2**31-1);
 
         // Select from _newHand, discard from _hand, and combine.
@@ -195,6 +198,7 @@ contract VideoPokerUtils {
     	pure
     	returns (uint _bitmap)
     {
+        if (_hand == 0) return 0;
     	uint _mask;
     	uint _card;
         for (uint _i=0; _i<5; _i++){
@@ -213,15 +217,14 @@ contract VideoPokerUtils {
     {
         // Return early if we don't need to pick any cards.
         if (_numCards == 0) return;
-        assert(_numCards <= 42);          // 256/6 = 42.6
 
         uint _cardIdx = 0;                // index of currentCard
         uint _card;                       // current chosen card
         uint _usedMask;                   // mask of current card
 
         while (true) {
-            _card = _hash % 52;     // Generate card from hash
-            _usedMask = 2**_card;   // Create mask for the card
+            _card = _hash % 52;           // Generate card from hash
+            _usedMask = 2**_card;         // Create mask for the card
 
             // If card is not used, add it to _cards and _usedBitmap
             // Return if we have enough cards.
