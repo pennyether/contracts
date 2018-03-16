@@ -206,6 +206,16 @@ contract VideoPoker is
         BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId, _uiid);
     }
 
+    function betFromGame(uint32 _id, bytes32 _hashCheck, uint _uiid)
+        public
+    {
+        bool _didFinalize = finalize(_id, _hashCheck);
+        uint64 _bet = games[_id].bet;
+        if (!_didFinalize)
+            return _betFailure("Failed to finalize prior game.", _bet, false);
+        betWithCredits(_bet, _uiid);
+    }
+
         // Logs an error, and optionally refunds user the _bet
         function _betFailure(string _msg, uint _bet, bool _doRefund)
             private
@@ -254,20 +264,6 @@ contract VideoPoker is
             DrawFailure(now, msg.sender, _id, _draws, _msg);
         }
       
-
-    // function finalizeAndBet(uint32 _id, uint64 _bet)
-    //     public
-    //     payable
-    // {
-    //     bool _didFinalize = finalize(_id);
-    //     if (!_didFinalize)
-    //         _betFailure("Failed to finalize prior game.", _bet, false)
-    // }
-    //
-    // function finalizeAndCashout(uint32 _id) {
-    //
-    // }
-
 
     // Callable any time after the initial hand. Will assume
     // no draws if called directly after new hand.
