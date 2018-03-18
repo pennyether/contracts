@@ -1,6 +1,7 @@
 pragma solidity ^0.4.19;
 
-import "../Fundable.sol";
+import "../Bankrollable.sol";
+import "../roles/UsingAdmin.sol";
 
 
 /*********************************************************
@@ -34,7 +35,8 @@ Note about randomness:
   this contract forbids.
 */
 contract InstaDice is
-	Fundable
+	Bankrollable,
+	UsingAdmin
 {
 	// Each roll will be 1 256-bit value stored in a map.
 	struct Roll {
@@ -94,12 +96,9 @@ contract InstaDice is
 	event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
 	event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
 
-    // Funding Events
-    event FundingAdded(uint time, address indexed sender, uint amount, uint funding);
-    event ProfitsSent(uint time, address indexed recipient, uint amount, uint funding);
-
 	function InstaDice(address _registry)
-        Fundable(_registry)
+        Bankrollable(_registry)
+        UsingAdmin(_registry)
         public
 	{
         vars.finalizeId = 1;
@@ -241,7 +240,7 @@ contract InstaDice is
 		public
 		returns (uint32 _numFinalized)
 	{
-		while (_numFinalized <= _num) {
+		while (_numFinalized < _num) {
 			var (_didFinalize, ) = _finalizeNext(false);
 			if (!_didFinalize) break;
 			else _numFinalized++;
@@ -403,19 +402,13 @@ contract InstaDice is
 	////// PUBLIC VIEWS ///////////////////////////////
 	///////////////////////////////////////////////////
 
-	// Returns the largest bet that leverages us 10x.
-	// The only time a user won't get paid is if there are
-	//   10 wins of the highest wager and lowest odds that
-	//   get finalized within 255 blocks from now.
-    function curMaxBet() public view returns (uint) {
-        // Upcast to uint for cheaper math below.
-        uint _funding = funding;
-        uint _balance = this.balance;
-        uint _minNumber = settings.minNumber;
-        // Available balance is min(balance, funding)
-        uint _available = (_balance > _funding ? _funding : _balance);
-        // Return largest bet such that 10*bet*payout = _available
-        return _available / (10 * 100 / _minNumber);
+	// Returns the largest bet such that we could pay out 10 maximum wins.
+	// The likelihood that 10 maximum bets (with highest payouts) are won
+	//  within a short period of time are extremely low.
+    function curMaxBet() public view returns (uint _amount) {
+        // Return largest bet such that 10*bet*payout = bankrollable()
+        uint _maxPayout = 10 * 100 / uint(settings.minNumber);
+        return getAvailableBankroll() / _maxPayout;
     }
 
 	// Computes the payout amount for the current _feeBips
@@ -500,7 +493,7 @@ contract InstaDice is
         return uint(vars.totalWonGwei) * 1e9;
     }
     function getNumUnfinalized() public view returns (uint) {
-    	return (vars.finalizeId-1) - vars.curId;
+    	return vars.curId - (vars.finalizeId-1);
     }
     //////////////////////////////////////////////////////
 

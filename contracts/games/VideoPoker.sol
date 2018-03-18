@@ -1,11 +1,13 @@
 pragma solidity ^0.4.19;
 
 import "./VideoPokerUtils.sol";
-import "../Fundable.sol";
+import "../Bankrollable.sol";
+import "../roles/UsingAdmin.sol";
 
 contract VideoPoker is
     VideoPokerUtils,
-    Fundable
+    Bankrollable,
+    UsingAdmin
 {
     // All the data needed for each game.
     struct Game {
@@ -89,7 +91,8 @@ contract VideoPoker is
     event CreditsCashedout(uint time, address indexed user, uint amt);
         
     function VideoPoker(address _registry)
-        Fundable(_registry)
+        Bankrollable(_registry)
+        UsingAdmin(_registry)
         public
     {
         // Add the default PayTable.
@@ -533,33 +536,22 @@ contract VideoPoker is
     /************************************************************/
 
     // OVERRIDES: Fundable.getProfits()
-    // Ensures contract always has at least funding + totalCredits.
-    function getProfits()
+    // Ensures contract always has at least bankroll + totalCredits.
+    function getCollateral()
         public
         view
         returns (uint _amount)
     {
-        uint _balance = this.balance;
-        uint _threshold = funding + vars.totalCredits;
-        if (_balance <= _threshold) return;
-        return _balance - _threshold;
+        return vars.totalCredits;
     }
 
     // Returns the largest bet such that we could pay out two RoyalFlushes.
     // The likelihood that two RoyalFlushes (with max bet size) are 
     //  won within a 255 block period is extremely low.
     function curMaxBet() public view returns (uint) {
-        // Upcast to uint for cheaper math below.
-        uint _credits = vars.totalCredits;
-        uint _funding = funding;
-        uint _balance = this.balance;
-        // These should never happen, but check anyway to prevent underflow.
-        if (_balance <= _credits) return;
-        if (_funding <= _credits) return;
-        // Available balance is min(balance, funding) - totalCredits;
-        uint _available = (_balance > _funding ? _funding : _balance) - _credits;
-        // Return largest bet such that RF*2*bet = _available
-        return _available / (payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2);
+        // Return largest bet such that RF*2*bet = bankrollable
+        uint _maxPayout = payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2;
+        return getAvailableBankroll() / _maxPayout;
     }
 
     function getPayTable(uint16 _payTableId)

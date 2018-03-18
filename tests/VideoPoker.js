@@ -6,6 +6,7 @@ const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
+const BankrollableUtils = require("./helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
 const pUtils = require("./helpers/PokerUtils.js").Create(web3);
 const Hand = pUtils.Hand;
 const getIHand = pUtils.getIHand;
@@ -37,8 +38,9 @@ describe('VideoPoker', function(){
 
     before("Set up VideoPoker contract.", async function(){
         const addresses = {
+            regOwner: regOwner,
             admin: admin,
-            player1: player1, 
+            player1: player1,
             player2: player2,
             player3: player3,
             dummyTreasury: dummyTreasury,
@@ -95,31 +97,10 @@ describe('VideoPoker', function(){
         });
     });
 
-    describe("Funding", function(){
-        describe(".addFunding()", function(){
-            it("Anyone can add funding", function(){
-                return assertAddsFunding(.5e18);
-            });
-        })
-        
-        describe(".removeFunding()", function(){
-            it("Anon cannot remove funding", function(){
-                return createDefaultTxTester()
-                    .doTx([vp, "removeFunding", .1e18, {from: anon}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-            it("Works for admin", function(){
-                return assertRemovesFunding(.1e18)
-            });
-            it("Removes all funding when passed large number", function(){
-                return assertRemovesFunding(10e18);  
-            });
-            it("Add some funding back", function(){
-                return assertAddsFunding(5e18);    
-            });
+    describe("Adding funding.", function(){
+        it("Anyone can add funding", function(){
+            return BankrollableUtils.assertAddsBankroll(vp, anon, 5e18);
         });
-
         it(".curMaxBet() is correct value.", async function(){
             return assertCurMaxBet();
         });
@@ -871,6 +852,7 @@ describe('VideoPoker', function(){
             txTester.assertCallReturns([vp, "credits", player], expCredits);
             txTester.assertCallReturns([vp, "totalCredits"], expTotalCredits);
             txTester.assertCallReturns([vp, "totalWon"], expTotalWon);
+            txTester.assertCallReturns([vp, "getCollateral"], expTotalCredits);
 
             // Assert proper gas used, and start the whole thing.
             await txTester
@@ -943,65 +925,11 @@ describe('VideoPoker', function(){
         return obj;
     }
 
-    async function assertAddsFunding(amount) {
-        amount = new BigNumber(amount);
-        const expFunding = (await vp.funding()).plus(amount);
-        return createDefaultTxTester()
-            .startLedger([anon, vp])
-            .doTx([vp, "addFunding", {from: anon, value: amount}])
-            .assertSuccess()
-            .stopLedger()
-                .assertDelta(vp, amount)
-                .assertDeltaMinusTxFee(anon, amount.mul(-1))
-            .assertOnlyLog("FundingAdded", {
-                time: null,
-                sender: anon,
-                amount: amount,
-                funding: expFunding
-            })
-            .assertCallReturns([vp, "funding"], expFunding)
-            .start();
-    }
-
-    async function assertRemovesFunding(amount) {
-        amount = new BigNumber(amount);
-        const funding = await vp.funding();
-        const credits = await vp.totalCredits();
-        const balance = await testUtil.getBalance(vp);
-
-        var expAmount = amount;
-        const threshold = BigNumber.min(funding, balance).minus(credits);
-        if (amount.gt(threshold)) {
-            expAmount = balance;
-            console.log(`${amount} exceeds threshold, should remove only ${expAmount}.`);
-        }
-        const expFunding = funding.minus(expAmount);
-
-        return createDefaultTxTester()
-            .startLedger([admin, vp, dummyTreasury])
-            .doTx([vp, "removeFunding", amount, {from: admin}])
-            .assertSuccess()
-            .stopLedger()
-                .assertDelta(vp, expAmount.mul(-1))
-                .assertDelta(dummyTreasury, expAmount)
-                .assertLostTxFee(admin)
-            .assertOnlyLog("FundingRemoved", {
-                time: null,
-                recipient: dummyTreasury,
-                amount: expAmount,
-                funding: expFunding
-            })
-            .assertCallReturns([vp, "funding"], expFunding)
-            .start();
-    }
-
     async function assertCurMaxBet(){
-        const balance = await testUtil.getBalance(vp.address);
-        const funding = await vp.funding();
-        const min = BigNumber.min(balance, funding);
+        const bankroll = await vp.getAvailableBankroll();
         const curPayTableId = await vp.curPayTableId();
         const rfMultiple = (await vp.getPayTable(curPayTableId))[1].mul(2);
-        const expCurMaxBet = min.div(rfMultiple);
+        const expCurMaxBet = bankroll.div(rfMultiple);
         return createDefaultTxTester()
             .assertCallReturns([vp, "curMaxBet"], expCurMaxBet)
             .start();

@@ -64,7 +64,9 @@ function getAllFiles(dir, ext, arr){
 if (!process.argv[2])
 	throw new Error("Please provide a filename, or 'all'.");
 
-const smocha = new Smocha();
+const smocha = new Smocha({
+	bail: true
+});
 const files = process.argv.slice(2);
 if (files[0] === 'all'){
 	const jsFiles = getAllFiles(testsDir, ".js");

@@ -6,6 +6,8 @@ const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
+const BankrollableUtils = require("./helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
+
 var FEE_BIPS = 100;   // 1%
 
 describe('InstaDice', function(){
@@ -66,30 +68,11 @@ describe('InstaDice', function(){
     });
 
     describe("Funding", function(){
-        describe(".addFunding()", function(){
-            it("Anyone can add funding", function(){
-                return assertAddsFunding(.5e18);
-            });
-        })
-        
-        describe(".removeFunding()", function(){
-            it("Anon cannot remove funding", function(){
-                return createDefaultTxTester()
-                    .doTx([dice, "removeFunding", .1e18, {from: anon}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-            it("Works for admin", function(){
-                return assertRemovesFunding(.1e18)
-            });
-            describe("Removes all funding when passed large number", function(){
-                it("remove all funding", function(){
-                    return assertRemovesFunding(10e18);  
-                });
-                it("Add some funding back", function(){
-                    return assertAddsFunding(.5e18);    
-                });
-            });
+        it("Anyone can add funding", function(){
+            return BankrollableUtils.assertAddsBankroll(dice, anon, .5e18);
+        });
+        it("curMaxBet is correct", function(){
+            return assertCurMaxBet();
         });
     });
 
@@ -118,56 +101,178 @@ describe('InstaDice', function(){
         });
     });
 
-    describe("Rolling", function(){
-        describe("Restrictions", async function(){
-            const minBet = await dice.minBet();
-            const maxBet = await dice.maxBet();
-            const minNumber = await dice.minNumber();
-            const maxNumber = await dice.maxNumber();
-            it("Cannot roll tiny amount", function(){
-                return assertRollRefunded(player1, minBet.minus(1), 50, "Bet too small.");
-            });
-            it("Cannot roll huge amount", function(){
-                return assertRollRefunded(player1, maxBet.plus(1), 50, "Bet too large.");
-            });
-            it("Cannot roll with number too small", function(){
-                return assertRollRefunded(player1, minBet, minNumber.minus(1), "Roll number too small.");
-            });
-            it("Cannot roll with number too large", function(){
-                return assertRollRefunded(player1, minBet, maxNumber.plus(1), "Roll number too large.");
-            });
+    describe("Rolling restrictions", async function(){
+        const minBet = await dice.minBet();
+        const maxBet = await dice.maxBet();
+        const minNumber = await dice.minNumber();
+        const maxNumber = await dice.maxNumber();
+        it("Cannot roll tiny amount", function(){
+            return assertRollRefunded(player1, minBet.minus(1), 50, "Bet too small.");
         });
-        describe("Rolling...", function(){
-            it("Player 1 can roll", async function(){
-                await assertCanRoll(player1, MIN_BET, 50);
-            });
-            it("Player 1 can roll again", async function(){
-                await assertCanRoll(player1, MIN_BET, 50);
-            });
-            it("Player 1 can roll again", async function(){
-                await assertCanRoll(player1, MIN_BET, 50);
-            });
-            it("Player 2 can roll", async function(){
-                await assertCanRoll(player2, MIN_BET.plus(1e9), 50);
-            });
-            it("Player 3 can roll", async function(){
-                await assertCanRoll(player3, MIN_BET.plus(2e9), 50);
-            });
+        it("Cannot roll huge amount", function(){
+            return assertRollRefunded(player1, maxBet.plus(1), 50, "Bet too large.");
         });
+        it("Cannot roll with number too small", function(){
+            return assertRollRefunded(player1, minBet, minNumber.minus(1), "Roll number too small.");
+        });
+        it("Cannot roll with number too large", function(){
+            return assertRollRefunded(player1, minBet, maxNumber.plus(1), "Roll number too large.");
+        });
+
         describe("Rejects rolls when balance is too small", function(){
-            it("Reduce funding to small amount", async function(){
-                this.logInfo(`Remove funding so that balance is very small.`);
-                const funding = await dice.funding();
-                await assertRemovesFunding(funding.minus(1));
+            it("Reduce bankroll to small amount", async function(){
+                this.logInfo(`Remove bankroll so that balance is very small.`);
+                const bankroll = await dice.bankroll();
+                await BankrollableUtils.assertRemovesBankroll(dice, anon, bankroll.minus(1));
             });
             it("Should not allow a bet", async function(){
                 this.logInfo(`Player should not be able to place a wager, due to low balance.`);
                 return assertRollRefunded(player1, MAX_BET, MIN_NUMBER, "May be unable to payout on a win.");
             });
-            it("Restores funding", async function(){
-                // Add enough to take a MIN_BET with Roll Number 5, for below test.
-                return assertAddsFunding(MIN_BET.mul(20).mul(11));
-            })
+            it("Restores bankroll", async function(){
+                this.logInfo("Add a lot of bankroll back.");
+                return BankrollableUtils.assertAddsBankroll(dice, anon, 1e18);
+            });
+        });
+    });
+
+    describe("Rolling", function(){
+        it("Player 1 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 50);
+        });
+        it("Player 1 can roll again", async function(){
+            await assertCanRoll(player1, MIN_BET, 50);
+        });
+        it("Player 1 can roll again", async function(){
+            await assertCanRoll(player1, MIN_BET, 50);
+        });
+        it("Player 2 can roll", async function(){
+            await assertCanRoll(player2, MIN_BET.plus(1e9), 50);
+        });
+        it("Player 3 can roll", async function(){
+            await assertCanRoll(player3, MIN_BET.plus(2e9), 50);
+        });
+    });
+
+    // This causes ganache to die. Need to test this manually.
+    describe("Rolls on same block", async function(){
+        // this will become an array of promises.
+        const txs = [
+            [MIN_BET, 10, player1],
+            [MIN_BET, 20, player2],
+            [MIN_BET, 30, player3],
+            [MIN_BET, 40, player1]
+        ];
+
+        // useful function to get roll from above tx array
+        async function getRollFromTx(tx) {
+            const res = await tx;
+            const event = res.logs.find(l => l.event=="RollWagered");
+            if (!event) {
+                console.log("Roll Result:", res);
+                throw new Error("Result did not have RollWagered event.");
+            }
+            const id = event.args.id;
+            const roll = await getRoll(id);
+            roll.computedResult = computeResult(event.blockHash, id);
+            roll.isWinner = roll.computedResult.lte(roll.number);
+            return roll;
+        }
+
+        it("Roll many times on the same block", async function(){
+            const tester = createDefaultTxTester()
+                .startLedger([dice, player1, player2, player3])
+                .doFn(() => {
+                    testUtil.stopMining();
+                    console.log(`Stopped mining.`);
+                })
+                .wait(1000);
+
+            txs.forEach((tx, i) => {
+                tester.doFn(() => {
+                    // Ganache bug: increment gas each time, so that it generates unique tx id
+                    txs[i] = dice.roll(tx[1], {value: tx[0], from: tx[2], gas: 100000+i});
+                    console.log(`Submitted transaction for roll ${i+1}.`);
+                }).wait(100);
+            });
+                
+            return tester
+                .doFn(() => {
+                    console.log("Mining block now...");
+                    testUtil.mineBlocks(1);
+                    testUtil.startMining();
+                    return Promise.all(txs).then((txResArr)=>{
+                        const tx1res = txResArr[0];
+                        const block = web3.eth.getBlock(tx1res.receipt.blockNumber);
+                        if (block.transactions.length != txs.length)
+                            throw new Error(`Block has ${block.transactions.length} txs, expected ${txs.length}.`);
+                        
+                        // ensure transactions occurred in expected order.
+                        txResArr.forEach((txRes, i) => {
+                            const hash = txRes.tx;
+                            if (block.transactions[i] != hash){
+                                console.log("block.transactions", block.transactions);
+                                console.log("txRes.txs", txResArr.map(txRes=>txRes.tx));
+                                throw new Error(`Incorrect order: tx[${i}] was not in block.transactions[${i}]`);
+                            }
+                            // fix logs bug (all logs included in all receipts/logs)
+                            txRes.receipt.logs = txRes.receipt.logs.filter((l) => l.transactionHash == hash);
+                            txRes.logs = txRes.logs.filter((l) => l.transactionHash == hash);
+                        });
+                        // fix ganache bug where .gasUsed includes previous tx's gasUsed
+                        for (var i=txResArr.length-1; i>=0; i--){
+                            if (i > 0) txResArr[i].receipt.gasUsed -= txResArr[i-1].receipt.gasUsed;
+                        }
+                        console.log("All txs executed on same block, in expected order.");
+                    });
+                }).start();
+        });
+
+        it("All rolls were wagered, and finalizeId incremented as expected.", async function(){
+            const rolls = [];
+            for (var i=0; i<txs.length; i++) {
+                rolls.push(await getRollFromTx(txs[i]));
+            };
+
+            const resultTester = createDefaultTxTester();
+            txs.forEach((tx, i) => {
+                const roll = rolls[i];
+                resultTester
+                    .doTx(tx, `Roll ${roll.id}`)
+                    .assertSuccess()
+                    .assertLog("RollWagered");
+            });
+            return resultTester
+                .assertCallReturns([dice, "getNumUnfinalized"], rolls.length)
+                .assertCallReturns([dice, "finalizeId"], rolls.shift().id)
+                .start();
+        });
+
+        it("No rolls were finalized.", async function(){
+            for (var i=0; i<txs.length; i++){
+                const roll = await getRollFromTx(txs[i]);
+                assert(roll.result.equals(0), "roll.result should be 0");
+                const resultStr = (roll.isWinner ? "WIN" : "LOSS") + ` with result: ${roll.computedResult}`;
+                console.log(`Roll ${roll.id} not finalized. Result will be: ${resultStr}`);
+            };
+        });
+    });
+
+    describe("More rolls. Queue should catch up.", function(){
+        it("Player 1 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 20);
+        });
+        it("Player 2 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 20);
+        });
+        it("Player 1 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 20);
+        });
+        it("Player 2 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 20);
+        });
+        it("Player 1 can roll", async function(){
+            await assertCanRoll(player1, MIN_BET, 20);
         });
     });
 
@@ -175,7 +280,6 @@ describe('InstaDice', function(){
         it("Try to generate a profit", async function(){
             this.logInfo(`Depending on the above rolls, may or may not have a profit.`);
             var profits = await dice.getProfits();
-            const funding = await dice.funding();
             const balance = await testUtil.getBalance(dice.address);
             if (profits.gt(0)) {
                 this.logInfo(`InstaDice has profits of: ${profits}.`);
@@ -200,29 +304,7 @@ describe('InstaDice', function(){
             }
         });
         it("Collects profits", async function(){
-            this.logInfo(`Should collect the difference between balance and funding.`);
-            const expProfits = await dice.getProfits();
-            const balance = await testUtil.getBalance(dice.address);
-            const funding = await dice.funding();
-            this.logInfo(`Balance: ${balance}, Funding: ${funding}, Profits: ${expProfits}`);
-            assert(balance.gt(funding), "For test to run, balance must be > funding");
-
-            return createDefaultTxTester()
-                .startLedger([dice, dummyTreasury, anon])
-                .doTx([dice, "sendProfits", {from: anon}])
-                .assertSuccess()
-                .stopLedger()
-                    .assertDelta(dice, expProfits.mul(-1))
-                    .assertDelta(dummyTreasury, expProfits)
-                    .assertLostTxFee(anon)
-                .assertOnlyLog("ProfitsSent", {
-                    time: null,
-                    recipient: dummyTreasury,
-                    amount: expProfits,
-                    funding: funding,
-                })
-                .assertCallReturns([dice, "funding"], funding)
-                .start();
+            return BankrollableUtils.assertSendsProfits(dice, anon);
         });
     });
 
@@ -246,70 +328,6 @@ describe('InstaDice', function(){
         });
     });
 
-    // This causes ganache to die. Need to test this manually.
-    xdescribe("Rolls on same block", async function(){
-        before("Last bid is already resolved", async function(){
-            const curId = await dice.curId();
-            const roll = await getRoll(curId);
-            assert(roll.result.gt(0), "Latest roll should already have a result.");
-        });
-        it("Roll many times on the same block", async function(){
-            const wagers = [
-                [1e16, 50, player1],
-                [2e16, 50, player2],
-                [1e16, 20, player3],
-                [2e16, 80, player1]
-            ];
-            const txs = [];
-            const tester = createDefaultTxTester()
-                .startLedger([dice, player1, player2, player3])
-                .doFn(() => {
-                    testUtil.stopMining();
-                    console.log(`Stopped mining.`);
-                })
-                .wait(1000);
-
-            var gas = 150000;
-            wagers.forEach((p, i)=>{
-                tester
-                    .doFn(() => {
-                        console.log(`gas: ${gas}`)
-                        txs.push(dice.roll(p[1], {value: p[0], from: p[2], gas: gas++}));
-                        console.log(`Submitted transacion for roll ${i+1}.`);
-                    })
-                    .wait(100);
-            });
-                
-            tester
-                .doFn(() => {
-                    console.log("Mining block now...");
-                    testUtil.mineBlocks(1);
-                    testUtil.startMining();
-                    // NOTE: It never makes it this far. Ganache just hangs, then dies later on.
-                    return Promise.all(txs).then((txResArr)=>{
-                        const tx1res = txResArr[0];
-                        const block = web3.eth.getBlock(tx1res.receipt.blockNumber);
-                        if (block.transactions.length != txs.length)
-                            throw new Error(`Block has ${block.transactions.length} txs, expected ${txs.length}.`);
-                        txResArr.forEach((txRes,i)=>{
-                            if (block.transactions[0]!=txRes.tx)
-                                throw new Error(`Incorrect order: tx[${i}] was not in block.transactios[${i}]`);
-                        });
-                        
-                        // fix logs bug (all logs included in all receipts/logs)
-                        txResArr.forEach((txRes)=>{
-                            const hash = txRes.tx;
-                            txRes.receipt.logs = txRes.receipt.logs.filter((l)=>l.transactionHash == hash);
-                            txRes.logs = txRes.logs.filter((l)=>l.transactionHash == hash);
-                        })
-                        console.log("All txs executed on same block, in expected order.");
-                    });
-                })
-
-            return tester.start();
-        })
-    })
-
     async function getExpectedProfits() {
         const funding = await dice.funding();
         const balance = await testUtil.getBalance(dice.address);
@@ -318,50 +336,12 @@ describe('InstaDice', function(){
             : 0;
     }
 
-    async function assertAddsFunding(amount) {
-        amount = new BigNumber(amount);
-        const expFunding = (await dice.funding()).plus(amount);
+    async function assertCurMaxBet(){
+        const bankroll = await dice.getAvailableBankroll();
+        const minNumber = await dice.minNumber();
+        const expCurMaxBet = bankroll.div((new BigNumber(100)).div(minNumber).mul(10));
         return createDefaultTxTester()
-            .startLedger([anon, dice])
-            .doTx([dice, "addFunding", {from: anon, value: amount}])
-            .assertSuccess()
-            .stopLedger()
-                .assertDelta(dice, amount)
-                .assertDeltaMinusTxFee(anon, amount.mul(-1))
-            .assertOnlyLog("FundingAdded", {
-                time: null,
-                sender: anon,
-                amount: amount,
-                funding: expFunding
-            })
-            .assertCallReturns([dice, "funding"], expFunding)
-            .start();
-    }
-
-    async function assertRemovesFunding(amount) {
-        amount = new BigNumber(amount);
-        const balance = await testUtil.getBalance(dice);
-        var expAmount = amount;
-        if (amount.gt(balance)) {
-            expAmount = balance;
-            console.log(`${amount} exceeds balance, should remove only ${expAmount}.`);
-        }
-        const expFunding = (await dice.funding()).minus(expAmount);
-        return createDefaultTxTester()
-            .startLedger([admin, dice, dummyTreasury])
-            .doTx([dice, "removeFunding", amount, {from: admin}])
-            .assertSuccess()
-            .stopLedger()
-                .assertDelta(dice, expAmount.mul(-1))
-                .assertDelta(dummyTreasury, expAmount)
-                .assertLostTxFee(admin)
-            .assertOnlyLog("FundingRemoved", {
-                time: null,
-                recipient: dummyTreasury,
-                amount: expAmount,
-                funding: expFunding
-            })
-            .assertCallReturns([dice, "funding"], expFunding)
+            .assertCallReturns([dice, "curMaxBet"], expCurMaxBet)
             .start();
     }
 
@@ -437,20 +417,15 @@ describe('InstaDice', function(){
 
             const roll = await getRoll(id);
             if (roll.id.equals(0)) {
+                console.log("");
                 console.log(`Nothing to finalize.`);
                 expGasUsed = expGasUsed.plus(1000);
                 return;
             }
 
-            const curBlock = testUtil.getBlockNumber();
-            if (curBlock <= roll.block) {
-                console.log(`Finalizing roll #${id}: Should not finalize, is on this block.`);
-                expGasUsed = expGasUsed.plus(1000);
-                return;
-            }
-
             if (roll.result.gt(0)) {
-                console.log(`Finalizing roll #${id}: Should not finalized, it's already finalized.`);
+                console.log("");
+                console.log(`Finalizing roll #${id}: Should not finalize, it's already finalized.`);
                 // increments finalizeId, reads from storage a lot.
                 expGasUsed = expGasUsed.plus(7000);
                 expFinalizeId = expFinalizeId.plus(1);
@@ -466,6 +441,7 @@ describe('InstaDice', function(){
 
             // Update expected stuff if they won
             if (payout.gt(0)) {
+                console.log("");
                 console.log(`Finalizing roll #${id}: WIN with roll of ${result} and number ${roll.number}.`);
                 console.log(`Will expect to see correct deltas and PayoutSuccess log.`);
                 expTotalWon = expTotalWon.plus(payout.div(1e9).floor().mul(1e9));
@@ -481,8 +457,9 @@ describe('InstaDice', function(){
                 }]);
                 expGasUsed = expGasUsed.plus(40000);
             } else {
+                console.log("");
                 console.log(`Finalizing roll #${id}: LOSS with roll of ${result} and number ${roll.number}.`);
-                expGasUsed = expGasUsed.plus(16000);
+                expGasUsed = expGasUsed.plus(17000);
             }
 
             // Update expected values
@@ -494,7 +471,7 @@ describe('InstaDice', function(){
                 result: result,
                 payout: payout
             }]);
-            console.log(`Will expect to correct RollFinalized log for roll #${id}.`);
+            console.log(`Will expect correct RollFinalized log for roll #${id}.`);
 
             return payout.gt(0);
         }
@@ -502,6 +479,7 @@ describe('InstaDice', function(){
         // Simulate finalizing next stuff.
         const willDoPayout = await simulateFinalizeNext();
         if (!willDoPayout) await simulateFinalizeNext();
+        console.log("");
 
         // Do TX, assert proper deltas and logs
         var blockNumber;
@@ -597,7 +575,6 @@ describe('InstaDice', function(){
         const idHex = toPaddedHex(id, 32);
         const hash = web3.sha3(blockHash + idHex, {encoding: "hex"});
         const bn = new BigNumber(hash);
-        //console.log(`Hash of (${blockHash}, ${id}): ${hash}`);
         return bn.mod(100).plus(1);
     }
 
