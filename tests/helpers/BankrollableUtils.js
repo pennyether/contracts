@@ -16,7 +16,7 @@ function Create(web3, createDefaultTxTester) {
                 .assertDeltaMinusTxFee(account, amount.mul(-1))
             .assertOnlyLog("BankrollAdded", {
                 time: null,
-                sender: account,
+                bankroller: account,
                 amount: amount,
                 bankroll: expBankroll
             })
@@ -61,7 +61,7 @@ function Create(web3, createDefaultTxTester) {
         if (expAmount.gt(0)) {
         	txTester.assertOnlyLog("BankrollRemoved", {
                 time: null,
-                recipient: account,
+                bankroller: account,
                 amount: expAmount,
                 bankroll: expBankroll
             });
@@ -88,7 +88,7 @@ function Create(web3, createDefaultTxTester) {
         if (expProfits.gt(0)){
         	txTester.assertOnlyLog("ProfitsSent", {
                 time: null,
-                recipient: treasury,
+                treasury: treasury,
                 amount: expProfits
             });
         }
