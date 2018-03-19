@@ -490,7 +490,7 @@ function testWithParams(name, params) {
                                 redeemer: nonBidder,
                                 recipient: currentWinner,
                                 amount: prize,
-                                gasLimit: GAS_LIMIT
+                                // gasLimit: GAS_LIMIT -- ganache bug reports this as += 2300.
                             })
                             .stopLedger()
                                 .assertLostTxFee(nonBidder)

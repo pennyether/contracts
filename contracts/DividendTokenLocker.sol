@@ -94,13 +94,8 @@ contract DividendTokenLocker {
 		public
 	{
 		require(msg.sender == owner);
-		// token.balanceOf() and getMinTokenBalance() can never be greater than
-		//   all the Ether in the world, so we dont worry about overflow.
-		int _maxAllowed = int(token.balanceOf(this)) - int(getMinTokenBalance());
-
-		// Set _maxAllowed and _numTokens to be 0 <= x <= balance
-		if (_maxAllowed < 0) _maxAllowed = 0;
-		if (_numTokens > uint(_maxAllowed)) _numTokens = uint(_maxAllowed);
+		uint _available = getAvailableTokens();
+		if (_numTokens > _available) _numTokens = _available;
 
 		// Transfer (if _numTokens > 0), and emit event.
 		if (_numTokens > 0) {
@@ -122,6 +117,19 @@ contract DividendTokenLocker {
 		returns (uint)
 	{
 		return vestingAmt - getNumTokensVested();
+	}
+
+	// Returns the amount of tokens available to be transferred.
+	// This is the balance, minus how many tokens must be maintained due to vesting.
+	function getAvailableTokens()
+		public
+		view
+		returns (uint)
+	{
+		// token.balanceOf() and getMinTokenBalance() can never be greater than
+		//   all the Ether in the world, so we dont worry about overflow.
+		int _available = int(token.balanceOf(this)) - int(getMinTokenBalance());
+		return _available > 0 ? uint(_available) : 0;
 	}
 
 	// Returns how many tokens have vested.

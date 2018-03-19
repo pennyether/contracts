@@ -41,27 +41,29 @@ contract DividendToken {
 	event TokensMinted(address indexed account, uint amount, uint newTotalSupply);
 	event TokensBurned(address indexed account, uint amount, uint newTotalSupply);
 
-	// How dividends work.
+	// How dividends work:
 	//
 	// - A "point" is a fraction of a Wei (1e-32), it's used to reduce rounding errors.
 	//
-	// - Each time a new deposit is made, totalPointsPerToken is incremented by
+	// - totalPointsPerToken represents how many points each token is entitled to
+	//   from all the dividends ever received. Each time a new deposit is made, it
+	//   is incremented by the points oweable per token at the time of deposit:
 	//     (depositAmtInWei * POINTS_PER_WEI) / totalSupply
-	//   totalPointsPerToken represents how many points each token is entitled to
-	//   from all the dividends ever received.
 	//
-	// - Each account has a `lastPointsPerToken` value, which stores the state of 
-	//   `totalPointsPerToken` the last time that user was credited points. A user
-	//	 can be credited (`totalPointsPerToken` - `lastPointsPerToken`) * balance.
+	// - Each account has a `creditedPoints` and `lastPointsPerToken`
+	//   - lastPointsPerToken:
+	//       The value of totalPointsPerToken the last time `creditedPoints` was changed.
+	//   - creditedPoints:
+	//       How many points have been credited to the user. This is incremented by:
+	//		   (`totalPointsPerToken` - `lastPointsPerToken` * balance) via
+	//         `.updateCreditedPoints(account)`. This occurs anytime the balance changes
+	//         (transfer, mint, burn).
 	//
-	// - .updateCreditedPoints(_account) will increment creditedPoints[account]
-	//   by the points they are owned. It then sets lastPointsPerToken[account]
-	//   to the current totalPointsPerToken, so they will only be credited for
-	//	 future dividends. This is called before an account balance changes
-	//	 (transfer, mint, burn), or before .collectOwedDividends() is called.
-	//
-	// - .collectOwedDividends() calls .updateCreditedPoints(), converts points
+	// - .collectOwedDividends() calls .updateCreditedPoints(account), converts points
 	//   to wei and pays account, then resets creditedPoints[account] to 0.
+	//
+	// - "Credit" goes to Nick Johnson for the concept.
+	//
 	uint constant POINTS_PER_WEI = 1e32;
 	uint public totalDividends;
 	uint public collectedDividends;
@@ -78,8 +80,9 @@ contract DividendToken {
 		payable
 		public
 	{
-		// POINTS_PER_WEI is 1e32 -- no overflow unless we get 1e45 wei (1e27 ETH)
-		if (msg.value==0) return;
+		if (msg.value == 0) return;
+		// POINTS_PER_WEI is 1e32.
+		// So, no multiplication overflow unless msg.value > 1e45 wei (1e27 ETH)
 		totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
 		totalDividends += msg.value;
 		DividendReceived(msg.sender, msg.value);

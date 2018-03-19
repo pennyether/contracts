@@ -92,15 +92,14 @@ contract Comptroller {
 	// Stores amtFunded for useres contributing before softCap is met
 	mapping (address => uint) public amtFunded;	
 
-	// Sale Events
+	// Sale Meta Events
 	event SaleInitalized(uint time);		// emitted when wallet calls .initSale()
 	event SaleStarted(uint time);			// emitted upon first tokens bought
 	event SaleSuccessful(uint time);		// emitted when sale ends (may happen early)
 	event SaleFailed(uint time);			// emitted if softCap not reached
-	// During sale
+	// Sale Events
 	event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
 	event BuyTokensFailure(uint time, address indexed sender, string reason);
-	// After sale, via .burnTokens() or .sendRefund()
 	event UserRefunded(uint time, address indexed sender, uint numTokens, uint refund);
 
 	function Comptroller(address _wallet, address _treasury)
@@ -300,6 +299,14 @@ contract Comptroller {
 		token.burnTokens(msg.sender, _numTokens);
 		treasury.removeFromBankroll(_burnRefund, msg.sender);
 		UserRefunded(now, msg.sender, _numTokens, _burnRefund);
+	}
+
+	// Only callable by the Treasury, when it is raising capital.
+	function mintTokens(address _recipient, uint _amount)
+		public
+	{
+		require(msg.sender == address(treasury));
+		token.mintTokens(_recipient, _amount);
 	}
 
 	// If sale was unsuccessful, allow users to get full refund.
