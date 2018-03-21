@@ -2,6 +2,8 @@ function Create(web3, createDefaultTxTester) {
 	const BigNumber = web3.toBigNumber(0).constructor;
 	const testUtil = createDefaultTxTester().plugins.testUtil;
 
+    // todo: test expected mappings (add when added, remove when 0'd)
+
 	async function assertAddsBankroll(instance, account, amount) {
         amount = new BigNumber(amount);
         const expBankroll = (await instance.bankroll()).plus(amount);
@@ -52,7 +54,7 @@ function Create(web3, createDefaultTxTester) {
 
         const txTester = createDefaultTxTester()
             .startLedger([account, instance])
-            .doTx([instance, "removeBankroll", amount, {from: account}])
+            .doTx([instance, "removeBankroll", amount, "", {from: account}])
             .assertSuccess()
             .stopLedger()
                 .assertDelta(instance, expAmount.mul(-1))
