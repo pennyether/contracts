@@ -9,13 +9,22 @@ function createPlugins(testUtil, ledger) {
 		throw new Error("createPlugins() expects a ledger object.");
 	
 	const plugins = {
-		silence: function(){
+		silence: function(doSilence){
+			if (doSilence===undefined) doSilence = true;
+
 			const ctx = this;
-			const oldConsoleLog = console.log;
-			console.log = ()=>{};
-			ctx.afterDone(async () => {
-				console.log = oldConsoleLog;
-			});
+			const unsilence = () => {
+				if (!ctx._consoleLog) return;
+				console.log = ctx._consoleLog;
+				delete ctx._consoleLog;
+			}
+			const silence = () => {
+				if (ctx._consoleLog) return;
+				ctx._consoleLog = console.log;
+				console.log = ()=>{};
+				ctx.afterDone(unsilence);
+			}
+			doSilence ? silence() : unsilence();
 		},
 		
 		doFn: function(fn) {
@@ -434,9 +443,7 @@ function createPlugins(testUtil, ledger) {
 			const name = callParams[1];
 			const args = callParams.slice(2);
 			const argsStr = args ? str(args, true) : "";
-			const expectedStr = str(expected);
-			msg = msg || `should equal ${expectedStr}`;
-			msg = `${str(contract)}.${name}.call(${argsStr}) ${msg}`;
+			msg = `${str(contract)}.${name}.call(${argsStr})`;
 			if (!contract[name] || !contract[name].call)
 				throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 
@@ -447,51 +454,60 @@ function createPlugins(testUtil, ledger) {
 				throw new Error(`Call Threw: ${msg} -- ${e}`);
 			}
 
-			if (Array.isArray(expected)){
-				const resultStr = str(result);
-				try {
-					if (!Array.isArray(result) || result.length !== result.length)
-						throw new Error("Expected an array, but did not get one.");
-					expected.forEach((e, i) => {
-						if (e === null || e === undefined) return;
-						assertValues(result[i], e, msg);
-					});
-					console.log(`✓ ${msg}`);
-				} catch (e) {
-					throw new Error(`${msg}, but got back '${resultStr}'`);
-				}
-			} else {
-				assertValues(result, expected, msg);
-				console.log(`✓ ${msg}`);
+			const resultStr = str(result);
+			const expectedStr = str(expected);
+			try {
+				assertValues(result, expected);
+			} catch(e) {
+				throw new Error(`${msg} failed.\nResult: ${resultStr}\nExpected: ${expectedStr}\nError: ${e.message}`);	
 			}
+			console.log(`✓ ${msg} returns ${expectedStr}`);
 
-			function assertValues(val, expected, msg) {
+			function assertValues(res, exp) {
 				const asserters = {
-					within1: function(v, e, msg) {
-						try { v = new BigNumber(v); }
-						catch (err){ throw new Error(`${msg} - not a valid number: ${v}`); }
-						try { v = new BigNumber(e); }
-						catch (err){ throw new Error(`${msg} - not a valid number: ${e}`); }
-						msg = `${msg} - expected ${v.toString()} but got ${e.toString()}.`;
-						assert(v.minus(e).abs().toNumber() <= 1, msg);
+					within1: function(r, e) {
+						try { r = new BigNumber(r); }
+						catch (err){ throw new Error(`Not a valid number: ${r}`); }
+						try { e = new BigNumber(e); }
+						catch (err){ throw new Error(`Not a valid number: ${e}`); }
+						const msg = `Expected ${e.toString()} but got ${r.toString()}.`;
+						assert(r.minus(e).abs().toNumber() <= 1, msg);
 					},
-					not: function(v, e, msg) {
-						assert.strNotEqual(v, e, msg);
+					not: function(r, e) {
+						assert.strNotEqual(r, e);
 					}
 				};
-				if (expected===Object(expected) && expected.constructor.name!=="BigNumber") {
-					const keys = Object.keys(expected);
-					if (keys.length!==1)
-						throw new Error(`Error with ${msg}: Asserter should only have one key: ${str(expected)}`);
-					const key = keys[0]
-					const asserter = asserters[key];
-					if (!asserter)
-						throw new Error(`Error with ${msg}: Invalid customer asserter: ${str(expected)}`);
-					asserter(val, expected[key], msg);
-				} else {
-					assert.strEqual(val, expected, msg);
+				// Return if we expect null or undefined.
+				if (exp == null || exp == undefined) return;
+
+				// If array, recursively assert each value.
+				if (Array.isArray(exp)) {
+					if (!Array.isArray(res))
+						throw new Error(`Expected an array ${exp}, but got: ${res}`);
+					if (res.length !== exp.length)
+						throw new Error(`Length of result array does not match length of expected.`);
+					exp.forEach((e, i) => {
+						if (e === null || e === undefined) return;
+						assertValues(res[i], e);
+					});
+					return;
 				}
 
+				// use asserter, or just do a string compare.
+				const isAsserter = typeof exp==="object" && exp.constructor.name!=="BigNumber";
+				if (isAsserter) {
+					if (Object.keys(exp).length > 1)
+						throw new Error(`Asserter should only have one key: ${str(exp)}`);
+					const asserterKey = Object.keys(exp)[0];
+					const asserter = asserters[asserterKey];
+					if (!asserter)
+						throw new Error(`Invalid customer asserter key "${asserterKey}" in: ${str(exp)}`);
+					asserter(res, exp[asserterKey]);
+					return;
+				}
+
+				// just do strEqual
+				assert.strEqual(res, exp);
 			}
 		},
 		assertCallThrows: async function(callParams) {
@@ -594,11 +610,14 @@ function nameAddresses(obj, reset) {
 	});
 }
 function at(val) {
-	if (typeof val == "string" && val.length == 42){
+	if (typeof val == "string" && val.length == 42) {
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
 			? chalk.underline(`${addrToName[val]}`)
-			: shortened;
+			: (()=>{ chalk.underline(shortened); console.log(val); })();
+	}
+	if (typeof val == "string" && val.length == 66) {
+		return `bytes32("${web3.toUtf8(val)}")`;
 	}
 	if (val.constructor.name == "TruffleContract") {
 		var shortened = val.address.substr(0, 6) + "...";
@@ -620,7 +639,7 @@ function str(val, hideBrackets) {
 	} else if (Array.isArray(val)) {
 		const lBracket = hideBrackets ? "" : "[";
 		const rBracket = hideBrackets ? "" : "]";
-		return `${lBracket}${val.map(v => str(v, true)).join(", ")}${rBracket}`;
+		return `${lBracket}${val.map(v => str(v)).join(", ")}${rBracket}`;
 	} else if (typeof val == "string" || val.constructor.name == "TruffleContract") {
 		return at(val);
 	} else if (val.constructor.name == "BigNumber" || typeof val == 'number') {
