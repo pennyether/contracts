@@ -330,6 +330,7 @@ contract VideoPoker is
         _pt[uint8(HandRank.ThreeOfAKind)] = _toak;
         _pt[uint8(HandRank.TwoPair)] = _tp;
         _pt[uint8(HandRank.JacksOrBetter)] = _jb;
+        _pt[uint8(HandRank.HighCard)] = 0;
         _pt[uint8(HandRank.NotComputable)] = 0;
         payTables[settings.numPayTables] = _pt;
         settings.numPayTables++;

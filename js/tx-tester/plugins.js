@@ -617,7 +617,11 @@ function at(val) {
 			: (()=>{ chalk.underline(shortened); console.log(val); })();
 	}
 	if (typeof val == "string" && val.length == 66) {
-		return `bytes32("${web3.toUtf8(val)}")`;
+		try {
+			return `bytes32("${web3.toUtf8(val)}")`;
+		} catch (e) {
+			return `bytes32(${val.slice(0,19)}...)`;
+		}
 	}
 	if (val.constructor.name == "TruffleContract") {
 		var shortened = val.address.substr(0, 6) + "...";

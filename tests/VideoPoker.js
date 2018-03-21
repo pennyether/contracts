@@ -27,7 +27,7 @@ describe('VideoPoker', function(){
 
     const DEFAULT_MIN_BET = new BigNumber(.001e18);
     const DEFAULT_MAX_BET = new BigNumber(.5e18);
-    const DEFAULT_PAYTABLE = [0, 800, 50, 25, 9, 6, 4, 3, 2, 1, 0];
+    const DEFAULT_PAYTABLE = [0, 800, 50, 25, 9, 6, 4, 3, 2, 1, 0, 0];
     const MIN_BET = new BigNumber(.0005e18);
     const MAX_BET = new BigNumber(.2e18);
     const PAYTABLE = DEFAULT_PAYTABLE.slice().map(x=> x>0 ? x+1 : 0);
@@ -109,7 +109,7 @@ describe('VideoPoker', function(){
     describe("Admin Functions", function(){
         // todo: test setting paytables
         describe(".addPayTable()", function(){
-            const newPayTable = PAYTABLE.slice(1, -1);
+            const newPayTable = PAYTABLE.slice(1, -2);
             const callParams = [vp, "addPayTable"].concat(newPayTable);
             it("is not callable from anon", function(){
                 return createDefaultTxTester()

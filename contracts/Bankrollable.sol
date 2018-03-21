@@ -119,7 +119,7 @@ contract Bankrollable is
         view
         returns (address[], uint[])
     {
-        
+        return _getLedger();
     }
 
     function bankroll()
