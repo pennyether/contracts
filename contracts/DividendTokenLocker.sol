@@ -16,7 +16,7 @@ Notes:
 contract IDividendToken {
 	function collectOwedDividends() public returns (uint);
 	function transfer(address _to, uint _value) public;
-	function balanceOf(address _addr) public returns (uint);
+	function balanceOf(address _addr) public view returns (uint);
 }
 contract DividendTokenLocker {
 	// set by creator in the constructor
@@ -61,7 +61,7 @@ contract DividendTokenLocker {
 		require(msg.sender == creator);
 		uint _numTokens = token.balanceOf(this);
 		vestingAmt = _numTokens;
-		vestingStartDay = today();
+		vestingStartDay = _today();
 		vestingDays = _vestingDays;
 		VestingStarted(now, _numTokens, _vestingDays);
 	}
@@ -139,13 +139,13 @@ contract DividendTokenLocker {
 		view
 		returns (uint)
 	{
-		uint _daysElapsed = today() - vestingStartDay;
+		uint _daysElapsed = _today() - vestingStartDay;
 		if (_daysElapsed >= vestingDays) return vestingAmt;
 		else return (vestingAmt * _daysElapsed) / vestingDays;
 	}
 
 	// Returns the current day.
-	function today()
+	function _today()
   		private 
   		view 
   		returns (uint)
