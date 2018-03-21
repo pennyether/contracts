@@ -412,7 +412,7 @@ describe('InstaDice', function(){
 
         // Determines what will get finalized, and updates
         //  the expectations based on that.
-        async function simulateFinalizeNext() {
+        async function simulateFinalizeNext(onlyOnLoss) {
             const id = expFinalizeId;
 
             const roll = await getRoll(id);
@@ -441,6 +441,13 @@ describe('InstaDice', function(){
 
             // Update expected stuff if they won
             if (payout.gt(0)) {
+                if (onlyOnLoss) {
+                    console.log("");
+                    console.log("Will not finalize roll #${id} because it won.");
+                    expGasUsed = expGasUsed.plus(2000);
+                    return;
+                }
+
                 console.log("");
                 console.log(`Finalizing roll #${id}: WIN with roll of ${result} and number ${roll.number}.`);
                 console.log(`Will expect to see correct deltas and PayoutSuccess log.`);
@@ -478,7 +485,7 @@ describe('InstaDice', function(){
 
         // Simulate finalizing next stuff.
         const willDoPayout = await simulateFinalizeNext();
-        if (!willDoPayout) await simulateFinalizeNext();
+        if (!willDoPayout) await simulateFinalizeNext(true);
         console.log("");
 
         // Do TX, assert proper deltas and logs
@@ -491,10 +498,7 @@ describe('InstaDice', function(){
                 blockNumber = ctx.txRes.receipt.blockNumber
                 await testUtil.mineBlocks(1);
             })
-            .stopLedger()
-                .assertDelta(dice, bet.minus(expPayouts))
-                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings))
-            .assertLogCount(expLogs.length);
+            .assertLogCount(expLogs.length)
 
         expLogs.forEach((arr) => {
             txTester.assertLog(arr[0], arr[1])
@@ -502,6 +506,9 @@ describe('InstaDice', function(){
 
         // Assert calls are accurate
         txTester
+            .stopLedger()
+                .assertDelta(dice, bet.minus(expPayouts))
+                .assertDeltaMinusTxFee(player, bet.mul(-1).plus(expPlayerWinnings))
             .assertCallReturns([dice, "rolls", expId], ()=>[
                 expId, expUserId, bet, number, expPayout, blockNumber, 0, false
             ])

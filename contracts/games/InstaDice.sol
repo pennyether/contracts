@@ -402,6 +402,11 @@ contract InstaDice is
 	////// PUBLIC VIEWS ///////////////////////////////
 	///////////////////////////////////////////////////
 
+	// Required for Bankrollable
+	function getCollateral() public view returns (uint _amount) {
+		return 0;
+	}
+
 	// Returns the largest bet such that we could pay out 10 maximum wins.
 	// The likelihood that 10 maximum bets (with highest payouts) are won
 	//  within a short period of time are extremely low.
@@ -413,7 +418,7 @@ contract InstaDice is
 
 	// Computes the payout amount for the current _feeBips
     function computePayout(uint _bet, uint _number)
-        private
+        public
         view
         returns (uint72 _wei)
     {
@@ -467,7 +472,7 @@ contract InstaDice is
     // Returns a number between 1 and 100 (inclusive)
     // If blockNumber is too far past, returns 101.
     function computeResult(uint32 _blockNumber, uint32 _id)
-        private
+        public
         view
         returns (uint8 _result)
     {

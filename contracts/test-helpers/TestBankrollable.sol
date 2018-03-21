@@ -7,6 +7,7 @@ contract TestBankrollable is Bankrollable {
 
 	function TestBankrollable(address _registry)
 		Bankrollable(_registry)
+		public
 	{ }
 
 	// Sets collateral
@@ -20,11 +21,11 @@ contract TestBankrollable is Bankrollable {
 	function removeBalance(uint _amount)
 		public
 	{
-		address(0).send(_amount);
+		address(0).transfer(_amount);
 	}
 
 	// Receives ether, increasing the balance
-	function receive() payable {}
+	function receive() public payable {}
 
 	// Overrides Fundable.getCollateral()
 	// Ensures balance remains above collateral.
