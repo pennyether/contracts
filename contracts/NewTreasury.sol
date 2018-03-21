@@ -2,11 +2,12 @@ pragma solidity ^0.4.19;
 
 // Requester needs to use the current Admin from Registry.
 import "./roles/UsingAdmin.sol";
+import "./common/HasLedger.sol";
 
 /*
 	This is an abstract contract, inherited by Treasury, that manages
-	creating, cancelling, and executing admin requests. It provides
-	transparency, governence, as well as security.
+	creating, cancelling, and executing admin requests that control
+	capital. It provides transparency, governence, and security.
 
 	In the future, the Admin account can be set to be a DAO.
 	
@@ -156,14 +157,23 @@ contract Requester is
 }
 
 /*
+
+The Treasury manages 3 balances:
+	- reserve: Ether strictly used to pay for a user burning tokens.
+	- capital: Ether that can be sent to bankrollable contracts via SendCapitalRequest().
+	- profits: Ether received via fallback fn. Can be sent to Token at any time.
+
+All Ether entering and leaving Treasury is added/removed from one of the balances.
+Thus, the balance of Treasury will always equal: reserve + capital + profits.
+
 The Treasury:
 	- Manages profits:
 		- Any funds received via fallback are profits.
 		- Can distribute profits to Token at any time.
 		- Pays a small reward to the caller of .distributeToToken()
 	- Manages reserve:
+		- Is incremented by Comptroller after tokens are purchased.
 		- Reserve only ever leaves to pay Token Holders for burning.
-		- Is incremented at ICO, or when capital is raised.
 	- Manages capital:
 		- Capital is controlled via `Requester` governance.
 		- Capital can be sent to Bankrollable contracts.
@@ -176,38 +186,34 @@ Roles:
 	Admin:       can trigger requests.
 	Token:       receives profits via .distributeToToken().
 	Anybody:     can call .distributeToToken() for a .1% reward.
-*/
 
-// Allows Treasury to call Token.mintTokens()
-interface _ITrComptroller {
-	function mintTokens(address _to, uint _amount) public;
-}
+*/
 // Allows Treasury to add/remove capital to/from Bankrollable instances.
 interface _ITrBankrollable {
-	function isBankrollable() public pure returns (bool _true);
-	function removeBankroll(uint _amount) public;
+	function removeBankroll(uint _amount, string _callbackFn) public;
 	function addBankroll() payable public;
 }
 
 contract NewTreasury is 
-	Requester
+	Requester,
+	HasLedger
 {
-	// Settable once (by owner), address that dividends are sent to.
+	// Address that dividends are sent to. Settable once (by owner).
 	address public token;
-	// Settable once (by owner), address that can adjust reserve.
+	// Address that can adjust reserve. Settable once (by owner).
 	address public comptroller;
-	// Amount of Ether held in reserve, owned by Token Holders
-	uint public reserve;
+	// Balances
+	uint public reserve;  // Ether held in reserve, owned by Token Holders.
+	uint public capital;  // Ether held as capital. Spendable/Recoverable via Requests
+	uint public profits;  // Ether received via fallback fn, distributable to Token.
 	
-	// Capital.
-	uint public capital;			// The amount of capital remaining.
-	uint public capitalRaised;		// The amount of capital raised via .buyTokens()
-	uint public capitalTarget;		// If capitalTarget > capitalRaised, tokens can be purchased.
-	uint public capitalUtilized;	// Increased when sent, decreased when recalled.
+	// Capital Management
+	uint public capitalRaised;		  // The amount of capital raised from Comptroller.
+	uint public capitalRaisedTarget;  // The target amount of capitalRaised.
 
-	// Profits and distributions.
-	uint public currentProfits;		// Current profits able to be sent
-	uint public totalRewarded;		// Total amount sent as reward.
+	// Stats
+	uint public totalProfits;		// Total profits ever received.
+	uint public totalRewarded;		// Total profits sent as reward.
 	uint public totalDistributed;	// Total profits distributed.
 	
 	// .1% of profits distributed go to the caller of .distributeToToken()
@@ -223,8 +229,7 @@ contract NewTreasury is
 	// capital-related events
 	event CapitalAdded(uint time, address indexed sender, uint amount);
 	event CapitalRemoved(uint time, address indexed recipient, uint amount);
-	event CapitalRaised(uint time, address indexed sender, uint amount);
-	event CapitalRefunded(uint time, address indexed recipient, uint amount);
+	event CapitalRaised(uint time, uint amount);
 	// reserve-related events
 	event ReserveAdded(uint time, address indexed sender, uint amount);
 	event ReserveRemoved(uint time, uint amount);
@@ -252,6 +257,7 @@ contract NewTreasury is
 	/*************************************************************/
 	/*************** OWNER FUNCTIONS *****************************/
 	/*************************************************************/
+
 	// Callable once to set the Token address
 	function initToken(address _token)
 		public
@@ -288,8 +294,8 @@ contract NewTreasury is
 	}
 
 	// Comptroller calls this when somebody burns their tokens.
-	// This sends the bankroll to the user.
-	function removeFromReserve(uint _amount, address _recipient)
+	// This sends the reserve to the user.
+	function removeReserve(uint _amount, address _recipient)
 		public
 		fromComptroller
 	{
@@ -303,19 +309,21 @@ contract NewTreasury is
 	/*************************************************************/
 	/******* PROFITS AND DISTRIBUTING ****************************/
 	/*************************************************************/
-	// Can receive deposits from anyone (eg: PennyAuctions, other games)
+
+	// Can receive Ether from anyone. Typically Bankrollable contracts' profits.
 	function () public payable {
-		currentProfits += msg.value;
+		profits += msg.value;
+		totalProfits += msg.value;
 		ProfitsReceived(now, msg.sender, msg.value);
 	}
 
-	// Sends any surplus balance to the token, and a reward to the caller.
+	// Sends profits to Token, and a small reward to the caller.
 	function distributeToToken()
 		public
 		returns (uint _amountToDistribute)
 	{
-		// Load currentProfits to memory to save gas.
-		uint _currentProfits = currentProfits;
+		// Load profits to memory to save gas.
+		uint _profits = profits;
 
 		// Ensure there is a token to send profits to
 		//  and that we have profits to distribute.
@@ -323,90 +331,43 @@ contract NewTreasury is
 			DistributeFailure(now, "No address to distribute to.");
 			return;
 		}
-		if (_currentProfits <= 0) {
+		if (_profits <= 0) {
 			DistributeFailure(now, "No profits to distribute.");
 			return;
 		}
 
 		// Calculate _reward and _amountToDistribute
-		uint _reward = _currentProfits / DISTRIBUTE_REWARD_DENOM;
-		_amountToDistribute = _currentProfits - _reward;
+		uint _reward = _profits / DISTRIBUTE_REWARD_DENOM;
+		_amountToDistribute = _profits - _reward;
 
-		// Set currentProfits to 0, send reward and amount.
-		currentProfits = 0;
-		require(msg.sender.call.value(_reward)());
-		require(token.call.value(_amountToDistribute)());
-		
-		// Update stats, emit events
+		// Set profits to 0, update stats.
+		profits = 0;
 		totalRewarded += _reward;
 		totalDistributed += _amountToDistribute;
+
+		// Send reward and amount, or revert. Emit events.
+		require(msg.sender.call.value(_reward)());
+		require(token.call.value(_amountToDistribute)());
 		DistributeSuccess(now, token, _amountToDistribute);
 		DistributeRewardPaid(now, msg.sender, _reward);
 	}
 
 
 	/*************************************************************/
-	/*************** RAISING CAPITAL *****************************/
+	/*************** ADDING CAPITAL ******************************/
 	/*************************************************************/	
 
-	// If capitalTarget < capitalRaised, will sell tokens to caller.
-	//
-	// This mints tokens and dilutes everyone, including owners.
-	// This aligns the owners with investors: there's no reason to 
-	// raise funds unless they are needed.
-	//
-	// For each 1 Ether received:
-	//  - will issue 1 Token to the sender.
-	//  - will allocate .5 ETH as reserve.
-	//  - will allocate .5 ETH as capital.
-	function raiseCapital()
-		public
-		payable
-		returns (uint _amount)
-	{
-		// If there's no token, we can't mint tokens.
-		require(token != address(0));
-
-		// Cap _amount to the amount we are raising.
-		uint _amtRaisable = getAmountRaisable();
-		_amount = msg.value < _amtRaisable ? msg.value : _amtRaisable;
-		
-		// Calculate how much goes to reserve and capital. (50/50)
-		uint _reserve = _amount / 2;
-		uint _capital = _amount - _reserve;
-
-		// Increase reserve and capital, emit events.
-		reserve += _reserve;
-		capital += _capital;
-		capitalRaised += _capital;
-		ReserveAdded(now, msg.sender, _reserve);
-		CapitalAdded(now, msg.sender, _capital);
-		CapitalRaised(now, msg.sender, _capital);
-
-		// Mint tokens for user, refund excess.
-		_ITrComptroller(comptroller).mintTokens(msg.sender, _amount);
-		if (msg.value > _amount) {
-			uint _refund = msg.value - _amount;
-			require(msg.sender.call.value(_refund)());
-			CapitalRefunded(now, msg.sender, _refund);
-		}
-	}
-
-	// This is called by Bankrollable contracts when we call .removeBankroll()
-	// Simply adds capital.
-	function removeBankrollCallback()
-		public
-		payable
-	{
-		addCapital();
-	}
-
-	// Anyone can (generously) add capital at any time.
+	// Anyone can add capital at any time.
+	// If it comes from Comptroller, it counts as capitalRaised.
 	function addCapital()
 		public
 		payable
 	{
 		capital += msg.value;
+		if (msg.sender == comptroller) {
+			capitalRaised += msg.value;
+			CapitalRaised(now, msg.value);
+		}
 		CapitalAdded(now, msg.sender, msg.value);
 	}
 
@@ -416,66 +377,51 @@ contract NewTreasury is
 	/*************************************************************/
 
 	// Removes from capital, sends it to Bankrollable target.
-	function executeSendCapital(address _target, uint _value)
+	function executeSendCapital(address _bankrollable, uint _value)
 		internal
 		returns (bool _success, string _result)
 	{
 		// Fail if we do not have the capital available.
-		if (_value > capital){
+		if (_value > capital)
 			return (false, "Not enough capital.");
-		}
-		// Ensure (somewhat) target is Bankrollable.
-		_ITrBankrollable _bankrollable = _ITrBankrollable(_target);
-		if (!_bankrollable.isBankrollable()) {
-			// todo: this current throws. would instead like to catch it.
-			return (false, "Target is not Bankrollable.");
-		}
+		// Fail if target is not Bankrollable
+		if (!_hasCorrectTreasury(_bankrollable))
+			return (false, "Bankrollable does not have correct Treasury.");
 
-		// Decrease capital, and send it as bankroll.
+		// Decrease capital, increase bankrolled
 		capital -= _value;
-		capitalUtilized += _value;
-		_bankrollable.addBankroll.value(_value)();
-		ExecutedSendCapital(now, _bankrollable, _value);
+		_addToLedger(_bankrollable, _value);
+
+		// Send it (this throws on failure). Then emit events.
+		_ITrBankrollable(_bankrollable).addBankroll.value(_value)();
 		CapitalRemoved(now, _bankrollable, _value);
+		ExecutedSendCapital(now, _bankrollable, _value);
 		return (true, "Sent bankroll to target.");
 	}
 
 	// Calls ".removeBankroll()" on Bankrollable target.
-	function executeRecallCapital(address _target, uint _value)
+	function executeRecallCapital(address _bankrollable, uint _value)
 		internal
 		returns (bool _success, string _result)
 	{
-		// Ensure (somewhat) target is Bankrollabe.
-		_ITrBankrollable _bankrollable = _ITrBankrollable(_target);
-		if (!_bankrollable.isBankrollable()) {
-			// todo: this throws. would instead like to detect it.
-			return (false, "Target is not Bankrollable.");
-		}
-
-		// This should call this.removeBankrollCallback(), incrementing capital.
-		// But we don't necessary trust _bankrollable here,
-		//  so we look for `capital` to be increased (by any value).
+		// This should call .addCapital(), incrementing capital.
 		uint _prevCapital = capital;
-		_bankrollable.removeBankroll(_value);
-		uint _received = capital - _prevCapital;
+		_ITrBankrollable(_bankrollable).removeBankroll(_value, "addCapital()");
+		uint _recalled = capital - _prevCapital;
+		_subtractFromLedger(_bankrollable, _recalled);
 		
-		// Careful - bankrollable may have sent back any amount.
-		if (_received <= capitalUtilized) capitalUtilized -= _received;
-		else capitalUtilized = 0;
-
 		// Emit and return
-		ExecutedRecallCapital(now, _bankrollable, _received);
+		ExecutedRecallCapital(now, _bankrollable, _recalled);
 		return (true, "Received bankoll back from target.");
 	}
 
-	// Increases the capitalTarget amount
+	// Increases capitalRaisedTarget
 	function executeRaiseCapital(uint _value)
 		internal
 		returns (bool _success, string _result)
 	{
-		// If we can't mint tokens, don't increase the target.
-		require(token != address(0));
-		capitalTarget += _value;
+		// Increase target amount.
+		capitalRaisedTarget += _value;
 		ExecutedRaiseCapital(now, _value);
 		return (true, "Capital target raised.");
 	}
@@ -491,14 +437,62 @@ contract NewTreasury is
   		constant
   		returns (uint)
   	{
-  		return currentProfits / DISTRIBUTE_REWARD_DENOM;
+  		return profits / DISTRIBUTE_REWARD_DENOM;
   	}
 
-  	function getAmountRaisable()
+  	// Returns the amount of capital needed to reach capitalRaisedTarget.
+  	function getCapitalNeeded()
   		public
   		constant
   		returns (uint)
   	{
-  		return capitalTarget > capitalRaised ? (capitalTarget - capitalRaised) * 2 : 0;
+  		return capitalRaisedTarget > capitalRaised
+  			? capitalRaisedTarget - capitalRaised
+  			: 0;
   	}
+
+  	function getCapitalUtilized()
+  		public
+  		constant
+  		returns (uint _amount)
+  	{
+  		return _getLedgerTotal();
+  	}
+
+  	function getCapitalUtilization()
+  		public
+  		constant
+  		returns (address[], uint[])
+  	{
+  		return _getLedger();
+  	}
+
+  	// Returns if _addr.getTreasury() returns this address.
+  	// This is not fool-proof, but should prevent accidentally
+  	//  sending capital to non-bankrollable addresses.
+  	function _hasCorrectTreasury(address _addr)
+        private
+        returns (bool)
+    {
+        bytes32 _sig = bytes4(keccak256("getTreasury()"));
+        bool _success;
+        address _response;
+        assembly {
+            let x := mload(0x40)    // get free memory
+            mstore(x, _sig)         // store signature into it
+            // store if call was successful
+            _success := call(
+                10000,  // 10k gas
+                _addr,  // to _addr
+                0,      // 0 value
+                x,      // input is x
+                4,      // input length is 4
+                x,      // store output to x
+                32      // store first return value
+            )
+            // store first return value to _response
+            _response := mload(x)
+        }
+        return _success ? _response == address(this) : false;
+    }
 }

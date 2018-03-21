@@ -13,16 +13,14 @@ const ONE_WEEK_S = 60*60*24*7 + 1;
 
 describe('Treasury', function(){
     const accounts = web3.eth.accounts;
-    const owner = accounts[2];
-    const admin = accounts[3];
-    const anon = accounts[4];
-    const investor1 = accounts[5];
-    const investor2 = accounts[6];
+    const owner = accounts[1];
+    const admin = accounts[2];
+    const dummyComptroller = accounts[3];
+    const dummyToken = accounts[4];
+    const anon = accounts[5];
     const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var registry;
     var treasury;
-    var comptroller;
-    var token;
     var br;
 
     const DAILY_LIMIT = new BigNumber(1000000);
@@ -31,9 +29,9 @@ describe('Treasury', function(){
         const addresses = {
             owner: owner,
             admin: admin,
+            dummyComptroller: dummyComptroller,
+            dummyToken: dummyToken,
             anon: anon,
-            investor1: investor1,
-            investor2: investor2,
             NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
@@ -50,22 +48,17 @@ describe('Treasury', function(){
             .assertSuccess()
             .start();
 
-        this.logInfo("Create Treasury, linked to registry");
+        this.logInfo("Create Treasury, register it");
         await createDefaultTxTester()
             .doNewTx(Treasury, [registry.address], {from: anon})
             .withTxResult((txRes, plugins)=>{
                 treasury = txRes.contract;
                 plugins.addAddresses({treasury: treasury});
             }).start();
-
-        this.logInfo("Create Comptroller, get Token Object");
         await createDefaultTxTester()
-            .doNewTx(Comptroller, [owner, treasury.address], {from: anon})
-            .withTxResult(async function(txRes, plugins){
-                comptroller = txRes.contract;
-                token = DividendToken.at(await comptroller.token());
-                plugins.addAddresses({comptroller: comptroller, token: token});
-            }).start();
+            .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
+            .assertSuccess()
+            .start();
 
         this.logInfo("Create Bankrollable contract");
         await createDefaultTxTester()
@@ -256,21 +249,108 @@ describe('Treasury', function(){
 
     describe("Capital Management", function(){
         it(".addCapital() works", function(){
-            return assertAddsCapital(anon, 1e9);
+            return assertAddsCapital(anon, 10e9);
         });
         describe(".executeSendCapital()", function(){
-            it("fails if invalid target", function(){
-                // todo: get this to work.
-                //return assertExecutesSendCapital(dummyComptroller, 1e9, false, "Target is not Bankrollable.");
-                return assertExecutesSendCapital(investor1, 1e9, -1);
-            })
+            it("fails if target doesnt have .getTreasury()", function(){
+                return assertExecutesSendCapital(anon, 1e9, false, "Bankrollable does not have correct Treasury.");
+            });
             it("fails if not enough capital", function(){
-                return assertExecutesSendCapital(br, 5e9, false, "Not enough capital.");
+                return assertExecutesSendCapital(br, 11e9, false, "Not enough capital.");
+            });
+            it("fails if target has invalid .getTreasury()", async function(){
+                this.logInfo("First, change registry TREASURY");
+                const invalidTreasury = (new BigNumber(treasury.address).minus(1));
+                await createDefaultTxTester()
+                    .doTx([registry, "register", "TREASURY", invalidTreasury, {from: owner}])
+                    .assertSuccess().start();
+
+                this.logInfo("");
+                this.logInfo("Now br's .getTreasury() points to wrong treasury.");
+                await assertExecutesSendCapital(br, 5e9, false, "Bankrollable does not have correct Treasury.");
+                
+                this.logInfo("");
+                this.logInfo("Reset registry TREASURY");
+                await createDefaultTxTester()
+                    .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
+                    .assertSuccess().start();
             });
             it("works", async function(){
-                return assertExecutesSendCapital(br, 1e9, true, "Sent bankroll to target.");
+                return assertExecutesSendCapital(br, 5e9, true, "Sent bankroll to target.");
+            });
+            it("works again", async function(){
+               return assertExecutesSendCapital(br, 1e9, true, "Sent bankroll to target."); 
             });
         });
+        describe(".executeRecallCapital()", function(){
+            it("fails if target doesnt implement .removeBankroll", function(){
+                return runRequest("RecallCapital", anon, 1e18, -1);
+            });
+            it("works", function(){
+                return assertExecutesRecallCapital(br, 1e9, true, "Received bankoll back from target."); 
+            });
+            it("removes mapping if all bankroll is recalled", function(){
+                this.logInfo("Here we request way more back than we put in.")
+                this.logInfo("It should work, but only send back the remainder.");
+                this.logInfo("Since no more is being bankrolled, mapping should be removed.");
+                return assertExecutesRecallCapital(br, 10e9, true, "Received bankoll back from target."); 
+            });
+            it("nothing happens if called again", function(){
+                return assertExecutesRecallCapital(br, 10e9, true, "Received bankoll back from target."); 
+            });
+        });
+        describe("send and recall capital from many different contracts", function(){
+            this.logInfo("This tests that the doubly linked list works correctly.");
+
+            const brs = [];
+            before("Create several bankrollable contracts", async function(){
+                const obj = {};
+                for (var i=0; i<5; i++) {
+                    let index = i;
+                    const name = `tempBankrollable${index}`;
+                    this.logInfo(`Creating ${name}...`);
+                    await createDefaultTxTester()
+                        .doNewTx(TestBankrollable, [registry.address], {from: anon})
+                        .withTxResult((txRes, plugins)=>{
+                            br = txRes.contract;
+                            obj[name] = br;
+                            brs[i] = br;
+                        }).start();
+                }
+                return createDefaultTxTester().addAddresses(obj).start();
+            });
+
+            it("Send to #0", function(){
+                return assertExecutesSendCapital(brs[0], 1000, true, null, true);
+            });
+            it("Send to #1", function(){
+                return assertExecutesSendCapital(brs[1], 1001, true, null, true);
+            });
+            it("Send to #2", function(){
+                return assertExecutesSendCapital(brs[2], 1002, true, null, true);
+            });
+            it("Send to #3", function(){
+                return assertExecutesSendCapital(brs[3], 1003, true, null, true);
+            });
+            it("Recall from #0", function(){
+                return assertExecutesRecallCapital(brs[0], 1000, true, null, true);
+            });
+            it("Recall from #2", function(){
+                return assertExecutesRecallCapital(brs[2], 1002, true, null, true);
+            });
+            it("Recall from #3", function(){
+                return assertExecutesRecallCapital(brs[3], 1003, true, null, true);
+            });
+            it("Send to #4", function(){
+                return assertExecutesSendCapital(brs[4], 1004, true, null, true);
+            });
+            it("Recall from #1", function(){
+                return assertExecutesRecallCapital(brs[1], 1001, true, null, true);
+            });
+            it("Recall from #4", function(){
+                return assertExecutesRecallCapital(brs[4], 1004, true, null, true);
+            });
+        })
     })
 
     describe("Before Setting Token", function(){
@@ -282,13 +362,8 @@ describe('Treasury', function(){
                 return assertCannotDistribute("No address to distribute to.");
             });
         })
-        describe("Can get bankroll back", function(){
-            it(".executeRecallCapital() works", async function(){
-                return assertExecutesRecallCapital(5e10, br, true, "Received bankoll back from target.");
-            });
-        });
-        it(".executeRaiseCapital() fails", async function(){
-            return assertExecutesRaiseCapital(1e9, -1);
+        it(".executeRaiseCapital() works", async function(){
+            return assertExecutesRaiseCapital(1e9, true, "Capital target raised.");
         });
     });
 
@@ -296,30 +371,30 @@ describe('Treasury', function(){
         describe(".initComptroller()", function(){
             it("Cannot be set by anon", async function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", comptroller.address, {from: anon}])
+                    .doTx([treasury, "initComptroller", dummyComptroller, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             })
             it("Cannot be set by admin", async function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", comptroller.address, {from: admin}])
+                    .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             })
             it("Works", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", comptroller.address, {from: owner}])
+                    .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
                     .assertSuccess()
                     .assertOnlyLog("ComptrollerSet", {
                         time: null,
-                        comptroller: comptroller.address
+                        comptroller: dummyComptroller
                     })
-                    .assertCallReturns([treasury, "comptroller"], comptroller.address)
+                    .assertCallReturns([treasury, "comptroller"], dummyComptroller)
                     .start();
             });
             it("Cannot be set again", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", comptroller.address, {from: owner}])
+                    .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -327,30 +402,30 @@ describe('Treasury', function(){
         describe(".initToken()", function(){
             it("Cannot be set from anon", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initToken", token.address, {from: anon}])
+                    .doTx([treasury, "initToken", dummyToken, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Cannot be set from admin", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initToken", token.address, {from: admin}])
+                    .doTx([treasury, "initToken", dummyToken, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("Can be set by owner", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initToken", token.address, {from: owner}])
+                    .doTx([treasury, "initToken", dummyToken, {from: owner}])
                     .assertSuccess()
                         .assertOnlyLog("TokenSet", {
                             time: null,
-                            token: token.address
+                            token: dummyToken
                         })
-                    .assertCallReturns([treasury, "token"], token.address)
+                    .assertCallReturns([treasury, "token"], dummyToken)
                     .start();
             });
             it("Cannot be set again", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initToken", token.address, {from: owner}])
+                    .doTx([treasury, "initToken", dummyToken, {from: owner}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -396,11 +471,12 @@ describe('Treasury', function(){
 
         describe("Can get bankroll back", function(){
             it(".executeRecallCapital() works", function(){
-                return assertExecutesRecallCapital(5e10, br, true, "Received bankoll back from target.");
+                return assertExecutesRecallCapital(br, 5e10, true, "Received bankoll back from target.");
             });
         });
 
-        describe(".raiseCapital()", function(){
+        // todo: move these to Comptroller
+        describe.skip(".raiseCapital()", function(){
             it(".executeRaiseCapital() works", function(){
                 return assertExecutesRaiseCapital(1e10, true, "Capital target raised.");
             });
@@ -438,7 +514,7 @@ describe('Treasury', function(){
         return obj;
     }
 
-    async function assertCreatesRequest(type, target, value, msg) {
+    async function assertCreatesRequest(type, target, value, msg, silence) {
         if (target.address) target = target.address;
 
         const allowed = ["SendCapital", "RecallCapital", "RaiseCapital"];
@@ -463,8 +539,10 @@ describe('Treasury', function(){
             executedMsg: "",            
         });
 
+        console.log(`Creating "${type} Request to ${target} with value ${value}...`);
         return createDefaultTxTester()
             .doTx(params)
+            .silence(!!silence)
             .assertSuccess()
             .assertOnlyLog("RequestCreated", {
                 time: null,
@@ -502,7 +580,7 @@ describe('Treasury', function(){
             .start();
     }
 
-    async function assertExecutesRequest(id, expSuccess, expExecuteMsg) {
+    async function assertExecutesRequest(id, expSuccess, expExecuteMsg, silence) {
         if (expSuccess === -1) {
             console.log("Note: Executing is expected to fail.");
             return createDefaultTxTester()
@@ -519,6 +597,7 @@ describe('Treasury', function(){
 
         return createDefaultTxTester()
             .doTx([treasury, "executeRequest", id, {from: admin}])
+            .silence(!!silence)
             .assertSuccess()
             .assertLog("RequestExecuted", {
                 time: null,
@@ -554,9 +633,9 @@ describe('Treasury', function(){
             .start();
     }
 
-    async function runRequest(type, target, value, expSuccess, expMsg) {
+    async function runRequest(type, target, value, expSuccess, expMsg, silence) {
         console.log("First, create request.");
-        await assertCreatesRequest(type, target, value, "Msg");
+        await assertCreatesRequest(type, target, value, "Msg", silence);
         const rId = await treasury.curRequestId();
         
         console.log("");
@@ -565,112 +644,145 @@ describe('Treasury', function(){
         
         console.log("");
         console.log("Execute it and test results.");
-        await assertExecutesRequest(rId, expSuccess, expMsg);
+        await assertExecutesRequest(rId, expSuccess, expMsg || null, silence);
     }
 
-    async function assertExecutesSendCapital(target, amt, expSuccess, expMsg) {
-        const AMT = new BigNumber(amt);
-        const prevCap = await treasury.capital();
-        const prevCapUtilized = await treasury.capitalUtilized();
+    // todo: update this to test getBankrolledMappings()
+    const EXP_BANKROLLED_MAPPINGS = [];
+
+    function addExpBankrolled(target, amt) {
+        const entry = EXP_BANKROLLED_MAPPINGS.find(m => m[0]==target);
+        if (!entry) {
+            console.log("Bankrollable mapping should be added.");
+            EXP_BANKROLLED_MAPPINGS.unshift([target, amt]);
+        } else {
+            console.log("Bankrollable mapping should be increased.");
+            entry[1] = entry[1].plus(amt);
+        }
+    }
+    function removeExpBankrolled(target, amt) {
+        const entry = EXP_BANKROLLED_MAPPINGS.find(m => m[0]==target);
+        var amtToBeRemoved;
+        if (!entry) {
+            console.log(`Bankrollable mapping doesn't exist.`);
+            amtToBeRemoved = new BigNumber(0);
+        } else if (entry[1].gt(amt)) {
+            console.log(`Bankrollable mapping should decrease by ${amt}`)
+            amtToBeRemoved = amt;
+            entry[1] = entry[1].minus(amt);
+        } else {
+            console.log(`Bankrollable mapping should be deleted. Only ${amt} to be recalled.`);
+            amtToBeRemoved = entry[1];
+            const index = EXP_BANKROLLED_MAPPINGS.indexOf(entry);
+            EXP_BANKROLLED_MAPPINGS.splice(index, 1);
+        }
+        return amtToBeRemoved;
+    }
+    function getExpBrMapping() {
+        const addrs = EXP_BANKROLLED_MAPPINGS.map(m => m[0]);
+        const amts = EXP_BANKROLLED_MAPPINGS.map(m => m[1]);
+        return [addrs, amts];
+    }
+
+    async function assertExecutesSendCapital(bankrollable, amt, expSuccess, expMsg, silenceRun) {
+        if (bankrollable.address) bankrollable = bankrollable.address;
+        amt = new BigNumber(amt);
+        const expAmt = expSuccess ? amt : new BigNumber(0);
+        const expCapital = (await treasury.capital()).minus(expAmt);
+        const expCapUtilized = (await treasury.getCapitalUtilized()).plus(expAmt);
         
         const txTester = createDefaultTxTester()
             .startWatching([treasury])
-            .startLedger([target, treasury])
+            .startLedger([bankrollable, treasury])
             .doFn(()=>{
-                return runRequest("SendCapital", target, AMT, expSuccess, expMsg);
+                return runRequest("SendCapital", bankrollable, amt, expSuccess, expMsg, silenceRun);
             })
             .stopLedger()
             .stopWatching();
 
         if (expSuccess==true){
+            addExpBankrolled(bankrollable, amt);
             txTester
                 .assertEvent(treasury, "ExecutedSendCapital", {
                     time: null,
-                    bankrollable: br.address,
-                    amount: AMT
+                    bankrollable: bankrollable,
+                    amount: amt
                 })
                 .assertEvent(treasury, "CapitalRemoved", {
                     time: null,
-                    recipient: br.address,
-                    amount: AMT
+                    recipient: bankrollable,
+                    amount: amt
                 })
-                .assertDelta(treasury, AMT.mul(-1))
-                .assertDelta(target, AMT)
-                .assertCallReturns([treasury, "capital"], prevCap.minus(AMT))
-                .assertCallReturns([treasury, "capitalUtilized"], prevCapUtilized.plus(AMT));
-        } else {
-            txTester
-                .assertNoDelta(treasury)
-                .assertNoDelta(target)
-                .assertCallReturns([treasury, "capital"], prevCap)
-                .assertCallReturns([treasury, "capitalUtilized"], prevCapUtilized);
+                
         }
 
-        return txTester.start();
+        return txTester
+            .assertDelta(treasury, expAmt.mul(-1))
+            .assertDelta(bankrollable, expAmt)
+            .assertCallReturns([treasury, "capital"], expCapital)
+            .assertCallReturns([treasury, "getCapitalUtilized"], expCapUtilized)
+            .assertCallReturns([treasury, "getCapitalUtilization"], getExpBrMapping())
+            .doFn(assertIsBalanced)
+            .start();
     }
 
-    async function assertExecutesRecallCapital(amt, bankrollable, expSucces, expMsg) {
+    async function assertExecutesRecallCapital(bankrollable, amt, expSuccess, expMsg, silenceRun) {
+        if (bankrollable.address) bankrollable = bankrollable.address;
         amt = new BigNumber(amt);
-        const bankrolled = await br.bankrolled(treasury.address);
-        const prevCap = await treasury.capital();
-        const prevCapUtilized = await treasury.capitalUtilized();
-        var expAmount = amt;
+        const expAmt = expSuccess ? removeExpBankrolled(bankrollable, amt) : 0;
+        const expCapital = (await treasury.capital()).plus(expAmt);
+        const expCapUtilized = (await treasury.getCapitalUtilized()).minus(expAmt);
 
-        // See if it should return less than what we ask for.
-        if (bankrolled.lt(amt)) {
-            console.log("Note: Treasury has only bankrolled ${bankrolled}.")
-            expAmount = bankrolled;
-        }
-
-        return createDefaultTxTester()
+        const txTester = createDefaultTxTester()
             .startWatching([treasury])
-            .startLedger([br, treasury])
+            .startLedger([bankrollable, treasury])
             .doFn(()=>{
-                return runRequest("RecallCapital", br, amt, expSucces, expMsg);
+                return runRequest("RecallCapital", bankrollable, amt, expSuccess, expMsg, silenceRun);
             })
             .stopWatching()
                 .assertEvent(treasury, "ExecutedRecallCapital", {
                     time: null,
-                    bankrollable: br.address,
-                    amount: expAmount
-                })
+                    bankrollable: bankrollable,
+                    amount: expAmt
+                });
+
+        if (expAmt.gt(0)) {
+            txTester
                 .assertEvent(treasury, "CapitalAdded", {
                     time: null,
-                    sender: br.address,
-                    amount: expAmount
-                })
+                    sender: bankrollable,
+                    amount: expAmt
+                });
+        }
+
+        return txTester
             .stopLedger()
-                .assertDelta(treasury, expAmount)
-                .assertDelta(br, expAmount.mul(-1))
-            .assertCallReturns([treasury, "capital"], prevCap.plus(expAmount))
-            .assertCallReturns([treasury, "capitalUtilized"], prevCapUtilized.minus(expAmount))
+                .assertDelta(treasury, expAmt)
+                .assertDelta(bankrollable, expAmt.mul(-1))
+            .assertCallReturns([treasury, "capital"], expCapital)
+            .assertCallReturns([treasury, "getCapitalUtilized"], expCapUtilized)
+            .assertCallReturns([treasury, "getCapitalUtilization"], getExpBrMapping())
+            .doFn(assertIsBalanced)
             .start();
     }
 
     async function assertExecutesRaiseCapital(amt, expSuccess, expMsg) {
         amt = new BigNumber(amt);
-        const prevCapitalTarget = await treasury.capitalTarget();
-        const prevAmountRaisable = await treasury.getAmountRaisable();
+        const expIncrease = expSuccess ? amt : new BigNumber(0);
+        const expCapitalTarget = (await treasury.capitalRaisedTarget()).plus(expIncrease);
+        const expCapitalNeeded = (await treasury.getCapitalNeeded()).plus(expIncrease);
 
-        const txTester = createDefaultTxTester()
+        return createDefaultTxTester()
             .startLedger([treasury])
             .doFn(()=>{
                 return runRequest("RaiseCapital", NO_ADDRESS, amt, expSuccess, expMsg)
             })
             .stopLedger()
-                .assertNoDelta(treasury);
-
-        if (expSuccess == true) {
-            txTester
-                .assertCallReturns([treasury, "capitalTarget"], prevCapitalTarget.plus(amt))
-                .assertCallReturns([treasury, "getAmountRaisable"], prevAmountRaisable.plus(amt.mul(2)));
-        } else {
-            txTester
-                .assertCallReturns([treasury, "capitalTarget"], prevCapitalTarget)
-                .assertCallReturns([treasury, "getAmountRaisable"], prevAmountRaisable);
-        }
-            
-        return txTester.start();
+                .assertNoDelta(treasury)
+            .assertCallReturns([treasury, "capitalRaisedTarget"], expCapitalTarget)
+            .assertCallReturns([treasury, "getCapitalNeeded"], expCapitalNeeded)
+            .doFn(assertIsBalanced)
+            .start();
     }
 
     /////////////////////////////////////////////////////////////
@@ -692,12 +804,13 @@ describe('Treasury', function(){
                 amount: amt
             })
             .assertCallReturns([treasury, "capital"], expCapital)
+            .doFn(assertIsBalanced)
             .start();
     }
 
     async function assertReceivesProfits(account, amt) {
         amt = new BigNumber(amt);
-        const prevProfits = await treasury.currentProfits();
+        const prevProfits = await treasury.profits();
         return createDefaultTxTester()
             .startLedger([treasury, account])
             .doTx([treasury, "sendTransaction", {value: amt, from: account}])
@@ -710,6 +823,7 @@ describe('Treasury', function(){
             .stopLedger()
                 .assertDelta(treasury, amt)
                 .assertDeltaMinusTxFee(account, amt.mul(-1))
+            .doFn(assertIsBalanced)
             .start();
     }
 
@@ -729,7 +843,7 @@ describe('Treasury', function(){
     }
 
     async function assertDistributes() {
-        const profits = await treasury.currentProfits();
+        const profits = await treasury.profits();
         const prevTotalDistributed = await treasury.totalDistributed;
         const prevTotalRewarded = await treasury.totalRewarded;
         const expReward = profits.mul(.001);
@@ -738,13 +852,13 @@ describe('Treasury', function(){
         return createDefaultTxTester()
             .wait(100)
             .assertCallReturns([treasury, "getDistributeReward"], expReward)
-            .startLedger([anon, treasury, token])
+            .startLedger([anon, treasury, dummyToken])
             .doTx([treasury, "distributeToToken", {from: anon}])
             .assertSuccess()
                 .assertLogCount(2)
                 .assertLog("DistributeSuccess", {
                     time: null,
-                    token: token.address,
+                    token: dummyToken,
                     amount: profits.minus(expReward)
                 })
                 .assertLog("DistributeRewardPaid", {
@@ -754,71 +868,9 @@ describe('Treasury', function(){
                 })
             .stopLedger()
                 .assertDelta(treasury, profits.mul(-1))
-                .assertDelta(token, profits.minus(expReward))
+                .assertDelta(dummyToken, profits.minus(expReward))
                 .assertDeltaMinusTxFee(anon, expReward)
-            .start();
-    }
-
-    async function assertBuysTokens(account, amt) {
-        amt = new BigNumber(amt);
-        const prevRaisable = await treasury.getAmountRaisable();
-        const prevReserve = await treasury.reserve();
-        const prevCapital = await treasury.capital();
-        const prevCapitalRaised = await treasury.capitalRaised();
-        const prevTokens = await token.balanceOf(account);
-
-        var expAmt = amt;
-        if (amt.gt(prevRaisable)) {
-            console.log(`Note: Only ${prevRaisable} is raisable. Should get a refund.`);
-            expAmt = prevRaisable;
-        }
-
-        const expReserve = expAmt.div(2).floor();
-        const expCapital = expAmt.minus(expReserve);
-        const expLogs = [
-            ["ReserveAdded", {
-                time: null,
-                sender: account,
-                amount: expReserve
-            }],
-            ["CapitalAdded", {
-                time: null,
-                sender: account,
-                amount: expCapital
-            }],
-            ["CapitalRaised", {
-                time: null,
-                sender: account,
-                amount: expCapital
-            }]
-        ];
-        if (expAmt.lt(amt)) {
-            expLogs.push(["CapitalRefunded", {
-                time: null,
-                recipient: account,
-                amount: amt.minus(expAmt)
-            }]);
-        }
-
-        const txTester = createDefaultTxTester()
-            .startLedger([account, treasury])
-            .doTx([treasury, "raiseCapital", {value: amt, from: account}])
-            .assertSuccess()
-            .assertLogCount(expLogs.length);
-
-        expLogs.forEach(l => {
-            txTester.assertLog(l[0], l[1]);
-        })
-
-        return txTester
-            .stopLedger()
-                .assertDelta(treasury, expAmt)
-                .assertDeltaMinusTxFee(account, expAmt.mul(-1))
-            .assertCallReturns([treasury, "reserve"], prevReserve.plus(expReserve))
-            .assertCallReturns([treasury, "capital"], prevCapital.plus(expCapital))
-            .assertCallReturns([treasury, "capitalRaised"], prevCapitalRaised.plus(expCapital))
-            .assertCallReturns([treasury, "getAmountRaisable"], prevRaisable.minus(expAmt))
-            .assertCallReturns([token, "balanceOf", account], prevTokens.plus(expAmt))
+            .doFn(assertIsBalanced)
             .start();
     }
 
@@ -826,7 +878,7 @@ describe('Treasury', function(){
         const balance = testUtil.getBalance(treasury);
         const reserve = await treasury.reserve();
         const capital = await treasury.capital();
-        const profits = await treasury.currentProfits();
+        const profits = await treasury.profits();
         const expBalance = reserve.plus(capital).plus(profits);
         assert(balance.equals(expBalance), `balance (${balance}), should be ${expBalance}`);
         console.log("✓ balance == (reserve + capital + profits)");
