@@ -536,14 +536,16 @@ contract VideoPoker is
     /******************** PUBLIC VIEWS **************************/
     /************************************************************/
 
-    // OVERRIDES: Fundable.getProfits()
+    // IMPLEMENTS: Bankrollable.getProfits()
     // Ensures contract always has at least bankroll + totalCredits.
-    function getCollateral()
-        public
-        view
-        returns (uint _amount)
-    {
+    function getCollateral() public view returns (uint _amount) {
         return vars.totalCredits;
+    }
+
+    // IMPLEMENTS: Bankrollable.getWhitelistOwner()
+    // Ensures contract always has at least bankroll + totalCredits.
+    function getWhitelistOwner() public view returns (address _wlOwner) {
+        return getAdmin();
     }
 
     // Returns the largest bet such that we could pay out two RoyalFlushes.

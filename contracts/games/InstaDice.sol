@@ -230,8 +230,8 @@ contract InstaDice is
 		if (_r.block==0 || _r.block==block.number) return;
 		// Finalize the roll. This may attempt to pay user.
 		_finalizeRoll(_r);
-		// If not paid yet, try to pay with full gas.
-		if (!_r.isPaid) _attemptPayout(_r, true);
+		// If not paid yet, and won, try to pay with full gas.
+		if (_r.result<=_r.number && !_r.isPaid) _attemptPayout(_r, true);
 	}
 
 	// Finalizes a number of rolls in the queue
@@ -402,10 +402,18 @@ contract InstaDice is
 	////// PUBLIC VIEWS ///////////////////////////////
 	///////////////////////////////////////////////////
 
-	// Required for Bankrollable
+	// IMPLEMENTS: Bankrollable.getCollateral()
+	// This contract has no collateral, as it pays out in near realtime.
 	function getCollateral() public view returns (uint _amount) {
 		return 0;
 	}
+
+	// IMPLEMENTS: Bankrollable.getWhitelistOwner()
+    // Ensures contract always has at least bankroll + totalCredits.
+    function getWhitelistOwner() public view returns (address _wlOwner)
+    {
+        return getAdmin();
+    }
 
 	// Returns the largest bet such that we could pay out 10 maximum wins.
 	// The likelihood that 10 maximum bets (with highest payouts) are won

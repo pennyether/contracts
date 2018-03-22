@@ -279,7 +279,7 @@ describe('InstaDice', function(){
     describe("Taking profits", function(){
         it("Try to generate a profit", async function(){
             this.logInfo(`Depending on the above rolls, may or may not have a profit.`);
-            var profits = await dice.getProfits();
+            var profits = await dice.profits();
             const balance = await testUtil.getBalance(dice.address);
             if (profits.gt(0)) {
                 this.logInfo(`InstaDice has profits of: ${profits}.`);
@@ -296,7 +296,7 @@ describe('InstaDice', function(){
                 .assertLog("RollWagered")
                 .start();
 
-            profits = await dice.getProfits();
+            profits = await dice.profits();
             if (profits.gt(0)) {
                 this.logInfo(`Now it has profits of ${profits}.`);
             } else {
@@ -337,7 +337,7 @@ describe('InstaDice', function(){
     }
 
     async function assertCurMaxBet(){
-        const bankroll = await dice.getAvailableBankroll();
+        const bankroll = await dice.bankrollAvailable();
         const minNumber = await dice.minNumber();
         const expCurMaxBet = bankroll.div((new BigNumber(100)).div(minNumber).mul(10));
         return createDefaultTxTester()
@@ -413,23 +413,21 @@ describe('InstaDice', function(){
         // Determines what will get finalized, and updates
         //  the expectations based on that.
         async function simulateFinalizeNext(onlyOnLoss) {
+            console.log(`=== Simluating finalization of Roll #${expFinalizeId} ===`);
             const id = expFinalizeId;
 
             const roll = await getRoll(id);
             if (roll.id.equals(0)) {
-                console.log("");
-                console.log(`Nothing to finalize.`);
+                console.log(`Roll #${id}: Does not exist. Will do nothing.`);
                 expGasUsed = expGasUsed.plus(1000);
-                return;
+                return false;
             }
 
             if (roll.result.gt(0)) {
-                console.log("");
-                console.log(`Finalizing roll #${id}: Should not finalize, it's already finalized.`);
-                // increments finalizeId, reads from storage a lot.
-                expGasUsed = expGasUsed.plus(7000);
+                console.log(`Roll #${id}: Should skip it, it's already finalized.`);
                 expFinalizeId = expFinalizeId.plus(1);
-                return;
+                expGasUsed = expGasUsed.plus(7000);
+                return true;
             }
 
             // See what the results of roll will be.
@@ -442,14 +440,12 @@ describe('InstaDice', function(){
             // Update expected stuff if they won
             if (payout.gt(0)) {
                 if (onlyOnLoss) {
-                    console.log("");
-                    console.log("Will not finalize roll #${id} because it won.");
+                    console.log("Roll #${id}: WON, but won't finalize because we already finalized one.");
                     expGasUsed = expGasUsed.plus(2000);
-                    return;
+                    return false;
                 }
 
-                console.log("");
-                console.log(`Finalizing roll #${id}: WIN with roll of ${result} and number ${roll.number}.`);
+                console.log(`Roll #${id}: Should finalize as WIN with roll of ${result}<=${roll.number}.`);
                 console.log(`Will expect to see correct deltas and PayoutSuccess log.`);
                 expTotalWon = expTotalWon.plus(payout.div(1e9).floor().mul(1e9));
                 expPlayerWinnings = roll.user == player
@@ -464,8 +460,7 @@ describe('InstaDice', function(){
                 }]);
                 expGasUsed = expGasUsed.plus(40000);
             } else {
-                console.log("");
-                console.log(`Finalizing roll #${id}: LOSS with roll of ${result} and number ${roll.number}.`);
+                console.log(`Roll #${id}: Should finalize as LOSS with roll of ${result}>=${roll.number}.`);
                 expGasUsed = expGasUsed.plus(17000);
             }
 
@@ -480,12 +475,19 @@ describe('InstaDice', function(){
             }]);
             console.log(`Will expect correct RollFinalized log for roll #${id}.`);
 
-            return payout.gt(0);
+            return payout.equals(0);
         }
 
         // Simulate finalizing next stuff.
-        const willDoPayout = await simulateFinalizeNext();
-        if (!willDoPayout) await simulateFinalizeNext(true);
+        console.log("");
+        const shouldFinalizeNext = await simulateFinalizeNext();
+        console.log("");
+        if (shouldFinalizeNext) {
+            await simulateFinalizeNext(true);
+        } else {
+            console.log("=== Should not attempt to finalize next ===");
+            console.log("The previous finalization should pay out or not exist.")
+        }
         console.log("");
 
         // Do TX, assert proper deltas and logs

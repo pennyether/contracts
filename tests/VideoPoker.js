@@ -65,7 +65,7 @@ describe('VideoPoker', function(){
 
         this.logInfo("Create the VideoPoker instance.");
         await createDefaultTxTester()
-            .doNewTx(VideoPoker, [registry.address], {from: anon})
+            .doNewTx(VideoPoker, [registry.address], {from: anon, gas: 6000000})
             .assertSuccess()
             .withTxResult((res, plugins)=>{
                 vp = res.contract;
@@ -926,7 +926,7 @@ describe('VideoPoker', function(){
     }
 
     async function assertCurMaxBet(){
-        const bankroll = await vp.getAvailableBankroll();
+        const bankroll = await vp.bankrollAvailable();
         const curPayTableId = await vp.curPayTableId();
         const rfMultiple = (await vp.getPayTable(curPayTableId))[1].mul(2);
         const expCurMaxBet = bankroll.div(rfMultiple);
