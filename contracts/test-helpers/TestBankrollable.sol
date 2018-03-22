@@ -3,6 +3,7 @@ pragma solidity ^0.4.0;
 import "../Bankrollable.sol";
 
 contract TestBankrollable is Bankrollable {
+	address public whitelistOwner;
 	uint private collateral;
 
 	function TestBankrollable(address _registry)
@@ -24,6 +25,12 @@ contract TestBankrollable is Bankrollable {
 		address(0).transfer(_amount);
 	}
 
+	function setWhitelistOwner(address _address)
+		public
+	{
+		whitelistOwner = _address;
+	}
+
 	// Receives ether, increasing the balance
 	function receive() public payable {}
 
@@ -35,5 +42,13 @@ contract TestBankrollable is Bankrollable {
 		returns (uint _amount)
 	{
 		return collateral;
+	}
+
+	function getWhitelistOwner()
+		public
+		view
+		returns (address _address)
+	{
+		return whitelistOwner;
 	}
 }

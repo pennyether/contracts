@@ -15,6 +15,9 @@ describe('Bankrollable', function(){
     const account3 = accounts[3];
     const dummyTreasury = accounts[4];
     const anon = accounts[5];
+    const whitelistOwner = accounts[6];
+    const whitelisted1 = accounts[7];
+    const whitelisted2 = accounts[8];
     var bankrollable;
 
     before("Set up Treasury", async function(){
@@ -24,7 +27,10 @@ describe('Bankrollable', function(){
             account2: account2,
             account3: account3,
             dummyTreasury: dummyTreasury,
-            anon: anon
+            anon: anon,
+            whitelistOwner: whitelistOwner,
+            whitelisted1: whitelisted1,
+            whitelisted2: whitelisted2
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
 
@@ -60,7 +66,7 @@ describe('Bankrollable', function(){
             return BankrollableUtils.assertAddsBankroll(bankrollable, account2, 1e10); 
         });
         it("Account1 adds more bankroll", function(){
-            return BankrollableUtils.assertAddsBankroll(bankrollable, account1, 1e9)
+            return BankrollableUtils.assertAddsBankroll(bankrollable, account1, 1e9);
         });
         it("State is correct", function(){
             return BankrollableUtils.assertState(bankrollable);
@@ -74,6 +80,63 @@ describe('Bankrollable', function(){
         it("Account2 removes full bankroll by passing a large number", function(){
             return BankrollableUtils.assertRemovesBankroll(bankrollable, account2, 1e18);
         });
+    });
+
+    describe("Whitelist", function(){
+        this.logInfo("All of the prior tests worked, because there was no whitelist.");
+        this.logInfo("In these tests we ensure the whitelist is modifiable and enforced.");
+
+        before("Set whitelist owner", function(){
+            return createDefaultTxTester()
+                .doTx([bankrollable, "setWhitelistOwner", whitelistOwner, {from: anon}])
+                .assertSuccess()
+                .start();
+        });
+        describe(".addToWhitelist()", function(){
+            it("Not callable by anon", function(){
+                return BankrollableUtils.assertNotAddsToWhitelist(bankrollable, whitelisted1, anon);
+            });
+            it("Adds whitelisted1", function(){
+                return BankrollableUtils.assertAddsToWhitelist(bankrollable, whitelisted1, whitelistOwner);
+            });
+            it("Works again, but doesnt log", function(){
+                return BankrollableUtils.assertAddsToWhitelist(bankrollable, whitelisted1, whitelistOwner);
+            });
+            it("Enforces whitelist: blocks non-whitelisted", function(){
+                return BankrollableUtils.assertNotAddsBankroll(bankrollable, account1, 1e9);
+            });
+            it("Enforces whitelist: allows whitelisted", function(){
+                return BankrollableUtils.assertAddsBankroll(bankrollable, whitelisted1, 1e9);
+            });
+            it("Adds whitelisted2", function(){
+                return BankrollableUtils.assertAddsToWhitelist(bankrollable, whitelisted2, whitelistOwner);
+            });
+        });
+        describe(".removeFromWhitelist()", function(){
+            it("Not callable by anon", function(){
+                return BankrollableUtils.assertNotRemovesFromWhitelist(bankrollable, whitelisted1, anon);
+            });
+            it("Removes whitelisted1", function(){
+                return BankrollableUtils.assertRemovesFromWhitelist(bankrollable, whitelisted1, whitelistOwner);
+            });
+            it("Works again, but doesnt log", function(){
+                return BankrollableUtils.assertRemovesFromWhitelist(bankrollable, whitelisted1, whitelistOwner);
+            });
+            it("Enforces whitelist: blocks previously-whitelisted", function(){
+                return BankrollableUtils.assertNotAddsBankroll(bankrollable, whitelisted1, 1e9);
+            });
+            it("Enforces whitelist: allows whitelisted", function(){
+                return BankrollableUtils.assertAddsBankroll(bankrollable, whitelisted2, 1e9);
+            });
+        });
+        describe("Empty out the whitelist", function(){
+            it("Remove whitelisted2", function(){
+                return BankrollableUtils.assertRemovesFromWhitelist(bankrollable, whitelisted2, whitelistOwner);
+            });
+            it("Ignores empty whitelist again", function(){
+                return BankrollableUtils.assertAddsBankroll(bankrollable, account1, 1e9);
+            });
+        })
     });
 
     // Account 1 has 5GWei in bankroll.

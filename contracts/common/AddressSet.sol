@@ -1,3 +1,5 @@
+pragma solidity ^0.4.19;
+
 /**
 	This is a simple class that maintains a doubly linked list of
 	addresses it has seen. Addresses can be added and removed
@@ -20,7 +22,7 @@ contract AddressSet {
     }
     mapping (address => Entry) public entries;
 
-    address owner;
+    address public owner;
     modifier fromOwner() { require(msg.sender==owner); _; }
 
     // Constructor sets the owner.
@@ -38,6 +40,7 @@ contract AddressSet {
     function add(address _address)
     	fromOwner
 		public
+		returns (bool _didCreate)
 	{
 		if (_address == address(0)) return;
 		Entry storage entry = entries[_address];
@@ -48,11 +51,13 @@ contract AddressSet {
         entry.next = entries[0x0].next;
         entries[entries[0x0].next].prev = _address;
         entries[0x0].next = _address;
+        return true;
 	}
 
 	function remove(address _address)
 		fromOwner
 		public
+		returns (bool _didExist)
 	{
 		if (_address == address(0)) return;
 		Entry storage entry = entries[_address];		
@@ -62,6 +67,7 @@ contract AddressSet {
 		entries[entry.prev].next = entry.next;
         entries[entry.next].prev = entry.prev;
         delete entries[_address];
+        return true;
 	}
 
 

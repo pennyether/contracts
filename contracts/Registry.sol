@@ -25,9 +25,6 @@ Public Views:
 
 */
 contract Registry {
-    // the permanent owner of the registry
-    address public owner;
-
     // Doubly Linked List of NameEntries
     struct Entry {
         address addr;
@@ -38,6 +35,9 @@ contract Registry {
 
     // Used to determine if an entry is empty or not.
     address constant NO_ADDRESS = address(0);
+
+    address public owner;
+    modifier fromOwner() { require(msg.sender==owner); _; }
 
     event Registered(uint time, bytes32 name, address addr);
     event Unregistered(uint time, bytes32 name);
@@ -55,9 +55,9 @@ contract Registry {
     /******************************************************/
 
     function register(bytes32 _name, address _addr)
+        fromOwner
         public
     {
-        require(msg.sender == owner);
         require(_name != 0 && _addr != 0);
         Entry storage entry = entries[_name];
 
@@ -72,8 +72,10 @@ contract Registry {
         Registered(now, _name, _addr);
     }
 
-    function unregister(bytes32 _name) {
-        require(msg.sender == owner);
+    function unregister(bytes32 _name)
+        fromOwner
+        public
+    {
         require(_name != 0);
         Entry storage entry = entries[_name];
         if (entry.addr == NO_ADDRESS) return;

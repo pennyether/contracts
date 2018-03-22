@@ -1,3 +1,5 @@
+pragma solidity ^0.4.19;
+
 /**
 	This is a simple class that maintains a doubly linked list of
 	address => uint amounts. Address balances can be added to 
@@ -28,7 +30,7 @@ contract Ledger {
     }
     mapping (address => Entry) public entries;
 
-    address owner;
+    address public owner;
     modifier fromOwner() { require(msg.sender==owner); _; }
 
     // Constructor sets the owner

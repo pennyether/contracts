@@ -2,6 +2,7 @@ function Create(web3, createDefaultTxTester) {
 	const BigNumber = web3.toBigNumber(0).constructor;
 	const testUtil = createDefaultTxTester().plugins.testUtil;
     const Ledger = artifacts.require("Ledger");
+    const AddressSet = artifacts.require("AddressSet");
 
     // todo: test expected mappings (add when added, remove when 0'd)
     const EXP_TABLE = [];
@@ -77,6 +78,13 @@ function Create(web3, createDefaultTxTester) {
             .assertCallReturns([ledger, "balances"], expTable())
             //.assertCallReturns([instance, "bankrollerTable"], expTable())
             .assertCallReturns([instance, "profits"], expProfits)
+            .start();
+    }
+
+    function assertNotAddsBankroll(instance, account, amount) {
+        return createDefaultTxTester()
+            .doTx([instance, "addBankroll", {from: account, value: amount}])
+            .assertInvalidOpCode()
             .start();
     }
 
@@ -185,11 +193,76 @@ function Create(web3, createDefaultTxTester) {
         	.start();
     }
 
+    async function getWhitelist(instance) {
+        return AddressSet.at(await instance.whitelist());
+    }
+
+    async function assertAddsToWhitelist(instance, address, owner) {
+        const whitelist = await getWhitelist(instance);
+        const expAdded = !(await whitelist.has(address));
+
+        const txTester = createDefaultTxTester()
+            .doTx([instance, "addToWhitelist", address, {from: owner}])
+            .assertSuccess();
+
+        if (expAdded) {
+            txTester.assertOnlyLog("AddedToWhitelist", {
+                time: null,
+                addr: address,
+                wlOwner: owner
+            });
+        }
+
+        return txTester
+            .assertCallReturns([whitelist, "has", address], true)
+            .start();
+    }
+
+    function assertNotAddsToWhitelist(instance, address, owner) {
+        return createDefaultTxTester()
+            .doTx([instance, "addToWhitelist", address, {from: owner}])
+            .assertInvalidOpCode()
+            .start();
+    }
+
+    async function assertRemovesFromWhitelist(instance, address, owner) {
+        const whitelist = await getWhitelist(instance);
+        const expRemoved = await whitelist.has(address);
+
+        const txTester = createDefaultTxTester()
+            .doTx([instance, "removeFromWhitelist", address, {from: owner}])
+            .assertSuccess();
+
+        if (expRemoved) {
+            txTester.assertOnlyLog("RemovedFromWhitelist", {
+                time: null,
+                addr: address,
+                wlOwner: owner
+            });
+        }
+
+        return txTester
+            .assertCallReturns([whitelist, "has", address], false)
+            .start();
+    }
+
+    function assertNotRemovesFromWhitelist(instance, address, owner) {
+        return createDefaultTxTester()
+            .doTx([instance, "removeFromWhitelist", address, {from: owner}])
+            .assertInvalidOpCode()
+            .start();
+    }
+
     return {
     	assertAddsBankroll: assertAddsBankroll,
+        assertNotAddsBankroll: assertNotAddsBankroll,
     	assertRemovesBankroll: assertRemovesBankroll,
     	assertSendsProfits: assertSendsProfits,
-    	assertState: assertState
+    	assertState: assertState,
+        assertAddsToWhitelist: assertAddsToWhitelist,
+        assertNotAddsToWhitelist: assertNotAddsToWhitelist,
+        assertRemovesFromWhitelist: assertRemovesFromWhitelist,
+        assertNotRemovesFromWhitelist: assertNotRemovesFromWhitelist,
     };
 }
 module.exports = {Create: Create};

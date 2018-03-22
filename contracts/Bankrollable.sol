@@ -2,12 +2,14 @@ pragma solidity ^0.4.19;
 
 import "./roles/UsingTreasury.sol";
 import "./common/Ledger.sol";
+import "./common/AddressSet.sol";
 
 /**
-A simple class that allows anyone to bankroll, and maintains collateral.
-  - Anybody can add funding.
+A simple class that manages bankroll, and maintains collateral.
+  - Anybody can add funding (according to whitelist)
   - Anybody can tell profits (balance - (funding + collateral)) to go to Treasury.
   - Anyone can remove their funding, so long as balance >= collateral.
+  - Whitelist is managed by "owner"
 
   Exposes the following:
     Public Methods
@@ -33,19 +35,49 @@ contract Bankrollable is
     Ledger public ledger;
     // This is a copy of ledger.total(), to save gas in .bankrollAvailable()
     uint public bankroll;
+    // This is the whitelist of who can call .addBankroll()
+    AddressSet public whitelist;
+
+    modifier fromWhitelistOwner(){
+        require(msg.sender == getWhitelistOwner());
+        _;
+    }
 
     event BankrollAdded(uint time, address indexed bankroller, uint amount, uint bankroll);
     event BankrollRemoved(uint time, address indexed bankroller, uint amount, uint bankroll);
     event ProfitsSent(uint time, address indexed treasury, uint amount);
+    event AddedToWhitelist(uint time, address indexed addr, address indexed wlOwner);
+    event RemovedFromWhitelist(uint time, address indexed addr, address indexed wlOwner);
 
-    // Constructor creates the Ledger
+    // Constructor creates the ledger and whitelist, with self as owner.
 	function Bankrollable(address _registry)
 		UsingTreasury(_registry)
 		public
 	{
         ledger = new Ledger(this);
+        whitelist = new AddressSet(this);
     }
 
+
+    /*****************************************************/
+    /************** WHITELIST MGMT ***********************/
+    /*****************************************************/    
+
+    function addToWhitelist(address _addr)
+        fromWhitelistOwner
+        public
+    {
+        bool _didAdd = whitelist.add(_addr);
+        if (_didAdd) AddedToWhitelist(now, _addr, msg.sender);
+    }
+
+    function removeFromWhitelist(address _addr)
+        fromWhitelistOwner
+        public
+    {
+        bool _didRemove = whitelist.remove(_addr);
+        if (_didRemove) RemovedFromWhitelist(now, _addr, msg.sender);
+    }
 
     /*****************************************************/
     /************** PUBLIC FUNCTIONS *********************/
@@ -56,6 +88,7 @@ contract Bankrollable is
         public
         payable 
     {
+        require(whitelist.size()==0 || whitelist.has(msg.sender));
         ledger.add(msg.sender, msg.value);
         bankroll = ledger.total();
         BankrollAdded(now, msg.sender, msg.value, bankroll);
@@ -107,6 +140,12 @@ contract Bankrollable is
 		public
 		view
 		returns (uint _amount);
+
+    // Function must be overridden by inheritors to enable whitelist control.
+    function getWhitelistOwner()
+        public
+        view
+        returns (address _addr);
 
     // Profits are anything above bankroll + collateral, or 0.
     function profits()
