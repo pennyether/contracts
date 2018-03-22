@@ -1,5 +1,7 @@
-const Registry = artifacts.require("Registry");
-const Treasury = artifacts.require("Treasury");
+// TODO: Test raising capital.
+// it should not allow raising if SoftCap not met, since tokens will be frozen.
+
+const Treasury = artifacts.require("NewTreasury");
 const Comptroller = artifacts.require("Comptroller");
 const DividendToken = artifacts.require("DividendToken");
 const DividendTokenLocker = artifacts.require("DividendTokenLocker");
@@ -9,8 +11,8 @@ const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
-testCase(false, false);
-testCase(true, false);
+// testCase(false, false);
+// testCase(true, false);
 testCase(true, true);
 
 // runs a full suite of tests for the given conditions
@@ -19,15 +21,19 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
     const hardCapStr = MEET_HARD_CAP ? "is met" : "is not met";
     describe(`Test Case where softCap ${softCapStr} and hard cap ${hardCapStr}`, function(){
         const accounts = web3.eth.accounts;
-        const regOwner = accounts[1];
+        const admin = accounts[1];
         const wallet = accounts[2];
-        const admin = accounts[3];
-        const account1 = accounts[4];
-        const account2 = accounts[5];
-        const account3 = accounts[6];
-        const accountWithNoTokens = accounts[7];
-        const dummyMainController = accounts[8];
-        const anon = accounts[9];
+        const account1 = accounts[3];
+        const account2 = accounts[4];
+        const account3 = accounts[5];
+        const accountWithNoTokens = accounts[6];
+        const dummyRegistry = accounts[6];
+        const anon = accounts[7];
+
+        var treasury;
+        var comptroller;
+        var token;
+        var locker;
 
         testUtil.mineBlocks(1);
         const DAILY_LIMIT = new BigNumber(1e14);
@@ -36,53 +42,29 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         const SOFT_CAP = new BigNumber(1e16);
         const BONUS_CAP = new BigNumber(2e16);
         const HARD_CAP = new BigNumber(3e16);
+        const CAPITAL = new BigNumber(1e15);
 
-        var registry;
-        var treasury;
-        var comptroller;
-        var token;
-        var locker;
-
-        before("Set up Registry, Treasury, and create Comptroller.", async function(){
+        before("Set up Treasury, and create Comptroller.", async function(){
             await createDefaultTxTester().nameAddresses({
-                regOwner: regOwner,
-                wallet: wallet,
                 admin: admin,
+                wallet: wallet,
                 account1: account1,
                 account2: account2,
                 account3: account3,
                 accountWithNoTokens: accountWithNoTokens,
-                dummyMainController: dummyMainController,
-                anon: anon,
+                dummyRegistry: dummyRegistry,
+                anon: anon
             }).start();
 
-            this.logInfo("Create Registry, owned by regOwner.");
+            this.logInfo("Create Treasury, which points to registry.");
             await createDefaultTxTester()
-                .doNewTx(Registry, [regOwner], {from: anon}).assertSuccess()
-                .withTxResult((res, plugins)=>{
-                    registry = res.contract;
-                    plugins.addAddresses({registry: registry.address});
-                }).start();
-
-            this.logInfo("Register the ADMIN (sets daily limit)");
-            await createDefaultTxTester()
-                .doTx([registry, "register", "ADMIN", admin, {from: regOwner}])
-                .assertSuccess().start();
-
-            this.logInfo("Register MAIN_CONTROLLER");
-            await createDefaultTxTester()
-                .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: regOwner}])
-                .assertSuccess().start();
-
-            this.logInfo("Create Treasury, which points to Registry.");
-            await createDefaultTxTester()
-                .doNewTx(Treasury, [registry.address], {from: anon}).assertSuccess()
+                .doNewTx(Treasury, [dummyRegistry, wallet], {from: anon}).assertSuccess()
                 .withTxResult((res, plugins)=>{
                     treasury = res.contract;
-                    plugins.addAddresses({treasury: treasury.address});
+                    plugins.addAddresses({treasury: treasury});
                 }).start();
 
-            this.logInfo("Create Comptroller, owned by wallet.");
+            this.logInfo("Create Comptroller, owned by dummyWallet.");
             await createDefaultTxTester()
                 .doNewTx(Comptroller, [wallet, treasury.address], {from: anon}).assertSuccess()
                 .withTxResult(async function(res, plugins){
@@ -98,16 +80,15 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
             this.logInfo("Init Treasury to point to Comptroller and Token, set Daily limit");
             await createDefaultTxTester()
-                .doTx([treasury, "initToken", [token.address], {from: regOwner}])
+                .doTx([treasury, "initToken", [token.address], {from: wallet}])
                 .assertSuccess()
-                .doTx([treasury, "initComptroller", [comptroller.address], {from: regOwner}])
-                .assertSuccess()
-                .doTx([treasury, "setDailyFundLimit", DAILY_LIMIT, {from: admin}])
+                .doTx([treasury, "initComptroller", [comptroller.address], {from: wallet}])
                 .assertSuccess()
                 .start();
                 
             await createDefaultTxTester().printNamedAddresses().start();
         });
+        
         describe("Comptroller is initialized correctly", function(){
             before("Has correct state", function(){
                 return createDefaultTxTester()
@@ -117,39 +98,47 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertCallReturns([comptroller, "treasury"], treasury.address)
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "wasSaleEnded"], false)
+                    .assertCallReturns([comptroller, "wasSoftCapMet"], false)
                     .assertCallReturns([token, "balanceOf", wallet], 1)
                     .start();
             })
-            it(".buyTokens() doesn't work (sale not yet started)", function(){
-                return assertCannotBuyTokens(account1, 1e15, "CrowdSale has not yet started.");
+            it(".fund() doesn't work (sale not yet started)", function(){
+                return assertCannotFund(account1, 1e15, "CrowdSale has not yet started.");
             });
         });
         describeSaleNotEnded();
         describe(".initSale()", function(){
             it("not callable by anon", function(){
                 return createDefaultTxTester()
-                    .doTx([comptroller, "initSale", 1, 3, 2, {from: anon}])
+                    .doTx([comptroller, "initSale", 1, 3, 2, 1, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("fails if softCap > hardCap", function(){
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, 3, 2, 1, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, 3, 2, 1, 1, {from: wallet}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("fails if bonusCap > hardCap", function(){
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, 1, 2, 3, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, 1, 2, 3, 1, {from: wallet}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("fails if capital > softCap", function(){
+                return createDefaultTxTester()
+                    .doTx([comptroller, "initSale",
+                        DATE_STARTED, DATE_ENDED, 1, 2, 3, 2, {from: wallet}])
                     .assertInvalidOpCode()
                     .start();
             });
             it("works from owner", function(){
                return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, 1, 3, 2, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, 1, 3, 2, 1, {from: wallet}])
                     .assertSuccess()
                     .start(); 
             });
@@ -161,7 +150,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 this.logInfo(`CrowdSale will end ${sTilEnd} seconds after it starts.`);
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, CAPITAL, {from: wallet}])
                     .assertSuccess()
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "dateSaleStarted"], DATE_STARTED)
@@ -174,7 +163,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         });
         describe("CrowdSale starting", function(){
             it("Is not started yet.", function(){
-                return assertCannotBuyTokens(account1, 1e15, "CrowdSale has not yet started.");
+                return assertCannotFund(account1, 1e15, "CrowdSale has not yet started.");
             });
             it("Fast forward to date started", async function(){
                 const sTilStart = DATE_STARTED - testUtil.getBlockTime();
@@ -183,7 +172,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         });
         describe("Account1 can buy some tokens", function(){
             it("Account1 buys some tokens", async function(){
-                return assertCanBuyTokens(account1, SOFT_CAP.div(2), this.logInfo);
+                return assertCanFund(account1, SOFT_CAP.div(2), this.logInfo);
             });
             describeSaleNotEnded();
         });
@@ -192,14 +181,14 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 it("Account2 buys some tokens (should meet soft cap)", async function(){
                     const curRaised = await comptroller.totalRaised();
                     const remaining = SOFT_CAP.minus(curRaised);
-                    return assertCanBuyTokens(account2, remaining, this.logInfo);
+                    return assertCanFund(account2, remaining, this.logInfo);
                 });
                 it("Account3 buys some tokens (should meet bonus cap)", async function(){
                     this.logInfo("Note: We send just a little more than exceeds bonus cap");
                     this.logInfo("This more thoroughly tests the bonus computation.");
                     const curRaised = await comptroller.totalRaised();
                     const remaining = BONUS_CAP.minus(curRaised).plus(1e14);
-                    return assertCanBuyTokens(account3, remaining, this.logInfo);
+                    return assertCanFund(account3, remaining, this.logInfo);
                 });
                 describeSaleNotEnded();
             });
@@ -211,10 +200,10 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     this.logInfo("This tests the case that the user is refunded the extra.");
                     const curRaised = await comptroller.totalRaised();
                     const remaining = HARD_CAP.minus(curRaised);
-                    return assertCanBuyTokens(account1, remaining.plus(1e16), this.logInfo);
+                    return assertCanFund(account1, remaining.plus(1e16), this.logInfo);
                 });
                 it("Cannot buy more tokens", function(){
-                    return assertCannotBuyTokens(account2, 1e15, "HardCap has been reached.");
+                    return assertCannotFund(account2, 1e15, "HardCap has been reached.");
                 });
             });
         }
@@ -233,12 +222,11 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     ? "Sale can immediately be ended."
                     : "Sale can now be ended.";
                 it(itStr, async function(){
-                    // treasury should get .5 for all burnable, plus buffer
+                    // treasury should get .5 for all burnable, plus capital
+                    const expCapital = CAPITAL;
                     const expTotalSupply = (await token.totalSupply()).minus(1).mul(1.25);
-                    const buffer = DAILY_LIMIT.mul(await treasury.bufferDays());
-                    const expTreasuryDelta = expTotalSupply.mul(.5).floor()
-                        .plus(buffer)
-                        .minus(testUtil.getBalance(treasury));
+                    const expReserve = expTotalSupply.mul(.5);
+                    const expTreasuryDelta = expReserve.plus(expCapital);
                     // wallet should get remaining
                     const expWalletDelta = (await comptroller.totalRaised())
                         .minus(expTreasuryDelta);
@@ -251,12 +239,21 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     this.logInfo("  - Treasury should get some ETH.");
                     this.logInfo("  - Wallet should get some ETH.")
                     await createDefaultTxTester()
+                        .startWatching([treasury])
                         .startLedger([anon, treasury, wallet])
                         .doTx([comptroller, "endSale", {from: anon}])
                         .assertSuccess()
                         .assertOnlyLog("SaleSuccessful")
+                        .stopWatching()
+                            .assertEvent(treasury, "CapitalRaised", {
+                                amount: CAPITAL
+                            })
+                            .assertEvent(treasury, "ReserveAdded", {
+                                sender: comptroller.address,
+                                amount: expReserve
+                            })
                         .assertCallReturns([comptroller, "wasSaleEnded"], true)
-                        .assertCallReturns([comptroller, "wasSaleSuccessful"], true)
+                        .assertCallReturns([comptroller, "wasSoftCapMet"], true)
                         .stopLedger()
                             .assertBalance(comptroller, 0)
                             .assertDelta(treasury, expTreasuryDelta)
@@ -295,7 +292,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         .assertSuccess()
                         .assertOnlyLog("SaleFailed")
                         .assertCallReturns([comptroller, "wasSaleEnded"], true)
-                        .assertCallReturns([comptroller, "wasSaleSuccessful"], false)
+                        .assertCallReturns([comptroller, "wasSoftCapMet"], false)
                         .assertCallReturns([token, "isFrozen"], true)
                         .start();
                 });
@@ -304,14 +301,14 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
         if (MEET_SOFT_CAP) {
             describe("After the ICO (soft cap met)", function(){
-                describe(".sendRefund() does nothing (soft cap met)", function(){
-                    it(".sendRefund() for account1 fails", function(){
-                        return assertCannotSendRefund(account1);
+                describe(".refund() does nothing (soft cap met)", function(){
+                    it(".refund() for account1 fails", function(){
+                        return assertCannotRefund(account1);
                     });
                 })
                 describe("Burning works", function(){
                     it("Doens't work for user with no tokens", function(){
-                        return assertCannotBurnTokens(accountWithNoTokens, 1e18);
+                        return assertCannotBurnTokens(accountWithNoTokens, 1e18, "User has no tokens.");
                     })
                     it("Burning half of account1's tokens works", async function(){
                         const amt = (await token.balanceOf(account1)).div(2);
@@ -328,41 +325,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         await assertCanBurnTokens(account2, acct2remaining, this.logInfo);
                     });
                 });
-                describe("Burning works with limited Treasury funds", async function(){
-                    this.logInfo("This tests the edge case that when Treasury is low on funds,")
-                    this.logInfo("  it will burn as many tokens as it can for an account.");
-                    this.logInfo("However, since after the CrowdSale the Treasury has");
-                    this.logInfo("  quite a large buffer, and since it can only be drained");
-                    this.logInfo("  by dailyFundLimit per day, it would take simply take");
-                    this.logInfo("  too long to test it.");
-                    this.logInfo("This test has been run successfully for Treasurys with");
-                    this.logInfo("  a low 'bufferDays' setting, and the source code will be");
-                    this.logInfo("  audited. It's also not very important: this is an edge case");
-                    this.logInfo("  that really only applies to a single token owner.");
-                    const target = (await token.balanceOf(account3)).div(2);
-                    const numDays = target.div(DAILY_LIMIT).plus(1).ceil();
-                    it.skip(`Drain Treasury for ${numDays} days, so its balance is low.`, async function(){
-                        await testUtil.fastForward(24*60*60);
-                        for (var i=0; i<numDays; i++){
-                            await treasury.fundMainController(DAILY_LIMIT, "", {from: dummyMainController});
-                            await testUtil.fastForward(24*60*60);
-                        }
-                    });
-                    it.skip("Now burn all of account3's tokens", async function(){
-                        const acc3tokens = (await token.balanceOf(account3));
-                        const acc3wei = acc3tokens.div(2);
-                        const tBalance = testUtil.getBalance(treasury);
-                        this.logInfo(`Account3 can burn ${toEth(acc3tokens, "tokens")} for ${toEth(acc3wei)}...`);
-                        this.logInfo(`But treasury only has ${toEth(tBalance)}.`);
-                        assert(tBalance.lt(acc3wei), "Treasury should not have enough balance.");
-                        return assertCanBurnTokens(account3, acc3tokens.mul(2), this.logInfo);
-                    });
-                });
-                describe(".drainTreasury() does not work", function(){
-                    it("wallet cannot drain treasury", function(){
-                        return assertCannotDrainTreasury(wallet);
-                    });
-                })
             });
         } else {
             describe("After the ICO (soft cap not met)", function(){
@@ -376,15 +338,15 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 });
                 describe("Burning does nothing (softCap not met)", function(){
                     it("account1 cannot burn any tokens", function(){
-                        return assertCannotBurnTokens(account1, 1e18);
+                        return assertCannotBurnTokens(account1, 1e18, "SoftCap not met. Use .refund()");
                     });
                 });
                 describe("Refunding works", function(){
                     it("Can refund account1", function(){
-                        return assertCanSendRefund(account1, SOFT_CAP.div(2));
+                        return assertCanRefund(account1, SOFT_CAP.div(2));
                     });
                     it("Cannot refund account1 again", function(){
-                        return assertCannotSendRefund(account1);
+                        return assertCannotRefund(account1);
                     })
                     it("Comptroller has no remaining balance", function(){
                         this.logInfo("Everyone has been refunded.");
@@ -393,14 +355,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                             .start();
                     });
                 });
-                describe(".drainTreasury() works", function(){
-                    it("wallet can drain treasury", async function(){
-                        await assertCanDrainTreasury(wallet);
-                    });
-                    it("anon cannot drain treasury", async function(){
-                        await assertCannotDrainTreasury(anon); 
-                    });
-                })
             });
         }
 
@@ -444,7 +398,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             return expTokens;
         }
 
-        async function assertCanBuyTokens(account, amt, logInfo) {
+        async function assertCanFund(account, amt, logInfo) {
             amt = new BigNumber(amt);
             const prevRaised = await comptroller.totalRaised();
             const expRaised = BigNumber.min(prevRaised.plus(amt), HARD_CAP);
@@ -454,22 +408,34 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             const triggersSale = prevRaised.equals(0);
             const expRefund = BigNumber.max(prevRaised.plus(amt).minus(HARD_CAP), 0);
             const expAmt = amt.minus(expRefund);
+            const expTokens = await computeTokens(expAmt, logInfo);
+            const expLogs = [["BuyTokensSuccess", {
+                account: account,
+                value: amt.minus(expRefund),
+                numTokens: expTokens
+            }]];
 
             logInfo(`TotalRaised: ${toEth(prevRaised)}. Will raise another: ${toEth(amt)}`);
             if (expRefund.gt(0)) {
                 logInfo(`${toEth(expRefund)} will be refunded.`);
                 logInfo(`Will only convert ${toEth(amt.minus(expRefund))} to tokens...`);
+                expLogs.push(["UserRefunded", {
+                    account: account,
+                    refund: expRefund
+                }]);
             } else {
-                logInfo(`Will convert ${toEth(amt)} to tokens...`);
+                logInfo(`Will convert ${toEth(amt)} to ${toEth(expTokens)} tokens...`);
             }
 
-            const expTokens = await computeTokens(amt.minus(expRefund), logInfo);
             const prevBalance = await token.balanceOf(account);
             const expBalance = prevBalance.plus(expTokens);
             const prevTotalSupply = await token.totalSupply();
             const expTotalSupply = prevTotalSupply.plus(expTokens);
 
-            if (triggersSale) logInfo("**This starts the sale.**");
+            if (triggersSale) {
+                logInfo("**This starts the sale.**");
+                expLogs.push(["SaleStarted", {}])
+            }
             if (triggersBonusCap) logInfo(`**Bonus Cap of ${toEth(BONUS_CAP)} will be met.**`);
             if (triggersSoftCap) logInfo(`**Soft Cap of ${toEth(SOFT_CAP)} will be met.**`);
             if (triggersHardCap) logInfo(`**Hard Cap of ${toEth(HARD_CAP)} will be met.**`);
@@ -477,15 +443,16 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             //event BuyTokensSuccess(uint time, address indexed sender, uint value, uint numTokens);
             const txTester = createDefaultTxTester()
                 .startLedger([comptroller, account])
-                .doTx([comptroller, "buyTokens", {from: account, value: amt}])
+                .doTx([comptroller, "fund", {from: account, value: amt}])
                 .assertSuccess()
                 .stopLedger()
-                .assertLogCount(triggersSale ? 2 : 1)
-                .assertLog("BuyTokensSuccess", {
-                    sender: account,
-                    value: amt.minus(expRefund),
-                    numTokens: expTokens
-                })
+                .assertLogCount(expLogs.length)
+
+            expLogs.forEach(l=>{
+                txTester.assertLog(l[0], l[1]);
+            })
+
+            txTester
                 .assertDelta(comptroller, amt.minus(expRefund))
                 .assertDeltaMinusTxFee(account, amt.mul(-1).plus(expRefund))
                 .assertCallReturns([comptroller, "totalRaised"], expRaised)
@@ -501,12 +468,13 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
             return txTester.start();
         }
-        function assertCannotBuyTokens(account, amt, reason) {
+        function assertCannotFund(account, amt, reason) {
             return createDefaultTxTester()
-                .doTx([comptroller, "buyTokens", {from: account, value: amt}])
+                .doTx([comptroller, "fund", {from: account, value: amt}])
                 .assertSuccess()
                 .assertOnlyLog("BuyTokensFailure", {
-                    sender: account,
+                    time: null,
+                    account: account,
                     reason: reason
                 })
                 .start();
@@ -514,72 +482,69 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
         async function assertCanBurnTokens(acct, numTokens, logInfo) {
             numTokens = new BigNumber(numTokens);
-            var expectedNumTokens = numTokens;
-            var numWei = numTokens.div(2);
+            var expNumTokens = numTokens;
             // alter numTokens if not in user's balance
             const prevAccTokens = await token.balanceOf(acct);
-            if (prevAccTokens.lt(expectedNumTokens)){
+            if (prevAccTokens.lt(expNumTokens)){
                 logInfo(`Cannot burn all ${toEth(numTokens, "tokens")}, account only has ${toEth(prevAccTokens,"tokens")}.`);
-                expectedNumTokens = prevAccTokens;
-                numWei = expectedNumTokens.div(2);
+                expNumTokens = prevAccTokens;
             }
-            // alter further if treasury cannot afford
-            const tBalance = testUtil.getBalance(treasury.address);
-            if (tBalance.lt(numWei)) {
-                numWei = tBalance;
-                expectedNumTokens = numWei.mul(2);
-                logInfo(`Treasury can't afford to burn ${toEth(expectedNumTokens, "tokens")}.`);
-            }
-            logInfo(`Should burn ${toEth(expectedNumTokens, "tokens")} for ${toEth(numWei)}.`);
+            const expWei = expNumTokens.div(2);
+            logInfo(`Should burn ${toEth(expNumTokens, "tokens")} for ${toEth(expWei)}.`);
 
-            const expectedTokens = prevAccTokens.minus(expectedNumTokens);
-            const prevBankroll = await treasury.bankroll();
-            const expectedBankroll = prevBankroll.minus(numWei);
+            const expectedTokens = prevAccTokens.minus(expNumTokens);
+            const prevReserve = await treasury.reserve();
             await createDefaultTxTester()
                 .startLedger([comptroller, treasury, acct])
                 .startWatching([treasury, token])
                 .doTx([comptroller, "burnTokens", numTokens, {from: acct}])
                 .assertSuccess()
-                    .assertOnlyLog("UserRefunded", {
-                        sender: acct,
-                        numTokens: expectedNumTokens,
-                        refund: numWei
+                    .assertOnlyLog("BurnTokensSuccess", {
+                        time: null,
+                        tokenHolder: acct,
+                        refund: expWei,
+                        numTokens: expNumTokens
                     })
                 .stopLedger()
                     .assertNoDelta(comptroller)
-                    .assertDelta(treasury, numWei.mul(-1))
-                    .assertDeltaMinusTxFee(acct, numWei)
+                    .assertDelta(treasury, expWei.mul(-1))
+                    .assertDeltaMinusTxFee(acct, expWei)
                 .stopWatching()
-                    .assertOnlyEvent(treasury, "BankrollChanged", {
-                        oldValue: prevBankroll,
-                        newValue: expectedBankroll
+                    .assertOnlyEvent(treasury, "ReserveRemoved", {
+                        amount: expWei
                     })
                     .assertEventCount(token, 1)
                     .assertEvent(token, "TokensBurned", {
                         account: acct,
-                        amount: expectedNumTokens,
+                        amount: expNumTokens,
                     })
-                .assertCallReturns([treasury, "bankroll"], expectedBankroll)
-                .assertCallReturns([token, "balanceOf", acct], expectedTokens)
+                .assertCallReturns([treasury, "reserve"], prevReserve.minus(expWei))
+                .assertCallReturns([token, "balanceOf", acct], prevAccTokens.minus(expNumTokens))
                 .start();
         }
-        function assertCannotBurnTokens(account, amt) {
+        function assertCannotBurnTokens(account, amt, msg) {
             return createDefaultTxTester()
                 .doTx([comptroller, "burnTokens", amt, {from: account}])
-                .assertInvalidOpCode()
+                .assertSuccess()
+                .assertOnlyLog("BurnTokensFailure", {
+                    time: null,
+                    tokenHolder: account,
+                    numTokens: amt,
+                    reason: msg
+                })
                 .start();
         }
 
-        async function assertCanSendRefund(account, expAmt) {
+        async function assertCanRefund(account, expAmt) {
             const numTokens = await token.balanceOf(account);
             console.log(`Account should be refunded ${toEth(expAmt)} for ${toEth(numTokens, "tokens")}.`);
             return createDefaultTxTester()
                 .startLedger([comptroller, account])
-                .doTx([comptroller, "sendRefund", {from: account}])
+                .doTx([comptroller, "refund", {from: account}])
                 .assertSuccess()
                 .assertOnlyLog("UserRefunded", {
-                    sender: account,
-                    numTokens: numTokens,
+                    time: null,
+                    account: account,
                     refund: expAmt
                 })
                 .stopLedger()
@@ -587,9 +552,9 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 .assertDeltaMinusTxFee(account, expAmt)
                 .start();
         }
-        function assertCannotSendRefund(account){
+        function assertCannotRefund(account){
             return createDefaultTxTester()
-                .doTx([comptroller, "sendRefund", {from: account}])
+                .doTx([comptroller, "refund", {from: account}])
                 .assertInvalidOpCode()
                 .start();
         }
@@ -597,27 +562,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         function assertCannotEndSale(){
             return createDefaultTxTester()
                 .doTx([comptroller, "endSale", {from: anon}])
-                .assertInvalidOpCode()
-                .start();
-        }
-
-        async function assertCanDrainTreasury(account){
-            await treasury.sendTransaction({from: anon, value: 100});
-            const expAmt = await testUtil.getBalance(treasury);
-            return createDefaultTxTester()
-                .startLedger([comptroller, treasury, account])
-                .doTx([comptroller, "drainTreasury", {from: account}])
-                .assertSuccess()
-                .stopLedger()
-                    .assertDelta(comptroller, 0)
-                    .assertDelta(treasury, expAmt.mul(-1))
-                    .assertDeltaMinusTxFee(account, expAmt)
-                .start();
-        }
-        async function assertCannotDrainTreasury(account) {
-            await treasury.sendTransaction({from: anon, value: 100});
-            return createDefaultTxTester()
-                .doTx([comptroller, "drainTreasury", {from: account}])
                 .assertInvalidOpCode()
                 .start();
         }
@@ -637,14 +581,11 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     return assertCannotEndSale();
                 });
                 it(".burnTokens() doesn't work.", function(){
-                    return assertCannotBurnTokens(account1, 1e15);
+                    return assertCannotBurnTokens(account1, 1e15, "CrowdSale has not ended.");
                 });
-                it(".sendRefund() doesn't work.", function(){
-                    return assertCannotSendRefund();
+                it(".refund() doesn't work.", function(){
+                    return assertCannotRefund();
                 });
-                it(".drainTreasury() doesn't work.", function(){
-                    return assertCannotDrainTreasury();
-                })
             });
         }
         function toEth(n, str) {

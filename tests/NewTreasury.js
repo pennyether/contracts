@@ -3,6 +3,7 @@ const Treasury = artifacts.require("NewTreasury");
 const Comptroller = artifacts.require("Comptroller");
 const DividendToken = artifacts.require("DividendToken");
 const TestBankrollable = artifacts.require("TestBankrollable");
+const Ledger = artifacts.require("Ledger");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
@@ -50,7 +51,7 @@ describe('Treasury', function(){
 
         this.logInfo("Create Treasury, register it");
         await createDefaultTxTester()
-            .doNewTx(Treasury, [registry.address], {from: anon})
+            .doNewTx(Treasury, [registry.address, owner], {from: anon})
             .withTxResult((txRes, plugins)=>{
                 treasury = txRes.contract;
                 plugins.addAddresses({treasury: treasury});
@@ -350,7 +351,7 @@ describe('Treasury', function(){
             it("Recall from #4", function(){
                 return assertExecutesRecallCapital(brs[4], 1004, true, null, true);
             });
-        })
+        });
     })
 
     describe("Before Setting Token", function(){
@@ -439,11 +440,11 @@ describe('Treasury', function(){
     });
 
     describe("Simulate CrowdSale", function(){
-        describe(".addReserve() callable by Comptroller", function(){
+        it(".addReserve() callable by Comptroller", function(){
 
         });
-        describe(".addCapital() callable by Comptroller", function(){
-
+        it(".addCapital() callable by Comptroller", function(){
+            return assertAddsCapital(dummyComptroller, 1e12);
         });
     });
 
@@ -473,23 +474,6 @@ describe('Treasury', function(){
             it(".executeRecallCapital() works", function(){
                 return assertExecutesRecallCapital(br, 5e10, true, "Received bankoll back from target.");
             });
-        });
-
-        // todo: move these to Comptroller
-        describe.skip(".raiseCapital()", function(){
-            it(".executeRaiseCapital() works", function(){
-                return assertExecutesRaiseCapital(1e10, true, "Capital target raised.");
-            });
-            it("Investor1 can buy tokens", async function(){
-                const remaining = await treasury.getAmountRaisable();
-                const amt = remaining.div(2);
-                return assertBuysTokens(investor1, amt);
-            });
-            it("Investor2 can buy the rest of the available tokens", async function(){
-                const remaining = await treasury.getAmountRaisable();
-                const amt = remaining.mul(5);
-                return assertBuysTokens(investor2, amt); 
-            })
         });
     });
 
@@ -716,12 +700,14 @@ describe('Treasury', function(){
                 
         }
 
+        const ledger = Ledger.at(await treasury.capitalLedger());
         return txTester
             .assertDelta(treasury, expAmt.mul(-1))
             .assertDelta(bankrollable, expAmt)
             .assertCallReturns([treasury, "capital"], expCapital)
             .assertCallReturns([treasury, "capitalAllocated"], expCapAllocated)
-            .assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
+            .assertCallReturns([ledger, "balances"], getExpBrMapping())
+            //.assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
             .doFn(assertIsBalanced)
             .start();
     }
@@ -755,13 +741,15 @@ describe('Treasury', function(){
                 });
         }
 
+        const ledger = Ledger.at(await treasury.capitalLedger());
         return txTester
             .stopLedger()
                 .assertDelta(treasury, expAmt)
                 .assertDelta(bankrollable, expAmt.mul(-1))
             .assertCallReturns([treasury, "capital"], expCapital)
             .assertCallReturns([treasury, "capitalAllocated"], expCapAllocated)
-            .assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
+            .assertCallReturns([ledger, "balances"], getExpBrMapping())
+            //.assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
             .doFn(assertIsBalanced)
             .start();
     }
@@ -794,16 +782,34 @@ describe('Treasury', function(){
 
     async function assertAddsCapital(account, amt) {
         amt = new BigNumber(amt);
+        const isRaised = account == dummyComptroller;
         const expCapital = (await treasury.capital()).plus(amt);
-        return createDefaultTxTester()
+        const expCapitalRaised = (await treasury.capitalRaised()).plus(isRaised ? amt : 0);
+        const expLogs = [["CapitalAdded",{
+            time: null,
+            sender: account,
+            amount: amt
+        }]];
+        if (isRaised) {
+            console.log("This should trigger CapitalRaised event.")
+            expLogs.push(["CapitalRaised", {
+                time: null,
+                amount: amt,
+            }]);
+        }
+
+        const txTester = createDefaultTxTester()
             .doTx([treasury, "addCapital", {value: amt, from: account}])
             .assertSuccess()
-            .assertOnlyLog("CapitalAdded", {
-                time: null,
-                sender: account,
-                amount: amt
-            })
+            .assertLogCount(expLogs.length);
+
+        expLogs.forEach(l=>{
+            txTester.assertLog(l[0], l[1]);
+        });
+
+        return txTester
             .assertCallReturns([treasury, "capital"], expCapital)
+            .assertCallReturns([treasury, "capitalRaised"], expCapitalRaised)
             .doFn(assertIsBalanced)
             .start();
     }

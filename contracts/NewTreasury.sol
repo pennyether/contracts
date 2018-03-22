@@ -210,10 +210,13 @@ interface _ITrBankrollable {
 contract NewTreasury is
 	Requestable
 {
+	// Address that can initToken and initComptroller
+	address public owner;
 	// Address that dividends are sent to. Settable once (by owner).
 	address public token;
 	// Address that can adjust reserve. Settable once (by owner).
 	address public comptroller;
+
 	// Balances
 	uint public reserve;  // Ether held in reserve, owned by Token Holders.
 	uint public capital;  // Ether held as capital. Spendable/Recoverable via Requests
@@ -229,6 +232,7 @@ contract NewTreasury is
 
 	// for functions only callable by Comptroller
 	modifier fromComptroller() { require(msg.sender==comptroller); _; }
+	modifier fromOwner(){ require(msg.sender==owner); _; }
 
 	// EVENTS
 	// Admin triggered events
@@ -255,10 +259,11 @@ contract NewTreasury is
 	//   - executeSendCapital
 	//   - executeRecallCapital
 	//   - executeRaiseCapital
-	function NewTreasury(address _registry)
+	function NewTreasury(address _registry, address _owner)
 		Requestable(_registry)
 		public
 	{
+		owner = _owner;
 		capitalLedger = new Ledger(this);
 	}
 
