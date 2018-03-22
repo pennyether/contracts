@@ -243,7 +243,7 @@ contract Comptroller {
 		// Mint 1/4 to locker, and start vesting.
 		uint _lockerAmt = token.totalSupply() / 4;
 		token.mintTokens(locker, _lockerAmt);
-		locker.startVesting(600);
+		locker.startVesting(_lockerAmt, 600);
 
 		// Move half of tokens' ETH value to bankroll
 		treasury.addToBankroll.value(token.totalSupply() / 2)();

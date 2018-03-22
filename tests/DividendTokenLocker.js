@@ -66,9 +66,9 @@ describe('DividendTokenLocker', function(){
                 .assertCallReturns([locker, "vestingDays"], 0)
                 .start();
         });
-        it(".getMinTokenBalance() should be 0, since nothing is vesting", function(){
+        it(".tokensUnvested() should be 0, since nothing is vesting", function(){
             return createDefaultTxTester()
-                .assertCallReturns([locker, "getMinTokenBalance"], 0)
+                .assertCallReturns([locker, "tokensUnvested"], 0)
                 .start();
         })
     });
@@ -83,19 +83,19 @@ describe('DividendTokenLocker', function(){
         });
         it("Cannot be called by anon", function(){
             return createDefaultTxTester()
-                .doTx([locker, "startVesting", VESTING_DAYS, {from: anon}])
+                .doTx([locker, "startVesting", VESTING_AMT, VESTING_DAYS, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
         it("Cannot be called by owner", function(){
             return createDefaultTxTester()
-                .doTx([locker, "startVesting", VESTING_DAYS, {from: owner}])
+                .doTx([locker, "startVesting", VESTING_AMT, VESTING_DAYS, {from: owner}])
                 .assertInvalidOpCode()
                 .start();
         });
         it("Can be called by creator", function(){
             return createDefaultTxTester()
-                .doTx([locker, "startVesting", VESTING_DAYS, {from: creator}])
+                .doTx([locker, "startVesting", VESTING_AMT, VESTING_DAYS, {from: creator}])
                 .assertSuccess()
                 .assertOnlyLog("VestingStarted", {
                     numTokens: VESTING_AMT,
@@ -202,23 +202,28 @@ describe('DividendTokenLocker', function(){
         const startDay = await locker.vestingStartDay();
         const vestingAmt = await locker.vestingAmt();
         const vestingDays = await locker.vestingDays();
+        
         // compute expAmtVested and expMinBalance
-        const daysElapsed = BigNumber.min(today().minus(startDay), vestingDays);
-        const expAmtVested = vestingAmt.mul(daysElapsed).div(vestingDays);
-        const expMinValance = vestingAmt.minus(expAmtVested);
-        // compute how many tokens _should_ be transferred
+        console.log(`today: ${today()}`);
         const balance = await token.balanceOf(locker.address);
-        const minBalance = await locker.getMinTokenBalance();
-        const expAmt = balance.minus(amt).gt(minBalance)
+        const daysElapsed = BigNumber.min(today().minus(startDay), vestingDays);
+        const expVested = vestingAmt.mul(daysElapsed).div(vestingDays);
+        const expUnvested = vestingAmt.minus(expVested);
+        const expAvailable = BigNumber.max(balance.minus(expUnvested), 0);
+
+        // compute how many tokens _should_ be transferred
+        const expAmt = expAvailable.gt(amt)
             ? amt
-            : BigNumber.max(balance.minus(minBalance), 0);
-        const expBalance = balance.minus(expAmt);
+            : expAvailable;
         // compute expToBalance
         const expToBalance = (await token.balanceOf(to)).plus(expAmt);
 
         // print useful info
-        console.log(`Has vested ${daysElapsed} days: ${t(expAmtVested)}.`);
-        console.log(`Min Balance is: ${t(minBalance)}`);
+        console.log(`Has vested for ${daysElapsed} days.`);
+        console.log(`Vested: ${t(expVested)}`);
+        console.log(`Unvested: ${t(expUnvested)}`)
+        console.log(`Available: ${t(expAvailable)}`);
+        console.log("");
         if (expAmt.lt(amt)) {
             console.log(`Should not be able to transfer all: ${t(amt)}`);
         }
@@ -231,8 +236,11 @@ describe('DividendTokenLocker', function(){
                 recipient: to,
                 numTokens: expAmt
             })
-            .assertCallReturns([token, "balanceOf", locker.address], expBalance)
+            .assertCallReturns([token, "balanceOf", locker.address], balance.minus(expAmt))
             .assertCallReturns([token, "balanceOf", to], expToBalance)
+            .assertCallReturns([locker, "tokensVested"], expVested)
+            .assertCallReturns([locker, "tokensUnvested"], expUnvested)
+            .assertCallReturns([locker, "tokensAvailable"], expAvailable.minus(expAmt))
             .start();
     }
     function t(amt){

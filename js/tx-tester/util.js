@@ -122,7 +122,8 @@ function createUtil(web3, assert){
 	            params: null,
 	            id: new Date().getTime()
 	        });
-
+	        _self.mineBlocks(1);
+	        
 	        console.log(`Fast forwarded ${timeInSeconds} seconds`);
 		},
 

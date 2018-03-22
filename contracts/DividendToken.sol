@@ -17,8 +17,14 @@ Notes:
 	- Per above, upon transfers, dividends are not
 	  transferred. They are kept by the original sender, and
 	  not credited to the receiver.
-	- Uses "pull" instead of "push". That is token holders
-	  must pull their own dividends.
+	- Uses "pull" instead of "push". Token holders must pull
+	  their own dividends.
+
+Comptroller Permissions:
+	- mintTokens(account, amt): via comp.fund() and comp.fundCapital()
+	- burnTokens(account, amt): via comp.burnTokens()
+	- setFrozen(true): Called before CrowdSale
+	- setFrozen(false): Called after CrowdSale, if softCap met
 */
 contract DividendToken {
 	// Comptroller can call .mintTokens() and .burnTokens().
@@ -27,7 +33,7 @@ contract DividendToken {
 
 	/* STANDARD ERC20 TOKEN */
 	string public name = "PennyEther";
-	string public symbol = "BID";
+	string public symbol = "PENNY";
 	uint8 public decimals = 18;
 	uint public totalSupply;
 	event Transfer(address indexed from, address indexed to, uint amount);

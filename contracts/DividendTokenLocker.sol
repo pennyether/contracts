@@ -4,14 +4,18 @@ pragma solidity ^0.4.19;
 *************** DIVIDEND TOKEN LOCKER ********************
 **********************************************************
 
-This contract holds a balance of tokens, and allows the owner:
+This contract holds a balance of tokens and enforces that
+the balance of tokens is always above the amount that has
+not yet vested. All dividends are always collectable.
+
+Owner Permissions:
 	- to collect all dividends
 	- to transfer tokens, such that some minimum balance
 	  is maintained, as defined by the vesting parameters
 
-Notes:
-	- Only the creator can specify the number of vesting days.
-	- If additional tokens are added, they can be transferred.
+Comptroller Permissions:
+	- Specifies the token and owner
+	- Specifies the amount to vest, and over what period
 */
 contract IDividendToken {
 	function collectOwedDividends() public returns (uint);
@@ -19,29 +23,29 @@ contract IDividendToken {
 	function balanceOf(address _addr) public view returns (uint);
 }
 contract DividendTokenLocker {
-	// set by creator in the constructor
-	address public creator;
+	// set in the constructor
+	address public comptroller;
 	address public owner;
 	IDividendToken public token;
-	// set by creator via .setVesting()
+	// set by comptroller via .setVesting()
 	uint public vestingAmt;
 	uint public vestingStartDay;
 	uint public vestingDays;
 
 	// events, for transparency
-	event Initialized(uint time, address creator, address token, address owner);
+	event Initialized(uint time, address comptroller, address token, address owner);
 	event VestingStarted(uint time, uint numTokens, uint vestingDays);
 	event Transferred(uint time, address recipient, uint numTokens);
 	event Collected(uint time, address recipient, uint amount);
 	
-	// Initialize the creator, token, and owner addresses.
+	// Initialize the comptroller, token, and owner addresses.
     function DividendTokenLocker(address _token, address _owner)
     	public
     {
-    	creator = msg.sender;
+    	comptroller = msg.sender;
 		token = IDividendToken(_token);
 		owner = _owner;
-		Initialized(now, creator, token, owner);
+		Initialized(now, comptroller, token, owner);
 	}
 
 	// Allow this contract to get sent Ether (eg, dividendsOwed)
@@ -55,11 +59,10 @@ contract DividendTokenLocker {
 	// Starts the vesting process for the current balance.
 	// TokenLocker will ensure a minimum balance is maintained
 	//  based off of the vestingAmt and vestingDays.
-	function startVesting(uint _vestingDays)
+	function startVesting(uint _numTokens, uint _vestingDays)
 		public
 	{
-		require(msg.sender == creator);
-		uint _numTokens = token.balanceOf(this);
+		require(msg.sender == comptroller);
 		vestingAmt = _numTokens;
 		vestingStartDay = _today();
 		vestingDays = _vestingDays;
@@ -94,7 +97,7 @@ contract DividendTokenLocker {
 		public
 	{
 		require(msg.sender == owner);
-		uint _available = getAvailableTokens();
+		uint _available = tokensAvailable();
 		if (_numTokens > _available) _numTokens = _available;
 
 		// Transfer (if _numTokens > 0), and emit event.
@@ -109,39 +112,48 @@ contract DividendTokenLocker {
 	/*********** VIEWS *********************************/
 	/***************************************************/
 
-	// Returns the minimum allowed tokenBalance.
-	// Starts at vestingAmt, goes to 0 after vestingDays.
-	function getMinTokenBalance()
+	function tokens()
 		public
 		view
 		returns (uint)
 	{
-		return vestingAmt - getNumTokensVested();
+		return token.balanceOf(this);
+	}
+
+	// Returns the minimum allowed tokenBalance.
+	// Starts at vestingAmt, goes to 0 after vestingDays.
+	function tokensUnvested()
+		public
+		view
+		returns (uint)
+	{
+		return vestingAmt - tokensVested();
+	}
+
+	// Returns how many tokens have vested.
+	// Starts at 0, goes to vestingAmt after vestingDays.
+	function tokensVested()
+		public
+		view
+		returns (uint)
+	{
+		uint _daysElapsed = _today() - vestingStartDay;
+		return _daysElapsed >= vestingDays
+			? vestingAmt
+			: (vestingAmt * _daysElapsed) / vestingDays;
 	}
 
 	// Returns the amount of tokens available to be transferred.
 	// This is the balance, minus how many tokens must be maintained due to vesting.
-	function getAvailableTokens()
+	function tokensAvailable()
 		public
 		view
 		returns (uint)
 	{
 		// token.balanceOf() and getMinTokenBalance() can never be greater than
 		//   all the Ether in the world, so we dont worry about overflow.
-		int _available = int(token.balanceOf(this)) - int(getMinTokenBalance());
+		int _available = int(tokens()) - int(tokensUnvested());
 		return _available > 0 ? uint(_available) : 0;
-	}
-
-	// Returns how many tokens have vested.
-	// Starts at 0, goes to vestingAmt after vestingDays.
-	function getNumTokensVested()
-		public
-		view
-		returns (uint)
-	{
-		uint _daysElapsed = _today() - vestingStartDay;
-		if (_daysElapsed >= vestingDays) return vestingAmt;
-		else return (vestingAmt * _daysElapsed) / vestingDays;
 	}
 
 	// Returns the current day.
