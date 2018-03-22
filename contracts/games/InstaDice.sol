@@ -413,7 +413,7 @@ contract InstaDice is
     function curMaxBet() public view returns (uint _amount) {
         // Return largest bet such that 10*bet*payout = bankrollable()
         uint _maxPayout = 10 * 100 / uint(settings.minNumber);
-        return getAvailableBankroll() / _maxPayout;
+        return bankrollAvailable() / _maxPayout;
     }
 
 	// Computes the payout amount for the current _feeBips

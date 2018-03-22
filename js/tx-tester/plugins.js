@@ -459,7 +459,12 @@ function createPlugins(testUtil, ledger) {
 			try {
 				assertValues(result, expected);
 			} catch(e) {
-				throw new Error(`${msg} failed.\nResult: ${resultStr}\nExpected: ${expectedStr}\nError: ${e.message}`);	
+				throw new Error(
+					`${msg} returned unexpected result.` + 
+					`\n   Error: ${e.message}` +
+					`\n   Result: ${resultStr}` +
+					`\n   Expected: ${expectedStr}`
+				);	
 			}
 			console.log(`✓ ${msg} returns ${expectedStr}`);
 

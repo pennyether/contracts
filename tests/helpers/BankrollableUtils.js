@@ -1,6 +1,7 @@
 function Create(web3, createDefaultTxTester) {
 	const BigNumber = web3.toBigNumber(0).constructor;
 	const testUtil = createDefaultTxTester().plugins.testUtil;
+    const Ledger = artifacts.require("Ledger");
 
     // todo: test expected mappings (add when added, remove when 0'd)
     const EXP_TABLE = [];
@@ -50,9 +51,11 @@ function Create(web3, createDefaultTxTester) {
 
 	async function assertAddsBankroll(instance, account, amount) {
         amount = new BigNumber(amount);
+        const ledger = Ledger.at(await instance.ledger());
         const expBankroll = (await instance.bankroll()).plus(amount);
-        const expBankrolled = (await instance.bankrolled(account)).plus(amount);
-        const expProfits = await instance.getProfits();
+        const expBankrolled = (await instance.bankrolledBy(account)).plus(amount);
+        const expBankrollAvail = (await instance.bankrollAvailable()).plus(amount);
+        const expProfits = await instance.profits();
         addToTable(account, amount);
 
         return createDefaultTxTester()
@@ -69,16 +72,19 @@ function Create(web3, createDefaultTxTester) {
                 bankroll: expBankroll
             })
             .assertCallReturns([instance, "bankroll"], expBankroll)
-            .assertCallReturns([instance, "bankrolled", account], expBankrolled)
-            .assertCallReturns([instance, "getProfits"], expProfits)
-            .assertCallReturns([instance, "getBankrollerTable"], expTable())
+            .assertCallReturns([instance, "bankrollAvailable"], expBankrollAvail)
+            .assertCallReturns([instance, "bankrolledBy", account], expBankrolled)
+            .assertCallReturns([ledger, "balances"], expTable())
+            //.assertCallReturns([instance, "bankrollerTable"], expTable())
+            .assertCallReturns([instance, "profits"], expProfits)
             .start();
     }
 
     async function assertRemovesBankroll(instance, account, amount) {
         amount = new BigNumber(amount);
+        const ledger = Ledger.at(await instance.ledger());
         const bankroll = await instance.bankroll();
-        const bankrolled = await instance.bankrolled(account);
+        const bankrolled = await instance.bankrolledBy(account);
         const collateral = await instance.getCollateral();
         const balance = await testUtil.getBalance(instance);
         var expAmount = amount;
@@ -93,7 +99,7 @@ function Create(web3, createDefaultTxTester) {
 
         const expBankroll = bankroll.minus(expAmount);
         const expBankrolled = bankrolled.minus(expAmount);
-        const expProfits = await instance.getProfits();
+        const expProfits = await instance.profits();
 
         const txTester = createDefaultTxTester()
             .startLedger([account, instance])
@@ -113,9 +119,11 @@ function Create(web3, createDefaultTxTester) {
         }
 
         return txTester
+            .assertCallReturns([instance, "profits"], expProfits)
             .assertCallReturns([instance, "bankroll"], expBankroll)
-            .assertCallReturns([instance, "bankrolled", account], expBankrolled)
-            .assertCallReturns([instance, "getBankrollerTable"], expTable())
+            .assertCallReturns([instance, "bankrolledBy", account], expBankrolled)
+            .assertCallReturns([ledger, "balances"], expTable())
+            //.assertCallReturns([instance, "bankrollerTable"], expTable())
             .start();
     }
 
@@ -125,6 +133,9 @@ function Create(web3, createDefaultTxTester) {
     	const collateral = await instance.getCollateral();
         const balance = await testUtil.getBalance(instance);
         const expProfits = BigNumber.max(balance.minus(collateral).minus(bankroll), 0);
+        const expProfitsSent = (await instance.profitsSent()).plus(expProfits);
+        const expProfitsTotal = expProfitsSent;
+        
 
     	const txTester = createDefaultTxTester()
             .startLedger([instance, treasury, account])
@@ -145,7 +156,9 @@ function Create(web3, createDefaultTxTester) {
                 .assertDelta(treasury, expProfits)
                 .assertLostTxFee(account)
             .assertCallReturns([instance, "bankroll"], bankroll)
-            .assertCallReturns([instance, "getProfits"], 0)
+            .assertCallReturns([instance, "profits"], 0)
+            .assertCallReturns([instance, "profitsSent"], expProfitsSent)
+            .assertCallReturns([instance, "profitsTotal"], expProfitsTotal)
             .start();
     }
 
@@ -155,20 +168,20 @@ function Create(web3, createDefaultTxTester) {
         const balance = await testUtil.getBalance(instance);
         const expProfits = BigNumber.max(balance.minus(collateral).minus(bankroll), 0);
 
-        var expAvailableBankroll;
+        var expBankrollAvailable;
         if (balance.lt(collateral)) {
         	console.log(`No bankroll available.`);
-        	expAvailableBankroll = 0;
+        	expBankrollAvailable = 0;
         } else if (balance.lt(collateral.plus(bankroll))) {
         	console.log(`Some bankroll is availabe.`);
-        	expAvailableBankroll = balance.minus(collateral);
+        	expBankrollAvailable = balance.minus(collateral);
         } else {
         	console.log(`All bankroll is available.`);
-        	expAvailableBankroll = bankroll;
+        	expBankrollAvailable = bankroll;
         }
         return createDefaultTxTester()
-        	.assertCallReturns([instance, "getAvailableBankroll"], expAvailableBankroll)
-        	.assertCallReturns([instance, "getProfits"], expProfits)
+        	.assertCallReturns([instance, "bankrollAvailable"], expBankrollAvailable)
+        	.assertCallReturns([instance, "profits"], expProfits)
         	.start();
     }
 

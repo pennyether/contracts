@@ -92,16 +92,22 @@ describe('Registry', function(){
     // an array of [name, addr] mappings, both JS strings
     const EXP_MAPPINGS = [];
 
+    function toBytes32(str) {
+        str = web3.fromUtf8(str).slice(0, 66);
+        const padLen = Math.max(66 - str.length, 0);
+        const padding = (new Array(padLen+1)).join("0");
+        return `${str}${padding}`;
+    }
+
     function getExpMappings() {
-        function toBytes32(str) {
-            str = web3.fromUtf8(str).slice(0, 66);
-            const padLen = Math.max(66 - str.length, 0);
-            const padding = (new Array(padLen+1)).join("0");
-            return `${str}${padding}`;
-        }
         const names = EXP_MAPPINGS.map(m => toBytes32(m[0]));
         const addresses = EXP_MAPPINGS.map(m => m[1]);
         return [names, addresses];
+    }
+
+    function getExpName(address) {
+        const entry = EXP_MAPPINGS.find(m => m[1]==address);
+        return toBytes32(entry ? entry[0] : "");
     }
 
     function assertRegisters(name, address) {
@@ -120,7 +126,9 @@ describe('Registry', function(){
             .doTx([registry, "register", name, address, {from: owner}])
             .assertSuccess()
             .assertCallReturns([registry, "addressOf", name], address)
-            .assertCallReturns([registry, "getMappings"], getExpMappings())
+            .assertCallReturns([registry, "nameOf", address], getExpName(address))
+            .assertCallReturns([registry, "size"], EXP_MAPPINGS.length)
+            .assertCallReturns([registry, "mappings"], getExpMappings())
             .start();
     }
 
@@ -139,7 +147,8 @@ describe('Registry', function(){
             .doTx([registry, "unregister", name, {from: owner}])
             .assertSuccess()
             .assertCallThrows([registry, "addressOf", name])
-            .assertCallReturns([registry, "getMappings"], getExpMappings())
+            .assertCallReturns([registry, "size"], EXP_MAPPINGS.length)
+            .assertCallReturns([registry, "mappings"], getExpMappings())
             .start();
     }
 

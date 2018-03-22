@@ -433,7 +433,7 @@ describe('Treasury', function(){
     });
 
     describe(".executeRaiseCapital()", function(){
-        it("Works now that there's a token set.", function(){
+        it("Still works", function(){
             return assertExecutesRaiseCapital(1e9, true, "Capital target raised.");
         });
     });
@@ -689,7 +689,7 @@ describe('Treasury', function(){
         amt = new BigNumber(amt);
         const expAmt = expSuccess ? amt : new BigNumber(0);
         const expCapital = (await treasury.capital()).minus(expAmt);
-        const expCapUtilized = (await treasury.getCapitalUtilized()).plus(expAmt);
+        const expCapAllocated = (await treasury.capitalAllocated()).plus(expAmt);
         
         const txTester = createDefaultTxTester()
             .startWatching([treasury])
@@ -720,8 +720,8 @@ describe('Treasury', function(){
             .assertDelta(treasury, expAmt.mul(-1))
             .assertDelta(bankrollable, expAmt)
             .assertCallReturns([treasury, "capital"], expCapital)
-            .assertCallReturns([treasury, "getCapitalUtilized"], expCapUtilized)
-            .assertCallReturns([treasury, "getCapitalUtilization"], getExpBrMapping())
+            .assertCallReturns([treasury, "capitalAllocated"], expCapAllocated)
+            .assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
             .doFn(assertIsBalanced)
             .start();
     }
@@ -731,7 +731,7 @@ describe('Treasury', function(){
         amt = new BigNumber(amt);
         const expAmt = expSuccess ? removeExpBankrolled(bankrollable, amt) : 0;
         const expCapital = (await treasury.capital()).plus(expAmt);
-        const expCapUtilized = (await treasury.getCapitalUtilized()).minus(expAmt);
+        const expCapAllocated = (await treasury.capitalAllocated()).minus(expAmt);
 
         const txTester = createDefaultTxTester()
             .startWatching([treasury])
@@ -760,8 +760,8 @@ describe('Treasury', function(){
                 .assertDelta(treasury, expAmt)
                 .assertDelta(bankrollable, expAmt.mul(-1))
             .assertCallReturns([treasury, "capital"], expCapital)
-            .assertCallReturns([treasury, "getCapitalUtilized"], expCapUtilized)
-            .assertCallReturns([treasury, "getCapitalUtilization"], getExpBrMapping())
+            .assertCallReturns([treasury, "capitalAllocated"], expCapAllocated)
+            .assertCallReturns([treasury, "capitalAllocation"], getExpBrMapping())
             .doFn(assertIsBalanced)
             .start();
     }
@@ -770,7 +770,7 @@ describe('Treasury', function(){
         amt = new BigNumber(amt);
         const expIncrease = expSuccess ? amt : new BigNumber(0);
         const expCapitalTarget = (await treasury.capitalRaisedTarget()).plus(expIncrease);
-        const expCapitalNeeded = (await treasury.getCapitalNeeded()).plus(expIncrease);
+        const expCapitalNeeded = (await treasury.capitalNeeded()).plus(expIncrease);
 
         return createDefaultTxTester()
             .startLedger([treasury])
@@ -780,7 +780,7 @@ describe('Treasury', function(){
             .stopLedger()
                 .assertNoDelta(treasury)
             .assertCallReturns([treasury, "capitalRaisedTarget"], expCapitalTarget)
-            .assertCallReturns([treasury, "getCapitalNeeded"], expCapitalNeeded)
+            .assertCallReturns([treasury, "capitalNeeded"], expCapitalNeeded)
             .doFn(assertIsBalanced)
             .start();
     }
@@ -810,7 +810,8 @@ describe('Treasury', function(){
 
     async function assertReceivesProfits(account, amt) {
         amt = new BigNumber(amt);
-        const prevProfits = await treasury.profits();
+        const expProfits = (await treasury.profits()).plus(amt);
+        const expProfitsTotal = (await treasury.profitsTotal()).plus(amt);
         return createDefaultTxTester()
             .startLedger([treasury, account])
             .doTx([treasury, "sendTransaction", {value: amt, from: account}])
@@ -823,11 +824,15 @@ describe('Treasury', function(){
             .stopLedger()
                 .assertDelta(treasury, amt)
                 .assertDeltaMinusTxFee(account, amt.mul(-1))
+            .assertCallReturns([treasury, "profits"], expProfits)
+            .assertCallReturns([treasury, "profitsTotal"], expProfitsTotal)
             .doFn(assertIsBalanced)
             .start();
     }
 
-    function assertCannotDistribute(expMsg) {
+    async function assertCannotDistribute(expMsg) {
+        const expProfits = await treasury.profits();
+        const expProfitsSent = await treasury.profitsSent();
         return createDefaultTxTester()
             .wait(500)
             .startLedger([treasury])
@@ -837,39 +842,34 @@ describe('Treasury', function(){
                     time: null,
                     msg: expMsg
                 })
-            // .stopLedger()
-                // .assertNoDelta(treasury)
+            .stopLedger()
+                .assertNoDelta(treasury)
+            .assertCallReturns([treasury, "profits"], expProfits)
+            .assertCallReturns([treasury, "profitsSent"], expProfitsSent)
             .start();
     }
 
     async function assertDistributes() {
         const profits = await treasury.profits();
-        const prevTotalDistributed = await treasury.totalDistributed;
-        const prevTotalRewarded = await treasury.totalRewarded;
-        const expReward = profits.mul(.001);
+        const expProfitsSent = (await treasury.profitsSent()).plus(profits);
+        const expProfitsTotal = expProfitsSent;
 
         console.log(`Note: Current profits are: ${profits}`);
         return createDefaultTxTester()
             .wait(100)
-            .assertCallReturns([treasury, "getDistributeReward"], expReward)
             .startLedger([anon, treasury, dummyToken])
             .doTx([treasury, "distributeToToken", {from: anon}])
             .assertSuccess()
-                .assertLogCount(2)
-                .assertLog("DistributeSuccess", {
+                .assertOnlyLog("DistributeSuccess", {
                     time: null,
                     token: dummyToken,
-                    amount: profits.minus(expReward)
-                })
-                .assertLog("DistributeRewardPaid", {
-                    time: null,
-                    recipient: anon,
-                    amount: expReward
+                    amount: profits
                 })
             .stopLedger()
                 .assertDelta(treasury, profits.mul(-1))
-                .assertDelta(dummyToken, profits.minus(expReward))
-                .assertDeltaMinusTxFee(anon, expReward)
+                .assertDelta(dummyToken, profits)
+            .assertCallReturns([treasury, "profitsSent"], expProfitsSent)
+            .assertCallReturns([treasury, "profitsTotal"], expProfitsTotal)
             .doFn(assertIsBalanced)
             .start();
     }

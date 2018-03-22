@@ -14,8 +14,14 @@ Registry uses a doubly linked list to maintain an interable
 list of name => address mappings. When a name is mapped to
 the address 0, it is removed from the list.
 
-Registry can return a mapping of all currently registered
-names and addresses via .getMappings()
+Methods:
+    - [onlyOwner] register(name, address)
+    - [onlyOnwer] unregiser(name)
+Public Views:
+    - size()
+    - addressOf(name)
+    - nameOf(address)
+    - mappings()
 
 */
 contract Registry {
@@ -36,11 +42,17 @@ contract Registry {
     event Registered(uint time, bytes32 name, address addr);
     event Unregistered(uint time, bytes32 name);
 
+    // Constructor sets the owner
     function Registry(address _owner)
         public
     {
         owner = _owner;
     }
+
+
+    /******************************************************/
+    /*************** OWNER METHODS ************************/
+    /******************************************************/
 
     function register(bytes32 _name, address _addr)
         public
@@ -64,15 +76,31 @@ contract Registry {
         require(msg.sender == owner);
         require(_name != 0);
         Entry storage entry = entries[_name];
+        if (entry.addr == NO_ADDRESS) return;
 
         // Remove entry by stitching together prev and next
-        if (entry.addr != NO_ADDRESS) {
-            entries[entry.prev].next = entry.next;
-            entries[entry.next].prev = entry.prev;
-        }
-        // Delete the entry
+        entries[entry.prev].next = entry.next;
+        entries[entry.next].prev = entry.prev;
         delete entries[_name];
         Unregistered(now, _name);
+    }
+
+
+    /******************************************************/
+    /*************** PUBLIC VIEWS *************************/
+    /******************************************************/
+
+    function size()
+        public
+        view
+        returns (uint _size)
+    {
+        Entry memory _curEntry = entries[0x0];
+        while (_curEntry.next > 0) {
+            _curEntry = entries[_curEntry.next];
+            _size++;
+        }
+        return _size;
     }
 
     // Retrieves the address for the name of _name.
@@ -86,29 +114,42 @@ contract Registry {
         return _addr;
     }
 
+    // Retrieves a associated with an _address.
+    function nameOf(address _address)
+        public
+        view
+        returns (bytes32 _name)
+    {
+        Entry memory _curEntry = entries[0x0];
+        Entry memory _nextEntry;
+        while (_curEntry.next > 0) {
+            _nextEntry = entries[_curEntry.next];
+            if (_nextEntry.addr == _address){
+                return _curEntry.next;
+            }
+            _curEntry = _nextEntry;
+        }
+    }
+
     // Retrieves the name of _addr, if any
-    function getMappings()
+    function mappings()
         public
         view
         returns (bytes32[] _names, address[] _addresses)
     {
-        // Loop once to get the total count.
-        uint _i;
-        Entry memory _curEntry = entries[0x0];
-        while (_curEntry.next > 0) {
-            _curEntry = entries[_curEntry.next];
-            _i++;
-        }
+        uint _size = size();
 
         // Populate names and addresses
-        _names = new bytes32[](_i);
-        _addresses = new address[](_i);
-        _i = 0;
-        _curEntry = entries[0x0];
+        _names = new bytes32[](_size);
+        _addresses = new address[](_size);
+        uint _i = 0;
+        Entry memory _curEntry = entries[0x0];
+        Entry memory _nextEntry;
         while (_curEntry.next > 0) {
+            _nextEntry = entries[_curEntry.next];
             _names[_i] = _curEntry.next;
-            _addresses[_i] = entries[_curEntry.next].addr;
-            _curEntry = entries[_curEntry.next];
+            _addresses[_i] = _nextEntry.addr;
+            _curEntry = _nextEntry;
             _i++;
         }
         return (_names, _addresses);

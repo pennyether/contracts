@@ -552,7 +552,7 @@ contract VideoPoker is
     function curMaxBet() public view returns (uint) {
         // Return largest bet such that RF*2*bet = bankrollable
         uint _maxPayout = payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2;
-        return getAvailableBankroll() / _maxPayout;
+        return bankrollAvailable() / _maxPayout;
     }
 
     function getPayTable(uint16 _payTableId)

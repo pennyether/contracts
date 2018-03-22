@@ -2,7 +2,7 @@ pragma solidity ^0.4.19;
 
 // Requester needs to use the current Admin from Registry.
 import "./roles/UsingAdmin.sol";
-import "./common/HasLedger.sol";
+import "./common/Ledger.sol";
 
 /*
 	This is an abstract contract, inherited by Treasury, that manages
@@ -19,7 +19,7 @@ import "./common/HasLedger.sol";
 		- contains a type, target, and value
 		- when executed, calls corresponding `execute${type}()` method
 */
-contract Requester is
+contract Requestable is
 	UsingAdmin 
 {
 	uint32 public constant WAITING_TIME = 60*60*24*7;	// 1 week
@@ -53,7 +53,7 @@ contract Requester is
 	event RequestExecuted(uint time, uint indexed id, uint indexed typeId, address indexed target, bool success, string msg);
 
 
-	function Requester(address _registry)
+	function Requestable(address _registry)
 		UsingAdmin(_registry)
 		public
 	{ }
@@ -154,31 +154,44 @@ contract Requester is
 			r.createdMsg, r.cancelledMsg, r.executedMsg
 		);
 	}
+
+	function isRequestExecutable(uint32 _requestId)
+		public
+		view
+		returns (bool _isExecutable)
+	{
+		Request memory r = requests[_requestId];
+		_isExecutable = (r.id>0 && r.dateCancelled==0 && r.dateExecuted==0);
+		_isExecutable = _isExecutable && (uint32(now) > r.dateCreated + WAITING_TIME);
+		return _isExecutable;
+	}
 }
 
 /*
 
+UI: https://www.pennyether.com/status/treasury
+
 The Treasury manages 3 balances:
-	- reserve: Ether strictly used to pay for a user burning tokens.
-	- capital: Ether that can be sent to bankrollable contracts via SendCapitalRequest().
-	- profits: Ether received via fallback fn. Can be sent to Token at any time.
 
-All Ether entering and leaving Treasury is added/removed from one of the balances.
-Thus, the balance of Treasury will always equal: reserve + capital + profits.
-
-The Treasury:
-	- Manages profits:
-		- Any funds received via fallback are profits.
-		- Can distribute profits to Token at any time.
-		- Pays a small reward to the caller of .distributeToToken()
-	- Manages reserve:
+	* reserve: Ether strictly used to pay for a user burning tokens.
 		- Is incremented by Comptroller after tokens are purchased.
 		- Reserve only ever leaves to pay Token Holders for burning.
-	- Manages capital:
-		- Capital is controlled via `Requester` governance.
-		- Capital can be sent to Bankrollable contracts.
-		- Capital can be recalled from Bankrollable contracts.
-	- UI: https://www.pennyether.com/status/treasury
+
+	* capital: Ether that can be sent to bankrollable contracts.
+		- Is controlled via `Requester` governance, by the Admin (which is mutable)
+			- Capital received by Comptroller is considered "capitalRaised".
+			- A target amount can be set: "capitalRaisedTarget".
+			- Comptroller will sell Tokens to reach capitalRaisedTarget.
+		- Can be sent to Bankrollable contracts.
+		- Can be recalled from Bankrollable contracts.
+		- Allocation in-total and per-contract is available.
+
+	* profits: Ether received via fallback fn. Can be sent to Token at any time.
+		- Are received via fallback function, typically by bankrolled contracts.
+		- Can be sent to Token at any time, by anyone, via .distributeToToken()
+
+All Ether entering and leaving Treasury is allocated to one of the three balances.
+Thus, the balance of Treasury will always equal: reserve + capital + profits.
 
 Roles:
 	Owner:       can set Comptroller and Token addresses, once.
@@ -194,9 +207,8 @@ interface _ITrBankrollable {
 	function addBankroll() payable public;
 }
 
-contract NewTreasury is 
-	Requester,
-	HasLedger
+contract NewTreasury is
+	Requestable
 {
 	// Address that dividends are sent to. Settable once (by owner).
 	address public token;
@@ -210,14 +222,10 @@ contract NewTreasury is
 	// Capital Management
 	uint public capitalRaised;		  // The amount of capital raised from Comptroller.
 	uint public capitalRaisedTarget;  // The target amount of capitalRaised.
+	Ledger public capitalLedger;	  // Tracks capital sent per address
 
 	// Stats
-	uint public totalProfits;		// Total profits ever received.
-	uint public totalRewarded;		// Total profits sent as reward.
-	uint public totalDistributed;	// Total profits distributed.
-	
-	// .1% of profits distributed go to the caller of .distributeToToken()
-	uint public constant DISTRIBUTE_REWARD_DENOM = 1000;
+	uint public profitsSent;		  // Total profits ever sent.
 
 	// for functions only callable by Comptroller
 	modifier fromComptroller() { require(msg.sender==comptroller); _; }
@@ -242,16 +250,17 @@ contract NewTreasury is
 	// distribution events
 	event DistributeSuccess(uint time, address token, uint amount);
 	event DistributeFailure(uint time, string msg);
-	event DistributeRewardPaid(uint time, address indexed recipient, uint amount);
 
 	// `Requester` provides .fromAdmin() and requires implementation of:
 	//   - executeSendCapital
 	//   - executeRecallCapital
 	//   - executeRaiseCapital
 	function NewTreasury(address _registry)
-		Requester(_registry)
+		Requestable(_registry)
 		public
-	{}
+	{
+		capitalLedger = new Ledger(this);
+	}
 
 
 	/*************************************************************/
@@ -313,20 +322,18 @@ contract NewTreasury is
 	// Can receive Ether from anyone. Typically Bankrollable contracts' profits.
 	function () public payable {
 		profits += msg.value;
-		totalProfits += msg.value;
 		ProfitsReceived(now, msg.sender, msg.value);
 	}
 
 	// Sends profits to Token, and a small reward to the caller.
 	function distributeToToken()
 		public
-		returns (uint _amountToDistribute)
+		returns (uint _profits)
 	{
 		// Load profits to memory to save gas.
-		uint _profits = profits;
+		_profits = profits;
 
-		// Ensure there is a token to send profits to
-		//  and that we have profits to distribute.
+		// Ensure token is set, and there are profits.
 		if (token == address(0)) {
 			DistributeFailure(now, "No address to distribute to.");
 			return;
@@ -336,20 +343,11 @@ contract NewTreasury is
 			return;
 		}
 
-		// Calculate _reward and _amountToDistribute
-		uint _reward = _profits / DISTRIBUTE_REWARD_DENOM;
-		_amountToDistribute = _profits - _reward;
-
-		// Set profits to 0, update stats.
+		// Set profits to 0, and send to Token
 		profits = 0;
-		totalRewarded += _reward;
-		totalDistributed += _amountToDistribute;
-
-		// Send reward and amount, or revert. Emit events.
-		require(msg.sender.call.value(_reward)());
-		require(token.call.value(_amountToDistribute)());
-		DistributeSuccess(now, token, _amountToDistribute);
-		DistributeRewardPaid(now, msg.sender, _reward);
+		profitsSent += _profits;
+		require(token.call.value(_profits)());
+		DistributeSuccess(now, token, _profits);
 	}
 
 
@@ -390,7 +388,7 @@ contract NewTreasury is
 
 		// Decrease capital, increase bankrolled
 		capital -= _value;
-		_addToLedger(_bankrollable, _value);
+		capitalLedger.add(_bankrollable, _value);
 
 		// Send it (this throws on failure). Then emit events.
 		_ITrBankrollable(_bankrollable).addBankroll.value(_value)();
@@ -408,7 +406,7 @@ contract NewTreasury is
 		uint _prevCapital = capital;
 		_ITrBankrollable(_bankrollable).removeBankroll(_value, "addCapital()");
 		uint _recalled = capital - _prevCapital;
-		_subtractFromLedger(_bankrollable, _recalled);
+		capitalLedger.subtract(_bankrollable, _recalled);
 		
 		// Emit and return
 		ExecutedRecallCapital(now, _bankrollable, _recalled);
@@ -428,43 +426,54 @@ contract NewTreasury is
 
 
 	/*************************************************************/
-	/*************** CONSTANTS ***********************************/
+	/*************** PUBLIC VIEWS ********************************/
 	/*************************************************************/
 
-  	// returns reward to be received if distributeToToken() is called
-  	function getDistributeReward()
-  		public
-  		constant
-  		returns (uint)
-  	{
-  		return profits / DISTRIBUTE_REWARD_DENOM;
-  	}
+	function profitsTotal()
+		public
+		view
+		returns (uint _amount)
+	{
+		return profitsSent + profits;
+	}
 
   	// Returns the amount of capital needed to reach capitalRaisedTarget.
-  	function getCapitalNeeded()
+  	function capitalNeeded()
   		public
-  		constant
-  		returns (uint)
+  		view
+  		returns (uint _amount)
   	{
   		return capitalRaisedTarget > capitalRaised
   			? capitalRaisedTarget - capitalRaised
   			: 0;
   	}
 
-  	function getCapitalUtilized()
+  	// Returns the total amount of capital allocated
+  	function capitalAllocated()
   		public
-  		constant
+  		view
   		returns (uint _amount)
   	{
-  		return _getLedgerTotal();
+  		return capitalLedger.total();
   	}
 
-  	function getCapitalUtilization()
+  	// Returns amount of capital allocated to an address
+  	function capitalAllocatedTo(address _addr)
   		public
-  		constant
-  		returns (address[], uint[])
+  		view
+  		returns (uint _amount)
   	{
-  		return _getLedger();
+  		return capitalLedger.balanceOf(_addr);
+  	}
+
+  	// Returns the full capital allocation table
+  	function capitalAllocation()
+  		public
+  		view
+  		returns (address[] _addresses, uint[] _amounts)
+  	{
+  		// Not available until Solidity 0.4.22
+  		// return capitalLedger.balances();
   	}
 
   	// Returns if _addr.getTreasury() returns this address.
