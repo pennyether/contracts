@@ -350,11 +350,6 @@ contract Comptroller {
 		UserRefunded(now, msg.sender, _amt);
 	}
 
-	
-	/*************************************************************/
-	/********** RAISING CAPITAL **********************************/
-	/*************************************************************/
-
 	// Callable any time Treasury.capitalNeeded() > 0
 	//
 	// This mints tokens and dilutes everyone, including owners.
@@ -369,6 +364,11 @@ contract Comptroller {
 		public
 		payable
 	{
+		if (!wasSaleEnded)
+			return _errorBuyingTokens("Sale has not ended.");
+		if (!wasSoftCapMet)
+			return _errorBuyingTokens("SoftCap was not met.");
+			
 		// Cap _amount to the amount we need. Error if 0.
 		uint _amtNeeded = treasury.capitalNeeded() * 2;
 		uint _amount = msg.value > _amtNeeded ? _amtNeeded : msg.value;
