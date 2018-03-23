@@ -1,5 +1,5 @@
 const Registry = artifacts.require("Registry");
-const Treasury = artifacts.require("NewTreasury");
+const Treasury = artifacts.require("Treasury");
 const Comptroller = artifacts.require("Comptroller");
 const DividendToken = artifacts.require("DividendToken");
 const DividendTokenLocker = artifacts.require("DividendTokenLocker");

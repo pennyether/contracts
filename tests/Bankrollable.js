@@ -134,7 +134,7 @@ describe('Bankrollable', function(){
                 return BankrollableUtils.assertRemovesFromWhitelist(bankrollable, whitelisted2, whitelistOwner);
             });
             it("Ignores empty whitelist again", function(){
-                return BankrollableUtils.assertAddsBankroll(bankrollable, account1, 1e9);
+                return BankrollableUtils.assertAddsBankroll(bankrollable, account3, 1e9);
             });
         })
     });
@@ -146,28 +146,34 @@ describe('Bankrollable', function(){
             await createDefaultTxTester()
                 .doTx([bankrollable, "setCollateral", 2e9, {from: anon}])
                 .assertSuccess()
+                .assertCallReturns([bankrollable, "getCollateral"], 2e9)
                 .start();
-
-            const collat = await bankrollable.getCollateral();
-            assert(collat.equals(2e9), "Collateral == 2 GWei");
 
             this.logInfo("");
             this.logInfo("Next we remove balance so that balance == 1 GWei");
-            const balance = testUtil.getBalance(bankrollable);
-            const toSend = balance.minus(1e9);
+            const curBalance = testUtil.getBalance(bankrollable);
+            const toSend = curBalance.minus(1e9);
             await createDefaultTxTester()
                 .doTx([bankrollable, "removeBalance", toSend, {from: anon}])
                 .assertSuccess()
                 .start();
-            assert(testUtil.getBalance(bankrollable).equals(1e9), "Balance == 1 GWei");
 
-            // make sure account1 has bankrolled 5gwei, and bankroll < collateral
+            const collat = await bankrollable.getCollateral();
+            const balance = testUtil.getBalance(bankrollable);
+            const bankroll = await bankrollable.bankroll();
+            const profitThreshold = bankroll.plus(collat);
             const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
-            assert(acct1Bankrolled.equals(5e9), "Account1 has 5 GWei bankrolled.");
-            assert(testUtil.getBalance(bankrollable).lt(collat), "Bankroll < collateral");
-            assert((await bankrollable.bankroll()).equals(5e9), "Bankroll == 5 GWei");
+            this.logInfo(`Collateral:           ${collat}`);
+            this.logInfo(`Balance:              ${balance}`);
+            this.logInfo(`Bankroll:             ${bankroll}`);
+            this.logInfo(`Profit Threshold:     ${profitThreshold}`);
+            this.logInfo(`Account1 Bankrolled:  ${acct1Bankrolled}`);
+
+            // make sure account1 has some bankrolled, and Balance < Collateral
+            assert(acct1Bankrolled.gt(0), "Account1 has > 0 GWei bankrolled.");
+            assert(testUtil.getBalance(bankrollable).lt(collat), "Balance < Collateral");
             this.logInfo("");
-            this.logInfo("Account1 has 5GWei bankrolled, and bankroll < collateral.");
+            this.logInfo("Account1 has some amount bankrolled, and Balance < Collateral.");
         });
         it(".bankrollAvilable() and .profits() should be zero", function(){
             return BankrollableUtils.assertState(bankrollable);
@@ -180,43 +186,45 @@ describe('Bankrollable', function(){
         });
     });
 
-    describe("When not-profitable (collat < balance < collat+bankroll)", function(){
-        before("Send Ether so that collateral < balance < profit-threshold", async function(){
-            const collat = await bankrollable.getCollateral();
-            const profitThreshold = (await bankrollable.bankroll()).plus(collat);
-            const balance = testUtil.getBalance(bankrollable);
+    describe("When not-profitable (collat < balance < bankroll)", function(){
+        before("Send Ether so that collateral < balance < bankroll", async function(){
+            const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
+            const curBalance = testUtil.getBalance(bankrollable);
 
-            this.logInfo("Send funds so that balance is 1 Gwei below profit threshold.");
-            const toReceive = profitThreshold.minus(balance).minus(1e9);
+            this.logInfo("Send funds so that balance is 1 Gwei below acct1Bankrolled");
+            const toReceive = acct1Bankrolled.minus(curBalance).minus(1e9);
             await createDefaultTxTester()
                 .doTx([bankrollable, "receive", {value: toReceive, from: anon}])
                 .assertSuccess()
                 .start();
 
-            // make sure account1 has bankrolled expected amount
-            this.logInfo("Bankroll: 5 Gwei (account 1)");
-            this.logInfo("Collateral: 2 GWei");
-            this.logInfo("Profit Threshold: 7 Gwei");
-            this.logInfo("Balance: 6 GWei");
+            // Print everything, and do assertions.
+            const collat = await bankrollable.getCollateral();
+            const balance = testUtil.getBalance(bankrollable);
             const bankroll = await bankrollable.bankroll();
-            const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
-            const newBalance = testUtil.getBalance(bankrollable);
-            assert(bankroll.equals(5e9), "Bankroll is 5 GWei");
-            assert(acct1Bankrolled.equals(5e9), "Account1 has 5 GWei bankrolled.");
-            assert(collat.equals(2e9), "Collateral is 2 GWei");
-            assert(profitThreshold.equals(7e9), "Profit Threshold is 7 GWei");
-            assert(newBalance.equals(6e9), "Balance is 6 GWei");
+            const profitThreshold = bankroll.plus(collat);
+            this.logInfo(`Collateral:           ${collat}`);
+            this.logInfo(`Balance:              ${balance}`);
+            this.logInfo(`Bankroll:             ${bankroll}`);
+            this.logInfo(`Profit Threshold:     ${profitThreshold}`);
+            this.logInfo(`Account1 Bankrolled:  ${acct1Bankrolled}`);
+            assert(collat.lt(balance), "Collateral < Balance");
+            assert(balance.lt(acct1Bankrolled), "Balance < acct1Bankrolled");
+
+            this.logInfo("");
+            this.logInfo("Collateral < Balance, and Balance < acct1Bankrolled");
         });
-        it(".bankrollAvilable() returns 4 GWei, .getProfits() returns 0", function(){
+        it(".bankrollAvilable() returns >0 GWei, .getProfits() returns 0", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".sendProfits() sends nothing", function(){
             return BankrollableUtils.assertSendsProfits(bankrollable, anon);
         });
-        it(".removeBankroll() removes limited amount", function(){
-            this.logInfo("Account 1 should only be able to remove 4 GWei of bankroll.");
+        it(".removeBankroll() removes limited amount", async function(){
+            const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
+            this.logInfo("Account1 should only be able to remove a limited amount.");
             this.logInfo("This maintains a balance above the collateral.");
-            return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, 10e9);
+            return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, acct1Bankrolled);
         });
         it(".bankrollAvilable() returns 0, .getProfits() returns 0", function(){
             return BankrollableUtils.assertState(bankrollable);
@@ -226,39 +234,40 @@ describe('Bankrollable', function(){
     describe("When profitable (balance > collat + bankroll)", async function(){
         before("Send Ether so that balance > profit threshold.", async function(){
             await createDefaultTxTester()
-                .doTx([bankrollable, "receive", {value: 3e9, from: anon}])
+                .doTx([bankrollable, "receive", {value: 1e12, from: anon}])
                 .assertSuccess()
                 .start();
 
-            this.logInfo("Bankroll: 1 Gwei (account 1)");
-            this.logInfo("Collateral: 2 GWei");
-            this.logInfo("Profit Threshold: 3 Gwei");
-            this.logInfo("Balance: 5 GWei");
+            const balance = testUtil.getBalance(bankrollable);
             const bankroll = await bankrollable.bankroll();
-            const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
             const collat = await bankrollable.getCollateral();
             const profitThreshold = bankroll.plus(collat);
-            const balance = testUtil.getBalance(bankrollable);
-            assert(bankroll.equals(1e9), "Bankroll is 1 GWei");
-            assert(acct1Bankrolled.equals(1e9), "Account1 has 1 GWei bankrolled.");
-            assert(collat.equals(2e9), "Collateral is 2 GWei");
-            assert(profitThreshold.equals(3e9), "Profit Threshold is 3 GWei");
-            assert(balance.equals(5e9), "Balance is 5 GWei");
+            const acct1Bankrolled = await bankrollable.bankrolledBy(account1);
+            this.logInfo(`Collateral:           ${collat}`);
+            this.logInfo(`Balance:              ${balance}`);
+            this.logInfo(`Bankroll:             ${bankroll}`);
+            this.logInfo(`Profit Threshold:     ${profitThreshold}`);
+            this.logInfo(`Account1 Bankrolled:  ${acct1Bankrolled}`);
+            assert(balance.gt(profitThreshold), "Balance > ProfitThreshold");
+            assert(acct1Bankrolled.gt(0), "acct1Bankrolled > 0");
+
+            this.logInfo("");
+            this.logInfo("Balance > ProfitThreshold, and acct1Bankrolled > 0");
         });
-        it(".bankrollAvilable() returns 1 GWei, .getProfits() returns 2 Gwei", function(){
+        it(".bankrollAvilable(), .getProfits() returns non-zero values", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".removeBankroll() works", function(){
-            this.logInfo("This should remove account 1's remaining 1 GWei of bankroll");
-            return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, 10e9);
+            this.logInfo("This should remove account 1's remaining bankroll");
+            return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, 1e20);
         });
-        it(".bankrollAvilable() returns 0 GWei, .getProfits() returns 2 Gwei", function(){
+        it(".bankrollAvilable() decreases, .getProfits() remains the same", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".sendProfits() works", function(){
             return BankrollableUtils.assertSendsProfits(bankrollable, anon);
         });
-        it(".bankrollAvilable() returns 1 GWei, .getProfits() returns 0 Gwei", function(){
+        it(".bankrollAvilable() remains the same, .getProfits() is now 0", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
     });
