@@ -12,7 +12,7 @@ const drawCardsFromHash = pUtils.drawCardsFromHash;
 describe('VideoPokerUtils', function(){
 	const accounts = web3.eth.accounts;
     const anon = accounts[1];
-    const NUM_HANDS = 100;
+    const NUM_HANDS = 1000;
     var vpu;
 
 	before("Set up VideoPokerUtils contract.", async function(){

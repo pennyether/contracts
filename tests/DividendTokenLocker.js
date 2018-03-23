@@ -7,7 +7,7 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
 const accounts = web3.eth.accounts;
-const creator = accounts[1];
+const dummyComptroller = accounts[1];
 const owner = accounts[2];
 const anon = accounts[3];
 var token, locker;
@@ -19,15 +19,15 @@ var TODAY;  // the day that .startVesting() is called
 describe('DividendTokenLocker', function(){
     before("Initialize DividendToken and DividendTokenLocker", async function(){
         const addresses = {
-            creator: creator,
+            dummyComptroller: dummyComptroller,
             owner: owner,
             anon: anon
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
 
-        this.logInfo("Create a DividendToken, owned by creator.");
+        this.logInfo("Create a DividendToken, owned by comptroller.");
         await createDefaultTxTester()
-            .doNewTx(DividendToken, [], {from: creator})
+            .doNewTx(DividendToken, [], {from: dummyComptroller})
             .assertSuccess()
             .withTxResult((res, plugins)=>{
                 token = res.contract;
@@ -36,10 +36,10 @@ describe('DividendTokenLocker', function(){
 
         this.logInfo("Create a DividendTokenLocker");
         await createDefaultTxTester()
-            .doNewTx(DividendTokenLocker, [token.address, owner], {from: creator})
+            .doNewTx(DividendTokenLocker, [token.address, owner], {from: dummyComptroller})
             .assertSuccess()
             .assertOnlyLog("Initialized",{
-                creator: creator,
+                comptroller: dummyComptroller,
                 token: token.address,
                 owner: owner
             })
@@ -54,7 +54,7 @@ describe('DividendTokenLocker', function(){
     describe("Initial values", function(){
         it("Has proper addresses", function(){
             return createDefaultTxTester()
-                .assertCallReturns([locker, "creator"], creator)
+                .assertCallReturns([locker, "comptroller"], dummyComptroller)
                 .assertCallReturns([locker, "token"], token.address)
                 .assertCallReturns([locker, "owner"], owner)
                 .start();
@@ -76,7 +76,7 @@ describe('DividendTokenLocker', function(){
     describe(".startVesting()", function(){
         before("Mint some tokens for TokenLocker", function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", locker.address, VESTING_AMT, {from: creator}])
+                .doTx([token, "mintTokens", locker.address, VESTING_AMT, {from: dummyComptroller}])
                 .assertSuccess()
                 .assertCallReturns([token, "balanceOf", locker.address], VESTING_AMT)
                 .start();
@@ -93,9 +93,9 @@ describe('DividendTokenLocker', function(){
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Can be called by creator", function(){
+        it("Can be called by comptroller", function(){
             return createDefaultTxTester()
-                .doTx([locker, "startVesting", VESTING_AMT, VESTING_DAYS, {from: creator}])
+                .doTx([locker, "startVesting", VESTING_AMT, VESTING_DAYS, {from: dummyComptroller}])
                 .assertSuccess()
                 .assertOnlyLog("VestingStarted", {
                     numTokens: VESTING_AMT,
@@ -144,7 +144,7 @@ describe('DividendTokenLocker', function(){
         });
         it("Mint another 1e18 tokens to locker", function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", locker.address, 1e18, {from: creator}])
+                .doTx([token, "mintTokens", locker.address, 1e18, {from: dummyComptroller}])
                 .assertSuccess()
                 .start();
         });
