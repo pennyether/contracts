@@ -1,14 +1,19 @@
 pragma solidity ^0.4.19;
 
 import "./UsingRegistry.sol";
-import "../interfaces/IPennyAuctionFactory.sol";
-
 
 /******* USING PAC **************************
 Gives the inherting contract access to:
 	.getPaf(): returns current IPaf instance
 	[modifier] .fromPaf(): requires the sender is current Paf.
 */
+
+// Returned by .getPennyAuctionFactory()
+interface IPennyAuctionFactory {
+	function lastCreatedAuction() public view returns (address _auction);
+	function getCollector() public view returns (address _collector);
+}
+
 contract UsingPennyAuctionFactory is
 	UsingRegistry
 {
@@ -24,7 +29,7 @@ contract UsingPennyAuctionFactory is
 
 	function getPennyAuctionFactory()
 		public
-		constant
+		view
 		returns (IPennyAuctionFactory)
 	{
 		return IPennyAuctionFactory(addressOf("PENNY_AUCTION_FACTORY"));

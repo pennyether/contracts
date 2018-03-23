@@ -1,8 +1,8 @@
 pragma solidity ^0.4.19;
 
-import "./roles/UsingTreasury.sol";
-import "./common/Ledger.sol";
-import "./common/AddressSet.sol";
+import "./Ledger.sol";
+import "./AddressSet.sol";
+import "../roles/UsingTreasury.sol";
 
 /**
 A simple class that manages bankroll, and maintains collateral.
@@ -82,6 +82,9 @@ contract Bankrollable is
     /*****************************************************/
     /************** PUBLIC FUNCTIONS *********************/
     /*****************************************************/
+
+    // Bankrollable contracts should be payable (to receive revenue)
+    function () public payable {}
 
     // Increase funding by whatever value is sent
     function addBankroll()

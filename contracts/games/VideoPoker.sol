@@ -1,7 +1,7 @@
 pragma solidity ^0.4.19;
 
 import "./VideoPokerUtils.sol";
-import "../Bankrollable.sol";
+import "../common/Bankrollable.sol";
 import "../roles/UsingAdmin.sol";
 
 contract VideoPoker is

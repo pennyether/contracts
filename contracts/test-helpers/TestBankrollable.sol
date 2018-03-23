@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import "../Bankrollable.sol";
+import "../common/Bankrollable.sol";
 
 contract TestBankrollable is Bankrollable {
 	address public whitelistOwner;

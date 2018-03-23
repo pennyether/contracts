@@ -619,7 +619,7 @@ function at(val) {
 		var shortened = val.substr(0, 6) + "...";
 		return addrToName[val]
 			? chalk.underline(`${addrToName[val]}`)
-			: (()=>{ chalk.underline(shortened); console.log(val); })();
+			: chalk.underline(shortened);
 	}
 	if (typeof val == "string" && val.length == 66) {
 		try {
@@ -642,9 +642,9 @@ function at(val) {
 }
 function str(val, hideBrackets) {
 	if (val === undefined) {
-		return "undefined";
+		return "<undefined>";
 	} else if (val === null) {
-		return "null";
+		return "<null>";
 	} else if (Array.isArray(val)) {
 		const lBracket = hideBrackets ? "" : "[";
 		const rBracket = hideBrackets ? "" : "]";

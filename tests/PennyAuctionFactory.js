@@ -15,9 +15,8 @@ const AUCTION_DEF = [INITIAL_PRIZE, BID_PRICE, BID_INCR, BID_ADD_BLOCKS, INITIAL
 
 const accounts = web3.eth.accounts;
 const owner = accounts[1];
-const dummyTreasury = accounts[2];
-const dummyPac = accounts[3];
-const anon = accounts[4];
+const dummyPac = accounts[2];
+const anon = accounts[3];
 
 describe('PennyAuctionFactory', async function(){
     var registry;
@@ -26,7 +25,6 @@ describe('PennyAuctionFactory', async function(){
     before("Can be created", async function(){
         const addresses = {
             owner: owner,
-            dummyTreasury: dummyTreasury,
             dummyPac: dummyPac,
             anon: anon
         };
@@ -47,12 +45,9 @@ describe('PennyAuctionFactory', async function(){
             }).start();
         
         await createDefaultTxTester()
-            .doTx([registry, "register", "TREASURY", dummyTreasury, {from: owner}])
-                .assertSuccess()
             .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", dummyPac, {from: owner}])
                 .assertSuccess()
             .assertCallReturns([paf, "getPennyAuctionController"], dummyPac)
-            .assertCallReturns([paf, "getTreasury"], dummyTreasury)
             .start();
 
         await createDefaultTxTester().printNamedAddresses().start();
@@ -118,7 +113,7 @@ describe('PennyAuctionFactory', async function(){
                 .assertOnlyLog("AuctionCreated", {
                     time: null,
                     addr: null,
-                    collector: dummyTreasury,
+                    collector: dummyPac,
                     initialPrize: INITIAL_PRIZE,
                     bidPrice: BID_PRICE,
                     bidIncr: BID_INCR,
@@ -134,7 +129,7 @@ describe('PennyAuctionFactory', async function(){
             console.log(`Created auction @ ${auction.address}`);
 
             await createDefaultTxTester()
-                .assertCallReturns([auction, "collector"], dummyTreasury)
+                .assertCallReturns([auction, "collector"], dummyPac)
                 .assertCallReturns([auction, "initialPrize"], INITIAL_PRIZE)
                 .assertCallReturns([auction, "bidPrice"], BID_PRICE)
                 .assertCallReturns([auction, "bidIncr"], BID_INCR)
