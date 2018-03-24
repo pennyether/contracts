@@ -643,7 +643,7 @@ describe('PennyAuctionController', function(){
         var auction;
         const callParams = [pac, "startDefinedAuction", index, {from: anon}];
         await createDefaultTxTester()
-            .assertCallReturns(callParams, [true, null])
+            .assertCallReturns(callParams, {not: NO_ADDRESS})
             .startLedger([pac])
             .startWatching([paf])
             .doTx(callParams)
@@ -693,7 +693,7 @@ describe('PennyAuctionController', function(){
         }
         
         const txTester = createDefaultTxTester()
-            .assertCallReturns(callParams, [false, NO_ADDRESS])
+            .assertCallReturns(callParams, NO_ADDRESS)
             .startLedger([pac, anon])
             .doTx(callParams)
             .assertSuccess()

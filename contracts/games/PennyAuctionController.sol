@@ -153,7 +153,7 @@ contract PennyAuctionController is
 	//		- unable to create auction
 	function startDefinedAuction(uint _index)
         public
-        returns (bool _success, address _auction)
+        returns (address _auction)
     {
         DefinedAuction memory dAuction = definedAuctions[_index];
         if (_index >= numDefinedAuctions) {
@@ -180,7 +180,7 @@ contract PennyAuctionController is
         }
 
         // try to create auction via factory
-        _success = _paf.call.value(dAuction.initialPrize)(
+        bool _success = _paf.call.value(dAuction.initialPrize)(
             bytes4(keccak256("createAuction(uint256,uint256,int256,uint256,uint256)")),
             dAuction.initialPrize,
             dAuction.bidPrice,
@@ -198,7 +198,7 @@ contract PennyAuctionController is
         _auction = _paf.lastCreatedAuction();
         definedAuctions[_index].auction = IPennyAuction(_auction);
         AuctionStarted(now, _index, _auction, dAuction.initialPrize);
-        return (true, _auction);
+        return _auction;
 	}
         // Emits an error with a given message
         function _error(string _msg)
@@ -210,7 +210,7 @@ contract PennyAuctionController is
     function startDefinedAuctionManually(uint _index)
         public
         payable
-        returns (bool _success, address _auction)
+        returns (address _auction)
     {
         // refund if invalid value sent.
         DefinedAuction memory dAuction = definedAuctions[_index];
@@ -221,8 +221,8 @@ contract PennyAuctionController is
         }
 
         // refund if .startDefinedAuction fails
-        (_success, _auction) = startDefinedAuction(_index);
-        if (!_success) {
+        _auction = startDefinedAuction(_index);
+        if (_auction == address(0)) {
             require(msg.sender.call.value(msg.value)());
         }
     }

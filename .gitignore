@@ -1,4 +1,2 @@
 node_modules
 build/*
-contracts/PennyAuctionController.sol
-!build/PennyAuctionController.json

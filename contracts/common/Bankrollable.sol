@@ -5,11 +5,13 @@ import "./AddressSet.sol";
 import "../roles/UsingTreasury.sol";
 
 /**
-A simple class that manages bankroll, and maintains collateral.
+  A simple class that manages bankroll, and maintains collateral.
+  This class only ever sends profits the Treasury. No exceptions.
+
   - Anybody can add funding (according to whitelist)
   - Anybody can tell profits (balance - (funding + collateral)) to go to Treasury.
   - Anyone can remove their funding, so long as balance >= collateral.
-  - Whitelist is managed by "owner"
+  - Whitelist is managed by getWhitelistOwner() -- typically Admin.
 
   Exposes the following:
     Public Methods
