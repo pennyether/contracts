@@ -5,7 +5,7 @@ var PennyAuctionFactory = artifacts.require("PennyAuctionFactory.sol");
 var PennyAuction = artifacts.require("PennyAuction.sol");
 var UnpayableBidder = artifacts.require("UnpayableBidder.sol");
 
-const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
+const createDefaultTxTester = require("../../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;

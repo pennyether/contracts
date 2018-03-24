@@ -69,8 +69,8 @@ const smocha = new Smocha({
 });
 const files = process.argv.slice(2);
 if (files[0] === 'all'){
-	const jsFiles = getAllFiles(testsDir, ".js");
-	console.log(`Found ${jsFiles.length} .js files in ${testsDir}.`);
+	const jsFiles = getAllFiles(testsDir, ".test.js");
+	console.log(`Found ${jsFiles.length} .test.js files in ${testsDir}.`);
 	jsFiles.forEach((file)=>{ smocha.file(file); });
 } else {
 	files.forEach((file)=>{ smocha.file(file); });

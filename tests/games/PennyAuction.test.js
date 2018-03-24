@@ -1,7 +1,7 @@
 const PennyAuction = artifacts.require("PennyAuction");
 const ExpensivePayableBidder = artifacts.require("ExpensivePayableBidder");
 
-const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
+const createDefaultTxTester = require("../../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
 const BigNumber = web3.toBigNumber(0).constructor;
 const testUtil = createDefaultTxTester().plugins.testUtil;

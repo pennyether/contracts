@@ -1,13 +1,13 @@
 const Registry = artifacts.require("Registry");
 const VideoPoker = artifacts.require("VideoPoker");
 
-const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
+const createDefaultTxTester = require("../../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
-const BankrollableUtils = require("./helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
-const pUtils = require("./helpers/PokerUtils.js").Create(web3);
+const BankrollableUtils = require("../helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
+const pUtils = require("../helpers/PokerUtils.js").Create(web3);
 const Hand = pUtils.Hand;
 const getIHand = pUtils.getIHand;
 const getDHand = pUtils.getDHand;
