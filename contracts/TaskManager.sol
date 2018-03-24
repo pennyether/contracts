@@ -28,6 +28,7 @@ contract TaskManager is
 	UsingAdmin,
 	UsingPennyAuctionController
 {
+	uint public totalRewarded;
 
 	// Construct sets the registry and instantiates inherited classes.
 	function TaskManager(address _registry)
@@ -43,20 +44,26 @@ contract TaskManager is
 	function _sendReward(uint _reward) private {
 		_reward = _cappedReward(_reward);
 		if (msg.sender.call.value(_reward)()) {
+			totalRewarded += _reward;
 			RewardSuccess(now, msg.sender, _reward);
 		} else {
 			RewardFailure(now, msg.sender, _reward, "Reward rejected by sender (OoG or revert).");
 		}
 	}
 
-	function _cappedReward(uint _reward) returns (uint) {
+	function _cappedReward(uint _reward) private view returns (uint) {
 		uint _balance = this.balance;
 		return _reward > _balance ? _balance : _reward;
 	}
 
+	// IMPLEMENT BANKROLLABLE FUNCTIONS
+	function getCollateral() public view returns (uint) {}
+	function getWhitelistOwner() public view returns (address){ return getAdmin(); }
+
 	event TaskError(uint time, address indexed caller, string msg);
 	event RewardSuccess(uint time, address indexed caller, uint reward);
 	event RewardFailure(uint time, address indexed caller, uint reward, string msg);
+
 
 
 
@@ -66,22 +73,22 @@ contract TaskManager is
 
 	// Number of basis points to reward caller.
 	// 1 = .01%, 10 = .1%, 100 = 1%. Capped at 1%.
-	uint public sendProfitRewardBips;
+	uint public sendProfitsRewardBips;
 
 	event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
 	event SendProfitsSuccess(uint time, address indexed bankrollable, uint profitsSent);
 
-	function setSendProfitReward(uint _bips)
+	function setSendProfitsReward(uint _bips)
 		public
 		fromAdmin
 	{
 		require(_bips <= 100);
-		sendProfitRewardBips = _bips;
+		sendProfitsRewardBips = _bips;
 		SendProfitsRewardChanged(now, msg.sender, _bips);
 	}
 
 
-	function sendProfits(address _bankrollable)
+	function doSendProfits(address _bankrollable)
 		public
 		returns (uint _reward, uint _profits)
 	{
@@ -101,17 +108,17 @@ contract TaskManager is
 		}
 		
 		// Cap reward to current balance (or send will fail)
-		_reward = (_profits * sendProfitRewardBips) / 10000;
+		_reward = (_profits * sendProfitsRewardBips) / 10000;
 		_sendReward(_reward);
 	}
 		// Returns an estimate of profits to send, and reward.
-		function sendProfitReward(address _bankrollable)
+		function sendProfitsReward(address _bankrollable)
 			public
 			view
 			returns (uint _reward, uint _profits)
 		{
 			_profits = _IBankrollable(_bankrollable).profits();
-			_reward = _cappedReward((_profits * sendProfitRewardBips) / 10000);
+			_reward = _cappedReward((_profits * sendProfitsRewardBips) / 10000);
 		}
 
 
@@ -125,6 +132,7 @@ contract TaskManager is
 	uint public paStartReward;
 	uint public paEndReward;
 
+	event PennyAuctionRewardsChanged(uint time, address indexed admin, uint paStartReward, uint paEndReward);
 	event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
 	event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
 
@@ -136,6 +144,7 @@ contract TaskManager is
 		require(_paEndReward <= 1 ether);
 		paStartReward = _paStartReward;
 		paEndReward = _paEndReward;
+		PennyAuctionRewardsChanged(now, msg.sender, paStartReward, paEndReward);
 	}
 
 
@@ -174,6 +183,7 @@ contract TaskManager is
 				if (!_pac.getIsStartable(_index)) continue;
 				return (_cappedReward(paStartReward), _index);
 			}
+			return (0, 0);
 		}
 
 

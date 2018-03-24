@@ -1,5 +1,8 @@
 pragma solidity ^0.4.0;
 
+/*
+  A simple Contract that is called by CustodialWallet tests.
+*/
 contract DumbContract {
 	uint public val1;
 	uint public val2;

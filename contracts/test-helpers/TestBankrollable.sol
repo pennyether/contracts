@@ -2,6 +2,11 @@ pragma solidity ^0.4.0;
 
 import "../common/Bankrollable.sol";
 
+/*
+  A simple class that inherits Bankrollable and allows the collateral
+  and balance to be edited. This is used in Bankrollable tests to
+  ensure Bankrollable does not send profits / bankroll in some cases.
+*/
 contract TestBankrollable is Bankrollable {
 	address public whitelistOwner;
 	uint private collateral;

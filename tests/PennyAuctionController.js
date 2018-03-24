@@ -34,28 +34,21 @@ const DEFAULT_DEF = {
 };
 
 const DEF_0 = Object.assign({}, DEFAULT_DEF);
-DEF_0.summary = "0th Auction";
-
+    DEF_0.summary = "0th Auction";
 const DEF_1 = Object.assign({}, DEFAULT_DEF);
-DEF_1.summary = "1st Auction (Invalid BID_ADD_BLOCKS_1)";
-DEF_1.bidAddBlocks = new BigNumber(0);
-
+    DEF_1.summary = "1st Auction (Invalid BID_ADD_BLOCKS_1)";
+    DEF_1.bidAddBlocks = new BigNumber(0);
 const DEF_2 = Object.assign({}, DEFAULT_DEF);
-DEF_2.summary = "2nd auction (huge initialPrize)";
-DEF_2.initialPrize = new BigNumber(100e18);
-
+    DEF_2.summary = "2nd auction (huge initialPrize)";
+    DEF_2.initialPrize = new BigNumber(100e18);
 const DEF_3 = Object.assign({}, DEFAULT_DEF);
-DEF_3.summary = "3rd auction";
-DEF_3.initialBlocks = DEF_3.initialBlocks.plus(10);
-
+    DEF_3.summary = "3rd auction";
+    DEF_3.initialBlocks = DEF_3.initialBlocks.plus(10);
 const DEF_4 = Object.assign({}, DEFAULT_DEF);
-DEF_4.summary = "4th auction";
-
+    DEF_4.summary = "4th auction";
 const DEFS = [DEF_0, DEF_1, DEF_2, DEF_3, DEF_4];
 
-
 const accounts = web3.eth.accounts;
-const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe('PennyAuctionController', function(){    
     const owner = accounts[1]
@@ -65,6 +58,7 @@ describe('PennyAuctionController', function(){
     const bidder2 = accounts[5];
     const auctionWinner = accounts[6];
     const anon = accounts[7];
+    const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     var registry;
     var pac;
