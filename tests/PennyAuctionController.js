@@ -11,91 +11,85 @@ const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
 
 
-const SUMMARY_0        = "First Auction";
-const INITIAL_PRIZE_0  = new BigNumber(.05e18);
-const BID_PRICE_0      = new BigNumber(.001e18);
-const BID_INCR_0       = new BigNumber(.0001e18);
-const BID_ADD_BLOCKS_0 = new BigNumber(2);
-const INITIAL_BLOCKS_0 = new BigNumber(10);
-const DEF_0 = [SUMMARY_0, INITIAL_PRIZE_0, BID_PRICE_0, BID_INCR_0, BID_ADD_BLOCKS_0, INITIAL_BLOCKS_0];
-const FEE_INCR_0 = BID_PRICE_0.minus(BID_INCR_0);
-const PRIZE_INCR_0 = BID_PRICE_0.minus(FEE_INCR_0);
+const DEFAULT_DEF = {
+    summary: "",
+    initialPrize: new BigNumber(.01e18),
+    bidPrice: new BigNumber(.001e18),
+    bidIncr: new BigNumber(.0001e18),
+    bidAddBlocks: new BigNumber(2),
+    initialBlocks: new BigNumber(10),
+    feeIncr: function(){
+        return this.bidPrice.minus(this.bidIncr)
+    },
+    toArr: function(){
+        return [
+            this.summary,
+            this.initialPrize,
+            this.bidPrice,
+            this.bidIncr,
+            this.bidAddBlocks,
+            this.initialBlocks
+        ];
+    }
+};
 
-const SUMMARY_1        = "Second Auction (Invalid BID_ADD_BLOCKS_1)";
-const INITIAL_PRIZE_1  = new BigNumber(.04e18);
-const BID_PRICE_1      = new BigNumber(.001e18);
-const BID_INCR_1       = new BigNumber(.0001e18);
-const BID_ADD_BLOCKS_1 = new BigNumber(0);
-const INITIAL_BLOCKS_1 = new BigNumber(5);
-const DEF_1 = [SUMMARY_1, INITIAL_PRIZE_1, BID_PRICE_1, BID_INCR_1, BID_ADD_BLOCKS_1, INITIAL_BLOCKS_1];
-const FEE_INCR_1 = BID_PRICE_1.minus(BID_INCR_1);
-const PRIZE_INCR_1 = BID_PRICE_1.minus(FEE_INCR_1);
+const DEF_0 = Object.assign({}, DEFAULT_DEF);
+DEF_0.summary = "0th Auction";
 
-const SUMMARY_2        = "Third Auction";
-const INITIAL_PRIZE_2  = new BigNumber(.03e18);
-const BID_PRICE_2      = new BigNumber(.001e18);
-const BID_INCR_2       = new BigNumber(.0001e18);
-const BID_ADD_BLOCKS_2 = new BigNumber(2);
-const INITIAL_BLOCKS_2 = new BigNumber(35);
-const DEF_2 = [SUMMARY_2, INITIAL_PRIZE_2, BID_PRICE_2, BID_INCR_2, BID_ADD_BLOCKS_2, INITIAL_BLOCKS_2];
-const FEE_INCR_2 = BID_PRICE_2.minus(BID_INCR_2);
-const PRIZE_INCR_2 = BID_PRICE_2.minus(FEE_INCR_2);
+const DEF_1 = Object.assign({}, DEFAULT_DEF);
+DEF_1.summary = "1st Auction (Invalid BID_ADD_BLOCKS_1)";
+DEF_1.bidAddBlocks = new BigNumber(0);
 
-const SUMMARY_3        = "Fourth Auction (Use UnpayableBidder)";
-const INITIAL_PRIZE_3  = new BigNumber(.03e18);
-const BID_PRICE_3      = new BigNumber(.001e18);
-const BID_INCR_3       = new BigNumber(-.005e18);
-const BID_ADD_BLOCKS_3 = new BigNumber(2);
-const INITIAL_BLOCKS_3 = new BigNumber(5);
-const DEF_3 = [SUMMARY_3, INITIAL_PRIZE_3, BID_PRICE_3, BID_INCR_3, BID_ADD_BLOCKS_3, INITIAL_BLOCKS_3];
-const FEE_INCR_3 = BID_PRICE_3.minus(BID_INCR_3);
-const PRIZE_INCR_3 = BID_PRICE_3.minus(FEE_INCR_3);
+const DEF_2 = Object.assign({}, DEFAULT_DEF);
+DEF_2.summary = "2nd auction (huge initialPrize)";
+DEF_2.initialPrize = new BigNumber(100e18);
+
+const DEF_3 = Object.assign({}, DEFAULT_DEF);
+DEF_3.summary = "3rd auction";
+DEF_3.initialBlocks = DEF_3.initialBlocks.plus(10);
+
+const DEF_4 = Object.assign({}, DEFAULT_DEF);
+DEF_4.summary = "4th auction";
+
+const DEFS = [DEF_0, DEF_1, DEF_2, DEF_3, DEF_4];
 
 
 const accounts = web3.eth.accounts;
 const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe('PennyAuctionController', function(){
-    var registry;
-    var treasury;
-    var pac;
-    var paf;
-    
+describe('PennyAuctionController', function(){    
     const owner = accounts[1]
     const admin = accounts[2];
-    const dummyMainController = accounts[3];
+    const dummyTreasury = accounts[3];
     const bidder1 = accounts[4];
     const bidder2 = accounts[5];
     const auctionWinner = accounts[6];
-    const notMainController = accounts[7];
-    const nonAdmin = accounts[8];
-    const anon = accounts[9];
+    const anon = accounts[7];
 
-    before("Set up registry and treasury", async function(){
+    var registry;
+    var pac;
+    var paf;
+    var unpayableBidder;
+
+    before("Set up Registry, PAC, PAF, and UnpayableBidder", async function(){
         const addresses = {
-            dummyMainController: dummyMainController,
+            owner: owner,
+            admin: admin,
+            dummyTreasury: dummyTreasury,
             bidder1: bidder1,
             bidder2: bidder2,
             auctionWinner: auctionWinner,
-            anon: accounts[9],
+            anon: anon,
             NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
 
-        this.logInfo("Create Registry, owned by owner.");
+        this.logInfo("Create Registry, register ADMIN");
         await createDefaultTxTester()
             .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
             .withTxResult((txRes, plugins)=>{
                 registry = txRes.contract;
                 plugins.addAddresses({registry: registry.address});
-            }).start();
-
-        this.logInfo("Create Treasury.");
-        await createDefaultTxTester()
-            .doNewTx(Treasury, [registry.address], {from: anon}).assertSuccess()
-            .withTxResult((txRes, plugins)=>{
-                treasury = txRes.contract;
-                plugins.addAddresses({treasury: treasury.address});
             }).start();
 
         this.logInfo("Create PennyAuctionController.");
@@ -114,112 +108,71 @@ describe('PennyAuctionController', function(){
                 plugins.addAddresses({paf: paf});
             }).start();
 
-        this.logInfo("Register ADMIN, TREAUSRY, MC, PAC, and PAF.");
+        this.logInfo("Register ADMIN, TREAUSRY, PAC, and PAF.");
         await createDefaultTxTester()
             .doTx([registry, "register", "ADMIN", admin, {from: owner}])
                 .assertSuccess()
-            .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
-                .assertSuccess()
-            .doTx([registry, "register", "MAIN_CONTROLLER", dummyMainController, {from: owner}])
-                .assertSuccess()
+            .doTx([registry, "register", "TREASURY", dummyTreasury, {from: owner}])
             .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
                 .assertSuccess()
             .doTx([registry, "register", "PENNY_AUCTION_FACTORY", paf.address, {from: owner}])
                 .assertSuccess()
-            .assertCallReturns([pac, "getAdmin"], admin)
-            .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
+            .start();
+
+        this.logInfo("Create UnpayableBidder");
+        unpayableBidder = await UnpayableBidder.new({from: anon});
+        await createDefaultTxTester()
+            .addAddresses({unpayableBidder: unpayableBidder})
             .printNamedAddresses()
             .start();
     });
 
-    describe(".editDefinedAuction()", async function(){
-        it("Cannot edit from non-admin", async function(){
-            const callParams = [pac, "editDefinedAuction", 0].concat(DEF_0, {from: nonAdmin})
+    describe("Initial state is correct", function(){
+        it("Points to correct PAF and TREASURY", function(){
             return createDefaultTxTester()
-                .assertCallThrows(callParams)
-                .doTx(callParams)
-                .assertInvalidOpCode()
-                .start()
-        })
-        it("Cannot edit with too high of an index", async function(){
-            const callParams = [pac, "editDefinedAuction", 1].concat(DEF_0, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, false)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyErrorLog("Index out of bounds.")
-                .start()
-        });
-        it("Adds definedAuction correctly", async function(){
-            const callParams = [pac, "editDefinedAuction", 0].concat(DEF_0, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, true)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertCallReturns([pac, "numDefinedAuctions"], 1)
-                .assertCallReturns([pac, "definedAuctions", 0], [
-                    "0x0000000000000000000000000000000000000000",
-                    false].concat(DEF_0))
-                .start()
-        });
-        it("Cannot edit with too high an index", async function(){
-            const callParams = [pac, "editDefinedAuction", 2].concat(DEF_1, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, false)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyErrorLog("Index out of bounds.")
-                .start()
-        });
-        it("Adds another definedAuction correctly", async function(){
-            const callParams = [pac, "editDefinedAuction", 1].concat(DEF_1, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, true)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 1})
-                .assertCallReturns([pac, "numDefinedAuctions"], 2)
-                .assertCallReturns([pac, "definedAuctions", 1], [
-                    "0x0000000000000000000000000000000000000000",
-                    false].concat(DEF_1))
-                .start()
-        });
-        it("Adds another definedAuction correctly", async function(){
-            const callParams = [pac, "editDefinedAuction", 2].concat(DEF_2, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, true)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 2})
-                .assertCallReturns([pac, "numDefinedAuctions"], 3)
-                .assertCallReturns([pac, "definedAuctions", 2], [
-                    "0x0000000000000000000000000000000000000000",
-                    false,].concat(DEF_2))
-                .start()
-        });
-        it("Adds another definedAuction correctly", async function(){
-            const callParams = [pac, "editDefinedAuction", 3].concat(DEF_3, {from: admin});
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, true)
-                .doTx(callParams)
-                .assertSuccess()
-                .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 3})
-                .assertCallReturns([pac, "numDefinedAuctions"], 4)
-                .assertCallReturns([pac, "definedAuctions", 3], [
-                    "0x0000000000000000000000000000000000000000",
-                    false].concat(DEF_3))
-                .start()
+                .assertCallReturns([pac, "getAdmin"], admin)
+                .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
+                .start();
         });
     });
 
+    describe(".editDefinedAuction()", async function(){
+        it("Cannot edit from non-admin", async function(){
+            return assertCannotEditAuction(0, anon, -1);
+        })
+        it("Cannot edit with too high of an index", async function(){
+            return assertCannotEditAuction(1, admin, "Index out of bounds.");
+        });
+        it("Adds definedAuction correctly", async function(){
+            return assertCanEditAuction(0, admin);
+        });
+        it("Cannot edit with too high an index", async function(){
+            return assertCannotEditAuction(2, admin, "Index out of bounds.");
+        });
+        it("Adds another definedAuction correctly", async function(){
+            return assertCanEditAuction(1, admin);
+        });
+        it("Adds another definedAuction correctly", async function(){
+            return assertCanEditAuction(2, admin);
+        });
+        it("Adds another definedAuction correctly", async function(){
+            return assertCanEditAuction(3, admin);
+        });
+        it("Adds another definedAuction correctly", async function(){
+            return assertCanEditAuction(4, admin);
+        });
+        it("Edits an existing auction correctly", function(){
+            DEFS[2].summary += " (edited)";
+            return assertCanEditAuction(2, admin);
+        })
+    });
+
     describe(".enableDefinedAuction()", function(){
-        before("definedAuctions exist", async function(){
-            assert.strEqual(await pac.numDefinedAuctions(), 4);
+        before("auction 0 is disabled", async function(){
             assert.strEqual(await pac.getIsEnabled(0), false);
         });
         it("is only callable by admin", function(){
-            const callParams = [pac, "enableDefinedAuction", 0, {from: nonAdmin}];
+            const callParams = [pac, "enableDefinedAuction", 0, {from: anon}];
             return createDefaultTxTester()
                 .assertCallThrows(callParams)
                 .doTx(callParams)
@@ -227,7 +180,7 @@ describe('PennyAuctionController', function(){
                 .start();
         });
         it("Fails if index too high", function(){
-            const callParams = [pac, "enableDefinedAuction", 4, {from: admin}];
+            const callParams = [pac, "enableDefinedAuction", 5, {from: admin}];
             return createDefaultTxTester()
                 .assertCallReturns(callParams, false)
                 .doTx(callParams)
@@ -242,19 +195,17 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertCallReturns(() => [pac, "getIsEnabled", 0], true, "isEnabled is true")
-                .assertCallReturns([pac, "numDefinedAuctions"], 4)
+                .assertCallReturns(() => [pac, "getIsEnabled", 0], true)
                 .start();
         });
     });
 
     describe(".disabledDefinedAuction()", function(){
-        before("definedAuctions exist", async function(){
-            assert.strEqual(await pac.numDefinedAuctions(), 4);
+        before("auction 0 is enabled", async function(){
             assert.strEqual(await pac.getIsEnabled(0), true);
         });
         it("is only callable by admin", function(){
-            const callParams = [pac, "disableDefinedAuction", 0, {from: nonAdmin}];
+            const callParams = [pac, "disableDefinedAuction", 0, {from: anon}];
             return createDefaultTxTester()
                 .assertCallThrows(callParams)
                 .doTx(callParams)
@@ -262,7 +213,7 @@ describe('PennyAuctionController', function(){
                 .start();
         });
         it("Fails if index too high", function(){
-            const callParams = [pac, "disableDefinedAuction", 4, {from: admin}];
+            const callParams = [pac, "disableDefinedAuction", 5, {from: admin}];
             return createDefaultTxTester()
                 .assertCallReturns(callParams, false)
                 .doTx(callParams)
@@ -277,184 +228,100 @@ describe('PennyAuctionController', function(){
                 .doTx(callParams)
                 .assertSuccess()
                 .assertOnlyLog("DefinedAuctionEdited", {time: null, index: 0})
-                .assertCallReturns([pac, "getIsEnabled", 0], false,
-                    "isEnabled is now false")
-                .assertCallReturns([pac, "numDefinedAuctions"], 4)
+                .assertCallReturns([pac, "getIsEnabled", 0], false)
                 .start();
         }); 
     });
 
-    describe(".startDefinedAuction()", function(){
-        before("enable some auctions", async function(){
-            assert.strEqual(await pac.numDefinedAuctions(), 4);
-            await pac.enableDefinedAuction(0, {from: admin});
-            await pac.disableDefinedAuction(1, {from: admin});
-            await pac.enableDefinedAuction(2, {from: admin});
-            await pac.enableDefinedAuction(3, {from: admin});
-        });
-        it("refunds when index out of bounds", function(){
-            const callParams = [pac, "startDefinedAuction", 5, {from: nonAdmin}];
+    describe(".addBankroll() and whitelist works", function(){
+        it("Non-admin cannot change whitelist", function(){
             return createDefaultTxTester()
-                .assertCallReturns(callParams, [false, NO_ADDRESS])
-                .startLedger([nonAdmin, pac])
-                .doTx(callParams)
-                .assertSuccess()
-                    .assertOnlyErrorLog("Index out of bounds.")
-                .stopLedger()
-                    .assertLostTxFee(nonAdmin)
-                    .assertNoDelta(pac)
+                .doTx([pac, "addToWhitelist", anon, {from: anon}])
+                .assertInvalidOpCode()
                 .start();
         });
-        it("refunds when not enabled", function(){
-            const callParams = [pac, "startDefinedAuction", 1, {from: nonAdmin}];
+        it("Admin can set whitelist", function(){
+           return createDefaultTxTester()
+                .doTx([pac, "addToWhitelist", anon, {from: admin}])
+                .assertSuccess()
+                .start(); 
+        });
+        it("Whitelisted address can bankroll", function(){
             return createDefaultTxTester()
-                .assertCallReturns(callParams, [false, NO_ADDRESS])
-                .startLedger([nonAdmin, pac])
-                .doTx(callParams)
+                .doTx([pac, "addBankroll", {from: anon, value: .1e18}])
                 .assertSuccess()
-                    .assertOnlyErrorLog("DefinedAuction is not enabled.")
-                .stopLedger()
-                    .assertLostTxFee(nonAdmin)
-                    .assertNoDelta(pac)
+                .assertCallReturns([pac, "bankroll"], .1e18)
                 .start();
         });
-        it("refunds when incorrect ETH sent", function(){
-            const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: 1}]
+        it("Non-whitelisted address cannot bankroll", function(){
+           return createDefaultTxTester()
+                .doTx([pac, "addBankroll", {from: bidder1, value: 1e12}])
+                .assertInvalidOpCode()
+                .start(); 
+        });
+        it("Admin can remove from whitelist", function(){
             return createDefaultTxTester()
-                .assertCallReturns(callParams, [false, NO_ADDRESS])
-                .startLedger([nonAdmin, pac])
-                .doTx(callParams)
+                .doTx([pac, "removeFromWhitelist", anon, {from: admin}])
                 .assertSuccess()
-                    .assertOnlyErrorLog("Value sent does not match initialPrize.")
-                .stopLedger()
-                    .assertLostTxFee(nonAdmin)
-                    .assertNoDelta(pac)
-                .start();
-        });
-        it("refunds when starting auction with bad params", function(){
-            const callParams = [pac, "startDefinedAuction", 1, {from: nonAdmin, value: INITIAL_PRIZE_1}];
-            return createDefaultTxTester()
-                .doTx([pac, "enableDefinedAuction", 1, {from: admin}])
-                .assertCallThrows(callParams)
-                .startLedger([nonAdmin, pac])
-                .doTx(callParams)
-                .assertSuccess()
-                    .assertLogCount(2)
-                    .assertLog("DefinedAuctionInvalid", {time: null, index: 1})
-                    .assertLog("Error", {msg: "PennyAuctionFactory could not create auction (invalid params?)"})
-                .stopLedger()
-                    .assertLostTxFee(nonAdmin)
-                    .assertNoDelta(pac)
-                .doTx([pac, "disableDefinedAuction", 1, {from: admin}])
-                .start();
-        });
-        it("works", async function(){
-            var auction;
-            const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: INITIAL_PRIZE_0}];
-            await createDefaultTxTester()
-                .assertCallReturns(callParams, [true, null])
-                .startLedger([nonAdmin, pac])
-                .startWatching([paf])
-                .doTx(callParams)
-                .assertSuccess()
-                    .assertOnlyLog("AuctionStarted", {time: null, addr: null})
-                .stopLedger()
-                    .assertNoDelta(pac)
-                .stopWatching()
-                    .assertEvent(paf, "AuctionCreated", {
-                        time: null,
-                        addr: null,
-                        collector: treasury.address,
-                        initialPrize: INITIAL_PRIZE_0,
-                        bidPrice: BID_PRICE_0,
-                        bidAddBlocks: BID_ADD_BLOCKS_0,
-                        bidIncr: BID_INCR_0,
-                        initialBlocks: INITIAL_BLOCKS_0
-                    })
-                .doFn((ctx) => {
-                    auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-                    return createDefaultTxTester()
-                        .nameAddresses({auction0: auction.address}, false).start();
-                })
-                    .assertCallReturns([pac, "getAuction", 0], ()=>auction.address)
-                    .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_0)
-                    .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_0)
-                    .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_0)
-                    .assertCallReturns(()=>[auction, "bidIncr"], BID_INCR_0)
-                    .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
-                .start();
-        });
-        it("refunds when already started", function(){
-            const callParams = [pac, "startDefinedAuction", 0, {from: nonAdmin, value: INITIAL_PRIZE_1}];
-            return createDefaultTxTester()
-                .assertCallReturns(callParams, [false, NO_ADDRESS])
-                .startLedger([nonAdmin, pac])
-                .doTx(callParams)
-                .assertSuccess()
-                    .assertOnlyErrorLog("Auction is already started.")
-                .stopLedger()
-                    .assertLostTxFee(nonAdmin)
-                    .assertNoDelta(pac)
-                .start();
-        });
-        it("Starts another", async function(){
-            var auction;
-            const callParams = [pac, "startDefinedAuction", 2, {from: nonAdmin, value: INITIAL_PRIZE_2}];
-            await createDefaultTxTester()
-                .assertCallReturns(callParams, [true, null])
-                .startLedger([nonAdmin, pac])
-                .startWatching([paf])
-                .doTx(callParams)
-                .assertSuccess()
-                    .assertOnlyLog("AuctionStarted", {time: null, addr: null})
-                .stopLedger()
-                    .assertNoDelta(pac)
-                .stopWatching()
-                    .assertEvent(paf, "AuctionCreated", {
-                        time: null,
-                        addr: null,
-                        collector: treasury.address,
-                        initialPrize: INITIAL_PRIZE_2,
-                        bidPrice: BID_PRICE_2,
-                        bidAddBlocks: BID_ADD_BLOCKS_2,
-                        bidIncr: BID_INCR_2,
-                        initialBlocks: INITIAL_BLOCKS_2
-                    })
-                .doFn((ctx) => {
-                    auction = PennyAuction.at(ctx.txRes.logs[0].args.addr);
-                    return createDefaultTxTester().nameAddresses({auction2: auction.address}, false).start();
-                })
-                    .assertCallReturns([pac, "getAuction", 2], ()=>auction.address)
-                    .assertCallReturns(()=>[auction, "collector"], treasury.address)
-                    .assertCallReturns(()=>[auction, "prize"], INITIAL_PRIZE_2)
-                    .assertCallReturns(()=>[auction, "bidPrice"], BID_PRICE_2)
-                    .assertCallReturns(()=>[auction, "bidAddBlocks"], BID_ADD_BLOCKS_2)
-                    .assertCallReturns(()=>[auction, "bidIncr"], BID_INCR_2)
-                    .assertCallReturns(()=>[auction, "currentWinner"], treasury.address)
-                .start();
+                .start(); 
         });
     });
 
-    describe(".getIsStartable()", function(){
-        before("Ensure state", async function(){
-            // auction0 is started
-            assert.notEqual(await pac.getAuction(0), NO_ADDRESS);
-            // auction1 is disabled
-            assert.equal(await pac.getAuction(1), NO_ADDRESS);
-            assert.equal(await pac.getIsEnabled(1), false);
-            // auction2 is started
-            assert.notEqual(await pac.getAuction(2), NO_ADDRESS);
-            // auction3 is enabled and not started
-            assert.equal(await pac.getAuction(3), NO_ADDRESS);
-            assert.equal(await pac.getIsEnabled(3), true);
+    describe(".startDefinedAuction()", function(){
+        before("enable all auctions (except 4)", async function(){
+            assert.strEqual(await pac.numDefinedAuctions(), 5);
+            await pac.enableDefinedAuction(0, {from: admin});
+            await pac.enableDefinedAuction(1, {from: admin});
+            await pac.enableDefinedAuction(2, {from: admin});
+            await pac.enableDefinedAuction(3, {from: admin});
         });
+        it("Fails when index out of bounds", function(){
+            return assertCannotStartAuction(5, "Index out of bounds.");
+        });
+        it("Fails when not enabled", function(){
+            return assertCannotStartAuction(4, "DefinedAuction is not enabled.");
+        });
+        it("Fails when when initialPrize is too large", function(){
+            return assertCannotStartAuction(2, "Not enough funds to start this auction.");
+        });
+        it("Fails when starting auction with bad params", async function(){
+            return assertCannotStartAuction(1, "PennyAuctionFactory could not create auction (invalid params?)");
+        });
+        it("Fails if PAF would set collector to a different contract", async function(){
+            this.logInfo("First, set registry.PENNY_AUCTION_CONTROLLER to another value");
+            await createDefaultTxTester()
+                .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", anon, {from: owner}])
+                .assertSuccess().start();
+
+            this.logInfo("");
+            this.logInfo("Run test.");
+            await assertCannotStartAuction(0, "PAF.getCollector() points to a different contract.");
+
+            this.logInfo("");
+            this.logInfo("Restore registry.PENNY_AUCTION_CONTROLLER");
+            await createDefaultTxTester()
+                .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
+                .assertSuccess().start();
+        });
+        it("starts auction 0", async function(){
+            return assertCanStartAuction(0);
+        });
+        it("Fails when already started", function(){
+            return assertCannotStartAuction(0, "Auction is already started.");
+        });
+        it("starts auction 3", async function(){
+            return assertCanStartAuction(3);
+        })
+    });
+
+    describe(".getIsStartable()", function(){
         it("Returns correct values", function(){
             return createDefaultTxTester()
-                .assertCallReturns([pac, "getIsStartable", 0], false)
-                .assertCallReturns([pac, "getIsStartable", 1], false)
-                .assertCallReturns([pac, "getIsStartable", 2], false)
-                .assertCallReturns([pac, "getIsStartable", 3], true)
-                .assertCallReturns([pac, "getIsStartable", 4], false)
+                .assertCallReturns([pac, "getIsStartable", 0], false) // already started
+                .assertCallReturns([pac, "getIsStartable", 1], true)  // startable
+                .assertCallReturns([pac, "getIsStartable", 2], false) // not enough funds
+                .assertCallReturns([pac, "getIsStartable", 3], false) // already started
+                .assertCallReturns([pac, "getIsStartable", 4], false) // not enabled
                 .start();
         })
     });
@@ -462,23 +329,23 @@ describe('PennyAuctionController', function(){
     // At this point, definedAuctions[1] is started
     describe("With active auctions", async function(){
         var auction0;
-        var auction2;
+        var auction3;
         before("There are open auctions", async function(){
             auction0 = PennyAuction.at(await pac.getAuction(0));
             assert.notEqual(auction0.address, NO_ADDRESS);
-            auction2 = PennyAuction.at(await pac.getAuction(2));
-            assert.notEqual(auction2.address, NO_ADDRESS);
+            auction3 = PennyAuction.at(await pac.getAuction(3));
+            assert.notEqual(auction3.address, NO_ADDRESS);
         });
         it("Bids on auctions twice", async function(){
-            await auction0.sendTransaction({from: bidder1, value: BID_PRICE_0});
-            await auction0.sendTransaction({from: bidder2, value: BID_PRICE_0});
-            await auction2.sendTransaction({from: bidder2, value: BID_PRICE_2});
-            await auction2.sendTransaction({from: bidder1, value: BID_PRICE_2});
+            await auction0.sendTransaction({from: bidder1, value: DEF_0.bidPrice});
+            await auction0.sendTransaction({from: bidder2, value: DEF_0.bidPrice});
+            await auction3.sendTransaction({from: bidder2, value: DEF_2.bidPrice});
+            await auction3.sendTransaction({from: bidder1, value: DEF_2.bidPrice});
         });
         it(".getAvailableFees() returns expectd amount", async function(){
-            const expectedFees = FEE_INCR_0.mul(2).plus(FEE_INCR_2.mul(2));
+            const expFees = DEF_0.feeIncr().mul(2).plus(DEF_3.feeIncr().mul(2));
             return createDefaultTxTester()
-                .assertCallReturns([pac, "getAvailableFees"], expectedFees)
+                .assertCallReturns([pac, "getAvailableFees"], expFees)
                 .start();
         });
         it(".getNumEndedAuctions() is zero", async function(){
@@ -487,82 +354,68 @@ describe('PennyAuctionController', function(){
                 .start();
         });
         it(".refreshAuctions() collects fees, ends no games", async function(){
-            const fees0 = FEE_INCR_0.mul(2);
-            const fees2 = FEE_INCR_2.mul(2);
-            const totalFees = fees0.plus(fees2);
-            const callParams = [pac, "refreshAuctions", {from: nonAdmin}];
+            const expFees = DEF_0.feeIncr().mul(2).plus(DEF_3.feeIncr().mul(2));
+            const callParams = [pac, "refreshAuctions", {from: anon}];
             return createDefaultTxTester()
-                .assertCallReturns(callParams, [0, totalFees])
-                .startLedger([treasury])
-                .startWatching([auction0, auction2])
+                .assertCallReturns(callParams, [0, expFees])
+                .startLedger([pac])
+                .startWatching([auction0, auction3])
                 .doTx(callParams)
                 .assertSuccess()
-                    .assertLog("FeesSent", {
+                    .assertLog("FeesCollected", {
                         time: null,
-                        amount: totalFees
+                        amount: expFees
                     })
                 .stopLedger()
-                    .assertDelta(treasury, totalFees)
+                    .assertDelta(pac, expFees)
                 .stopWatching()
-                    .assertOnlyEvent(auction0, "FeesSent", {
-                        time: null,
-                        amount: fees0
-                    })
-                .assertCallReturns([pac, "totalFees"], totalFees)
+                    .assertOnlyEvent(auction0, "FeesSent")
+                    .assertOnlyEvent(auction3, "FeesSent")
+                .assertCallReturns([pac, "totalFees"], expFees)
+                .assertCallReturns([pac, "getAvailableFees"], 0)
                 .assertCallReturns([auction0, "fees"], 0)
-                .assertCallReturns([auction2, "fees"], 0)
+                .assertCallReturns([auction3, "fees"], 0)
                 .assertCallReturns([auction0, "isPaid"], false)
-                .assertCallReturns([auction2, "isPaid"], false)
+                .assertCallReturns([auction3, "isPaid"], false)
                 .start();
         });
         it(".refreshAuctions() collects no fees, ends no games", async function(){
-            const callParams = [pac, "refreshAuctions", {from: nonAdmin}];
-            const expectedFees = await pac.totalFees();
+            const callParams = [pac, "refreshAuctions", {from: anon}];
+            const expFees = await pac.totalFees();
             return createDefaultTxTester()
                 .assertCallReturns(callParams, [0, 0])
-                .startLedger([treasury])
+                .startLedger([pac])
                 .doTx(callParams)
                 .assertSuccess()
                     .assertLogCount(0)
                 .stopLedger()
-                    .assertNoDelta(treasury)
-                .assertCallReturns([pac, "totalFees"], expectedFees)
+                    .assertNoDelta(pac)
+                .assertCallReturns([pac, "totalFees"], expFees)
                 .start(); 
         });
     });
+
 
     describe("When an auction ends", function(){
         var auction0;
         before("Fast forwards until an auction is ended", async function(){
             auction0 = PennyAuction.at(await pac.getAuction(0));
-            assert.notEqual(auction0.address, NO_ADDRESS);
-            const auction2 = PennyAuction.at(await pac.getAuction(2));
-            assert.notEqual(auction2.address, NO_ADDRESS);
-            const blocksRemaining0 = (await auction0.getBlocksRemaining()).toNumber();
-            const blocksRemaining2 = (await auction2.getBlocksRemaining()).toNumber();
-
-            // set auctionIndex, auction, and fast forward
-            console.log(`Blocks left: auction0: ${blocksRemaining0}, auction2: ${blocksRemaining2}`);
-            if (blocksRemaining2 - blocksRemaining0 < 20){
-                throw new Error("Should be set up so auction0 ends long before auction2 other...");
-            }
-            const blocksToMine = blocksRemaining0;
-            console.log(`Mining ${blocksToMine} blocks so auction0 ends...`);
-            await testUtil.mineBlocks(blocksToMine);
+            const blocksRemaining = await auction0.getBlocksRemaining();
+            console.log(`Mining ${blocksRemaining} blocks so auction0 ends...`);
+            await testUtil.mineBlocks(blocksRemaining);
         });
         it(".getNumEndedAuctions() should return 1", async function(){
-            const callParams = [pac, "getNumEndedAuctions", {from: nonAdmin}];
             return createDefaultTxTester()
-                .assertCallReturns(callParams, 1)
+                .assertCallReturns([pac, "getNumEndedAuctions"], 1)
                 .start();
         });
         it(".refreshAuctions() returns 1 auction ended, and 0 fees collected", async function(){
-            const callParams = [pac, "refreshAuctions", {from: nonAdmin}];
             const winner = await auction0.currentWinner();
             const prize = await auction0.prize();
             const expectedFees = await pac.totalFees();
             const expectedBids = await auction0.numBids();
-            const expectedPrizes = await auction0.prize()
+            const expectedPrizes = await auction0.prize();
+            const callParams = [pac, "refreshAuctions", {from: anon}];
             return createDefaultTxTester()
                 .assertCallReturns(callParams, [1, 0])
                 .startLedger([pac, winner])
@@ -584,8 +437,10 @@ describe('PennyAuctionController', function(){
                         redeemer: pac.address,
                         recipient: winner,
                         amount: prize,
-                        gasLimit: 2300
+                        gasLimit: null
+                        //gasLimit: 2300 // ganache bug mis-reports this as 4600.
                     })
+                .assertCallReturns([pac, "getIsStartable", 0], true)
                 .assertCallReturns([pac, "getAuction", 0], NO_ADDRESS)
                 .assertCallReturns([pac, "endedAuctions", 0], auction0.address)
                 .assertCallReturns([pac, "numEndedAuctions"], 1)
@@ -599,7 +454,7 @@ describe('PennyAuctionController', function(){
             const expectedFees = await pac.totalFees();
             const expectedBids = await pac.totalBids();
             const expectedPrizes = await pac.totalPrizes();
-            const callParams = [pac, "refreshAuctions", {from: nonAdmin}];
+            const callParams = [pac, "refreshAuctions", {from: anon}];
             return createDefaultTxTester()
                 .assertCallReturns(callParams, [0, 0])
                 .doTx(callParams)
@@ -614,77 +469,258 @@ describe('PennyAuctionController', function(){
 
     // Should still end auction as expected, and shouldn't stall controller
     describe("Auction with an unpayable winner", async function(){
-        var unpayableBidder;
-        var auction2;
-        before("Bid on auction2 with UnpayableBidder, end it...", async function(){
-            // create unpayableBidder
-            unpayableBidder = await UnpayableBidder.new({from: anon});
-            await unpayableBidder.fund({value: BID_PRICE_2.mul(2), from: anon});
-            assert.strEqual(await testUtil.getBalance(unpayableBidder), BID_PRICE_2.mul(2));
-            // bid on auction2
-            auction2 = PennyAuction.at(await pac.getAuction(2));
-            assert.notEqual(auction2.address, NO_ADDRESS);
-            await unpayableBidder.doBid(auction2.address, {from: anon});
-            assert.strEqual(await auction2.currentWinner(), unpayableBidder.address);
+        var auction3;
+        before("Bid on auction3 with UnpayableBidder, end it...", async function(){
+            this.logInfo("Confirming auction3 is active...");
+            auction3 = PennyAuction.at(await pac.getAuction(3));
+            assert((await auction3.getBlocksRemaining()).gt(0), "auction3 has not ended yet");
+
+            // fund unpayable bidder, and bid on auction3
+            this.logInfo("Making UnpayableBidder bid on auction3...");
+            const toSend = DEF_3.bidPrice.mul(2);
+            await unpayableBidder.fund({value: toSend, from: anon});
+            assert.strEqual(await testUtil.getBalance(unpayableBidder), toSend);
+            await unpayableBidder.doBid(auction3.address, {from: anon});
+            assert.strEqual(await auction3.currentWinner(), unpayableBidder.address);
+
             // fast-forward
-            const blocksRemaining = await auction2.getBlocksRemaining();
-            testUtil.mineBlocks(blocksRemaining);
-            // add addresses
-            await createDefaultTxTester().nameAddresses({
-                auction2: auction2.address,
-                unpayableBidder: unpayableBidder.address
-            }, false).start();
-            console.log(`Started auction2, bid with unpayableBidder, fast forwarded ${blocksRemaining}`);
+            const blocksRemaining = await auction3.getBlocksRemaining();
+            this.logInfo(`Mining ${blocksRemaining} blocks so auction3 ends...`)
+            await testUtil.mineBlocks(blocksRemaining);
         });
         it(".refreshAuctions() ends auction, collects fees, but doesnt pay unpayableBidder", async function(){
-            const callParams = [pac, "refreshAuctions", {from: nonAdmin}];
-            const prize = await auction2.prize();
-            const feesCollected = await auction2.fees();
-            const expectedFees = (await pac.totalFees()).plus(feesCollected);
-            const expectedBids = (await pac.totalBids()).plus(await auction2.numBids());
-            const expectedPrizes = (await pac.totalPrizes()).plus(await auction2.prize());
+            const callParams = [pac, "refreshAuctions", {from: anon}];
+            const expPrize = await auction3.prize();
+            const expFees = await auction3.fees();
+            const expTotalFees = (await pac.totalFees()).plus(expFees);
+            const expTotalBids = (await pac.totalBids()).plus(await auction3.numBids());
+            const expTotalPrizes = (await pac.totalPrizes()).plus(expPrize);
             return createDefaultTxTester()
-                .assertCallReturns(callParams, [1, await auction2.fees()])
-                .startLedger([pac, unpayableBidder, treasury])
-                .startWatching([auction2])
+                .assertCallReturns(callParams, [1, expFees])
+                .startLedger([pac, unpayableBidder, anon])
+                .startWatching([auction3])
                 .doTx(callParams)
                 .assertSuccess()
                     .assertLogCount(2)
                     .assertLog("AuctionEnded", {
                         time: null,
-                        index: 2,
-                        addr: auction2.address
+                        index: 3,
+                        addr: auction3.address
                     })
-                    .assertLog("FeesSent", {
+                    .assertLog("FeesCollected", {
                         time: null,
-                        amount: feesCollected
+                        amount: expFees
                     })
                 .stopLedger()
-                    .assertDelta(treasury, feesCollected)
+                    .assertDelta(pac, expFees)
                     .assertNoDelta(unpayableBidder)
-                    .assertNoDelta(pac)
+                    .assertLostTxFee(anon)
                 .stopWatching()
-                    .assertEventCount(auction2, 2)
-                    .assertEvent(auction2, "FeesSent", {
+                    .assertEventCount(auction3, 2)
+                    .assertEvent(auction3, "FeesSent", {
                         time: null,
-                        amount: feesCollected
+                        amount: expFees
                     })
-                    .assertEvent(auction2, "SendPrizeFailure", {
+                    .assertEvent(auction3, "SendPrizeFailure", {
                         time: null,
                         redeemer: pac.address,
                         recipient: unpayableBidder.address,
-                        amount: prize,
-                        gasLimit: 2300
+                        amount: expPrize,
+                        gasLimit: null
+                        // gasLimit: 2300 // ganache bug misreports this
                     })
-                .assertCallReturns([pac, "getAuction", 2], NO_ADDRESS)
-                .assertCallReturns([pac, "endedAuctions", 1], auction2.address)
+                .assertCallReturns([pac, "getIsStartable", 3], true)
+                .assertCallReturns([pac, "getAuction", 3], NO_ADDRESS)
+                .assertCallReturns([pac, "endedAuctions", 1], auction3.address)
                 .assertCallReturns([pac, "numEndedAuctions"], 2)
-                .assertCallReturns([pac, "totalFees"], expectedFees)
-                .assertCallReturns([pac, "totalBids"], expectedBids)
-                .assertCallReturns([pac, "totalPrizes"], expectedPrizes)
-                .assertCallReturns([auction2, "isPaid"], false)
-                .assertCallReturns([auction2, "fees"], 0)
+                .assertCallReturns([pac, "totalFees"], expTotalFees)
+                .assertCallReturns([pac, "totalBids"], expTotalBids)
+                .assertCallReturns([pac, "totalPrizes"], expTotalPrizes)
+                .assertCallReturns([auction3, "isPaid"], false)
+                .assertCallReturns([auction3, "fees"], 0)
                 .start()
         });
     });
+
+    describe(".startDefinedAuctionManually()", function(){
+        before("Assert auction0 is startable", function(){
+            return createDefaultTxTester()
+                .assertCallReturns([pac, "getIsStartable", 0], true)
+                .start();
+        })
+        it("Refunds if invalid amount sent", function(){
+            const initialPrize = DEF_0.initialPrize;
+            return createDefaultTxTester()
+                .startLedger([anon, pac])
+                .doTx([pac, "startDefinedAuctionManually", 0, {from: anon, value: initialPrize.plus(1)}])
+                .assertSuccess()
+                    .assertOnlyLog("Error", {msg: "Value sent does not match initialPrize."})
+                .stopLedger()
+                    .assertLostTxFee(anon)
+                    .assertNoDelta(pac)
+                .start();
+        });
+        it("Refunds if fails to start game (invalid params on defined auction)", function(){
+            const initialPrize = DEF_1.initialPrize;
+            return createDefaultTxTester()
+                .startLedger([anon, pac])
+                .doTx([pac, "startDefinedAuctionManually", 1, {from: anon, value: initialPrize}])
+                .assertSuccess()
+                    .assertLogCount(2)
+                    .assertLog("DefinedAuctionInvalid")
+                    .assertLog("Error")
+                .stopLedger()
+                    .assertLostTxFee(anon)
+                    .assertNoDelta(pac)
+                .start();
+        });
+        it("Works", function(){
+            const initialPrize = DEF_0.initialPrize;
+            return createDefaultTxTester()
+                .startLedger([anon, pac])
+                .doTx([pac, "startDefinedAuctionManually", 0, {from: anon, value: initialPrize}])
+                .assertSuccess()
+                    .assertOnlyLog("AuctionStarted", {index: 0})
+                .stopLedger()
+                    .assertDeltaMinusTxFee(anon, initialPrize.mul(-1))
+                    .assertNoDelta(pac)
+                .assertCallReturns([pac, "getAuction", 0], {not: NO_ADDRESS})
+                .start();
+        });
+    });
+
+    async function assertCanEditAuction(index, acct) {
+        const curNum = await pac.numDefinedAuctions();
+        var expNumDefined;
+        if (index == curNum) {
+            console.log("This should add the auction and increase numDefinedAuctions.")
+            expNumDefined = curNum.plus(1);
+        } else {
+            console.log("This should edit an existing defined auction.")
+            expNumDefined = curNum;
+        }
+
+        const DEF = DEFS[index].toArr();
+        const callParams = [pac, "editDefinedAuction", index].concat(DEF, {from: acct});
+        return createDefaultTxTester()
+            .assertCallReturns(callParams, true)
+            .doTx(callParams)
+            .assertSuccess()
+            .assertOnlyLog("DefinedAuctionEdited", {time: null, index: index})
+            .assertCallReturns([pac, "numDefinedAuctions"], expNumDefined)
+            .assertCallReturns([pac, "definedAuctions", index], 
+                [
+                    "0x0000000000000000000000000000000000000000",
+                    false
+                ].concat(DEF)
+            )
+            .start()
+    }
+    async function assertCannotEditAuction(index, acct, errMsg) {
+        const DEF = DEFS[index].toArr();
+        const callParams = [pac, "editDefinedAuction", index].concat(DEF, {from: acct})
+        if (errMsg == -1){
+            return createDefaultTxTester()
+                .assertCallThrows(callParams)
+                .doTx(callParams)
+                .assertInvalidOpCode()
+                .start();
+        }
+
+        return createDefaultTxTester()
+            .assertCallReturns(callParams, false)
+            .doTx(callParams)
+            .assertSuccess()
+            .assertOnlyLog("Error", {
+                msg: errMsg
+            })
+            .start();
+    }
+
+    async function assertCanStartAuction(index) {
+        const DEF = await getDefinedAuction(index);
+
+        var auction;
+        const callParams = [pac, "startDefinedAuction", index, {from: anon}];
+        await createDefaultTxTester()
+            .assertCallReturns(callParams, [true, null])
+            .startLedger([pac])
+            .startWatching([paf])
+            .doTx(callParams)
+            .assertSuccess()
+                .assertOnlyLog("AuctionStarted")
+                .withTxResult((txRes, plugins) => {
+                    auction = PennyAuction.at(txRes.logs[0].args.addr);
+                    const obj = {};
+                    obj[`auction@${index}`] = auction.address;
+                    plugins.addAddresses(obj);
+                })
+                .assertOnlyLog("AuctionStarted", {
+                    time: null,
+                    index: index,
+                    addr: ()=>auction.address,
+                    initialPrize: DEF.initialPrize
+                })
+            .stopWatching()
+                .assertEvent(paf, "AuctionCreated", {
+                    time: null,
+                    addr: ()=>auction.address,
+                    collector: pac.address,
+                    initialPrize: DEF.initialPrize,
+                    bidPrice: DEF.bidPrice,
+                    bidAddBlocks: DEF.bidAddBlocks,
+                    bidIncr: DEF.bidIncr,
+                    initialBlocks: DEF.initialBlocks
+                })
+            .stopLedger()
+                .assertDelta(pac, DEF.initialPrize.mul(-1))
+            .assertBalance(()=>auction, DEF.initialPrize)
+            .assertCallReturns([pac, "getAuction", index], ()=>auction.address)
+            .assertCallReturns([pac, "getIsStartable", index], false)
+            .assertCallReturns(()=>[auction, "prize"], DEF.initialPrize)
+            .assertCallReturns(()=>[auction, "bidPrice"], DEF.bidPrice)
+            .assertCallReturns(()=>[auction, "bidAddBlocks"], DEF.bidAddBlocks)
+            .assertCallReturns(()=>[auction, "bidIncr"], DEF.bidIncr)
+            .assertCallReturns(()=>[auction, "currentWinner"], pac.address)
+            .start();
+    }
+
+    async function assertCannotStartAuction(index, msg) {
+        const callParams = [pac, "startDefinedAuction", index, {from: anon}];
+        const expLogs = [["Error", {msg: msg}]];
+        if (msg === "PennyAuctionFactory could not create auction (invalid params?)") {
+            expLogs.push(["DefinedAuctionInvalid", {index: index}])
+        }
+        
+        const txTester = createDefaultTxTester()
+            .assertCallReturns(callParams, [false, NO_ADDRESS])
+            .startLedger([pac, anon])
+            .doTx(callParams)
+            .assertSuccess()
+            .assertLogCount(expLogs.length);
+        
+        expLogs.forEach(l=>{
+            txTester.assertLog(l[0], l[1]);
+        })
+
+        return txTester
+            .stopLedger()
+                .assertLostTxFee(anon)
+                .assertNoDelta(pac)
+            .start();
+    }
+
+    async function getDefinedAuction(index) {
+        arr = await pac.definedAuctions(index);
+        return {
+            auction: arr[0],
+            isEnabled: arr[1],
+            summary: arr[2],
+            initialPrize: arr[3],
+            bidPrice: arr[4],
+            bidIncr: arr[5],
+            bidAddBlocks: arr[6],
+            initialBlocks: arr[7]
+        };
+    }
 });

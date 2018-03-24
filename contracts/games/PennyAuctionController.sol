@@ -64,7 +64,7 @@ contract PennyAuctionController is
     event DefinedAuctionInvalid(uint time, uint index);
 	event AuctionStarted(uint time, uint indexed index, address indexed addr, uint initialPrize);
 	event AuctionEnded(uint time, uint indexed index, address indexed winner, address indexed addr);
-	event FeesSent(uint time, uint amount);
+	event FeesCollected(uint time, uint amount);
 
 
 	function PennyAuctionController(address _registry) 
@@ -212,32 +212,27 @@ contract PennyAuctionController is
         payable
         returns (bool _success, address _auction)
     {
+        // refund if invalid value sent.
         DefinedAuction memory dAuction = definedAuctions[_index];
         if (msg.value != dAuction.initialPrize) {
-            _errorAndRefund("Value sent does not match initialPrize.");
+            _error("Value sent does not match initialPrize.");
+            require(msg.sender.call.value(msg.value)());
             return;
         }
+
+        // refund if .startDefinedAuction fails
         (_success, _auction) = startDefinedAuction(_index);
         if (!_success) {
-            _errorAndRefund(".startDefinedAuction() failed.");
-            return;
-        }
-    }
-        // Emits an error with a given message
-        // Also refunds the sender with whatever they passed
-        function _errorAndRefund(string _msg)
-            private
-        {
-            Error(now, _msg);
             require(msg.sender.call.value(msg.value)());
         }
+    }
 
     // Looks at all active defined auctions and:
     //	- tells each auction to send fees to Treasury
     //  - if ended: tries to pay winner, moves to endedAuctions
 	function refreshAuctions()
         public
-        returns (uint _numAuctionsEnded, uint _feesSent)
+        returns (uint _numAuctionsEnded, uint _feesCollected)
     {
     	for (uint _i = 0; _i < numDefinedAuctions; _i++) {
     		var _auction = definedAuctions[_i].auction;
@@ -246,7 +241,7 @@ contract PennyAuctionController is
     		// try to redeem fees. this can fail if Treasury throws
             // that should realistically never happen.
     		uint _fees = _auction.sendFees();
-            _feesSent += _fees;
+            _feesCollected += _fees;
             totalFees += _fees;
 
 			// attempt to pay winner, update stats, and set auction to empty.
@@ -267,8 +262,8 @@ contract PennyAuctionController is
 				AuctionEnded(now, _i, _auction.currentWinner(), address(_auction));
 			}
     	}
-    	if (_feesSent > 0) FeesSent(now, _feesSent);
-		return (_numAuctionsEnded, _feesSent);
+    	if (_feesCollected > 0) FeesCollected(now, _feesCollected);
+		return (_numAuctionsEnded, _feesCollected);
 	}
 
 
@@ -331,7 +326,7 @@ contract PennyAuctionController is
         return definedAuctions[_index].initialPrize;
     }
 
-    // Returns false if index out of bounds, is disabled, or isactive
+    // Returns false if index out of bounds, is disabled, is active, or too expensive to start.
     function getIsStartable(uint _index)
         public
         view
@@ -341,6 +336,7 @@ contract PennyAuctionController is
         if (_index >= numDefinedAuctions) return;
         if (dAuction.isEnabled == false) return;
         if (dAuction.auction != IPennyAuction(0)) return;
+        if (dAuction.initialPrize > this.balance) return;
         return true;
     }
 
