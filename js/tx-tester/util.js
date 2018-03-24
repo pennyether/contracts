@@ -41,12 +41,14 @@ function createUtil(web3, assert){
 			if (!args) args = {};
 
 			function validateArgs(log){
-				return Promise.all(Object.keys(args).map(async function(key){
-					const val = await _self.toPromise(args[key]);
-					assert(log.args.hasOwnProperty(key), `arg '${key}' not in '${eventName}' log`);	
-					if (val !== null)
-						assert.strEqual(log.args[key], val, `${eventName}.args.${key}' incorrect`);
-				}))
+				return Promise.all(
+					Object.keys(args).map(async function(key){
+						const val = await _self.toPromise(args[key]);
+						assert(log.args.hasOwnProperty(key), `arg '${key}' not in '${eventName}' log`);	
+						if (val !== null)
+							assert.strEqual(log.args[key], val, `${eventName}.args.${key}' incorrect`);
+					})
+				)
 			}
 
 			try {

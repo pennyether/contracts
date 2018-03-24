@@ -546,8 +546,9 @@ function createPlugins(testUtil, ledger) {
 		},
 		// assert balance of $address (can be a contract) is $expectedBalance
 		assertBalance: async function(address, expectedBalance, msg) {
-			const balance = await testUtil.getBalance(address);
+			address = await testUtil.toPromise(address);
 			expectedBalance = await testUtil.toPromise(expectedBalance);
+			const balance = await testUtil.getBalance(address);
 			msg = msg || `should equal ${wei(expectedBalance)}`;
 			msg = `Balance of ${at(address)} ${msg}`;
 			assert.strEqual(balance, expectedBalance, msg);
