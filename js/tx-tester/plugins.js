@@ -655,7 +655,7 @@ function str(val, hideBrackets) {
 	} else if (val.constructor.name == "BigNumber" || typeof val == 'number') {
 		val = new BigNumber(val);
 		if (val.abs().gt(1e20)) return `0x${val.toString(16).slice(0, 8)}...`;
-		if (val.abs().gt(1e12)) return wei(val);
+		if (val.abs().gte(1e6)) return wei(val);
 		else return val.toString();
 	} else if (typeof val == "object") {
 		const keys = Object.keys(val).map((k) => {
@@ -673,11 +673,11 @@ function str(val, hideBrackets) {
 }
 function wei(val) {
 	val = new BigNumber(val);
-	if (val.abs().gt(1e15)) {
+	if (val.abs().gte(1e15)) {
 		return val.div(1e18).toString() + " ETH";
 	}
-	if (val.abs().gt(1e9)) {
-		return val.div(1e12).toString() + " GWei";
+	if (val.abs().gte(1e6)) {
+		return val.div(1e9).toString() + " GWei";
 	}
 	return val.toString() + " Wei";
 }

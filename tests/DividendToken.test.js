@@ -15,7 +15,7 @@ const account4 = accounts[5];
 const anon = accounts[6];
 const nonAccount = accounts[7];
 var token;
-var unpayableTokenHolder;
+var unpayable;
 
 describe('DividendToken', function(){
     before("Initialize TokenCrowdSale", async function(){
@@ -32,7 +32,7 @@ describe('DividendToken', function(){
 
         this.logInfo("Create a DividendToken, owned by comptroller.");
         await createDefaultTxTester()
-            .doNewTx(DividendToken, [], {from: comptroller})
+            .doNewTx(DividendToken, ["PennyEther", "PENNY"], {from: comptroller})
             .assertSuccess()
             .withTxResult((res, plugins)=>{
                 token = res.contract;
@@ -44,164 +44,511 @@ describe('DividendToken', function(){
             .doNewTx(UnpayableTokenHolder, [], {from: anon})
             .assertSuccess()
             .withTxResult((res, plugins)=>{
-                unpayableTokenHolder = res.contract;
-                plugins.addAddresses({unpayableTokenHolder: unpayableTokenHolder.address});
+                unpayable = res.contract;
+                plugins.addAddresses({unpayable: unpayable.address});
             }).start();
 
         await createDefaultTxTester().printNamedAddresses().start();
     });
+
     describe("Is initialized correctly", async function(){
         it("token.comptroller() is correct", function(){
             return createDefaultTxTester()
                 .assertCallReturns([token, "comptroller"], comptroller)
+                .assertCallReturns([token, "name"], "PennyEther")
+                .assertCallReturns([token, "symbol"], "PENNY")
                 .start();
         });
     });
-    describe(".mintTokens() works", async function(){
+
+    describe(".mint() works", async function(){
         it("Cannot be called by anon", async function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", account1, 1000, {from: anon}])
+                .doTx([token, "mint", account1, 1000, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Can be called by comptroller", async function(){
-            it("Can create 1000 tokens for account1", function(){
-                return assertCanMint(account1, 1000);
-            });
-            it("Can create 2000 tokens for account1", function(){
-                return assertCanMint(account2, 2000);
-            });
-            it("Can create 3000 tokens for account1", function(){
-                return assertCanMint(account3, 3000);
-            });
-            it("Can create 4000 tokens for account1", function(){
-                return assertCanMint(account4, 4000);
-            });
+        it("Can mint 1000 tokens for account1", function(){
+            return assertCanMint(account1, 1000);
+        });
+        it("Can mint 2000 tokens for account2", function(){
+            return assertCanMint(account2, 2000);
+        });
+        it("Can mint 100 tokens more for account1", function(){
+            return assertCanMint(account1, 100);
         });
     });
-    describe(".burnTokens() works", async function(){
+
+    describe(".burn() works", async function(){
         it("Cannot be called by anon", async function(){
             return createDefaultTxTester()
-                .doTx([token, "burnTokens", account4, 4000, {from: anon}])
+                .doTx([token, "burn", account1, 100, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Cannot burn more tokens than account has", async function(){
+        it("Cannot burn more tokens than account1 has", async function(){
             return createDefaultTxTester()
-                .doTx([token, "burnTokens", account4, 4001, {from: comptroller}])
+                .doTx([token, "burn", account1, 4000, {from: comptroller}])
                 .assertInvalidOpCode()
                 .start();
         });
-        it("Can burn correctly", async function(){
-            await assertCanBurn(account4, 4000);
+        it("Can burn 100 tokens from account1", async function(){
+            await assertCanBurn(account1, 100);
+        });
+        it("Can burn 2000 tokens from account2", async function(){
+            await assertCanBurn(account2, 2000);
+        });
+        it("Can burn 1000 tokens from account1", async function(){
+            await assertCanBurn(account1, 1000);
         });
     });
-    describe("Dividends work", async function(){
-        itCanReceiveDeposit(6e12);
-        itCanGetOwedDividends();
-        itCanCollectDividend(1);
-        itCanGetOwedDividends();
-        itCanReceiveDeposit(12e13)
-        itCanGetOwedDividends();
-        itCanCollectDividend(1);
-        itCanCollectDividend(2);
-        itCanCollectDividend(2);
-        itCanGetOwedDividends();
-    });
-    describe("Transfering works", async function(){
-        itCanReceiveDeposit(6e14);
-        itCanGetOwedDividends();
-        it("account3 cannot transfer more than it has.", async function(){
-            return assertCannotTransferTooMuch(account3, account4);
-        })
-        it("account3 can transfer to account4.", async function(){
-            return assertCanTransfer(account3, account4);
+    
+    describe("ERC20 Functionality", function(){
+        before("Reset accounts.", function(){
+            return resetAccounts();
         });
-        itCanGetOwedDividends();
-        itCanReceiveDeposit(6e15);
-        itCanGetOwedDividends();
-    });
-    describe(".collectDividends() when account is unpayable", async function(){
-        it("Transfer from account4 to unpayableTokenHolder", function(){
-            return assertCanTransfer(account4, unpayableTokenHolder.address);
-        });
-        itCanReceiveDeposit(6e16);
-        it(".collectDividends() throws if cannot send", async function(){
-            const unpayableAddress = unpayableTokenHolder.address;
-            const amount = await token.getOwedDividends(unpayableAddress);
-            assert(amount.gt(0), `${amount} should be > 0`);
-            return createDefaultTxTester()
-                .assertCallReturns([token, "getOwedDividends", unpayableAddress], amount)
-                .doTx([unpayableTokenHolder, "collectDividends", token.address])
+
+        describe(".transfer()", function(){
+            it("Fails if not enough balance", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transfer", account2, 1001, {from: account1}])
                     .assertInvalidOpCode()
-                .start();
+                    .start();
+            });
+            it("Works", function(){
+                return assertCanTransfer(account1, account2, 500);
+            });
+        })
+        describe(".approve() and .transferFrom()", function(){
+            this.logInfo("Here we test account1 sending from account3 to account4.");
+            it(".transferFrom() fails if no allowance", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account3, account4, 1, {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            })
+            it(".approve() works", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "approve", account1, 9999, {from: account3}])
+                    .assertSuccess()
+                        .assertLog("Approval", {
+                            owner: account3,
+                            spender: account1,
+                            amount: 9999
+                        })
+                    .assertCallReturns([token, "allowance", account3, account1], 9999)
+                    .start();
+            });
+            it(".transferFrom() fails if not enough allowance", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account3, account4, 10000, {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it(".transferFrom() fails if not enough balance", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account3, account4, 3001, {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it(".transferFrom() works", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account3, account4, 3000, {from: account1}])
+                    .assertSuccess()
+                        .assertLogCount(2)
+                        .assertLog("AllowanceUsed", {
+                            owner: account3,
+                            spender: account1,
+                            amount: 3000
+                        })
+                        .assertLog("Transfer", {
+                            from: account3,
+                            to: account4,
+                            amount: 3000
+                        })
+                    .assertCallReturns([token, "allowance", account3, account1], 9999-3000)
+                    .assertCallReturns([token, "balanceOf", account3], 0)
+                    .assertCallReturns([token, "balanceOf", account4], 7000)
+                    .start();
+            });
+        });
+    });
+
+    describe("ERC667 Functionality", function(){
+        before("Reset accounts", function(){
+            return resetAccounts();
+        });
+
+        describe(".transferAndCall()", function(){
+            const DATA = "0x0123456789abcdef";
+            it("Fails if not enough balance", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferAndCall", unpayable.address, 1001, DATA, {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("Works, and triggers tokenFallback()", function(){
+                return createDefaultTxTester()
+                    .startWatching([unpayable])
+                    .doTx([token, "transferAndCall", unpayable.address, 1000, DATA, {from: account1}])
+                    .assertSuccess()
+                        .assertLog("Transfer", {
+                            from: account1,
+                            to: unpayable.address,
+                            amount: 1000
+                        })
+                    .stopWatching()
+                        .assertEvent(unpayable, "TokenFallback", {
+                            token: token.address,
+                            sender: account1,
+                            amt: 1000,
+                            data: DATA
+                        })
+                    .assertCallReturns([token, "balanceOf", account1], 0)
+                    .assertCallReturns([token, "balanceOf", unpayable.address], 1000)
+                    .start();
+            });
+        });
+    });
+
+    describe(".freeze() works", function(){
+        before("Reset accounts", function(){
+            return resetAccounts();
+        });
+
+        describe(".freeze(true)", function(){
+            it("Not callable by anon", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "freeze", true, {from: anon}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("Callable by comptroller", function(){
+               return createDefaultTxTester()
+                    .doTx([token, "freeze", true, {from: comptroller}])
+                    .assertSuccess()
+                        .assertOnlyLog("Frozen")
+                    .assertCallReturns([token, "isFrozen"], true)
+                    .start(); 
+            });
+            it("Calling again does nothing", function(){
+               return createDefaultTxTester()
+                    .doTx([token, "freeze", true, {from: comptroller}])
+                    .assertSuccess()
+                        .assertLogCount(0)
+                    .assertCallReturns([token, "isFrozen"], true)
+                    .start();  
+            });
+        });
+        describe(".transfer(), .transferFrom(), .transferAndCall() should not work", function(){
+            it(".transfer() does not work", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transfer", account2, 100, {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it(".transferFrom() does not work", async function(){
+                this.logInfo("First approve account3 to send on behalf of account1");
+                await createDefaultTxTester()
+                    .doTx([token, "approve", account3, 100, {from: account1}])
+                    .assertSuccess()
+                    .start();
+
+                this.logInfo("Now try to send it.")
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account1, account2, 100, {from: account3}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it(".transferAndCall() does not work", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferAndCall", unpayable.address, 100,  "0x0", {from: account1}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+        });
+        describe(".freeze(false)", function(){
+            it("Not callable by anon", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "freeze", false, {from: anon}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("Callable by comptroller", function(){
+               return createDefaultTxTester()
+                    .doTx([token, "freeze", false, {from: comptroller}])
+                    .assertSuccess()
+                        .assertOnlyLog("UnFrozen")
+                    .assertCallReturns([token, "isFrozen"], false)
+                    .start(); 
+            });
+            it("Calling again does nothing", function(){
+               return createDefaultTxTester()
+                    .doTx([token, "freeze", false, {from: comptroller}])
+                    .assertSuccess()
+                        .assertLogCount(0)
+                    .assertCallReturns([token, "isFrozen"], false)
+                    .start();  
+            });
+        });
+        describe(".transfer(), .transferFrom(), .transferAndCall() should all work", function(){
+            it(".transfer() works", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transfer", account2, 100, {from: account1}])
+                    .assertSuccess()
+                    .start();
+            });
+            it(".transferFrom() works", async function(){
+                this.logInfo("First approve account3 to send on behalf of account1");
+                await createDefaultTxTester()
+                    .doTx([token, "approve", account3, 100, {from: account1}])
+                    .assertSuccess()
+                    .start();
+
+                this.logInfo("Now try to send it.")
+                return createDefaultTxTester()
+                    .doTx([token, "transferFrom", account1, account2, 100, {from: account3}])
+                    .assertSuccess()
+                    .start();
+            });
+            it(".transferAndCall() works", function(){
+                return createDefaultTxTester()
+                    .doTx([token, "transferAndCall", unpayable.address, 100,  "0x0", {from: account1}])
+                    .assertSuccess()
+                    .start();
+            });
+        });
+    });
+
+    describe("Dividends", async function(){
+        this.logInfo("Dividends should be credited to accounts based on their balance.");
+
+        before("Reset accounts.", function(){
+            return resetAccounts();
+        });
+
+        describe("Initial deposit", function(){
+            this.logInfo("This will send an amount to Token contract");
+            this.logInfo("Account2 will collect dividends.");
+            itCanReceiveDeposit(1e10);
+            itCanGetOwedDividends("After receiving a deposit, owedDividends should be correct.");
+            itCanCollectDividend(1, "Account2 should be able to collect owedDividends.");
+            itCanGetOwedDividends("Owed dividends should return 0 for Account 1");    
+        });
+        describe("Another deposit", function(){
+            this.logInfo("This will send another amount to Token contract");
+            this.logInfo("Accounts 1 and 2 will collect.");
+            itCanReceiveDeposit(2e11)
+            itCanGetOwedDividends("Owed dividends should be incremented correctly.");
+            itCanCollectDividend(1, "Account2 should collect amount from last dividend only.");
+            itCanCollectDividend(2, "Account3 should collect amount from both dividends.");
+            itCanCollectDividend(2, "Account3 should collect 0, since it just collected.");
+            itCanGetOwedDividends("Owed dividends for account2 and account3 should be 0.");
+        });
+
+        after("Everyone can collect correctly", function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
         })
     });
-    describe("More dividends while minting and burning", async function(){
-        itCanReceiveDeposit(6e16);
-        it("Mint tokens for account3", function(){
-            return assertCanMint(account3, 5000);
+
+    describe("Dividends while minting and burning", async function(){
+        this.logInfo("If the total supply changes, dividends still work properly.");
+
+        before("Reset accounts", async function(){
+            return resetAccounts();
         });
-        itCanReceiveDeposit(1e16);
-        itCanCollectDividend(0);
-        itCanCollectDividend(1);
-        itCanCollectDividend(2);
-        it("Burn tokens for account1", function(){
-            return assertCanBurn(account1, 500);
+
+        itCanReceiveDeposit(1e10);
+        itCanGetOwedDividends("Notice accounts dividends owed.");
+        
+        describe("Increasing totalSupply", function(){
+            // Mint tokens, get deposit, show owed.
+            it("Mint tokens for account4", function(){
+                return assertCanMint(account4, 10000);
+            });
+            itCanReceiveDeposit(2e11);
+            itCanGetOwedDividends("Amounts are incremented taking into account increased totalSupply");
+        });
+        
+        describe("Decreasing totalSupply", function(){
+            // Burn tokens, get deposit, show owed.
+            it("Burn tokens for account1", function(){
+                return assertCanBurn(account4, 10000);
+            })
+            itCanReceiveDeposit(1e12);
+            itCanGetOwedDividends("Amounts are incremented taking into account decreased totalSupply");
         })
-        itCanReceiveDeposit(6e16);
-        itCanCollectDividend(0);
-        itCanCollectDividend(1);
-        itCanCollectDividend(2);
-        itCanCollectDividend(3);
+
+        after("Everyone can collect correctly", async function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+        });
+    });
+
+    describe("Dividends with .transfer()", async function(){
+        this.logInfo("When tokens are transferred, the original holder should retain dividends.");
+        this.logInfo("Further dividends should be distributed based on new token holdings.");
+
+        before("Reset accounts.", function(){
+            return resetAccounts();
+        });
+
+        itCanReceiveDeposit(1e10);
+        itCanGetOwedDividends("Notice account1 has dividends owed.");
+        it("Account1 transfers to Account2", async function(){
+            return assertCanTransfer(account1, account2);
+        });
+        itCanGetOwedDividends("Owed dividends for account1 and account2 should be unchanged.");
+        itCanReceiveDeposit(2e11);
+        itCanGetOwedDividends("Account1 should not receive more owed dividends.");
+
+        after("Everyone can collect correctly", async function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+        });
+    });
+
+    describe("Dividends with .transferFrom()", async function(){
+        this.logInfo("When tokens are transferred, the original holder should retain dividends.");
+        this.logInfo("Further dividends should be distributed based on new token holdings.");
+
+        before("Reset accounts.", function(){
+            return resetAccounts();
+        });
+
+        itCanReceiveDeposit(1e10);
+        itCanGetOwedDividends("Notice account1 has dividends owed.")
+        it("Account1 transfer to Account2", async function(){
+            this.logInfo("Approve account3 to send on behalf of account1");
+            await createDefaultTxTester()
+                .doTx([token, "approve", account3, 1000, {from: account1}])
+                .assertSuccess().start();
+
+            this.logInfo("Next, do the transfer");
+            await createDefaultTxTester()
+                .doTx([token, "transferFrom", account1, account2, 1000, {from: account3}])
+                .assertSuccess()
+                .assertCallReturns([token, "balanceOf", account1],0)
+                .assertCallReturns([token, "balanceOf", account2],3000)
+                .start();
+        });
+
+        itCanReceiveDeposit(2e11);
+        itCanGetOwedDividends("Account1 should get no more dividends. Account2 should get a lot more.");
+
+        after("Everyone can collect correctly", async function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+        });
+    });
+
+    describe("Dividends with .transferAndCall()", async function(){
+        this.logInfo("When tokens are transferred, the original holder should retain dividends.");
+        this.logInfo("Further dividends should be distributed based on new token holdings.");
+
+        before("Reset accounts.", function(){
+            return resetAccounts();
+        });
+
+        itCanReceiveDeposit(1e10);
+        itCanGetOwedDividends("Notice account1 has dividends owed.")
+        it("Account1 transfer to Unpayable", async function(){
+            await createDefaultTxTester()
+                .doTx([token, "transferAndCall", unpayable.address, 1000, "0x0", {from: account1}])
+                .assertSuccess()
+                .assertCallReturns([token, "balanceOf", account1], 0)
+                .assertCallReturns([token, "balanceOf", unpayable.address], 1000)
+                .start();
+        });
+
+        itCanReceiveDeposit(2e11);
+        itCanGetOwedDividends("Account1 should get no more dividends.");
+
+        after("Everyone can collect correctly", async function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+        });
     });
 
 
     // These functions keep track of expected dividends, and do assertions against them.
     const trackedAccounts = [account1, account2, account3, account4];
-    var expectedTotalDividends = new BigNumber(0);
-    var owedDividends = trackedAccounts.map(()=>new BigNumber(0));
+    var expTotalDivs = new BigNumber(0);
+    var expOwedDivs = trackedAccounts.map(() => new BigNumber(0));
+
+    async function resetAccounts(){
+        // for all accounts:
+        //   mint/burn balance to 0, and collect
+        // then mint 1k, 2k, 3k, 4k to accounts 1-4
+        const all = trackedAccounts.concat(unpayable.address);
+        await Promise.all(
+            all.map(async function(acct){
+                const balance = await token.balanceOf(acct);
+                if (balance.gt(0)) {
+                    await token.burn(acct, balance, {from: comptroller});
+                }
+                const owed = await token.getOwedDividends(acct);
+                if (owed.gt(0)){
+                    await token.collectOwedDividends({from: acct});
+                }
+            })
+        );
+        await Promise.all(
+            trackedAccounts.map(async function(acct, i){
+                await token.mint(acct, (i+1)*1000, {from: comptroller});
+                const balance = await token.balanceOf(acct);
+                const owed = await token.getOwedDividends(acct);
+                console.log(`Account #${i+1}: Owed: ${owed} Balance: ${balance}`);
+            })
+        );
+        expOwedDives = trackedAccounts.map(() => new BigNumber(0));
+    }
+
+
     async function itCanReceiveDeposit(amt) {
         amt = new BigNumber(amt);
 
-        // expectDividends calculates owedDividends and expectedTotalDividends
+        // expectDividends calculates expOwedDivs and expTotalDivs
         async function expectDividends(amt) {
             const totalSupply = await token.totalSupply();
-            expectedTotalDividends = expectedTotalDividends.plus(amt);
+            expTotalDivs = expTotalDivs.plus(amt);
             await Promise.all(trackedAccounts.map((acc, i) => {
                 return token.balanceOf(trackedAccounts[i]).then((numTokens)=>{
-                    owedDividends[i] = owedDividends[i]
+                    expOwedDivs[i] = expOwedDivs[i]
                         .plus(numTokens.mul(amt).div(totalSupply));
                 });
             }));
         }
 
         it(`Can receive deposit of ${amt.div(1e18)} ETH`, async function(){
+            const totalSupply = await token.totalSupply()
+            const per1000 = amt.div(1e9).div(totalSupply).mul(1000);
+            this.logInfo(`This should add ${per1000} Gwei per 1000 tokens.`);
             await expectDividends(amt);
             return createDefaultTxTester()
                 .doTx([token, "sendTransaction", {from: nonAccount, value: amt}])
                 .assertSuccess()
                     .assertOnlyLog("DividendReceived", {sender: nonAccount, amount: amt})
-                .assertCallReturns([token, "totalDividends"], expectedTotalDividends)
+                .assertCallReturns([token, "totalDividends"], expTotalDivs)
                 .start();
         });
     }
 
-    async function itCanGetOwedDividends() {
+    async function itCanGetOwedDividends(msg) {
         it(".getOwedDividends() works", async function(){
+            if (msg) this.logInfo(msg)
+
             const tester = createDefaultTxTester();
             trackedAccounts.forEach((acc, i)=>{
-                const expected = owedDividends[i].floor();
+                const expected = expOwedDivs[i].floor();
                 tester.assertCallReturns([token, "getOwedDividends", acc], expected);
             })
             return tester.start();
         });
     }
 
-    async function itCanCollectDividend(accountNum) {
+    async function itCanCollectDividend(accountNum, msg) {
         it(`account${accountNum+1} collects correct amount.`, function(){
+            if (msg) this.logInfo(msg);
+
             const account = trackedAccounts[accountNum];
-            const expected = owedDividends[accountNum].floor();
+            const expected = expOwedDivs[accountNum].floor();
             this.logInfo(`account${accountNum} should be owed ${expected} Wei.`);
             return createDefaultTxTester()
                 .assertCallReturns([token, "getOwedDividends", account], expected)
@@ -214,7 +561,7 @@ describe('DividendToken', function(){
                         amount: expected
                     })
                     .assertDeltaMinusTxFee(account, expected)
-                .doFn(() => owedDividends[accountNum] = new BigNumber(0))
+                .doFn(() => expOwedDivs[accountNum] = new BigNumber(0))
                 .assertCallReturns([token, "getOwedDividends", account], 0)
                 .start();         
         })
@@ -237,19 +584,11 @@ describe('DividendToken', function(){
             .start();
     }
 
-    async function assertCannotTransferTooMuch(from, to) {
-        const amt = (await token.balanceOf(from)).plus(1);
-        return createDefaultTxTester()
-            .doTx([token, "transfer", to, amt, {from: from}])
-            .assertInvalidOpCode()
-            .start();
-    }
-
     async function assertCanMint(acct, amount) {
         const expectedBal = (await token.balanceOf(acct)).plus(amount);
         const expectedTotal = (await token.totalSupply()).plus(amount);
         return createDefaultTxTester()
-            .doTx([token, "mintTokens", acct, amount, {from: comptroller}])
+            .doTx([token, "mint", acct, amount, {from: comptroller}])
             .assertSuccess()
             .assertOnlyLog("TokensMinted", {
                 account: acct,
@@ -263,7 +602,7 @@ describe('DividendToken', function(){
         const expectedBal = (await token.balanceOf(acct)).minus(amount);
         const expectedTotal = (await token.totalSupply()).minus(amount);
         return createDefaultTxTester()
-            .doTx([token, "burnTokens", acct, amount, {from: comptroller}])
+            .doTx([token, "burn", acct, amount, {from: comptroller}])
             .assertSuccess()
             .assertOnlyLog("TokensBurned", {
                 account: acct,

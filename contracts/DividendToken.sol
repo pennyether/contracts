@@ -1,5 +1,94 @@
 pragma solidity ^0.4.19;
 
+
+
+/*
+  Standard ERC20 Token.
+  https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
+*/
+contract ERC20 {
+	string public name;
+	string public symbol;
+	uint8 public decimals = 18;
+	uint public totalSupply;
+	mapping (address => uint) public balanceOf;
+	mapping (address => mapping (address => uint)) public allowance;
+
+	event Transfer(address indexed from, address indexed to, uint amount);
+	event Approval(address indexed owner, address indexed spender, uint amount);
+	event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
+
+	function ERC20(string _name, string _symbol)
+		public
+	{
+		name = _name;
+		symbol = _symbol;
+	}
+
+	function transfer(address _to, uint _value)
+		public
+		returns (bool success)
+	{
+		return _transfer(msg.sender, _to, _value);
+	}
+
+	function approve(address _spender, uint _value)
+		public
+		returns (bool success)
+	{
+		allowance[msg.sender][_spender] = _value;
+		Approval(msg.sender, _spender, _value);
+		return true;
+	}
+
+	// Attempts to transfer `_value` from `_from` to `_to`
+	//  if `_from` has sufficient allowance for `msg.sender`.
+	function transferFrom(address _from, address _to, uint256 _value)
+		public
+		returns (bool success)
+	{
+		address _spender = msg.sender;
+		require(allowance[_from][_spender] >= _value);
+		allowance[_from][_spender] -= _value;
+		AllowanceUsed(_from, _spender, _value);
+		return _transfer(_from, _to, _value);
+	}
+
+	// Transfers balance from `_from` to `_to` if `_to` has sufficient balance.
+	// Called from transfer() and transferFrom().
+	function _transfer(address _from, address _to, uint _value)
+		private
+		returns (bool success)
+	{
+		require(balanceOf[_from] >= _value);
+		require(balanceOf[_to] + _value > balanceOf[_to]);
+		balanceOf[_from] -= _value;
+		balanceOf[_to] += _value;
+		Transfer(_from, _to, _value);
+		return true;
+	}
+}
+
+interface HasTokenFallback {
+	function tokenFallback(address _from, uint256 _amount, bytes _data)
+		public
+		returns (bool success);
+}
+contract ERC667 is ERC20 {
+	function ERC667(string _name, string _symbol)
+		public
+		ERC20(_name, _symbol)
+	{}
+
+	function transferAndCall(address _to, uint _value, bytes _data)
+		public
+		returns (bool success)
+	{
+		require(super.transfer(_to, _value));
+		require(HasTokenFallback(_to).tokenFallback(msg.sender, _value, _data));
+	}
+}
+
 /*********************************************************
 ******************* DIVIDEND TOKEN ***********************
 **********************************************************
@@ -9,6 +98,9 @@ UI: https://www.pennyether.com/status/tokens
 An ERC20 token that can accept Ether and distribute it
 perfectly to all Token Holders relative to each account's
 balance at the time the dividend is received.
+
+The Token is owned by the creator, and can be frozen,
+minted, and burned by the owner.
 
 Notes:
 	- Accounts can view or receive dividends owed at any time
@@ -26,26 +118,14 @@ Comptroller Permissions:
 	- setFrozen(true): Called before CrowdSale
 	- setFrozen(false): Called after CrowdSale, if softCap met
 */
-contract DividendToken {
+contract DividendToken is ERC667
+{
+	// if true, tokens cannot be transferred
+	bool public isFrozen;
+
 	// Comptroller can call .mintTokens() and .burnTokens().
 	address public comptroller = msg.sender;
 	modifier onlyComptroller(){ require(msg.sender==comptroller); _; }
-
-	/* STANDARD ERC20 TOKEN */
-	string public name = "PennyEther";
-	string public symbol = "PENNY";
-	uint8 public decimals = 18;
-	uint public totalSupply;
-	event Transfer(address indexed from, address indexed to, uint amount);
-	event AllowanceSet(address indexed owner, address indexed spender, uint amount);
-	event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
-
-	// non public state variables
-	bool public isFrozen;	// if true, tokens cannot be transferred
-	mapping (address => uint) balances;
-	mapping (address => mapping (address => uint)) allowed;
-	event TokensMinted(address indexed account, uint amount, uint newTotalSupply);
-	event TokensBurned(address indexed account, uint amount, uint newTotalSupply);
 
 	// How dividends work:
 	//
@@ -76,10 +156,19 @@ contract DividendToken {
 	uint public totalPointsPerToken;
 	mapping (address => uint) public creditedPoints;
 	mapping (address => uint) public lastPointsPerToken;
-	event CollectedDividends(address indexed account, uint amount);
-	event DividendReceived(address indexed sender, uint amount);
 
-	function DividendToken() public {}
+	// Events
+	event Frozen(uint time);
+	event UnFrozen(uint time);
+	event TokensMinted(uint time, address indexed account, uint amount, uint newTotalSupply);
+	event TokensBurned(uint time, address indexed account, uint amount, uint newTotalSupply);
+	event CollectedDividends(uint time, address indexed account, uint amount);
+	event DividendReceived(uint time, address indexed sender, uint amount);
+
+	function DividendToken(string _name, string _symbol)
+		public
+		ERC667(_name, _symbol)
+	{}
 
 	// Upon receiving payment, increment lastPointsPerToken.
 	function ()
@@ -91,132 +180,107 @@ contract DividendToken {
 		// So, no multiplication overflow unless msg.value > 1e45 wei (1e27 ETH)
 		totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
 		totalDividends += msg.value;
-		DividendReceived(msg.sender, msg.value);
+		DividendReceived(now, msg.sender, msg.value);
 	}
-
-	/*************************************************************/
-	/********** ERC 20 FUNCTIONS *********************************/
-	/*************************************************************/
-	function transfer(address _to, uint _value)
-		public
-	{
-		_transfer(msg.sender, _to, _value);
-	}
-
-	function transferFrom(address _from, address _to, uint256 _value)
-		public
-		returns (bool success)
-	{
-		require(allowed[_from][msg.sender] >= _value);
-		allowed[_from][msg.sender] -= _value;
-		AllowanceUsed(_from, msg.sender, _value);
-		_transfer(_from, _to, _value);
-		return true;
-	}
-
-	function approve(address _spender, uint _value)
-		public
-		returns (bool success)
-	{
-		allowed[msg.sender][_spender] = _value;
-		AllowanceSet(msg.sender, _spender, _value);
-		return true;
-	}
-
-	function allowance(address _owner, address _spender)
-		public
-		constant
-		returns (uint remaining)
-	{
-		return allowed[_owner][_spender];
-	}
-
-	function balanceOf(address _addr)
-		public
-		constant
-		returns (uint balance)
-	{
-		return balances[_addr];
-	}
-
 
 	/*************************************************************/
 	/******* COMPTROLLER FUNCTIONS *******************************/
 	/*************************************************************/
 	// Credits dividends, then mints more tokens.
-	function mintTokens(address _to, uint _amount)
+	function mint(address _to, uint _amount)
 		onlyComptroller
 		public
 	{
 		updateCreditedPoints(_to);
 		totalSupply += _amount;
-		balances[_to] += _amount;
-		TokensMinted(_to, _amount, totalSupply);
+		balanceOf[_to] += _amount;
+		TokensMinted(now, _to, _amount, totalSupply);
 	}
 	
 	// Credits dividends, burns tokens.
-	function burnTokens(address _account, uint _amount)
+	function burn(address _account, uint _amount)
 	    onlyComptroller
 	    public
 	{
-		require(balances[_account] >= _amount);
+		require(balanceOf[_account] >= _amount);
 		updateCreditedPoints(_account);
-		balances[_account] -= _amount;
+		balanceOf[_account] -= _amount;
 		totalSupply -= _amount;
-		TokensBurned(_account, _amount, totalSupply);
+		TokensBurned(now, _account, _amount, totalSupply);
 	}
 
 	// when set to true, prevents tokens from being transferred
-	function setFrozen(bool _isFrozen)
+	function freeze(bool _isFrozen)
 		onlyComptroller
 		public
 	{
+		if (isFrozen == _isFrozen) return;
 		isFrozen = _isFrozen;
+		_isFrozen ? Frozen(now) : UnFrozen(now);
 	}
 
 	/*************************************************************/
-	/********** OTHER PUBLIC FUNCTIONS ***************************/
+	/********** PUBLIC FUNCTIONS *********************************/
 	/*************************************************************/
+	
+	// Normal ERC20 transfer, except before transferring
+	//  it credits points for both the sender and receiver.
+	function transfer(address _to, uint _value)
+		public
+		returns (bool success)
+	{	
+		// ensure tokens are not frozen.
+		require(!isFrozen);
+		updateCreditedPoints(msg.sender);
+		updateCreditedPoints(_to);
+		return ERC20.transfer(_to, _value);
+	}
+
+	// Normal ERC20 transferFrom, except before transferring
+	//  it credits points for both the sender and receiver.
+	function transferFrom(address _from, address _to, uint256 _value)
+		public
+		returns (bool success)
+	{
+		require(!isFrozen);
+		updateCreditedPoints(_from);
+		updateCreditedPoints(_to);
+		return ERC20.transferFrom(_from, _to, _value);
+	}
+	
+	// Normal ERC667 transferAndCall, except before transferring
+	//  it credits points for both the sender and receiver.
+	function transferAndCall(address _to, uint _value, bytes _data)
+		public
+		returns (bool success)
+	{
+		require(!isFrozen);
+		updateCreditedPoints(msg.sender);
+		updateCreditedPoints(_to);
+		return ERC667.transferAndCall(_to, _value, _data);	
+	}
+
 	// Updates creditedPoints, sends all wei to the owner
 	function collectOwedDividends()
 		public
+		returns (uint _amount)
 	{
 		// update creditedPoints, store amount, and zero it.
 		updateCreditedPoints(msg.sender);
-		uint _amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
+		_amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
 		creditedPoints[msg.sender] = 0;
 		collectedDividends += _amount;
-		CollectedDividends(msg.sender, _amount);
+		CollectedDividends(now, msg.sender, _amount);
 		require(msg.sender.call.value(_amount)());
 	}
 
 
 	/*************************************************************/
-	/********** PRIVATE FUNCTIONS ********************************/
+	/********** PRIVATE METHODS / VIEWS **************************/
 	/*************************************************************/
-	// Normal ERC20 transfer, except before transferring
-	// it credits points for both the sender and receiver.
-	function _transfer(address _from, address _to, uint _value)
-		private
-	{	
-		// ensure tokens are not frozen.
-		require(!isFrozen);
-		// check for overflow and for sufficient funds
-		require(balances[_to] + _value > balances[_to]);
-		require(balances[_from] >= _value);
-		
-		// Credit _to and _from with dividends before transferring.
-		// See: updatedCreditedPoints() for more info.
-		updateCreditedPoints(_to);
-		updateCreditedPoints(_from);
-		balances[_from] -= _value;
-		balances[_to] += _value;
-		Transfer(_from, _to, _value);
-	}
-
 	// Credits _account with whatever dividend points they haven't yet been credited.
-	// This needs to be called before any user's balance changes to ensure their
-	// "lastPointsPerToken" credits their current balance, and not an altered one.
+	//  This needs to be called before any user's balance changes to ensure their
+	//  "lastPointsPerToken" credits their current balance, and not an altered one.
 	function updateCreditedPoints(address _account)
 		private
 	{
@@ -227,15 +291,15 @@ contract DividendToken {
 	// For a given account, returns how many Wei they haven't yet been credited.
 	function getUncreditedPoints(address _account)
 		private
-		constant
+		view
 		returns (uint _amount)
 	{
 		uint _pointsPerToken = totalPointsPerToken - lastPointsPerToken[_account];
-		// the upper bound on this number is:
-		//   ((1e32 * DIVIDEND_AMT) / totalSupply) * balances[_account]
-		// since totalSupply >= balances[_account], this will overflow only if
-		//   DIVIDEND_AMT is around 1e45 wei. Not ever going to happen.
-		return _pointsPerToken * balances[_account];
+		// The upper bound on this number is:
+		//   ((1e32 * TOTAL_DIVIDEND_AMT) / totalSupply) * balances[_account]
+		// Since totalSupply >= balances[_account], this will overflow only if
+		//   TOTAL_DIVIDEND_AMT is around 1e45 wei. Not ever going to happen.
+		return _pointsPerToken * balanceOf[_account];
 	}
 
 

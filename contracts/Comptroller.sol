@@ -60,10 +60,10 @@ PERMISSIONS
 ------------------------------------------------------------------------
 
   Comptroller owns the Token, and is only address that can call:
- 	- token.mintTokens(address, amount)
+ 	- token.mint(address, amount)
  		- During CrowdSale
  		- When raising capital for Treasury
-	- token.burnTokens(address, amount)
+	- token.burn(address, amount)
 		- Only after SoftCap is met; when a user burns tokens.
 
   The following addresses have permission on Comptroller:
@@ -150,12 +150,12 @@ contract Comptroller {
 	{
 		wallet = _wallet;
 		treasury = _ICompTreasury(_treasury);
-		token = new DividendToken();
+		token = new DividendToken("PennyEtherToken", "PENNY");
 		locker = new DividendTokenLocker(token, _wallet);
 		// When initialized, the wallet should own the only token.
 		// Ensure it is not transferrable, since we'll burn it after CrowdSale.
-		token.mintTokens(wallet, 1);
-		token.setFrozen(true);
+		token.mint(wallet, 1);
+		token.freeze(true);
 	}
 
 
@@ -230,7 +230,7 @@ contract Comptroller {
 
 		// Mint the tokens for the user, increment totalRaised
 		uint _numTokens = getTokensFromEth(_amtToFund);
-		token.mintTokens(msg.sender, _numTokens);
+		token.mint(msg.sender, _numTokens);
 		totalRaised += _amtToFund;
 		BuyTokensSuccess(now, msg.sender, _amtToFund, _numTokens);
 
@@ -277,18 +277,18 @@ contract Comptroller {
 
 		// Softcap not met. Mint tokens so wallet owns ~100%.
 		if (!wasSoftCapMet) {
-			token.mintTokens(wallet, 1e30);
+			token.mint(wallet, 1e30);
 			SaleFailed(now);
 			return;
 		}
 
 		// Burn wallet's 1 token, and allow tokens to be transferred.
-		token.burnTokens(wallet, 1);
-		token.setFrozen(false);
+		token.burn(wallet, 1);
+		token.freeze(false);
 
 		// Mint 1/4 to locker (resuling in 20%), and start vesting.
 		uint _lockerAmt = token.totalSupply() / 4;
-		token.mintTokens(locker, _lockerAmt);
+		token.mint(locker, _lockerAmt);
 		locker.startVesting(_lockerAmt, 600);	// vest for 600 days.
 
 		// Move half of tokens' ETH value to reserve
@@ -331,7 +331,7 @@ contract Comptroller {
 		// Burn user's tokens, and send bankroll to user
 		// .removeFromBankroll will fail if unable to send.
 		uint _burnRefund = _amtToBurn / 2;
-		token.burnTokens(msg.sender, _amtToBurn);
+		token.burn(msg.sender, _amtToBurn);
 		treasury.removeReserve(_burnRefund, msg.sender);
 		BurnTokensSuccess(now, msg.sender, _amtToBurn, _burnRefund);
 	}
@@ -381,7 +381,7 @@ contract Comptroller {
 		uint _capital = _amount - _reserve;
 
 		// Mint tokens, send capital and reserve.
-		token.mintTokens(msg.sender, _amount);
+		token.mint(msg.sender, _amount);
 		treasury.addCapital.value(_capital)();
 		treasury.addReserve.value(_reserve)();
 		BuyTokensSuccess(now, msg.sender, _amount, _amount);
