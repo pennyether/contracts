@@ -28,6 +28,7 @@ contract TaskManager is
 	UsingAdmin,
 	UsingPennyAuctionController
 {
+	uint constant public version = 1;
 	uint public totalRewarded;
 
 	// Construct sets the registry and instantiates inherited classes.

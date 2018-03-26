@@ -3,7 +3,7 @@ var Treasury = artifacts.require("Treasury.sol");
 var PennyAuctionController = artifacts.require("PennyAuctionController.sol");
 var PennyAuctionFactory = artifacts.require("PennyAuctionFactory.sol");
 var PennyAuction = artifacts.require("PennyAuction.sol");
-var UnpayableBidder = artifacts.require("UnpayableBidder.sol");
+var ExpensivePayableBidder = artifacts.require("ExpensivePayableBidder.sol");
 
 const createDefaultTxTester = require("../../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
@@ -63,9 +63,9 @@ describe('PennyAuctionController', function(){
     var registry;
     var pac;
     var paf;
-    var unpayableBidder;
+    var expensiveBidder;
 
-    before("Set up Registry, PAC, PAF, and UnpayableBidder", async function(){
+    before("Set up Registry, PAC, PAF, and ExpensivePayableBidder", async function(){
         const addresses = {
             owner: owner,
             admin: admin,
@@ -113,10 +113,10 @@ describe('PennyAuctionController', function(){
                 .assertSuccess()
             .start();
 
-        this.logInfo("Create UnpayableBidder");
-        unpayableBidder = await UnpayableBidder.new({from: anon});
+        this.logInfo("Create ExpensivePayableBidder");
+        expensiveBidder = await ExpensivePayableBidder.new({from: anon});
         await createDefaultTxTester()
-            .addAddresses({unpayableBidder: unpayableBidder})
+            .addAddresses({expensiveBidder: expensiveBidder})
             .printNamedAddresses()
             .start();
     });
@@ -462,27 +462,27 @@ describe('PennyAuctionController', function(){
     });
 
     // Should still end auction as expected, and shouldn't stall controller
-    describe("Auction with an unpayable winner", async function(){
+    describe("Auction with an expensiveBidder winner", async function(){
         var auction3;
-        before("Bid on auction3 with UnpayableBidder, end it...", async function(){
+        before("Bid on auction3 with expensiveBidder, end it...", async function(){
             this.logInfo("Confirming auction3 is active...");
             auction3 = PennyAuction.at(await pac.getAuction(3));
             assert((await auction3.getBlocksRemaining()).gt(0), "auction3 has not ended yet");
 
-            // fund unpayable bidder, and bid on auction3
-            this.logInfo("Making UnpayableBidder bid on auction3...");
+            // fund expensiveBidder bidder, and bid on auction3
+            this.logInfo("Making expensiveBidder bid on auction3...");
             const toSend = DEF_3.bidPrice.mul(2);
-            await unpayableBidder.fund({value: toSend, from: anon});
-            assert.strEqual(await testUtil.getBalance(unpayableBidder), toSend);
-            await unpayableBidder.doBid(auction3.address, {from: anon});
-            assert.strEqual(await auction3.currentWinner(), unpayableBidder.address);
+            await expensiveBidder.fund({value: toSend, from: anon});
+            assert.strEqual(await testUtil.getBalance(expensiveBidder), toSend);
+            await expensiveBidder.doBid(auction3.address, {from: anon});
+            assert.strEqual(await auction3.currentWinner(), expensiveBidder.address);
 
             // fast-forward
             const blocksRemaining = await auction3.getBlocksRemaining();
             this.logInfo(`Mining ${blocksRemaining} blocks so auction3 ends...`)
             await testUtil.mineBlocks(blocksRemaining);
         });
-        it(".refreshAuctions() ends auction, collects fees, but doesnt pay unpayableBidder", async function(){
+        it(".refreshAuctions() ends auction, collects fees, but doesnt pay expensiveBidder", async function(){
             const callParams = [pac, "refreshAuctions", {from: anon}];
             const expPrize = await auction3.prize();
             const expFees = await auction3.fees();
@@ -491,7 +491,7 @@ describe('PennyAuctionController', function(){
             const expTotalPrizes = (await pac.totalPrizes()).plus(expPrize);
             return createDefaultTxTester()
                 .assertCallReturns(callParams, [1, expFees])
-                .startLedger([pac, unpayableBidder, anon])
+                .startLedger([pac, expensiveBidder, anon])
                 .startWatching([auction3])
                 .doTx(callParams)
                 .assertSuccess()
@@ -507,7 +507,7 @@ describe('PennyAuctionController', function(){
                     })
                 .stopLedger()
                     .assertDelta(pac, expFees)
-                    .assertNoDelta(unpayableBidder)
+                    .assertNoDelta(expensiveBidder)
                     .assertLostTxFee(anon)
                 .stopWatching()
                     .assertEventCount(auction3, 2)
@@ -518,7 +518,7 @@ describe('PennyAuctionController', function(){
                     .assertEvent(auction3, "SendPrizeFailure", {
                         time: null,
                         redeemer: pac.address,
-                        recipient: unpayableBidder.address,
+                        recipient: expensiveBidder.address,
                         amount: expPrize,
                         gasLimit: null
                         // gasLimit: 2300 // ganache bug misreports this

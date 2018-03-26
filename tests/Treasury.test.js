@@ -539,6 +539,7 @@ describe('Treasury', function(){
             .assertCallReturns([treasury, "curRequestId"], expId)
             .assertCallReturns([treasury, "getRequest", expId], expArr)
             .assertCallReturns([treasury, "numPendingRequests"], expNumPending)
+            .assertCallReturns([treasury, "pendingRequestIds", expNumPending.minus(1)], expId)
             .start();
     }
 
@@ -548,6 +549,7 @@ describe('Treasury', function(){
         expObj.dateCancelled = {not: 0};
         expObj.cancelledMsg = REASON;
         const expNumPending = (await treasury.numPendingRequests()).minus(1);
+        const expNumCancelled = (await treasury.numCancelledRequests()).plus(1);
 
         return createDefaultTxTester()
             .doTx([treasury, "cancelRequest", id, REASON, {from: admin}])
@@ -561,6 +563,8 @@ describe('Treasury', function(){
             })
             .assertCallReturns([treasury, "getRequest", id], requestFromObj(expObj))
             .assertCallReturns([treasury, "numPendingRequests"], expNumPending)
+            .assertCallReturns([treasury, "numCancelledRequests"], expNumCancelled)
+            .assertCallReturns([treasury, "cancelledRequestIds", expNumCancelled.minus(1)], id)
             .start();
     }
 
@@ -578,6 +582,7 @@ describe('Treasury', function(){
         expObj.executedSuccessfully = expSuccess;
         expObj.executedMsg = expExecuteMsg;
         const expNumPending = (await treasury.numPendingRequests()).minus(1);
+        const expNumCompleted = (await treasury.numCompletedRequests()).plus(1);
 
         return createDefaultTxTester()
             .doTx([treasury, "executeRequest", id, {from: admin}])
@@ -593,6 +598,8 @@ describe('Treasury', function(){
             })
             .assertCallReturns([treasury, "getRequest", id], requestFromObj(expObj))
             .assertCallReturns([treasury, "numPendingRequests"], expNumPending)
+            .assertCallReturns([treasury, "numCompletedRequests"], expNumCompleted)
+            .assertCallReturns([treasury, "completedRequestIds", expNumCompleted.minus(1)], id)
             .start();
     }
 
@@ -601,6 +608,7 @@ describe('Treasury', function(){
         expObj.dateCancelled = {not: 0};
         expObj.cancelledMsg = "Request timed out.";
         const expNumPending = (await treasury.numPendingRequests()).minus(1);
+        const expNumCancelled = (await treasury.numCancelledRequests()).plus(1);
 
         return createDefaultTxTester()
             .doTx([treasury, "executeRequest", id, {from: account}])
@@ -614,6 +622,8 @@ describe('Treasury', function(){
             })
             .assertCallReturns([treasury, "getRequest", id], requestFromObj(expObj))
             .assertCallReturns([treasury, "numPendingRequests"], expNumPending)
+            .assertCallReturns([treasury, "numCancelledRequests"], expNumCancelled)
+            .assertCallReturns([treasury, "cancelledRequestIds", expNumCancelled.minus(1)], id)
             .start();
     }
 

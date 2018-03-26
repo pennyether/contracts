@@ -142,6 +142,10 @@ contract PennyAuctionController is
     /******* PUBLIC FUNCTIONS ************************************/
     /*************************************************************/
 
+    function () public payable {
+         totalFees += msg.value;
+    }
+
 	// This is called by anyone when a new PennyAuction should be started.
 	// In reality will only be called by TaskManager.
     //
@@ -242,7 +246,6 @@ contract PennyAuctionController is
             // that should realistically never happen.
     		uint _fees = _auction.sendFees();
             _feesCollected += _fees;
-            totalFees += _fees;
 
 			// attempt to pay winner, update stats, and set auction to empty.
 			if (_auction.isEnded()) {

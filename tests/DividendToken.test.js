@@ -18,7 +18,7 @@ var token;
 var unpayable;
 
 describe('DividendToken', function(){
-    before("Initialize TokenCrowdSale", async function(){
+    before("Initialize DividendToken and UnpayableTokenHolder", async function(){
         const addresses = {
             comptroller: comptroller,
             account1: account1,

@@ -24,7 +24,7 @@ contract Requestable is
 {
 	uint32 public constant WAITING_TIME = 60*60*24*7;	// 1 week
 	uint32 public constant TIMEOUT_TIME = 60*60*24*14;	// 2 weeks
-	uint8 public constant MAX_PENDING_REQUESTS = 20;
+	uint32 public constant MAX_PENDING_REQUESTS = 10;
 
 	// Requests.
 	enum RequestType {SendCapital, RecallCapital, RaiseCapital}
@@ -45,7 +45,9 @@ contract Requestable is
 	}
 	mapping (uint32 => Request) public requests;
 	uint32 public curRequestId;
-	uint8 public numPendingRequests;
+	uint32[] public completedRequestIds;
+	uint32[] public cancelledRequestIds;
+	uint32[] public pendingRequestIds;
 
 	// Events.
 	event RequestCreated(uint time, uint indexed id, uint indexed typeId, address indexed target, uint value, string msg);
@@ -59,13 +61,11 @@ contract Requestable is
 	{ }
 
 	// Creates a request, assigning it the next ID.
+	// Throws if there are already 8 pending requests.
 	function createRequest(uint _typeId, address _target, uint _value, string _msg)
 		public
 		fromAdmin
 	{
-		require(numPendingRequests < MAX_PENDING_REQUESTS);
-		numPendingRequests++;
-
 		uint32 _id = ++curRequestId;
 		requests[_id].id = _id;
 		requests[_id].typeId = uint8(RequestType(_typeId));
@@ -73,10 +73,12 @@ contract Requestable is
 		requests[_id].createdMsg = _msg;
 		requests[_id].target = _target;
 		requests[_id].value = _value;
+		_addPendingRequestId(_id);
 		RequestCreated(now, _id, _typeId, _target, _value, _msg);
 	}
 
-	// Cancels a request if it is not already cancelled or executed.
+	// Cancels a request.
+	// Throws if already cancelled or executed.
 	function cancelRequest(uint32 _id, string _msg)
 		public
 		fromAdmin
@@ -86,7 +88,8 @@ contract Requestable is
 		require(r.id != 0 && r.dateCancelled == 0 && r.dateExecuted == 0);
 		r.dateCancelled = uint32(now);
 		r.cancelledMsg = _msg;
-		numPendingRequests--;
+		_removePendingRequestId(_id);
+		cancelledRequestIds.push(_id);
 		RequestCancelled(now, r.id, r.typeId, r.target, _msg);
 	}
 
@@ -123,8 +126,38 @@ contract Requestable is
 		// Save results, and emit.
 		r.executedSuccessfully = _success;
 		r.executedMsg = _msg;
-		numPendingRequests--;
+		_removePendingRequestId(_id);
+		completedRequestIds.push(_id);
 		RequestExecuted(now, r.id, r.typeId, r.target, _success, _msg);
+	}
+
+	// Pushes id onto the array, throws if too many.
+	function _addPendingRequestId(uint32 _id)
+		private
+	{
+		require(pendingRequestIds.length != MAX_PENDING_REQUESTS);
+		pendingRequestIds.push(_id);
+	}
+
+	// Removes id from array, reduces array length by one.
+	// Throws if not found.
+	function _removePendingRequestId(uint32 _id)
+		private
+	{
+		// Find this id in the array, or throw.
+		uint _len = pendingRequestIds.length;
+		uint _foundIndex = MAX_PENDING_REQUESTS;
+		for (uint _i=0; _i<_len; _i++) {
+			if (pendingRequestIds[_i] == _id) {
+				_foundIndex = _i;
+				break;
+			}
+		}
+		require(_foundIndex != MAX_PENDING_REQUESTS);
+
+		// Swap last element to this index, then delete last element.
+		pendingRequestIds[_foundIndex] = pendingRequestIds[_len-1];
+		pendingRequestIds.length--;
 	}
 
 	// These methods must be implemented by Treasury /////////////////
@@ -164,6 +197,17 @@ contract Requestable is
 		_isExecutable = (r.id>0 && r.dateCancelled==0 && r.dateExecuted==0);
 		_isExecutable = _isExecutable && (uint32(now) > r.dateCreated + WAITING_TIME);
 		return _isExecutable;
+	}
+
+	// Return the lengths of arrays.
+	function numPendingRequests() public view returns (uint _num){
+		return pendingRequestIds.length;
+	}
+	function numCompletedRequests() public view returns (uint _num){
+		return completedRequestIds.length;
+	}
+	function numCancelledRequests() public view returns (uint _num){
+		return cancelledRequestIds.length;
 	}
 }
 
@@ -229,6 +273,7 @@ contract Treasury is
 
 	// Stats
 	uint public profitsSent;		  // Total profits ever sent.
+	uint public profitsTotal;		  // Total profits ever received.
 
 	// for functions only callable by Comptroller
 	modifier fromComptroller() { require(msg.sender==comptroller); _; }
@@ -327,6 +372,7 @@ contract Treasury is
 	// Can receive Ether from anyone. Typically Bankrollable contracts' profits.
 	function () public payable {
 		profits += msg.value;
+		profitsTotal += msg.value;
 		ProfitsReceived(now, msg.sender, msg.value);
 	}
 
