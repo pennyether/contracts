@@ -34,6 +34,7 @@ contract CustodialWallet {
     modifier fromSupervisor() { require(msg.sender == supervisor); _; }
     modifier fromCustodian() { require(msg.sender == custodian); _; }
 
+    event Created(uint time);
     event CallSuccess(uint time, address indexed to, string msg);
     event CallFailure(uint time, address indexed to, string msg);
     event CollectSuccess(uint time, address indexed recipient, uint amt);
@@ -48,6 +49,7 @@ contract CustodialWallet {
         _setCustodian(_custodian);
         _setSupervisor(_supervisor);
         _setOwner(_owner);
+        Created(now);
     }
     
     // Does a call on behalf of this wallet.

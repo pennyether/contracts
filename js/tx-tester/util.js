@@ -118,12 +118,6 @@ function createUtil(web3, assert){
 	            id: new Date().getTime()
 	        });
 			// mine a block to make sure future calls use updated time.
-			web3.currentProvider.send({
-	            jsonrpc: "2.0",
-	            method: "evm_mine",
-	            params: null,
-	            id: new Date().getTime()
-	        });
 	        _self.mineBlocks(1);
 	        
 	        console.log(`Fast forwarded ${timeInSeconds} seconds`);

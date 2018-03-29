@@ -86,6 +86,7 @@ contract InstaDice is
 	uint8 constant public version = 1;
 	
     // Admin events
+    event Created(uint time);
     event SettingsChanged(uint time, address indexed sender);
     event FundingRemoved(uint time, address indexed recipient, uint amount, uint funding);
 
@@ -107,6 +108,7 @@ contract InstaDice is
         settings.minNumber = 5;
         settings.maxNumber = 98;
         settings.feeBips = 100;
+        Created(now);
     }
 
 

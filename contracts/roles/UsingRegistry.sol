@@ -1,11 +1,12 @@
 pragma solidity ^0.4.19;
 
 /******* USING Registry **************************
+
 Gives the inherting contract access to:
 	.addressOf(bytes32): returns current address mapped to the name.
 	[modifier] .fromOwner(): requires the sender is owner.
-*/
 
+*************************************************/
 // Returned by .getRegistry()
 interface IRegistry {
 	function owner() public constant returns (address _addr);

@@ -14,6 +14,7 @@ contract ERC20 {
 	mapping (address => uint) public balanceOf;
 	mapping (address => mapping (address => uint)) public allowance;
 
+	event Created(uint time);
 	event Transfer(address indexed from, address indexed to, uint amount);
 	event Approval(address indexed owner, address indexed spender, uint amount);
 	event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
@@ -23,6 +24,7 @@ contract ERC20 {
 	{
 		name = _name;
 		symbol = _symbol;
+		Created(now);
 	}
 
 	function transfer(address _to, uint _value)

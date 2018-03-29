@@ -39,6 +39,7 @@ contract Registry {
     address public owner;
     modifier fromOwner() { require(msg.sender==owner); _; }
 
+    event Created(uint time);
     event Registered(uint time, bytes32 name, address addr);
     event Unregistered(uint time, bytes32 name);
 
@@ -47,6 +48,7 @@ contract Registry {
         public
     {
         owner = _owner;
+        Created(now);
     }
 
 

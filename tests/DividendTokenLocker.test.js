@@ -38,7 +38,7 @@ describe('DividendTokenLocker', function(){
         await createDefaultTxTester()
             .doNewTx(DividendTokenLocker, [token.address, owner], {from: dummyComptroller})
             .assertSuccess()
-            .assertOnlyLog("Initialized",{
+            .assertOnlyLog("Created",{
                 comptroller: dummyComptroller,
                 token: token.address,
                 owner: owner

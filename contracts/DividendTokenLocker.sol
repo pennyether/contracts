@@ -33,7 +33,7 @@ contract DividendTokenLocker {
 	uint public vestingDays;
 
 	// events, for transparency
-	event Initialized(uint time, address comptroller, address token, address owner);
+	event Created(uint time, address comptroller, address token, address owner);
 	event VestingStarted(uint time, uint numTokens, uint vestingDays);
 	event Transferred(uint time, address recipient, uint numTokens);
 	event Collected(uint time, address recipient, uint amount);
@@ -45,7 +45,7 @@ contract DividendTokenLocker {
     	comptroller = msg.sender;
 		token = IDividendToken(_token);
 		owner = _owner;
-		Initialized(now, comptroller, token, owner);
+		Created(now, comptroller, token, owner);
 	}
 
 	// Allow this contract to get sent Ether (eg, dividendsOwed)

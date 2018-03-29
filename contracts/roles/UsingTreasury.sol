@@ -3,11 +3,12 @@ pragma solidity ^0.4.19;
 import "./UsingRegistry.sol";
 
 /******* USING TREASURY **************************
+
 Gives the inherting contract access to:
 	.getTreasury(): returns current ITreasury instance
 	[modifier] .fromTreasury(): requires the sender is current Treasury
-*/
 
+*************************************************/
 // Returned by .getTreasury()
 contract ITreasury {
 	function fundMainController(uint _value, string _note) public returns (bool _success);

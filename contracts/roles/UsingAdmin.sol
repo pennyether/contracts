@@ -4,10 +4,12 @@ import "./UsingRegistry.sol";
 
 
 /******* USING ADMIN ***********************
+
 Gives the inherting contract access to:
 	.getAdmin(): returns the current address of the admin
 	[modifier] .fromAdmin: requires the sender is the admin
-*/
+
+*************************************************/
 contract UsingAdmin is
 	UsingRegistry
 {

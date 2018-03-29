@@ -280,6 +280,7 @@ contract Treasury is
 	modifier fromOwner(){ require(msg.sender==owner); _; }
 
 	// EVENTS
+	event Created(uint time);
 	// Admin triggered events
 	event TokenSet(uint time, address sender, address token);
 	event ComptrollerSet(uint time, address sender, address comptroller);
@@ -310,6 +311,7 @@ contract Treasury is
 	{
 		owner = _owner;
 		capitalLedger = new Ledger(this);
+		Created(now);
 	}
 
 

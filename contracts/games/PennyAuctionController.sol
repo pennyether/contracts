@@ -59,6 +59,7 @@ contract PennyAuctionController is
         uint initialBlocks;		// definable via editDefinedAuction
     }
 
+    event Created(uint time);
 	event Error(uint time, string msg);
 	event DefinedAuctionEdited(uint time, uint index);
     event DefinedAuctionInvalid(uint time, uint index);
@@ -72,7 +73,9 @@ contract PennyAuctionController is
         UsingAdmin(_registry)
         UsingPennyAuctionFactory(_registry)
         public
-	{}
+	{
+        Created(now);
+    }
 
 
     /*************************************************************/

@@ -31,12 +31,19 @@ contract TaskManager is
 	uint constant public version = 1;
 	uint public totalRewarded;
 
+	event Created(uint time);
+	event TaskError(uint time, address indexed caller, string msg);
+	event RewardSuccess(uint time, address indexed caller, uint reward);
+	event RewardFailure(uint time, address indexed caller, uint reward, string msg);
+
 	// Construct sets the registry and instantiates inherited classes.
 	function TaskManager(address _registry)
 		Bankrollable(_registry)
 		UsingAdmin(_registry)
 		UsingPennyAuctionController(_registry)
-	{}
+	{
+		Created(now);
+	}
 
 	function _error(string _msg) private {
 		TaskError(now, msg.sender, _msg);
@@ -60,12 +67,6 @@ contract TaskManager is
 	// IMPLEMENT BANKROLLABLE FUNCTIONS
 	function getCollateral() public view returns (uint) {}
 	function getWhitelistOwner() public view returns (address){ return getAdmin(); }
-
-	event TaskError(uint time, address indexed caller, string msg);
-	event RewardSuccess(uint time, address indexed caller, uint reward);
-	event RewardFailure(uint time, address indexed caller, uint reward, string msg);
-
-
 
 
 	///////////////////////////////////////////////////////////////////

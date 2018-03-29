@@ -3,11 +3,12 @@ pragma solidity ^0.4.19;
 import "./UsingRegistry.sol";
 
 /******* USING PAC **************************
+
 Gives the inherting contract access to:
 	.getPac(): returns current IPac instance
 	[modifier] .fromPac(): requires the sender is current Pac.
-*/
 
+*************************************************/
 // Returned by .getPennyAuctionController()
 interface IPennyAuctionController {
 	function refreshAuctions() public returns (uint _numAuctionsEnded, uint _feesSent);

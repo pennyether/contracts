@@ -130,6 +130,7 @@ contract Comptroller {
 	// Stores amtFunded for useres contributing before softCap is met
 	mapping (address => uint) public amtFunded;	
 
+	event Created(uint time, address wallet, address treasury);
 	// CrowdSale Meta Events
 	event SaleInitalized(uint time);		// emitted when wallet calls .initSale()
 	event SaleStarted(uint time);			// emitted upon first tokens bought
@@ -156,6 +157,7 @@ contract Comptroller {
 		// Ensure it is not transferrable, since we'll burn it after CrowdSale.
 		token.mint(wallet, 1);
 		token.freeze(true);
+		Created(now, _wallet, _treasury);
 	}
 
 

@@ -73,6 +73,7 @@ contract VideoPoker is
     uint8 constant WARN_BOTH_TIMEOUT = 3;  // "Draw cards not available, and no initial hand."
     
     // Admin Events
+    event Created(uint time);
     event PayTableAdded(uint time, address admin, uint payTableId);
     event SettingsChanged(uint time, address admin);
     // Game Events
@@ -103,6 +104,7 @@ contract VideoPoker is
         // initialize settings
         settings.minBet = .001 ether;
         settings.maxBet = .5 ether;
+        Created(now);
     }
     
     
