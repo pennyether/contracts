@@ -372,4 +372,13 @@ contract PennyAuctionController is
     {
         return endedAuctions.length;
     }
+    function numActiveAuctions()
+        public
+        view
+        returns (uint _count)
+    {
+        for (uint _i = 0; _i < numDefinedAuctions; _i++) {
+            if (definedAuctions[_i].auction != IPennyAuction(0)) _count++;
+        }
+    }
 }
