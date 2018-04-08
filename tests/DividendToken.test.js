@@ -601,6 +601,7 @@ describe('DividendToken', function(){
     async function assertCanBurn(acct, amount) {
         const expectedBal = (await token.balanceOf(acct)).minus(amount);
         const expectedTotal = (await token.totalSupply()).minus(amount);
+        const expectedTotalBurned = (await token.totalBurned()).plus(amount);
         return createDefaultTxTester()
             .doTx([token, "burn", acct, amount, {from: comptroller}])
             .assertSuccess()
@@ -610,6 +611,8 @@ describe('DividendToken', function(){
                 newTotalSupply: expectedTotal
             })
             .assertCallReturns([token, "balanceOf", acct], expectedBal)
+            .assertCallReturns([token, "totalSupply"], expectedTotal)
+            .assertCallReturns([token, "totalBurned"], expectedTotalBurned)
             .start();
     }
 });

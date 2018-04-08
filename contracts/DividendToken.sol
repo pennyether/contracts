@@ -156,6 +156,7 @@ contract DividendToken is ERC667
 	uint public totalDividends;
 	uint public collectedDividends;
 	uint public totalPointsPerToken;
+	uint public totalBurned;
 	mapping (address => uint) public creditedPoints;
 	mapping (address => uint) public lastPointsPerToken;
 
@@ -208,6 +209,7 @@ contract DividendToken is ERC667
 		updateCreditedPoints(_account);
 		balanceOf[_account] -= _amount;
 		totalSupply -= _amount;
+		totalBurned += _amount;
 		TokensBurned(now, _account, _amount, totalSupply);
 	}
 
