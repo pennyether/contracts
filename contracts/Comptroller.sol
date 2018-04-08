@@ -120,7 +120,7 @@ contract Comptroller {
 	uint public softCap;			// sale considered successfull if amt met
 	uint public hardCap;			// will not raise more than this
 	uint public bonusCap;			// amt at which bonus ends
-	uint public capital;			// amt to send to Treasury as capital
+	uint public targetCapital;		// amt to send to Treasury as capital
 
 	// CrowdSale Variables
 	uint public totalRaised;
@@ -167,20 +167,20 @@ contract Comptroller {
 
 	// Sets parameters of the CrowdSale
 	// Cannot be called once the crowdsale has started.
-	function initSale(uint _dateStarted, uint _dateEnded, uint _softCap, uint _hardCap, uint _bonusCap, uint _capital)
+	function initSale(uint _dateStarted, uint _dateEnded, uint _softCap, uint _hardCap, uint _bonusCap, uint _targetCapital)
 		public
 	{
 		require(msg.sender == wallet);
 		require(!wasSaleStarted);
 		require(_softCap <= _hardCap);
 		require(_bonusCap <= _hardCap);
-		require(_capital <= _softCap);
+		require(_targetCapital <= _softCap);
 		dateSaleStarted = _dateStarted;
 		dateSaleEnded = _dateEnded;
 		softCap = _softCap;
 		hardCap = _hardCap;
 		bonusCap = _bonusCap;
-		capital = _capital;
+		targetCapital = _targetCapital;
 		SaleInitalized(now);
 	}
 
@@ -259,7 +259,7 @@ contract Comptroller {
 	//   - Unfreezes tokens.
 	//   - Gives owners 20% in TokenLocker, vesting 600 days.
 	//   - Sends .5 Eth per token to Treasury, as reserve.
-	//   - Sends `capital` to Treasury, as capital raised.
+	//   - Sends `targetCapital` to Treasury, as capital raised.
 	//   - Sends remaining funds to Owner Wallet
 	//
 	// If SoftCap not met:
@@ -295,8 +295,8 @@ contract Comptroller {
 
 		// Move half of tokens' ETH value to reserve
 		treasury.addReserve.value(token.totalSupply() / 2)();
-		// Send up to `capital` ETH to treasury as capital
-		uint _capitalAmt = this.balance > capital ? capital : this.balance - capital;
+		// Send up to `targetCapital` ETH to treasury as capital
+		uint _capitalAmt = this.balance > targetCapital ? targetCapital : this.balance;
 		treasury.addCapital.value(_capitalAmt)();
 		
 		// Send remaining balance to wallet
@@ -372,7 +372,7 @@ contract Comptroller {
 			return _errorBuyingTokens("SoftCap was not met.");
 			
 		// Cap _amount to the amount we need. Error if 0.
-		uint _amtNeeded = treasury.capitalNeeded() * 2;
+		uint _amtNeeded = capitalFundable();
 		uint _amount = msg.value > _amtNeeded ? _amtNeeded : msg.value;
 		if (_amount == 0) {
 			return _errorBuyingTokens("No capital is needed.");
@@ -414,6 +414,15 @@ contract Comptroller {
 	/*************************************************************/
 	/********** PUBLIC VIEWS *************************************/
 	/*************************************************************/
+
+	// Returns the amount of Ether that can be sent to ".fundCapital()"
+	function capitalFundable()
+		public
+		view
+		returns (uint _amt)
+	{
+		return treasury.capitalNeeded() * 2;
+	}
 
 	// Returns the total amount of tokens minted at a given _ethAmt raised.
 	// This hard codes the following:

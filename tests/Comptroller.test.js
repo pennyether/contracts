@@ -41,7 +41,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         const SOFT_CAP = new BigNumber(1e16);
         const BONUS_CAP = new BigNumber(2e16);
         const HARD_CAP = new BigNumber(3e16);
-        const CAPITAL = new BigNumber(1e15);
+        const TARGET_CAPITAL = new BigNumber(1e15);
 
         before("Set up Treasury, and create Comptroller.", async function(){
             await createDefaultTxTester().nameAddresses({
@@ -138,7 +138,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertInvalidOpCode()
                     .start();
             });
-            it("fails if capital > softCap", function(){
+            it("fails if targetCapital > softCap", function(){
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
                         DATE_STARTED, DATE_ENDED, 1, 2, 3, 2, {from: wallet}])
@@ -160,7 +160,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 this.logInfo(`CrowdSale will end ${sTilEnd} seconds after it starts.`);
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, CAPITAL, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, TARGET_CAPITAL, {from: wallet}])
                     .assertSuccess()
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "dateSaleStarted"], DATE_STARTED)
@@ -168,6 +168,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertCallReturns([comptroller, "softCap"], SOFT_CAP)
                     .assertCallReturns([comptroller, "hardCap"], HARD_CAP)
                     .assertCallReturns([comptroller, "bonusCap"], BONUS_CAP)
+                    .assertCallReturns([comptroller, "targetCapital"], TARGET_CAPITAL)
                     .start();
             });
         });
@@ -232,8 +233,8 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     ? "Sale can immediately be ended."
                     : "Sale can now be ended.";
                 it(itStr, async function(){
-                    // treasury should get .5 for all burnable, plus capital
-                    const expCapital = CAPITAL;
+                    // treasury should get .5 for all burnable, plus targetCapital
+                    const expCapital = TARGET_CAPITAL;
                     const expTotalSupply = (await token.totalSupply()).minus(1).mul(1.25);
                     const expReserve = expTotalSupply.mul(.5);
                     const expTreasuryDelta = expReserve.plus(expCapital);
@@ -256,7 +257,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         .assertOnlyLog("SaleSuccessful")
                         .stopWatching()
                             .assertEvent(treasury, "CapitalRaised", {
-                                amount: CAPITAL
+                                amount: TARGET_CAPITAL
                             })
                             .assertEvent(treasury, "ReserveAdded", {
                                 sender: comptroller.address,
