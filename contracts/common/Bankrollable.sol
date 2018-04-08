@@ -126,8 +126,9 @@ contract Bankrollable is
         public
         returns (uint _profits)
     {
-        _profits = profits();
-        if (_profits == 0) return;
+        int _p = profits();
+        if (_p <= 0) return;
+        _profits = uint(_p);
         profitsSent += _profits;
         // Send profits to Treasury
         address _tr = getTreasury();
@@ -152,23 +153,24 @@ contract Bankrollable is
         view
         returns (address _addr);
 
-    // Profits are anything above bankroll + collateral, or 0.
+    // Profits are the difference between balance and threshold
     function profits()
         public
         view
-        returns (uint _profits)
+        returns (int _profits)
     {
-        uint _balance = this.balance;
-        uint _threshold = bankroll + getCollateral();
-        return _balance > _threshold ? _balance - _threshold : 0;
+        int _balance = int(this.balance);
+        int _threshold = int(bankroll + getCollateral());
+        return _balance - _threshold;
     }
 
+    // How profitable this contract is, overall
     function profitsTotal()
         public
         view
-        returns (uint _profits)
+        returns (int _profits)
     {
-        return profitsSent + profits();
+        return int(profitsSent) + profits();
     }
 
     // Returns the amount that can currently be bankrolled.

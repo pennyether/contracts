@@ -5,7 +5,7 @@ const createDefaultTxTester = require("../../js/tx-tester/tx-tester.js")
     .createDefaultTxTester.bind(null, web3, assert, it);
 const testUtil = createDefaultTxTester().plugins.testUtil;
 const BigNumber = web3.toBigNumber(0).constructor;
-const BankrollableUtils = require("./helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
+const BankrollableUtils = require("../helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
 
 describe('Bankrollable', function(){
     const accounts = web3.eth.accounts;
@@ -214,7 +214,7 @@ describe('Bankrollable', function(){
             this.logInfo("");
             this.logInfo("Collateral < Balance, and Balance < acct1Bankrolled");
         });
-        it(".bankrollAvilable() returns >0 GWei, .getProfits() returns 0", function(){
+        it(".bankrollAvilable() returns >0 GWei, .profits() returns 0", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".sendProfits() sends nothing", function(){
@@ -226,7 +226,7 @@ describe('Bankrollable', function(){
             this.logInfo("This maintains a balance above the collateral.");
             return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, acct1Bankrolled);
         });
-        it(".bankrollAvilable() returns 0, .getProfits() returns 0", function(){
+        it(".bankrollAvilable() returns 0, .profits() returns negative", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
     });
@@ -254,20 +254,20 @@ describe('Bankrollable', function(){
             this.logInfo("");
             this.logInfo("Balance > ProfitThreshold, and acct1Bankrolled > 0");
         });
-        it(".bankrollAvilable(), .getProfits() returns non-zero values", function(){
+        it(".bankrollAvilable(), .profits() returns non-zero values", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".removeBankroll() works", function(){
             this.logInfo("This should remove account 1's remaining bankroll");
             return BankrollableUtils.assertRemovesBankroll(bankrollable, account1, 1e20);
         });
-        it(".bankrollAvilable() decreases, .getProfits() remains the same", function(){
+        it(".bankrollAvilable() decreases, .profits() remains the same", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".sendProfits() works", function(){
             return BankrollableUtils.assertSendsProfits(bankrollable, anon);
         });
-        it(".bankrollAvilable() remains the same, .getProfits() is now 0", function(){
+        it(".bankrollAvilable() remains the same, .profits() is now 0", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
     });
