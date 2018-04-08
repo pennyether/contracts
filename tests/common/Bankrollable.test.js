@@ -214,7 +214,7 @@ describe('Bankrollable', function(){
             this.logInfo("");
             this.logInfo("Collateral < Balance, and Balance < acct1Bankrolled");
         });
-        it(".bankrollAvilable() returns >0 GWei, .profits() returns 0", function(){
+        it(".bankrollAvilable() returns >0 GWei, .profits() returns negative", function(){
             return BankrollableUtils.assertState(bankrollable);
         });
         it(".sendProfits() sends nothing", function(){
