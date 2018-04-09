@@ -120,7 +120,7 @@ contract Comptroller {
 	uint public softCap;			// sale considered successfull if amt met
 	uint public hardCap;			// will not raise more than this
 	uint public bonusCap;			// amt at which bonus ends
-	uint public targetCapital;		// amt to send to Treasury as capital
+	uint public capitalPctBips;		// amt to send to Treasury as capital (100 = 1%)
 
 	// CrowdSale Variables
 	uint public totalRaised;
@@ -130,14 +130,14 @@ contract Comptroller {
 	// Stores amtFunded for useres contributing before softCap is met
 	mapping (address => uint) public amtFunded;	
 
-	event Created(uint time, address wallet, address treasury);
+	event Created(uint time, address wallet, address treasury, address token, address locker);
 	// CrowdSale Meta Events
 	event SaleInitalized(uint time);		// emitted when wallet calls .initSale()
 	event SaleStarted(uint time);			// emitted upon first tokens bought
 	event SaleSuccessful(uint time);		// emitted when sale ends (may happen early)
 	event SaleFailed(uint time);			// emitted if softCap not reached
 	// CrowdSale purchase
-	event BuyTokensSuccess(uint time, address indexed account, uint value, uint numTokens);
+	event BuyTokensSuccess(uint time, address indexed account, uint funded, uint numTokens);
 	event BuyTokensFailure(uint time, address indexed account, string reason);
 	// If user sends too much, or if softcap not met.
 	event UserRefunded(uint time, address indexed account, uint refund);
@@ -157,7 +157,7 @@ contract Comptroller {
 		// Ensure it is not transferrable, since we'll burn it after CrowdSale.
 		token.mint(wallet, 1);
 		token.freeze(true);
-		Created(now, _wallet, _treasury);
+		Created(now, wallet, treasury, token, locker);
 	}
 
 
@@ -167,20 +167,20 @@ contract Comptroller {
 
 	// Sets parameters of the CrowdSale
 	// Cannot be called once the crowdsale has started.
-	function initSale(uint _dateStarted, uint _dateEnded, uint _softCap, uint _hardCap, uint _bonusCap, uint _targetCapital)
+	function initSale(uint _dateStarted, uint _dateEnded, uint _softCap, uint _hardCap, uint _bonusCap, uint _capitalPctBips)
 		public
 	{
 		require(msg.sender == wallet);
 		require(!wasSaleStarted);
 		require(_softCap <= _hardCap);
 		require(_bonusCap <= _hardCap);
-		require(_targetCapital <= _softCap);
+		require(_capitalPctBips <= 10000);
 		dateSaleStarted = _dateStarted;
 		dateSaleEnded = _dateEnded;
 		softCap = _softCap;
 		hardCap = _hardCap;
 		bonusCap = _bonusCap;
-		targetCapital = _targetCapital;
+		capitalPctBips = _capitalPctBips;
 		SaleInitalized(now);
 	}
 
@@ -259,7 +259,7 @@ contract Comptroller {
 	//   - Unfreezes tokens.
 	//   - Gives owners 20% in TokenLocker, vesting 600 days.
 	//   - Sends .5 Eth per token to Treasury, as reserve.
-	//   - Sends `targetCapital` to Treasury, as capital raised.
+	//   - Sends `capitalPctBip` to Treasury, as capital raised.
 	//   - Sends remaining funds to Owner Wallet
 	//
 	// If SoftCap not met:
@@ -295,8 +295,9 @@ contract Comptroller {
 
 		// Move half of tokens' ETH value to reserve
 		treasury.addReserve.value(token.totalSupply() / 2)();
-		// Send up to `targetCapital` ETH to treasury as capital
-		uint _capitalAmt = this.balance > targetCapital ? targetCapital : this.balance;
+		// Send up to `_capitalAmt` ETH to treasury as capital
+		uint _capitalAmt = (totalRaised * capitalPctBips) / 10000;
+		if (this.balance < _capitalAmt) _capitalAmt = this.balance;
 		treasury.addCapital.value(_capitalAmt)();
 		
 		// Send remaining balance to wallet
@@ -383,6 +384,7 @@ contract Comptroller {
 		uint _capital = _amount - _reserve;
 
 		// Mint tokens, send capital and reserve.
+		totalRaised += _amount;
 		token.mint(msg.sender, _amount);
 		treasury.addCapital.value(_capital)();
 		treasury.addReserve.value(_reserve)();

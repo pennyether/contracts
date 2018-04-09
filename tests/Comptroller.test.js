@@ -41,7 +41,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         const SOFT_CAP = new BigNumber(1e16);
         const BONUS_CAP = new BigNumber(2e16);
         const HARD_CAP = new BigNumber(3e16);
-        const TARGET_CAPITAL = new BigNumber(1e15);
+        const CAPITAL_PCT_BIPS = new BigNumber(750);
 
         before("Set up Treasury, and create Comptroller.", async function(){
             await createDefaultTxTester().nameAddresses({
@@ -138,10 +138,10 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertInvalidOpCode()
                     .start();
             });
-            it("fails if targetCapital > softCap", function(){
+            it("fails if capitalPctBips > 10000", function(){
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, 1, 2, 3, 2, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, 1, 2, 3, 10001, {from: wallet}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -160,7 +160,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 this.logInfo(`CrowdSale will end ${sTilEnd} seconds after it starts.`);
                 return createDefaultTxTester()
                     .doTx([comptroller, "initSale",
-                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, TARGET_CAPITAL, {from: wallet}])
+                        DATE_STARTED, DATE_ENDED, SOFT_CAP, HARD_CAP, BONUS_CAP, CAPITAL_PCT_BIPS, {from: wallet}])
                     .assertSuccess()
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "dateSaleStarted"], DATE_STARTED)
@@ -168,7 +168,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertCallReturns([comptroller, "softCap"], SOFT_CAP)
                     .assertCallReturns([comptroller, "hardCap"], HARD_CAP)
                     .assertCallReturns([comptroller, "bonusCap"], BONUS_CAP)
-                    .assertCallReturns([comptroller, "targetCapital"], TARGET_CAPITAL)
+                    .assertCallReturns([comptroller, "capitalPctBips"], CAPITAL_PCT_BIPS)
                     .start();
             });
         });
@@ -233,22 +233,23 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     ? "Sale can immediately be ended."
                     : "Sale can now be ended.";
                 it(itStr, async function(){
-                    // treasury should get .5 for all burnable, plus targetCapital
-                    const expCapital = TARGET_CAPITAL;
+                    // treasury should get .5 for all burnable, plus capital
+                    const totalRaised = await comptroller.totalRaised();
                     const expTotalSupply = (await token.totalSupply()).minus(1).mul(1.25);
+                    const expCapital = totalRaised.mul(CAPITAL_PCT_BIPS.div(10000)).floor();
                     const expReserve = expTotalSupply.mul(.5);
                     const expTreasuryDelta = expReserve.plus(expCapital);
-                    // wallet should get remaining
-                    const expWalletDelta = (await comptroller.totalRaised())
-                        .minus(expTreasuryDelta);
+                    const expWalletDelta = totalRaised.minus(expTreasuryDelta);
                     // these should not change
                     const expAcc1Tokens = await token.balanceOf(account1);
                     const expAcc2Tokens = await token.balanceOf(account2);
                     const expAcc3Tokens = await token.balanceOf(account3);
 
                     this.logInfo("Sale should succeed:");
-                    this.logInfo("  - Treasury should get some ETH.");
-                    this.logInfo("  - Wallet should get some ETH.")
+                    this.logInfo(`  - Total Raised: ${toEth(totalRaised)}`)
+                    this.logInfo(`  - Treasury should get reserve: ${toEth(expReserve)}`);
+                    this.logInfo(`  - Treasury should get capital: ${toEth(expCapital)}`);
+                    this.logInfo(`  - Wallet should get remaining: ${toEth(expWalletDelta)}`);
                     await createDefaultTxTester()
                         .startWatching([treasury])
                         .startLedger([anon, treasury, wallet])
@@ -257,7 +258,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         .assertOnlyLog("SaleSuccessful")
                         .stopWatching()
                             .assertEvent(treasury, "CapitalRaised", {
-                                amount: TARGET_CAPITAL
+                                amount: expCapital
                             })
                             .assertEvent(treasury, "ReserveAdded", {
                                 sender: comptroller.address,
@@ -444,7 +445,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
             const expTokens = await computeTokens(expAmt, logInfo);
             const expLogs = [["BuyTokensSuccess", {
                 account: account,
-                value: expAmt,
+                funded: expAmt,
                 numTokens: expTokens
             }]];
 
@@ -610,7 +611,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
             const expLogs = [["BuyTokensSuccess",{
                 account: account,
-                value: expAmt,
+                funded: expAmt,
                 numTokens: expTokens
             }]];
 
