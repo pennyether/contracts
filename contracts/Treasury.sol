@@ -378,7 +378,7 @@ contract Treasury is
 		ProfitsReceived(now, msg.sender, msg.value);
 	}
 
-	// Sends profits to Token, and a small reward to the caller.
+	// Sends profits to Token
 	function distributeToToken()
 		public
 		returns (uint _profits)
