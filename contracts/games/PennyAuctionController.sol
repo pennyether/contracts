@@ -54,7 +54,7 @@ contract PennyAuctionController is
         string summary;			// definable via editDefinedAuction
         uint initialPrize;		// definable via editDefinedAuction
         uint bidPrice;			// definable via editDefinedAuction
-        int bidIncr;          // definable via editDefinedAuction
+        int bidIncr;            // definable via editDefinedAuction
         uint bidAddBlocks;		// definable via editDefinedAuction
         uint initialBlocks;		// definable via editDefinedAuction
     }

@@ -525,7 +525,7 @@ describe('DividendToken', function(){
                 .doTx([token, "sendTransaction", {from: nonAccount, value: amt}])
                 .assertSuccess()
                     .assertOnlyLog("DividendReceived", {sender: nonAccount, amount: amt})
-                .assertCallReturns([token, "totalDividends"], expTotalDivs)
+                .assertCallReturns([token, "dividendsTotal"], expTotalDivs)
                 .start();
         });
     }
@@ -544,11 +544,12 @@ describe('DividendToken', function(){
     }
 
     async function itCanCollectDividend(accountNum, msg) {
-        it(`account${accountNum+1} collects correct amount.`, function(){
+        it(`account${accountNum+1} collects correct amount.`, async function(){
             if (msg) this.logInfo(msg);
 
             const account = trackedAccounts[accountNum];
             const expected = expOwedDivs[accountNum].floor();
+            const prevDivCollected = (await token.dividendsCollected())
             this.logInfo(`account${accountNum} should be owed ${expected} Wei.`);
             return createDefaultTxTester()
                 .assertCallReturns([token, "getOwedDividends", account], expected)
@@ -563,6 +564,7 @@ describe('DividendToken', function(){
                     .assertDeltaMinusTxFee(account, expected)
                 .doFn(() => expOwedDivs[accountNum] = new BigNumber(0))
                 .assertCallReturns([token, "getOwedDividends", account], 0)
+                .assertCallReturns([token, "dividendsCollected"], prevDivCollected.plus(expected))
                 .start();         
         })
     }

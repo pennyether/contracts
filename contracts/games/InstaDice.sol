@@ -426,6 +426,12 @@ contract InstaDice is
         return bankrollAvailable() / _maxPayout;
     }
 
+    // Return the less of settings.maxBet and curMaxBet()
+    function effectiveMaxBet() public view returns (uint _amount) {
+    	uint _curMax = curMaxBet();
+    	return _curMax > settings.maxBet ? settings.maxBet : _curMax;
+    }
+
 	// Computes the payout amount for the current _feeBips
     function computePayout(uint _bet, uint _number)
         public
