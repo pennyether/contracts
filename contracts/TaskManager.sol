@@ -21,7 +21,7 @@ import "./roles/UsingPennyAuctionController.sol";
 */
 interface _IBankrollable {
 	function sendProfits() public returns (uint _profits);
-	function profits() public view returns (uint _profits);
+	function profits() public view returns (int _profits);
 }
 contract TaskManager is
 	Bankrollable,
@@ -119,7 +119,9 @@ contract TaskManager is
 			view
 			returns (uint _reward, uint _profits)
 		{
-			_profits = _IBankrollable(_bankrollable).profits();
+			int _p = _IBankrollable(_bankrollable).profits();
+			if (_p <= 0) return;
+			_profits = uint(_p);
 			_reward = _cappedReward((_profits * sendProfitsRewardBips) / 10000);
 		}
 
