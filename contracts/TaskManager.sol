@@ -70,6 +70,58 @@ contract TaskManager is
 
 
 	///////////////////////////////////////////////////////////////////
+	////////// DISTRIBUTING DIVIDENDS /////////////////////////////////
+	///////////////////////////////////////////////////////////////////
+
+	uint public sendDividendsRewardBips;
+	event SendDividendsRewardChanged(uint time, address indexed admin, uint newValue);
+	event SendDividendsSuccess(uint time, address indexed treasury, uint profitsSent);
+
+	function setSendDividendsReward(uint _bips)
+		public
+		fromAdmin
+	{
+		require(_bips <= 10);
+		sendDividendsRewardBips = _bips;
+		SendDividendsRewardChanged(now, msg.sender, _bips);
+	}
+
+	function doSendDividends()
+		public
+		returns (uint _reward, uint _profits)
+	{
+		// get amount of profits
+		ITreasury _tr = getTreasury();
+		_profits = _tr.profits();
+		// quit if no profits to send.
+		if (_profits == 0) {
+			_error("No profits to send.");
+			return;
+		}
+		// call distributeToToken, use return value to compute _reward
+		_profits = _tr.distributeToToken();
+		if (_profits == 0) {
+			_error("No profits were sent.");
+			return;
+		} else {
+			SendDividendsSuccess(now, address(_tr), _profits);
+		}
+		// send reward
+		_reward = (_profits * sendDividendsRewardBips) / 10000;
+		_sendReward(_reward);
+	}
+		// Returns reward and profits
+		function sendDividendsReward()
+			public
+			view
+			returns (uint _reward, uint _profits)
+		{
+			_profits = getTreasury().profits();
+			_reward = _cappedReward((_profits * sendDividendsRewardBips) / 10000);
+		}
+
+
+	///////////////////////////////////////////////////////////////////
 	////////// SENDING PROFITS OF BANKROLLABLES ///////////////////////
 	///////////////////////////////////////////////////////////////////
 

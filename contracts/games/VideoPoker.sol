@@ -84,12 +84,12 @@ contract VideoPoker is
     event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint32 dHand, uint8 handRank, uint payout, uint8 warnCode);
     event FinalizeFailure(uint time, address indexed user, uint32 indexed id, string msg);
     // If _payout = true on finalization
-    event PayoutSuccess(uint time, address indexed user, uint32 indexed id, uint amt);
-    event PayoutFailure(uint time, address indexed user, uint32 indexed id, uint amt);
+    event PayoutSuccess(uint time, address indexed user, uint32 indexed id, uint amount);
+    event PayoutFailure(uint time, address indexed user, uint32 indexed id, uint amount);
     // Credits
-    event CreditsAdded(uint time, address indexed user, uint32 indexed id, uint amt);
-    event CreditsUsed(uint time, address indexed user, uint32 indexed id, uint amt);
-    event CreditsCashedout(uint time, address indexed user, uint amt);
+    event CreditsAdded(uint time, address indexed user, uint32 indexed id, uint amount);
+    event CreditsUsed(uint time, address indexed user, uint32 indexed id, uint amount);
+    event CreditsCashedout(uint time, address indexed user, uint amount);
         
     function VideoPoker(address _registry)
         Bankrollable(_registry)
@@ -557,6 +557,12 @@ contract VideoPoker is
         // Return largest bet such that RF*2*bet = bankrollable
         uint _maxPayout = payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2;
         return bankrollAvailable() / _maxPayout;
+    }
+
+    // Return the less of settings.maxBet and curMaxBet()
+    function effectiveMaxBet() public view returns (uint _amount) {
+        uint _curMax = curMaxBet();
+        return _curMax > settings.maxBet ? settings.maxBet : _curMax;
     }
 
     function getPayTable(uint16 _payTableId)

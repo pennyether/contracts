@@ -383,14 +383,14 @@ contract Treasury is
 		public
 		returns (uint _profits)
 	{
-		// Load profits to memory to save gas.
-		_profits = profits;
-
-		// Ensure token is set, and there are profits.
+		// Ensure token is set.
 		if (token == address(0)) {
 			DistributeFailure(now, "No address to distribute to.");
 			return;
 		}
+
+		// Load _profits to memory (saves gas), and ensure there are profits.
+		_profits = profits;
 		if (_profits <= 0) {
 			DistributeFailure(now, "No profits to distribute.");
 			return;

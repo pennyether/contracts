@@ -1,5 +1,6 @@
 const Registry = artifacts.require("Registry");
 const TaskManager = artifacts.require("TaskManager");
+const Treasury = artifacts.require("Treasury");
 const PennyAuctionController = artifacts.require("PennyAuctionController");
 const PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
 const PennyAuction = artifacts.require("PennyAuction");
@@ -47,6 +48,7 @@ const DEF_4 = Object.assign({}, DEFAULT_DEF);
 	DEF_4.summary = "4th auction";
 const DEFS = [DEF_0, DEF_1, DEF_2, DEF_3, DEF_4];
 
+const SEND_DIVIDENDS_REWARD_BIPS = new BigNumber(10);
 const SEND_PROFITS_REWARD_BIPS = new BigNumber(50);
 const PA_START_REWARD = new BigNumber(.001e18);
 const PA_END_REWARD = new BigNumber(.001e18);
@@ -56,14 +58,15 @@ const accounts = web3.eth.accounts;
 describe("MainController", function(){
 	const owner = accounts[1];
 	const admin = accounts[2];
-	const dummyTr = accounts[3];
-	const bidder1 = accounts[4];
-	const bidder2 = accounts[5];
-	const anon = accounts[6];
+	const bidder1 = accounts[3];
+	const bidder2 = accounts[4];
+	const anon = accounts[5];
+	const dummyToken = accounts[6];
 	const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 	var registry;
 	var taskManager;
+	var treasury;
 	var pac;
 	var paf;
 	var bankrollable;
@@ -72,10 +75,10 @@ describe("MainController", function(){
 		const addresses = {
             owner: owner,
         	admin: admin,
-        	dummyTr: dummyTr,
         	bidder1: bidder1,
         	bidder2: bidder2,
         	anon: anon,
+        	dummyToken: dummyToken,
         	NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
@@ -95,6 +98,14 @@ describe("MainController", function(){
                 taskManager = res.contract;
                 plugins.addAddresses({taskManager: taskManager.address});
             }).start();
+
+        this.logInfo("Create a Treasury")
+        await createDefaultTxTester()
+        	.doNewTx(Treasury, [registry.address, owner], {from: anon}).assertSuccess()
+        	.withTxResult((res, plugins)=>{
+        		treasury = res.contract;
+        		plugins.addAddresses({treasury: treasury.address});
+        	}).start();
 
         this.logInfo("Create a PennyAuctionController, pointing to Registry.");
         await createDefaultTxTester()
@@ -124,7 +135,7 @@ describe("MainController", function(){
         await createDefaultTxTester()
 	        .doTx([registry, "register", "ADMIN", admin, {from: owner}])
                 .assertSuccess()
-            .doTx([registry, "register", "TREASURY", dummyTr, {from: owner}])
+            .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
                 .assertSuccess()
             .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
                 .assertSuccess()
@@ -146,11 +157,118 @@ describe("MainController", function(){
 		it("Has correct state", function(){
 			return createDefaultTxTester()
 				.assertCallReturns([taskManager, "getAdmin"], admin)
-		        .assertCallReturns([taskManager, "getTreasury"], dummyTr)
+		        .assertCallReturns([taskManager, "getTreasury"], treasury.address)
 		        .assertCallReturns([taskManager, "getPennyAuctionController"], pac.address)
 		        .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
 		        .assertBalance(taskManager, 1e16)
 		        .start();
+		});
+	});
+
+	describe("Send Dividends Rewards", function(){
+		describe(".setSendDividendsReward()", function(){
+			it("Not callable by non-admin", function(){
+				return createDefaultTxTester()
+					.doTx([taskManager, "setSendDividendsReward", SEND_DIVIDENDS_REWARD_BIPS, {from: anon}])
+					.assertInvalidOpCode()
+					.start();
+			});
+			it("Works when called from admin", function(){
+				return createDefaultTxTester()
+					.doTx([taskManager, "setSendDividendsReward", SEND_DIVIDENDS_REWARD_BIPS, {from: admin}])
+					.assertSuccess()
+					//event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
+					.assertOnlyLog("SendDividendsRewardChanged", {
+						time: null,
+						admin: admin,
+						newValue: SEND_DIVIDENDS_REWARD_BIPS
+					})
+					.assertCallReturns([taskManager, "sendDividendsRewardBips"], SEND_DIVIDENDS_REWARD_BIPS)
+					.start();
+			});
+			it("Cannot be changed above 10", function(){
+				return createDefaultTxTester()
+					.doTx([taskManager, "setSendDividendsReward", 11, {from: admin}])
+					.assertInvalidOpCode()
+					.start();
+			});
+		});
+		describe(".doSendDividends() and .sendDividendsReward()", function(){
+			it(".sendDividendsReward() returns 0", function(){
+				return createDefaultTxTester()
+					.assertCallReturns([treasury, "profits"], 0)
+					.assertCallReturns([taskManager, "sendDividendsReward"], [0, 0])
+					.start();
+			});
+			it(".doSendDividends() returns error", function(){
+				return createDefaultTxTester()
+					.startLedger([taskManager, anon])
+					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.assertSuccess()
+						.assertOnlyLog("TaskError", {msg: "No profits to send."})
+					.stopLedger()
+						.assertNoDelta(taskManager)
+						.assertLostTxFee(anon)
+					.start();
+			})
+			it("Give treasury profits", function(){
+				return createDefaultTxTester()
+					.doTx([treasury, "sendTransaction", {value: 1e12, from: anon}])
+					.assertSuccess()
+					.assertCallReturns([treasury, "profits"], 1e12)
+					.start();
+			});
+			it(".sendDividendsReward() returns correct value", async function(){
+				const expProfits = await treasury.profits();
+				const expReward = expProfits.mul(SEND_DIVIDENDS_REWARD_BIPS).div(10000);
+				return createDefaultTxTester()
+					.assertCallReturns([taskManager, "sendDividendsReward"], [expReward, expProfits])
+					.start();
+			});
+			it(".doSendDividends() works when Treasury sends 0", async function(){
+				this.logInfo("Note: The Treasury will fail to send profits, since no token is specified.")
+				return createDefaultTxTester()
+					.assertCallReturns([treasury, "token"], NO_ADDRESS)
+					.startLedger([taskManager, anon, treasury])
+					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.assertSuccess()
+						.assertOnlyLog("TaskError", {msg: "No profits were sent."})
+					.stopLedger()
+						.assertNoDelta(treasury)
+						.assertNoDelta(taskManager)
+						.assertLostTxFee(anon)
+					.start();
+			});
+			it("Set treasury Token, so dividends can be sent.", async function(){
+				return createDefaultTxTester()
+					.doTx([treasury, "initToken", dummyToken, {from: owner}])
+					.assertSuccess()
+					.assertCallReturns([treasury, "token"], dummyToken)
+					.start();
+			});
+			it(".doSendDividends works", async function(){
+				const expProfits = await treasury.profits();
+				const expReward = expProfits.mul(SEND_DIVIDENDS_REWARD_BIPS).div(10000);
+				return createDefaultTxTester()
+					.startLedger([taskManager, anon, treasury, dummyToken])
+					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.assertSuccess()
+						.assertLogCount(2)
+						.assertLog("SendDividendsSuccess", {
+							treasury: treasury.address,
+							profitsSent: expProfits
+						})
+						.assertLog("RewardSuccess", {
+							caller: anon,
+							reward: expReward
+						})
+					.stopLedger()
+						.assertDelta(treasury, expProfits.mul(-1))
+						.assertDelta(dummyToken, expProfits)
+						.assertDelta(taskManager, expReward.mul(-1))
+						.assertDeltaMinusTxFee(anon, expReward)
+					.start();
+			});
 		});
 	});
 
@@ -190,7 +308,7 @@ describe("MainController", function(){
 					.assertCallReturns([taskManager, "sendProfitsReward", bankrollable.address], [0, 0])
 					.start();
 			});
-			it(".sendProfits() returns error", function(){
+			it(".doSendProfits() returns error", function(){
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon])
 					.doTx([taskManager, "doSendProfits", bankrollable.address, {from: anon}])
@@ -215,12 +333,12 @@ describe("MainController", function(){
 					.assertCallReturns([taskManager, "sendProfitsReward", bankrollable.address], [expReward, expProfits])
 					.start();
 			});
-			it(".sendProfits() works", async function(){
+			it(".doSendProfits() works", async function(){
 				const expProfits = await bankrollable.profits();
 				const expReward = expProfits.mul(SEND_PROFITS_REWARD_BIPS).div(10000);
 				const prevTotalRewarded = await taskManager.totalRewarded();
 				return createDefaultTxTester()
-					.startLedger([taskManager, anon, dummyTr])
+					.startLedger([taskManager, anon, treasury])
 					.doTx([taskManager, "doSendProfits", bankrollable.address, {from: anon}])
 					.assertSuccess()
 						.assertLogCount(2)
@@ -236,7 +354,7 @@ describe("MainController", function(){
 						})
 					.stopLedger()
 						.assertDelta(taskManager, expReward.mul(-1))
-						.assertDelta(dummyTr, expProfits)
+						.assertDelta(treasury, expProfits)
 						.assertDeltaMinusTxFee(anon, expReward)
 					.assertCallReturns([taskManager, "sendProfitsReward", bankrollable.address], [0,0])
 					.assertCallReturns([taskManager, "totalRewarded"], prevTotalRewarded.plus(expReward))
