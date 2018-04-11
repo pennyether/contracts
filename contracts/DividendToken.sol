@@ -153,8 +153,8 @@ contract DividendToken is ERC667
 	// - "Credit" goes to Nick Johnson for the concept.
 	//
 	uint constant POINTS_PER_WEI = 1e32;
-	uint public totalDividends;
-	uint public collectedDividends;
+	uint public dividendsTotal;
+	uint public dividendsCollected;
 	uint public totalPointsPerToken;
 	uint public totalBurned;
 	mapping (address => uint) public creditedPoints;
@@ -182,7 +182,7 @@ contract DividendToken is ERC667
 		// POINTS_PER_WEI is 1e32.
 		// So, no multiplication overflow unless msg.value > 1e45 wei (1e27 ETH)
 		totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
-		totalDividends += msg.value;
+		dividendsTotal += msg.value;
 		DividendReceived(now, msg.sender, msg.value);
 	}
 
@@ -194,7 +194,7 @@ contract DividendToken is ERC667
 		onlyComptroller
 		public
 	{
-		updateCreditedPoints(_to);
+		_updateCreditedPoints(_to);
 		totalSupply += _amount;
 		balanceOf[_to] += _amount;
 		TokensMinted(now, _to, _amount, totalSupply);
@@ -206,7 +206,7 @@ contract DividendToken is ERC667
 	    public
 	{
 		require(balanceOf[_account] >= _amount);
-		updateCreditedPoints(_account);
+		_updateCreditedPoints(_account);
 		balanceOf[_account] -= _amount;
 		totalSupply -= _amount;
 		totalBurned += _amount;
@@ -235,8 +235,8 @@ contract DividendToken is ERC667
 	{	
 		// ensure tokens are not frozen.
 		require(!isFrozen);
-		updateCreditedPoints(msg.sender);
-		updateCreditedPoints(_to);
+		_updateCreditedPoints(msg.sender);
+		_updateCreditedPoints(_to);
 		return ERC20.transfer(_to, _value);
 	}
 
@@ -247,8 +247,8 @@ contract DividendToken is ERC667
 		returns (bool success)
 	{
 		require(!isFrozen);
-		updateCreditedPoints(_from);
-		updateCreditedPoints(_to);
+		_updateCreditedPoints(_from);
+		_updateCreditedPoints(_to);
 		return ERC20.transferFrom(_from, _to, _value);
 	}
 	
@@ -259,8 +259,8 @@ contract DividendToken is ERC667
 		returns (bool success)
 	{
 		require(!isFrozen);
-		updateCreditedPoints(msg.sender);
-		updateCreditedPoints(_to);
+		_updateCreditedPoints(msg.sender);
+		_updateCreditedPoints(_to);
 		return ERC667.transferAndCall(_to, _value, _data);	
 	}
 
@@ -270,10 +270,10 @@ contract DividendToken is ERC667
 		returns (uint _amount)
 	{
 		// update creditedPoints, store amount, and zero it.
-		updateCreditedPoints(msg.sender);
+		_updateCreditedPoints(msg.sender);
 		_amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
 		creditedPoints[msg.sender] = 0;
-		collectedDividends += _amount;
+		dividendsCollected += _amount;
 		CollectedDividends(now, msg.sender, _amount);
 		require(msg.sender.call.value(_amount)());
 	}
@@ -285,15 +285,15 @@ contract DividendToken is ERC667
 	// Credits _account with whatever dividend points they haven't yet been credited.
 	//  This needs to be called before any user's balance changes to ensure their
 	//  "lastPointsPerToken" credits their current balance, and not an altered one.
-	function updateCreditedPoints(address _account)
+	function _updateCreditedPoints(address _account)
 		private
 	{
-		creditedPoints[_account] += getUncreditedPoints(_account);
+		creditedPoints[_account] += _getUncreditedPoints(_account);
 		lastPointsPerToken[_account] = totalPointsPerToken;
 	}
 
 	// For a given account, returns how many Wei they haven't yet been credited.
-	function getUncreditedPoints(address _account)
+	function _getUncreditedPoints(address _account)
 		private
 		view
 		returns (uint _amount)
@@ -316,6 +316,6 @@ contract DividendToken is ERC667
 		constant
 		returns (uint _amount)
 	{
-		return (getUncreditedPoints(_account) + creditedPoints[_account])/POINTS_PER_WEI;
+		return (_getUncreditedPoints(_account) + creditedPoints[_account])/POINTS_PER_WEI;
 	}
 }
