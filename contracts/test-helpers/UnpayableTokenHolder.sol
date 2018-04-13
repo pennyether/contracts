@@ -1,7 +1,7 @@
 pragma solidity ^0.4.0;
 
 interface _IUthToken {
-	function collectDividends() public;
+    function collectDividends() public;
 }
 
 /*
@@ -10,17 +10,17 @@ interface _IUthToken {
 */
 contract UnpayableTokenHolder {
 
-	event TokenFallback(address token, address sender, uint amt, bytes data);
-	
-	function collectDividends(address token) public {
-		_IUthToken(token).collectDividends();
-	}
+    event TokenFallback(address token, address sender, uint amt, bytes data);
+    
+    function collectDividends(address token) public {
+        _IUthToken(token).collectDividends();
+    }
 
-	function tokenFallback(address sender, uint amt, bytes data) public {
-		TokenFallback(msg.sender, sender, amt, data);
-	}
+    function tokenFallback(address sender, uint amt, bytes data) public {
+        TokenFallback(msg.sender, sender, amt, data);
+    }
 
-	function () public payable {
-		revert();
-	}
+    function () public payable {
+        revert();
+    }
 }

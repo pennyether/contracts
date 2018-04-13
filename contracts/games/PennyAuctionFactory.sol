@@ -51,7 +51,7 @@ contract PennyAuctionFactory is
 
         // note: this throws if invalid params are passed.
         address _collector = getCollector();
-		_auction = (new PennyAuction).value(_initialPrize)({
+        _auction = (new PennyAuction).value(_initialPrize)({
             _collector: _collector,
             _initialPrize: _initialPrize,
             _bidPrice: _bidPrice,

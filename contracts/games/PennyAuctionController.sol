@@ -35,49 +35,49 @@ interface IPennyAuction {
 */
 contract PennyAuctionController is
     HasDailyLimit,
-	Bankrollable,
+    Bankrollable,
     UsingAdmin,
-	UsingPennyAuctionFactory
+    UsingPennyAuctionFactory
 {
     uint constant public version = 1;
 
-	// just some accounting/stats stuff to keep track of
-	uint public totalFees;
-	uint public totalPrizes;
-	uint public totalBids;
-	IPennyAuction[] public endedAuctions;
+    // just some accounting/stats stuff to keep track of
+    uint public totalFees;
+    uint public totalPrizes;
+    uint public totalBids;
+    IPennyAuction[] public endedAuctions;
 
-	// An admin-controlled index of available auctions.
+    // An admin-controlled index of available auctions.
     uint public numDefinedAuctions;
     mapping (uint => DefinedAuction) public definedAuctions;
     struct DefinedAuction {
         IPennyAuction auction;  // address of ongoing auction (or 0)
-        bool isEnabled;			// if true, can be started
-        string summary;			// definable via editDefinedAuction
-        uint initialPrize;		// definable via editDefinedAuction
-        uint bidPrice;			// definable via editDefinedAuction
+        bool isEnabled;         // if true, can be started
+        string summary;         // definable via editDefinedAuction
+        uint initialPrize;      // definable via editDefinedAuction
+        uint bidPrice;          // definable via editDefinedAuction
         int bidIncr;            // definable via editDefinedAuction
-        uint bidAddBlocks;		// definable via editDefinedAuction
-        uint initialBlocks;		// definable via editDefinedAuction
+        uint bidAddBlocks;      // definable via editDefinedAuction
+        uint initialBlocks;     // definable via editDefinedAuction
     }
 
     event Created(uint time);
     event DailyLimitChanged(uint time, address indexed owner, uint newValue);
-	event Error(uint time, string msg);
-	event DefinedAuctionEdited(uint time, uint index);
+    event Error(uint time, string msg);
+    event DefinedAuctionEdited(uint time, uint index);
     event DefinedAuctionInvalid(uint time, uint index);
-	event AuctionStarted(uint time, uint indexed index, address indexed addr, uint initialPrize);
-	event AuctionEnded(uint time, uint indexed index, address indexed winner, address indexed addr);
-	event FeesCollected(uint time, uint amount);
+    event AuctionStarted(uint time, uint indexed index, address indexed addr, uint initialPrize);
+    event AuctionEnded(uint time, uint indexed index, address indexed winner, address indexed addr);
+    event FeesCollected(uint time, uint amount);
 
 
-	function PennyAuctionController(address _registry) 
+    function PennyAuctionController(address _registry) 
         HasDailyLimit(10 ether)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         UsingPennyAuctionFactory(_registry)
         public
-	{
+    {
         Created(now);
     }
 
@@ -98,8 +98,8 @@ contract PennyAuctionController is
     /******** ADMIN FUNCTIONS ************************************/
     /*************************************************************/
 
-	// allows admin to edit or add an available auction
-	function editDefinedAuction(
+    // allows admin to edit or add an available auction
+    function editDefinedAuction(
         uint _index,
         string _summary,
         uint _initialPrize,
@@ -112,12 +112,12 @@ contract PennyAuctionController is
         fromAdmin
         returns (bool _success)
     {
-    	if (_index > numDefinedAuctions) {
-    		Error(now, "Index out of bounds.");
-    		return;
-    	}
+        if (_index > numDefinedAuctions) {
+            Error(now, "Index out of bounds.");
+            return;
+        }
 
-    	if (_index == numDefinedAuctions) numDefinedAuctions++;
+        if (_index == numDefinedAuctions) numDefinedAuctions++;
         definedAuctions[_index].summary = _summary;
         definedAuctions[_index].initialPrize = _initialPrize;
         definedAuctions[_index].bidPrice = _bidPrice;
@@ -130,30 +130,30 @@ contract PennyAuctionController is
 
     function disableDefinedAuction(uint _index)
         public
-    	fromAdmin
-    	returns (bool _success)
+        fromAdmin
+        returns (bool _success)
     {
-    	if (_index >= numDefinedAuctions) {
-    		Error(now, "Index out of bounds.");
-    		return;
-    	}
-    	definedAuctions[_index].isEnabled = false;
-    	DefinedAuctionEdited(now, _index);
-    	return true;
+        if (_index >= numDefinedAuctions) {
+            Error(now, "Index out of bounds.");
+            return;
+        }
+        definedAuctions[_index].isEnabled = false;
+        DefinedAuctionEdited(now, _index);
+        return true;
     }
 
     function enableDefinedAuction(uint _index)
         public
-    	fromAdmin
-    	returns (bool _success)
+        fromAdmin
+        returns (bool _success)
     {
-    	if (_index >= numDefinedAuctions) {
-    		Error(now, "Index out of bounds.");
-    		return;
-    	}
-    	definedAuctions[_index].isEnabled = true;
-    	DefinedAuctionEdited(now, _index);
-    	return true;
+        if (_index >= numDefinedAuctions) {
+            Error(now, "Index out of bounds.");
+            return;
+        }
+        definedAuctions[_index].isEnabled = true;
+        DefinedAuctionEdited(now, _index);
+        return true;
     }
 
 
@@ -165,35 +165,35 @@ contract PennyAuctionController is
          totalFees += msg.value;
     }
 
-	// This is called by anyone when a new PennyAuction should be started.
-	// In reality will only be called by TaskManager.
+    // This is called by anyone when a new PennyAuction should be started.
+    // In reality will only be called by TaskManager.
     //
-	// Errors if:
-	//		- isEnabled is false (or doesnt exist)
-	//		- auction is already started
-	// 		- not enough funds
+    // Errors if:
+    //      - isEnabled is false (or doesnt exist)
+    //      - auction is already started
+    //      - not enough funds
     //      - PAF.getCollector() points to another address
-	//		- unable to create auction
-	function startDefinedAuction(uint _index)
+    //      - unable to create auction
+    function startDefinedAuction(uint _index)
         public
         returns (address _auction)
     {
         DefinedAuction memory dAuction = definedAuctions[_index];
         if (_index >= numDefinedAuctions) {
-    		_error("Index out of bounds.");
-    		return;
-    	}
+            _error("Index out of bounds.");
+            return;
+        }
         if (dAuction.isEnabled == false) {
-        	_error("DefinedAuction is not enabled.");
-        	return;
+            _error("DefinedAuction is not enabled.");
+            return;
         }
         if (dAuction.auction != IPennyAuction(0)) {
-        	_error("Auction is already started.");
-        	return;
+            _error("Auction is already started.");
+            return;
         }
         if (this.balance < dAuction.initialPrize) {
-        	_error("Not enough funds to start this auction.");
-        	return;
+            _error("Not enough funds to start this auction.");
+            return;
         }
         if (getDailyLimitRemaining() < dAuction.initialPrize) {
             _error("Starting game would exceed daily limit");
@@ -222,13 +222,13 @@ contract PennyAuctionController is
             return;
         }
 
-		// Get the auction, add it to definedAuctions, and return.
+        // Get the auction, add it to definedAuctions, and return.
         _useFromDailyLimit(dAuction.initialPrize);
         _auction = _paf.lastCreatedAuction();
         definedAuctions[_index].auction = IPennyAuction(_auction);
         AuctionStarted(now, _index, _auction, dAuction.initialPrize);
         return _auction;
-	}
+    }
         // Emits an error with a given message
         function _error(string _msg)
             private
@@ -257,42 +257,42 @@ contract PennyAuctionController is
     }
 
     // Looks at all active defined auctions and:
-    //	- tells each auction to send fees to Treasury
+    //  - tells each auction to send fees to Treasury
     //  - if ended: tries to pay winner, moves to endedAuctions
-	function refreshAuctions()
+    function refreshAuctions()
         public
         returns (uint _numAuctionsEnded, uint _feesCollected)
     {
-    	for (uint _i = 0; _i < numDefinedAuctions; _i++) {
-    		var _auction = definedAuctions[_i].auction;
-    		if (_auction == IPennyAuction(0)) continue;
+        for (uint _i = 0; _i < numDefinedAuctions; _i++) {
+            var _auction = definedAuctions[_i].auction;
+            if (_auction == IPennyAuction(0)) continue;
 
-    		// try to redeem fees. this can fail if Treasury throws
+            // try to redeem fees. this can fail if Treasury throws
             // that should realistically never happen.
-    		uint _fees = _auction.sendFees();
+            uint _fees = _auction.sendFees();
             _feesCollected += _fees;
 
-			// attempt to pay winner, update stats, and set auction to empty.
-			if (_auction.isEnded()) {
+            // attempt to pay winner, update stats, and set auction to empty.
+            if (_auction.isEnded()) {
                 // paying the winner can error if the winner uses too much gas
                 // in that case, they can call .sendPrize() themselves later.
-				if (!_auction.isPaid()) _auction.sendPrize(2300);
-				
+                if (!_auction.isPaid()) _auction.sendPrize(2300);
+                
                 // update stats
-				totalPrizes += _auction.prize();
-				totalBids += _auction.numBids();
+                totalPrizes += _auction.prize();
+                totalBids += _auction.numBids();
 
                 // clear auction, move to endedAuctions, update return
-				definedAuctions[_i].auction = IPennyAuction(0);
-				endedAuctions.push(_auction);
+                definedAuctions[_i].auction = IPennyAuction(0);
+                endedAuctions.push(_auction);
                 _numAuctionsEnded++;
 
-				AuctionEnded(now, _i, _auction.currentWinner(), address(_auction));
-			}
-    	}
-    	if (_feesCollected > 0) FeesCollected(now, _feesCollected);
-		return (_numAuctionsEnded, _feesCollected);
-	}
+                AuctionEnded(now, _i, _auction.currentWinner(), address(_auction));
+            }
+        }
+        if (_feesCollected > 0) FeesCollected(now, _feesCollected);
+        return (_numAuctionsEnded, _feesCollected);
+    }
 
 
     /*************************************************************/
@@ -302,49 +302,49 @@ contract PennyAuctionController is
     function getCollateral() public view returns (uint) { return 0; }
     function getWhitelistOwner() public view returns (address){ return getAdmin(); }
 
-	// Gets the number of active auctions that are ended, so we know to call refreshAuctions()
-	function getNumEndedAuctions()
+    // Gets the number of active auctions that are ended, so we know to call refreshAuctions()
+    function getNumEndedAuctions()
         public
-		view
-		returns (uint _numEndedAuctions)
-	{
-		for (uint _i = 0; _i < numDefinedAuctions; _i++) {
-			var _auction = definedAuctions[_i].auction;
-    		if (_auction == IPennyAuction(0)) continue;
-    		if (_auction.isEnded()) _numEndedAuctions++;
-		}
-		return _numEndedAuctions;
-	}
+        view
+        returns (uint _numEndedAuctions)
+    {
+        for (uint _i = 0; _i < numDefinedAuctions; _i++) {
+            var _auction = definedAuctions[_i].auction;
+            if (_auction == IPennyAuction(0)) continue;
+            if (_auction.isEnded()) _numEndedAuctions++;
+        }
+        return _numEndedAuctions;
+    }
 
-	// Gets total amount of fees that are redeemable if refreshAuctions() is called.
-	function getAvailableFees()
+    // Gets total amount of fees that are redeemable if refreshAuctions() is called.
+    function getAvailableFees()
         public
-		view
-		returns (uint _feesAvailable)
-	{
-		for (uint _i = 0; _i < numDefinedAuctions; _i++) {
-    		if (definedAuctions[_i].auction == IPennyAuction(0)) continue;
-    		_feesAvailable += definedAuctions[_i].auction.fees();
-		}
-		return _feesAvailable;
-	}
+        view
+        returns (uint _feesAvailable)
+    {
+        for (uint _i = 0; _i < numDefinedAuctions; _i++) {
+            if (definedAuctions[_i].auction == IPennyAuction(0)) continue;
+            _feesAvailable += definedAuctions[_i].auction.fees();
+        }
+        return _feesAvailable;
+    }
 
     /******** Access to definedAuctions **************************/
-	function getAuction(uint _index)
+    function getAuction(uint _index)
         public
-		view
-		returns (address)
-	{
-		return address(definedAuctions[_index].auction);
-	}
+        view
+        returns (address)
+    {
+        return address(definedAuctions[_index].auction);
+    }
 
-	function getIsEnabled(uint _index)
+    function getIsEnabled(uint _index)
         public
-		view
-		returns (bool)
-	{
-		return definedAuctions[_index].isEnabled;
-	}
+        view
+        returns (bool)
+    {
+        return definedAuctions[_index].isEnabled;
+    }
 
     function getInitialPrize(uint _index)
         public

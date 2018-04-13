@@ -29,7 +29,7 @@ import "../roles/UsingTreasury.sol";
      - bankrollerTable
 */
 contract Bankrollable is
-	UsingTreasury
+    UsingTreasury
 {   
     // How much profits have been sent. 
     uint public profitsSent;
@@ -52,10 +52,10 @@ contract Bankrollable is
     event RemovedFromWhitelist(uint time, address indexed addr, address indexed wlOwner);
 
     // Constructor creates the ledger and whitelist, with self as owner.
-	function Bankrollable(address _registry)
-		UsingTreasury(_registry)
-		public
-	{
+    function Bankrollable(address _registry)
+        UsingTreasury(_registry)
+        public
+    {
         ledger = new Ledger(this);
         whitelist = new AddressSet(this);
     }
@@ -99,7 +99,7 @@ contract Bankrollable is
         BankrollAdded(now, msg.sender, msg.value, bankroll);
     }
 
-	// Removes up to _amount from Ledger, and sends it to msg.sender._callbackFn
+    // Removes up to _amount from Ledger, and sends it to msg.sender._callbackFn
     function removeBankroll(uint _amount, string _callbackFn)
         public
         returns (uint _recalled)
@@ -142,10 +142,10 @@ contract Bankrollable is
     /*****************************************************/
 
     // Function must be overridden by inheritors to ensure collateral is kept.
-	function getCollateral()
-		public
-		view
-		returns (uint _amount);
+    function getCollateral()
+        public
+        view
+        returns (uint _amount);
 
     // Function must be overridden by inheritors to enable whitelist control.
     function getWhitelistOwner()

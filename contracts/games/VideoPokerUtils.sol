@@ -1,8 +1,8 @@
 pragma solidity ^0.4.19;
 
 contract VideoPokerUtils {
-	enum HandRank {
-		Undefined,
+    enum HandRank {
+        Undefined,
         RoyalFlush,
         StraightFlush,
         FourOfAKind,
@@ -17,18 +17,18 @@ contract VideoPokerUtils {
     }
 
     /*****************************************************/
-	/********** PUBLIC PURE FUNCTIONS ********************/
-	/*****************************************************/
+    /********** PUBLIC PURE FUNCTIONS ********************/
+    /*****************************************************/
 
     // Gets a new 5-card hand, stored in uint32
     // Gas Cost: 3k
     function getHand(uint256 _hash)
-    	public
-    	pure
-    	returns (uint32)
+        public
+        pure
+        returns (uint32)
     {
         // Return the cards as a hand.
-    	return uint32(getCardsFromHash(_hash, 5, 0));
+        return uint32(getCardsFromHash(_hash, 5, 0));
     }
 
     // Both _hand and _draws store the first card in the
@@ -50,9 +50,9 @@ contract VideoPokerUtils {
     // 
     // Gas Cost: Fixed 6k gas. 
     function drawToHand(uint256 _hash, uint32 _hand, uint _draws)
-    	public
-    	pure
-    	returns (uint32)
+        public
+        pure
+        returns (uint32)
     {
         // Draws must be valid. If no hand, must draw all 5 cards.
         assert(_draws <= 31);
@@ -79,89 +79,89 @@ contract VideoPokerUtils {
     }
 
     // Looks at a hand of 5-cards, determines strictly the HandRank.
-	// Gas Cost: up to 7k depending on hand.
-	function getHandRank(uint32 _hand)
-		pure
-		public
-		returns (HandRank)
-	{
+    // Gas Cost: up to 7k depending on hand.
+    function getHandRank(uint32 _hand)
+        pure
+        public
+        returns (HandRank)
+    {
         if (_hand == 0) return HandRank.NotComputable;
 
         uint _card;
-		uint[] memory _valCounts = new uint[](13);
-		uint[] memory _suitCounts = new uint[](5);
-		uint _pairVal;
-		uint _minNonAce = 100;
-		uint _maxNonAce = 0;
-		uint _numPairs;
-		uint _maxSet;
-		bool _hasFlush;
-		bool _hasAce;
+        uint[] memory _valCounts = new uint[](13);
+        uint[] memory _suitCounts = new uint[](5);
+        uint _pairVal;
+        uint _minNonAce = 100;
+        uint _maxNonAce = 0;
+        uint _numPairs;
+        uint _maxSet;
+        bool _hasFlush;
+        bool _hasAce;
 
-		// Set all the values above.
-		// Note:
-		//   _hasTwoPair will be true even if one pair is Trips.
-		//   Likewise, _hasTrips will be true even if there are Quads.
-		uint _i;
-		uint _val;
-		for (_i=0; _i<5; _i++) {
+        // Set all the values above.
+        // Note:
+        //   _hasTwoPair will be true even if one pair is Trips.
+        //   Likewise, _hasTrips will be true even if there are Quads.
+        uint _i;
+        uint _val;
+        for (_i=0; _i<5; _i++) {
             _card = readFromCards(_hand, _i);
             if (_card > 51) return HandRank.NotComputable;
-			
-			// update val and suit counts, and if it's a flush
+            
+            // update val and suit counts, and if it's a flush
             _val = _card % 13;
-			_valCounts[_val]++;
-			_suitCounts[_card/13]++;
-			if (_suitCounts[_card/13] == 5) _hasFlush = true;
-			
-			// update _hasAce, and min/max value
-			if (_val == 0) {
-				_hasAce = true;
-			} else {
-				if (_val < _minNonAce) _minNonAce = _val;
-				if (_val > _maxNonAce) _maxNonAce = _val;
-			}
+            _valCounts[_val]++;
+            _suitCounts[_card/13]++;
+            if (_suitCounts[_card/13] == 5) _hasFlush = true;
+            
+            // update _hasAce, and min/max value
+            if (_val == 0) {
+                _hasAce = true;
+            } else {
+                if (_val < _minNonAce) _minNonAce = _val;
+                if (_val > _maxNonAce) _maxNonAce = _val;
+            }
 
-			// update _pairVal, _numPairs, _maxSet
-			if (_valCounts[_val] == 2) {
-				if (_numPairs==0) _pairVal = _val;
-				_numPairs++;
-			} else if (_valCounts[_val] == 3) {
-				_maxSet = 3;
-			} else if (_valCounts[_val] == 4) {
-				_maxSet = 4;
-			}
-		}
+            // update _pairVal, _numPairs, _maxSet
+            if (_valCounts[_val] == 2) {
+                if (_numPairs==0) _pairVal = _val;
+                _numPairs++;
+            } else if (_valCounts[_val] == 3) {
+                _maxSet = 3;
+            } else if (_valCounts[_val] == 4) {
+                _maxSet = 4;
+            }
+        }
 
-		if (_numPairs > 0){
-			// If they have quads, they can't have royal flush, so we can return.
-			if (_maxSet==4) return HandRank.FourOfAKind;
-			// One of the two pairs was the trips, so it's a full house.
-			if (_maxSet==3 && _numPairs==2) return HandRank.FullHouse;
-			// Trips is their best hand (no straight or flush possible)
-			if (_maxSet==3) return HandRank.ThreeOfAKind;
-			// Two pair is their best hand (no straight or flush possible)
-			if (_numPairs==2) return HandRank.TwoPair;
-			// One pair is their best hand (no straight or flush possible)
-			if (_numPairs == 1 && (_pairVal >= 10 || _pairVal==0)) return HandRank.JacksOrBetter;
-			// They have a low pair (no straight or flush possible)
-			return HandRank.HighCard;
-		}
+        if (_numPairs > 0){
+            // If they have quads, they can't have royal flush, so we can return.
+            if (_maxSet==4) return HandRank.FourOfAKind;
+            // One of the two pairs was the trips, so it's a full house.
+            if (_maxSet==3 && _numPairs==2) return HandRank.FullHouse;
+            // Trips is their best hand (no straight or flush possible)
+            if (_maxSet==3) return HandRank.ThreeOfAKind;
+            // Two pair is their best hand (no straight or flush possible)
+            if (_numPairs==2) return HandRank.TwoPair;
+            // One pair is their best hand (no straight or flush possible)
+            if (_numPairs == 1 && (_pairVal >= 10 || _pairVal==0)) return HandRank.JacksOrBetter;
+            // They have a low pair (no straight or flush possible)
+            return HandRank.HighCard;
+        }
 
-		// They have no pair. Do they have a straight?
-		bool _hasStraight = _hasAce
-			// Check for: A,1,2,3,4 or 9,10,11,12,A
-			? _maxNonAce == 4 || _minNonAce == 9
-			// Check for X,X+1,X+2,X+3,X+4
-			: _maxNonAce - _minNonAce == 4;
-		
-		// Check for hands in order of rank.
-		if (_hasStraight && _hasFlush && _minNonAce==9) return HandRank.RoyalFlush;
-		if (_hasStraight && _hasFlush) return HandRank.StraightFlush;
-		if (_hasFlush) return HandRank.Flush;
-		if (_hasStraight) return HandRank.Straight;
-		return HandRank.HighCard;
-	}
+        // They have no pair. Do they have a straight?
+        bool _hasStraight = _hasAce
+            // Check for: A,1,2,3,4 or 9,10,11,12,A
+            ? _maxNonAce == 4 || _minNonAce == 9
+            // Check for X,X+1,X+2,X+3,X+4
+            : _maxNonAce - _minNonAce == 4;
+        
+        // Check for hands in order of rank.
+        if (_hasStraight && _hasFlush && _minNonAce==9) return HandRank.RoyalFlush;
+        if (_hasStraight && _hasFlush) return HandRank.StraightFlush;
+        if (_hasFlush) return HandRank.Flush;
+        if (_hasStraight) return HandRank.Straight;
+        return HandRank.HighCard;
+    }
 
     // Not used anywhere, but added for convenience
     function handToCards(uint32 _hand)
@@ -178,9 +178,9 @@ contract VideoPokerUtils {
 
 
 
-	/*****************************************************/
-	/********** PRIVATE INTERNAL FUNCTIONS ***************/
-	/*****************************************************/
+    /*****************************************************/
+    /********** PRIVATE INTERNAL FUNCTIONS ***************/
+    /*****************************************************/
 
     function readFromCards(uint _cards, uint _index)
         internal
@@ -194,13 +194,13 @@ contract VideoPokerUtils {
 
     // Returns a bitmap to represent the set of cards in _hand.
     function handToBitmap(uint32 _hand)
-    	internal
-    	pure
-    	returns (uint _bitmap)
+        internal
+        pure
+        returns (uint _bitmap)
     {
         if (_hand == 0) return 0;
-    	uint _mask;
-    	uint _card;
+        uint _mask;
+        uint _card;
         for (uint _i=0; _i<5; _i++){
             _mask = 63 * 2**(6*_i);
             _card = (_hand & _mask) / (2**(6*_i));

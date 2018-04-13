@@ -35,23 +35,23 @@ Note about randomness:
   this contract forbids.
 */
 contract InstaDice is
-	Bankrollable,
-	UsingAdmin
+    Bankrollable,
+    UsingAdmin
 {
-	// Each roll will be 1 256-bit value stored in a map.
-	struct Roll {
-		// [first 256-bit segment]
+    // Each roll will be 1 256-bit value stored in a map.
+    struct Roll {
+        // [first 256-bit segment]
         uint32 id;      // id, for convenience
-        uint32 userId;	// cheaper to look-up than to store address
-		uint64 bet;		// max of 18 ether
-		uint8 number;	// max of 255
-		uint72 payout;	// max of > 1m ether
-		uint32 block;	// max of 4b (120 yrs from now)
-		uint8 result;	// max of 255
-		bool isPaid;    // true after paid
-	}
+        uint32 userId;  // cheaper to look-up than to store address
+        uint64 bet;     // max of 18 ether
+        uint8 number;   // max of 255
+        uint72 payout;  // max of > 1m ether
+        uint32 block;   // max of 4b (120 yrs from now)
+        uint8 result;   // max of 255
+        bool isPaid;    // true after paid
+    }
 
-	// These variables are the only ones modifiable.
+    // These variables are the only ones modifiable.
     // We put them in a struct with the hopes that optimizer
     //   will do one write if any/all of them change.
     struct Vars {
@@ -62,45 +62,45 @@ contract InstaDice is
         uint64 totalWonGwei;
     }
     
-	// Admin controlled settings
-	struct Settings {
-		uint64 minBet;	  //
-		uint64 maxBet;	  // 
-		uint8 minNumber;  // they get ~20x their bet
-		uint8 maxNumber;  // they get ~1.01x their bet
-		uint16 feeBips;	  // each bip is .01%, eg: 100 = 1% fee.
-	}
+    // Admin controlled settings
+    struct Settings {
+        uint64 minBet;    //
+        uint64 maxBet;    // 
+        uint8 minNumber;  // they get ~20x their bet
+        uint8 maxNumber;  // they get ~1.01x their bet
+        uint16 feeBips;   // each bip is .01%, eg: 100 = 1% fee.
+    }
 
-	// Keep track of all rolls
-	mapping (uint32 => Roll) public rolls;
+    // Keep track of all rolls
+    mapping (uint32 => Roll) public rolls;
 
-	// Store a two-way mapping of address <=> userId
-	// If we've seen a user before, rolling will be just 1 write
-	//  per Roll struct vs 2 writes.
-	// The trade-off is 3 writes for new users. Seems fair.
-	mapping (address => uint32) public userIds;
-	mapping (uint32 => address) public userAddresses;
+    // Store a two-way mapping of address <=> userId
+    // If we've seen a user before, rolling will be just 1 write
+    //  per Roll struct vs 2 writes.
+    // The trade-off is 3 writes for new users. Seems fair.
+    mapping (address => uint32) public userIds;
+    mapping (uint32 => address) public userAddresses;
 
-	Vars vars;
-	Settings settings;
-	uint8 constant public version = 1;
-	
+    Vars vars;
+    Settings settings;
+    uint8 constant public version = 1;
+    
     // Admin events
     event Created(uint time);
     event SettingsChanged(uint time, address indexed sender);
 
-	// Events
-	event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint payout);
-	event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
-	event RollFinalized(uint time, uint32 indexed id, address indexed user, uint8 result, uint payout);
-	event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
-	event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
+    // Events
+    event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint payout);
+    event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
+    event RollFinalized(uint time, uint32 indexed id, address indexed user, uint8 result, uint payout);
+    event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
+    event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
 
-	function InstaDice(address _registry)
+    function InstaDice(address _registry)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         public
-	{
+    {
         vars.finalizeId = 1;
         settings.maxBet = .3 ether;
         settings.minBet = .001 ether;
@@ -111,42 +111,42 @@ contract InstaDice is
     }
 
 
-	///////////////////////////////////////////////////
-	////// ADMIN FUNCTIONS ////////////////////////////
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    ////// ADMIN FUNCTIONS ////////////////////////////
+    ///////////////////////////////////////////////////
 
-	// Changes the settings
-	function changeSettings(
-		uint64 _minBet,
-		uint64 _maxBet,
-		uint8 _minNumber,
-		uint8 _maxNumber,
-		uint16 _feeBips
-	)
-		public
-		fromAdmin
-	{
-		require(_minBet <= _maxBet); 	// makes sense
-		require(_maxBet <= .625 ether);	// capped at (block reward - uncle reward)
-		require(_minNumber >= 1);		// not advisible, but why not
-		require(_maxNumber <= 99);		// over 100 makes no sense
-		require(_feeBips <= 500);		// max of 5%
-		settings.minBet = _minBet;
-		settings.maxBet = _maxBet;
-		settings.minNumber = _minNumber;
-		settings.maxNumber = _maxNumber;
-		settings.feeBips = _feeBips;
-		SettingsChanged(now, msg.sender);
-	}
-	
+    // Changes the settings
+    function changeSettings(
+        uint64 _minBet,
+        uint64 _maxBet,
+        uint8 _minNumber,
+        uint8 _maxNumber,
+        uint16 _feeBips
+    )
+        public
+        fromAdmin
+    {
+        require(_minBet <= _maxBet);    // makes sense
+        require(_maxBet <= .625 ether); // capped at (block reward - uncle reward)
+        require(_minNumber >= 1);       // not advisible, but why not
+        require(_maxNumber <= 99);      // over 100 makes no sense
+        require(_feeBips <= 500);       // max of 5%
+        settings.minBet = _minBet;
+        settings.maxBet = _maxBet;
+        settings.minNumber = _minNumber;
+        settings.maxNumber = _maxNumber;
+        settings.feeBips = _feeBips;
+        SettingsChanged(now, msg.sender);
+    }
+    
 
-	///////////////////////////////////////////////////
-	////// PUBLIC FUNCTIONS ///////////////////////////
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    ////// PUBLIC FUNCTIONS ///////////////////////////
+    ///////////////////////////////////////////////////
 
-	// Adds a new roll to the rolls map.
+    // Adds a new roll to the rolls map.
     // The result will be immediately available: .getRollResult() / .getRollPayout()
-	// Automatically finalizes one or two rolls in the queue.
+    // Automatically finalizes one or two rolls in the queue.
     // This means this roll will be finalized eventually (usually next)
     //
     // Painstakingly optimized for Gas Cost:
@@ -159,7 +159,7 @@ contract InstaDice is
     //      -  3k: event (RollWagered)
     //      -  2k: SLOADs, execution 
     //
-    //	 - resolving nothing:            56k, 96k (new roller)
+    //   - resolving nothing:            56k, 96k (new roller)
     //      - 55k, 95k: [above]
     //      -  1k: SLOADs, execution
     //
@@ -181,10 +181,10 @@ contract InstaDice is
     //      - 10k: 3 updates: [roll.result,isPaid], [totalWonGwei,finalizeId]
     //      -  5k: events (PayoutSuccess, RollFinalized)
     //      -  3k: SLOADs, execution
-	function roll(uint8 _number)
-		public
-		payable
-	{
+    function roll(uint8 _number)
+        public
+        payable
+    {
         // Ensure bet and number are valid
         // To save SLOADs, read entire settings to memory.
         Settings memory _settings = settings;
@@ -202,88 +202,88 @@ contract InstaDice is
         // safe to cast: msg.value < minBet < .625 ETH < 2**64
         uint64 _bet = uint64(msg.value);
         uint72 _payout = computePayout(_bet, _number);
-	    
+        
         // Create the Roll (and _userId)
         uint32 _curId = _createNewRoll(_bet, _number, _payout);
         RollWagered(now, _curId, msg.sender, _bet, _number, _payout);
 
-	    // Finalize no rolls, 1 winning roll, or two losing rolls.
+        // Finalize no rolls, 1 winning roll, or two losing rolls.
         _finalizeSomeRolls();
-	}
-		// Only called from above.
-		// Refunds user the full value, and logs an error
-		function _errorAndRefund(string _msg, uint _bet, uint8 _number)
-			private
-		{
-			require(msg.sender.call.value(msg.value)());
-			RollRefunded(now, msg.sender, _msg, _bet, _number);
-		}
+    }
+        // Only called from above.
+        // Refunds user the full value, and logs an error
+        function _errorAndRefund(string _msg, uint _bet, uint8 _number)
+            private
+        {
+            require(msg.sender.call.value(msg.value)());
+            RollRefunded(now, msg.sender, _msg, _bet, _number);
+        }
 
-	// Pays out a user for a roll, if they won and .isPaid is false.
-	// If sent 0, defaults to latest roll
-	function payoutRoll(uint32 _id)
-		public
-	{
-		if (_id == 0) _id = vars.curId;
+    // Pays out a user for a roll, if they won and .isPaid is false.
+    // If sent 0, defaults to latest roll
+    function payoutRoll(uint32 _id)
+        public
+    {
+        if (_id == 0) _id = vars.curId;
 
-		Roll storage _r = rolls[_id];
-		// Ensure roll exists, and is not of the same block.
-		if (_r.block==0 || _r.block==block.number) return;
-		// Finalize the roll. This may attempt to pay user.
-		_finalizeRoll(_r);
-		// If not paid yet, and won, try to pay with full gas.
-		if (_r.result<=_r.number && !_r.isPaid) _attemptPayout(_r, true);
-	}
+        Roll storage _r = rolls[_id];
+        // Ensure roll exists, and is not of the same block.
+        if (_r.block==0 || _r.block==block.number) return;
+        // Finalize the roll. This may attempt to pay user.
+        _finalizeRoll(_r);
+        // If not paid yet, and won, try to pay with full gas.
+        if (_r.result<=_r.number && !_r.isPaid) _attemptPayout(_r, true);
+    }
 
-	// Finalizes a number of rolls in the queue
+    // Finalizes a number of rolls in the queue
     // Just in case Queue gets too large.
-	function finalizeRolls(uint _num)
-		public
-		returns (uint32 _numFinalized)
-	{
-		while (_numFinalized < _num) {
-			var (_didFinalize, ) = _finalizeNext(false);
-			if (!_didFinalize) break;
-			else _numFinalized++;
-		}
-		return _numFinalized;
-	}
+    function finalizeRolls(uint _num)
+        public
+        returns (uint32 _numFinalized)
+    {
+        while (_numFinalized < _num) {
+            var (_didFinalize, ) = _finalizeNext(false);
+            if (!_didFinalize) break;
+            else _numFinalized++;
+        }
+        return _numFinalized;
+    }
 
-	////////////////////////////////////////////////////
-	////// PRIVATE FUNCTIONS ///////////////////////////
-	////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    ////// PRIVATE FUNCTIONS ///////////////////////////
+    ////////////////////////////////////////////////////
 
-	// Only called from roll()
-	// Gets or creates user (2 possible writes)
-	// Saves roll in 1 write.
-	function _createNewRoll(uint64 _bet, uint8 _number, uint72 _payout)
-		private
-		returns (uint32 _curId)
-	{
-		// get or create userId
-	    uint32 _curUserId = vars.curUserId;
-	    uint32 _userId = userIds[msg.sender];
-	    if (_userId == 0) {
-	        _curUserId++;
-	        userIds[msg.sender] = _curUserId;
-	        userAddresses[_curUserId] = msg.sender;
-	        _userId = _curUserId;
-	    }
+    // Only called from roll()
+    // Gets or creates user (2 possible writes)
+    // Saves roll in 1 write.
+    function _createNewRoll(uint64 _bet, uint8 _number, uint72 _payout)
+        private
+        returns (uint32 _curId)
+    {
+        // get or create userId
+        uint32 _curUserId = vars.curUserId;
+        uint32 _userId = userIds[msg.sender];
+        if (_userId == 0) {
+            _curUserId++;
+            userIds[msg.sender] = _curUserId;
+            userAddresses[_curUserId] = msg.sender;
+            _userId = _curUserId;
+        }
 
-	    // Increment vars together (1 update)
-		_curId = vars.curId + 1;
-		uint64 _totalWagered = vars.totalWageredGwei + _bet / 1e9;
+        // Increment vars together (1 update)
+        _curId = vars.curId + 1;
+        uint64 _totalWagered = vars.totalWageredGwei + _bet / 1e9;
         vars.curUserId = _curUserId;
         vars.totalWageredGwei = _totalWagered;
         vars.curId = _curId;
 
         _saveRoll(_curId, _userId, _bet, _number, _payout);
-	}
-	// Does 1 write.
-	function _saveRoll(uint32 _curId, uint32 _userId, uint64 _bet, uint8 _number, uint72 _payout)
-		private
-	{
-		Roll storage _r = rolls[_curId];
+    }
+    // Does 1 write.
+    function _saveRoll(uint32 _curId, uint32 _userId, uint64 _bet, uint8 _number, uint72 _payout)
+        private
+    {
+        Roll storage _r = rolls[_curId];
         _r.id = _curId;
         _r.userId = _userId;
         _r.bet = _bet;
@@ -292,48 +292,48 @@ contract InstaDice is
         _r.block = uint32(block.number);
         _r.result = 0;
         _r.isPaid = false;
-	}
+    }
     
     // Finalizes a roll's results. Only callable once per roll.
     //
     //   On Win: stores the result, tries to pay the user.
-	//   On Loss: emits RollFinalized() event. changes no state.
+    //   On Loss: emits RollFinalized() event. changes no state.
     //   Throws: if roll is invalid, or not yet resolvable
     //   Returns:
     //     - If the roll was finalized as a win or loss.
-	function _finalizeRoll(Roll storage _r)
-		private
-		returns (bool _didPayment)
-	{
-		// Should never try to finalize invalid rolls.
-		// Or rolls of the current block.
-		assert(_r.block > 0);
-	    assert(_r.block != block.number);
-	    // Already finalized. Return false.
-	    if (_r.result != 0) return false;
-	    
-	    // Get the result, isWinner, and payout.
-	    // Return false if !isWinner.
-	    address _user = userAddresses[_r.userId];
-	    uint8 _result = computeResult(_r.block, _r.id);
-	    bool _isWinner = _result <= _r.number;
-	    if (!_isWinner) {
+    function _finalizeRoll(Roll storage _r)
+        private
+        returns (bool _didPayment)
+    {
+        // Should never try to finalize invalid rolls.
+        // Or rolls of the current block.
+        assert(_r.block > 0);
+        assert(_r.block != block.number);
+        // Already finalized. Return false.
+        if (_r.result != 0) return false;
+        
+        // Get the result, isWinner, and payout.
+        // Return false if !isWinner.
+        address _user = userAddresses[_r.userId];
+        uint8 _result = computeResult(_r.block, _r.id);
+        bool _isWinner = _result <= _r.number;
+        if (!_isWinner) {
             _r.result = _result;
-	    	RollFinalized(now, _r.id, _user, _result, 0);
-	    	return false;
-	    }
+            RollFinalized(now, _r.id, _user, _result, 0);
+            return false;
+        }
 
-	    // Update stats. Calling this first saves gas.
+        // Update stats. Calling this first saves gas.
         vars.totalWonGwei += uint64(_r.payout / 1e9);
 
         // Update roll result, try to payout with min gas.
-	    _r.result = _result;
+        _r.result = _result;
         _attemptPayout(_r, false);
 
         // emit event
-	    RollFinalized(now, _r.id, _user, _result, _r.payout);
-	    return true;
-	}
+        RollFinalized(now, _r.id, _user, _result, _r.payout);
+        return true;
+    }
 
     // Finalizes 0 rolls, 1 winning roll, or 2 losing rolls.
     function _finalizeSomeRolls()
@@ -351,74 +351,74 @@ contract InstaDice is
         _finalizeNext(true);
     }
 
-	// Finalizes the next in queue, or returns (false, false)
+    // Finalizes the next in queue, or returns (false, false)
     // Note: If roll is already finalized, it will still return (true, ?)
-	function _finalizeNext(bool _onlyIfLoss)
-		private
-		returns (bool _didFinalize, bool _didPayment)
-	{
-		// Can't finalize a nonexistant roll.
-		if (vars.finalizeId > vars.curId) return;
+    function _finalizeNext(bool _onlyIfLoss)
+        private
+        returns (bool _didFinalize, bool _didPayment)
+    {
+        // Can't finalize a nonexistant roll.
+        if (vars.finalizeId > vars.curId) return;
 
-		// Get roll. Return if its of this block, or its a win (and _onlyIfLoss)
-		Roll storage _r = rolls[vars.finalizeId];
-		if (_r.block == block.number) return;
+        // Get roll. Return if its of this block, or its a win (and _onlyIfLoss)
+        Roll storage _r = rolls[vars.finalizeId];
+        if (_r.block == block.number) return;
         if (_onlyIfLoss && computeResult(_r.block, _r.id) <= _r.number) return;
         
-		// Otherwise, finalize it, and Increment Id.
-		_didPayment = _finalizeRoll(_r);
-		vars.finalizeId++;
+        // Otherwise, finalize it, and Increment Id.
+        _didPayment = _finalizeRoll(_r);
+        vars.finalizeId++;
 
-		// Return values, in case somebody cares.
-		return (true, _didPayment);
-	}
+        // Return values, in case somebody cares.
+        return (true, _didPayment);
+    }
 
-	// Pays the user the payout of the roll.
-	// If the roll is finalized, won, and not already paid.
-	function _attemptPayout(Roll storage _r, bool _useFullGas)
-		private
-		returns (bool _didPayment)
-	{
-		// Make sure roll is finalized, won, and not paid.
-		assert(_r.result!=0 && _r.result <= _r.number && !_r.isPaid);
-		
-		// Set .isPaid to true, pay user. Rollback on failure.
-		address _user = userAddresses[_r.userId];
-		uint _payout = _r.payout;
-		_r.isPaid = true;
-		_didPayment = _useFullGas
-			? _user.call.value(_payout)()
-			: _user.send(_payout);
+    // Pays the user the payout of the roll.
+    // If the roll is finalized, won, and not already paid.
+    function _attemptPayout(Roll storage _r, bool _useFullGas)
+        private
+        returns (bool _didPayment)
+    {
+        // Make sure roll is finalized, won, and not paid.
+        assert(_r.result!=0 && _r.result <= _r.number && !_r.isPaid);
+        
+        // Set .isPaid to true, pay user. Rollback on failure.
+        address _user = userAddresses[_r.userId];
+        uint _payout = _r.payout;
+        _r.isPaid = true;
+        _didPayment = _useFullGas
+            ? _user.call.value(_payout)()
+            : _user.send(_payout);
         if (_didPayment) {
-        	PayoutSuccess(now, _r.id, _user, _payout);
+            PayoutSuccess(now, _r.id, _user, _payout);
         } else {
-        	_r.isPaid = false;
-        	PayoutFailure(now, _r.id, _user, _payout);
+            _r.isPaid = false;
+            PayoutFailure(now, _r.id, _user, _payout);
         }
-	}
+    }
 
 
 
-	///////////////////////////////////////////////////
-	////// PUBLIC VIEWS ///////////////////////////////
-	///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    ////// PUBLIC VIEWS ///////////////////////////////
+    ///////////////////////////////////////////////////
 
-	// IMPLEMENTS: Bankrollable.getCollateral()
-	// This contract has no collateral, as it pays out in near realtime.
-	function getCollateral() public view returns (uint _amount) {
-		return 0;
-	}
+    // IMPLEMENTS: Bankrollable.getCollateral()
+    // This contract has no collateral, as it pays out in near realtime.
+    function getCollateral() public view returns (uint _amount) {
+        return 0;
+    }
 
-	// IMPLEMENTS: Bankrollable.getWhitelistOwner()
+    // IMPLEMENTS: Bankrollable.getWhitelistOwner()
     // Ensures contract always has at least bankroll + totalCredits.
     function getWhitelistOwner() public view returns (address _wlOwner)
     {
         return getAdmin();
     }
 
-	// Returns the largest bet such that we could pay out 10 maximum wins.
-	// The likelihood that 10 maximum bets (with highest payouts) are won
-	//  within a short period of time are extremely low.
+    // Returns the largest bet such that we could pay out 10 maximum wins.
+    // The likelihood that 10 maximum bets (with highest payouts) are won
+    //  within a short period of time are extremely low.
     function curMaxBet() public view returns (uint _amount) {
         // Return largest bet such that 10*bet*payout = bankrollable()
         uint _maxPayout = 10 * 100 / uint(settings.minNumber);
@@ -427,18 +427,18 @@ contract InstaDice is
 
     // Return the less of settings.maxBet and curMaxBet()
     function effectiveMaxBet() public view returns (uint _amount) {
-    	uint _curMax = curMaxBet();
-    	return _curMax > settings.maxBet ? settings.maxBet : _curMax;
+        uint _curMax = curMaxBet();
+        return _curMax > settings.maxBet ? settings.maxBet : _curMax;
     }
 
-	// Computes the payout amount for the current _feeBips
+    // Computes the payout amount for the current _feeBips
     function computePayout(uint _bet, uint _number)
         public
         view
         returns (uint72 _wei)
     {
-    	// Cast to uint, makes below math cheaper.
-    	uint _feeBips = settings.feeBips;
+        // Cast to uint, makes below math cheaper.
+        uint _feeBips = settings.feeBips;
         // This is safely castable to uint72 (max value of 4.7e21: 4,700 Ether)
         // Maxbet is 1e18, and max multiple is 100, so max payout < 1,000 Ether.
         return uint72(
@@ -452,37 +452,37 @@ contract InstaDice is
         );
     }
 
-	// Return the result, or compute it and return it.
-	// Note: providers may compute the result incorrectly
-	//       due to a delay in updating block.blockhash().
-	//       This will cause a result of 101.
-	function getRollResult(uint32 _id)
-		public
-		view
-		returns (uint8 _result)
-	{
-		require(_id <= vars.curId && _id > 0);
-		Roll storage _r = rolls[_id];
-		return _r.result == 0
-			? computeResult(_r.block, _id)
-			: _r.result;
-	}
+    // Return the result, or compute it and return it.
+    // Note: providers may compute the result incorrectly
+    //       due to a delay in updating block.blockhash().
+    //       This will cause a result of 101.
+    function getRollResult(uint32 _id)
+        public
+        view
+        returns (uint8 _result)
+    {
+        require(_id <= vars.curId && _id > 0);
+        Roll storage _r = rolls[_id];
+        return _r.result == 0
+            ? computeResult(_r.block, _id)
+            : _r.result;
+    }
 
-	// Returns how much payout resulted from a roll
-	// Note: providers may compute the result incorrectly
-	//       due to a delay in updating block.blockhash().
-	//       This will cause a result of 0.
-	function getRollPayout(uint32 _id)
-		public
-		view
-		returns (uint _amount)
-	{
-		require(_id <= vars.curId && _id > 0);
-		Roll storage _r = rolls[_id];
-		return getRollResult(_id) <= _r.number
-			? _r.payout
-			: 0;
-	}
+    // Returns how much payout resulted from a roll
+    // Note: providers may compute the result incorrectly
+    //       due to a delay in updating block.blockhash().
+    //       This will cause a result of 0.
+    function getRollPayout(uint32 _id)
+        public
+        view
+        returns (uint _amount)
+    {
+        require(_id <= vars.curId && _id > 0);
+        Roll storage _r = rolls[_id];
+        return getRollResult(_id) <= _r.number
+            ? _r.payout
+            : 0;
+    }
 
     // Returns a number between 1 and 100 (inclusive)
     // If blockNumber is too far past, returns 101.
@@ -513,7 +513,7 @@ contract InstaDice is
         return uint(vars.totalWonGwei) * 1e9;
     }
     function getNumUnfinalized() public view returns (uint) {
-    	return vars.curId - (vars.finalizeId-1);
+        return vars.curId - (vars.finalizeId-1);
     }
     //////////////////////////////////////////////////////
 

@@ -5,34 +5,34 @@ import "./UsingRegistry.sol";
 /******* USING TREASURY **************************
 
 Gives the inherting contract access to:
-	.getTreasury(): returns current ITreasury instance
-	[modifier] .fromTreasury(): requires the sender is current Treasury
+    .getTreasury(): returns current ITreasury instance
+    [modifier] .fromTreasury(): requires the sender is current Treasury
 
 *************************************************/
 // Returned by .getTreasury()
 contract ITreasury {
-	function profits() public view returns (uint _profits);
-	function issueDividend() public returns (uint _profits);
+    function profits() public view returns (uint _profits);
+    function issueDividend() public returns (uint _profits);
 }
 
 contract UsingTreasury is
-	UsingRegistry
+    UsingRegistry
 {
-	function UsingTreasury(address _registry)
-		UsingRegistry(_registry)
-		public
-	{}
+    function UsingTreasury(address _registry)
+        UsingRegistry(_registry)
+        public
+    {}
 
-	modifier fromTreasury(){
-		require(msg.sender == address(getTreasury()));
-		_;
-	}
-	
-	function getTreasury()
-		public
-		constant
-		returns (ITreasury)
-	{
-		return ITreasury(addressOf("TREASURY"));
-	}
+    modifier fromTreasury(){
+        require(msg.sender == address(getTreasury()));
+        _;
+    }
+    
+    function getTreasury()
+        public
+        constant
+        returns (ITreasury)
+    {
+        return ITreasury(addressOf("TREASURY"));
+    }
 }
