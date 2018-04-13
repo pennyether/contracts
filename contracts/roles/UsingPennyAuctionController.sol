@@ -13,8 +13,8 @@ Gives the inherting contract access to:
 interface IPennyAuctionController {
     function refreshAuctions() public returns (uint _numAuctionsEnded, uint _feesSent);
     function startDefinedAuction(uint _index) payable public returns (address _auction);
-    function numDefinedAuctions() public constant returns(uint);
-    function getNumEndedAuctions() public constant returns (uint _numEndedAuctions);
+    function getFirstStartableIndex() public view returns (uint _index);
+    function getNumEndableAuctions() public constant returns (uint _count);
     function getAvailableFees() public constant returns (uint _feesAvailable);
     function getInitialPrize(uint _index) public constant returns (uint);
     function getIsStartable(uint _index) public constant returns (bool);

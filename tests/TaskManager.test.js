@@ -33,20 +33,20 @@ const DEFAULT_DEF = {
     }
 };
 
-const DEF_0 = Object.assign({}, DEFAULT_DEF);
-	DEF_0.summary = "0th Auction";
 const DEF_1 = Object.assign({}, DEFAULT_DEF);
-	DEF_1.summary = "1st Auction (Invalid BID_ADD_BLOCKS_1)";
-	DEF_1.bidAddBlocks = new BigNumber(0);
+	DEF_1.summary = "1st Auction";
 const DEF_2 = Object.assign({}, DEFAULT_DEF);
-	DEF_2.summary = "2nd auction (huge initialPrize)";
-	DEF_2.initialPrize = new BigNumber(100e18);
+	DEF_2.summary = "2nd Auction (Invalid BID_ADD_BLOCKS_1)";
+	DEF_2.bidAddBlocks = new BigNumber(0);
 const DEF_3 = Object.assign({}, DEFAULT_DEF);
-	DEF_3.summary = "3rd auction";
-	DEF_3.initialBlocks = DEF_3.initialBlocks.plus(10);
+	DEF_3.summary = "3rd auction (huge initialPrize)";
+	DEF_3.initialPrize = new BigNumber(100e18);
 const DEF_4 = Object.assign({}, DEFAULT_DEF);
 	DEF_4.summary = "4th auction";
-const DEFS = [DEF_0, DEF_1, DEF_2, DEF_3, DEF_4];
+	DEF_4.initialBlocks = DEF_3.initialBlocks.plus(10);
+const DEF_5 = Object.assign({}, DEFAULT_DEF);
+	DEF_5.summary = "5th auction";
+const DEFS = [null, DEF_1, DEF_2, DEF_3, DEF_4, DEF_5];
 
 const ISSUE_DIVIDEND_REWARD_BIPS = new BigNumber(10);
 const SEND_PROFITS_REWARD_BIPS = new BigNumber(50);
@@ -251,6 +251,9 @@ describe("MainController", function(){
 			it(".doIssueDividend works", async function(){
 				const expProfits = await treasury.profits();
 				const expReward = expProfits.mul(ISSUE_DIVIDEND_REWARD_BIPS).div(10000);
+				const prevTotalRewarded = await taskManager.totalRewarded();
+				const prevDlUsed = await taskManager.getDailyLimitUsed();
+				const prevDlRemaining = await taskManager.getDailyLimitRemaining();
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon, treasury, dummyToken])
 					.doTx([taskManager, "doIssueDividend", {from: anon}])
@@ -269,6 +272,10 @@ describe("MainController", function(){
 						.assertDelta(dummyToken, expProfits)
 						.assertDelta(taskManager, expReward.mul(-1))
 						.assertDeltaMinusTxFee(anon, expReward)
+					.assertCallReturns([taskManager, "issueDividendReward"], [0,0])
+					.assertCallReturns([taskManager, "totalRewarded"], prevTotalRewarded.plus(expReward))
+					.assertCallReturns([taskManager, "getDailyLimitUsed"], prevDlUsed.plus(expReward))
+					.assertCallReturns([taskManager, "getDailyLimitRemaining"], prevDlRemaining.minus(expReward))
 					.start();
 			});
 		});
@@ -339,6 +346,8 @@ describe("MainController", function(){
 				const expProfits = await bankrollable.profits();
 				const expReward = expProfits.mul(SEND_PROFITS_REWARD_BIPS).div(10000);
 				const prevTotalRewarded = await taskManager.totalRewarded();
+				const prevDlUsed = await taskManager.getDailyLimitUsed();
+				const prevDlRemaining = await taskManager.getDailyLimitRemaining();
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon, treasury])
 					.doTx([taskManager, "doSendProfits", bankrollable.address, {from: anon}])
@@ -360,6 +369,8 @@ describe("MainController", function(){
 						.assertDeltaMinusTxFee(anon, expReward)
 					.assertCallReturns([taskManager, "sendProfitsReward", bankrollable.address], [0,0])
 					.assertCallReturns([taskManager, "totalRewarded"], prevTotalRewarded.plus(expReward))
+					.assertCallReturns([taskManager, "getDailyLimitUsed"], prevDlUsed.plus(expReward))
+					.assertCallReturns([taskManager, "getDailyLimitRemaining"], prevDlRemaining.minus(expReward))
 					.start();
 			});
 		});
@@ -371,15 +382,15 @@ describe("MainController", function(){
 		describe("Set up PAC (fund it, and enable)", function(){
 			it("Set up and enable defined auctions.", function(){
 		    	return createDefaultTxTester()
-		        	.doTx([pac, "editDefinedAuction", 0].concat(DEF_0.toArr(), {from: admin})).assertSuccess()
 		        	.doTx([pac, "editDefinedAuction", 1].concat(DEF_1.toArr(), {from: admin})).assertSuccess()
 		        	.doTx([pac, "editDefinedAuction", 2].concat(DEF_2.toArr(), {from: admin})).assertSuccess()
 		        	.doTx([pac, "editDefinedAuction", 3].concat(DEF_3.toArr(), {from: admin})).assertSuccess()
 		        	.doTx([pac, "editDefinedAuction", 4].concat(DEF_4.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 0, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 1, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 2, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 3, {from: admin}]).assertSuccess()
+		        	.doTx([pac, "editDefinedAuction", 5].concat(DEF_5.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([pac, "enableDefinedAuction", 0, true, {from: admin}]).assertSuccess()
+		        	.doTx([pac, "enableDefinedAuction", 1, true, {from: admin}]).assertSuccess()
+		        	.doTx([pac, "enableDefinedAuction", 2, true, {from: admin}]).assertSuccess()
+		        	.doTx([pac, "enableDefinedAuction", 3, true, {from: admin}]).assertSuccess()
 		        	.assertCallReturns([pac, "numDefinedAuctions"], 5)
 		        	.start();
 			});
@@ -424,29 +435,29 @@ describe("MainController", function(){
 		describe(".startPennyAuctionReward() and .startPennyAuction()", function(){
 			it(".startPennyAuctionReward() returns [reward, 0]", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 0])
+					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 1])
 					.start();
 			});
 			it(".startPennyAuction() errors on invalid index", function(){
-				return assertCannotStartPa(5);
+				return assertCannotStartPa(6);
 			});
 			it(".startPennyAuction() errors if too expensive", function(){
-				return assertCannotStartPa(2);
+				return assertCannotStartPa(3);
 			});
 			it(".startPennyAuction() errors if not enabled", function(){
-				return assertCannotStartPa(4);
+				return assertCannotStartPa(5);
 			});
 			it(".startPennyAuction() works", function(){
-				return assertCanStartPa(0);
+				return assertCanStartPa(1);
 			});
-			it(".startPennyAuctionReward() now returns [reward, 1]", function(){
+			it(".startPennyAuctionReward() now returns [reward, 2]", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 1])
+					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 2])
 					.start();
 			});
 		});
 		describe(".refreshPennyAuctions() and .refreshPennyAuctionsReward()", async function(){
-			const auction0 = PennyAuction.at(await pac.getAuction(0));
+			const auction1 = PennyAuction.at(await pac.getAuction(1));
 
 			it(".refreshPennyAuctionsReward() returns 0", function(){
 				return createDefaultTxTester()
@@ -454,9 +465,9 @@ describe("MainController", function(){
 					.start();
 			});
 			it("Place bids, and end PennyAuction #1", async function(){
-				await auction0.sendTransaction({from: bidder1, value: DEF_0.bidPrice});
-            	await auction0.sendTransaction({from: bidder2, value: DEF_0.bidPrice});
-            	const blocksLeft = await auction0.getBlocksRemaining();
+				await auction1.sendTransaction({from: bidder1, value: DEF_1.bidPrice});
+            	await auction1.sendTransaction({from: bidder2, value: DEF_1.bidPrice});
+            	const blocksLeft = await auction1.getBlocksRemaining();
             	await testUtil.mineBlocks(blocksLeft);
 			});
 			it(".refreshPennyAuctionsReward() returns correct amount", function(){
@@ -464,18 +475,18 @@ describe("MainController", function(){
 					.assertCallReturns([taskManager, "refreshPennyAuctionsReward"], [PA_END_REWARD, 1])
 					.start();
 			});
-			it(".refreshPennyAuctions() ends auction0", async function(){
-				const expPrize = await auction0.prize();
+			it(".refreshPennyAuctions() ends auction1", async function(){
+				const expPrize = await auction1.prize();
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon, bidder2])
-					.startWatching([auction0])
+					.startWatching([auction1])
 					.doTx([taskManager, "refreshPennyAuctions", {from: anon}])
 					.assertSuccess()
 						.assertLogCount(2)
 						.assertLog("PennyAuctionsRefreshed", {
 							time: null,
 							numEnded: 1,
-							feesCollected: DEF_0.feeIncr().mul(2)
+							feesCollected: DEF_1.feeIncr().mul(2)
 						})
 						.assertLog("RewardSuccess", {
 							time: null,
@@ -483,8 +494,8 @@ describe("MainController", function(){
 							reward: PA_END_REWARD
 						})
 					.stopWatching()
-						.assertEvent(auction0, "SendPrizeSuccess")
-						.assertEvent(auction0, "FeesSent")
+						.assertEvent(auction1, "SendPrizeSuccess")
+						.assertEvent(auction1, "FeesSent")
 					.stopLedger()
 						.assertDelta(taskManager, PA_END_REWARD.mul(-1))
 						.assertDeltaMinusTxFee(anon, PA_END_REWARD)
@@ -495,7 +506,10 @@ describe("MainController", function(){
 		});
 	});
 
-	function assertCannotStartPa(index) {
+	async function assertCannotStartPa(index) {
+		const prevAuction = await pac.getAuction(index);
+		const prevDlUsed = await pac.getDailyLimitUsed();
+		const prevDlRemaining = await pac.getDailyLimitRemaining();
 		return createDefaultTxTester()
 			.startLedger([taskManager])
 			.doTx([taskManager, "startPennyAuction", index, {from: anon}])
@@ -503,20 +517,25 @@ describe("MainController", function(){
 				.assertOnlyLog("TaskError", {msg: "Auction is not currently startable."})
 			.stopLedger()
 				.assertNoDelta(taskManager)
+			.assertCallReturns([pac, "getAuction", index], prevAuction)
+			.assertCallReturns([pac, "getDailyLimitUsed"], prevDlUsed)
+			.assertCallReturns([pac, "getDailyLimitRemaining"], prevDlRemaining)
 			.start();
 	}
 
 	//event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
 	async function assertCanStartPa(index) {
+		const prevDlUsed = await taskManager.getDailyLimitUsed();
+		const prevDlRemaining = await taskManager.getDailyLimitRemaining();
 		return createDefaultTxTester()
 			.startLedger([anon, taskManager])
-			.doTx([taskManager, "startPennyAuction", 0, {from: anon}])
+			.doTx([taskManager, "startPennyAuction", index, {from: anon}])
 			.assertSuccess()
 				.assertLogCount(2)
 				.assertLog("PennyAuctionStarted", {
 					time: null,
 					auctionAddr: null,
-					initialPrize: DEFS[0].initialPrize
+					initialPrize: DEFS[index].initialPrize
 				})
 				.assertLog("RewardSuccess", {
 					time: null,
@@ -526,7 +545,9 @@ describe("MainController", function(){
 			.stopLedger()
 				.assertDeltaMinusTxFee(anon, PA_START_REWARD)
 				.assertDelta(taskManager, PA_START_REWARD.mul(-1))
-			.assertCallReturns([pac, "getAuction", index], {not: 0})
+			.assertCallReturns([pac, "getAuction", index], {not: NO_ADDRESS})
+			.assertCallReturns([taskManager, "getDailyLimitUsed"], prevDlUsed.plus(PA_START_REWARD))
+			.assertCallReturns([taskManager, "getDailyLimitRemaining"], prevDlRemaining.minus(PA_START_REWARD))
 			.start();
 	}
 });

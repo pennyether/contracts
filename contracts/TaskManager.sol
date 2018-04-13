@@ -92,13 +92,13 @@ contract TaskManager is
         _profits = _tr.profits();
         // quit if no profits to send.
         if (_profits == 0) {
-            _error("No profits to send.");
+            _taskError("No profits to send.");
             return;
         }
         // call .issueDividend(), use return value to compute _reward
         _profits = _tr.issueDividend();
         if (_profits == 0) {
-            _error("No profits were sent.");
+            _taskError("No profits were sent.");
             return;
         } else {
             IssueDividendSuccess(now, address(_tr), _profits);
@@ -152,7 +152,7 @@ contract TaskManager is
 
         // Quit if no profits. Otherwise compute profits.
         if (_newTrBalance <= _oldTrBalance) {
-            _error("No profits were sent.");
+            _taskError("No profits were sent.");
             return;
         } else {
             _profits = _newTrBalance - _oldTrBalance;
@@ -210,14 +210,14 @@ contract TaskManager is
         // Don't bother trying if it's not startable
         IPennyAuctionController _pac = getPennyAuctionController();
         if (!_pac.getIsStartable(_index)){
-            _error("Auction is not currently startable.");
+            _taskError("Auction is not currently startable.");
             return;
         }
 
         // Try to start the auction. This may fail.
         address _auction = _pac.startDefinedAuction(_index);
         if (_auction == address(0)) {
-            _error("PennyAuctionController.startDefinedAuction() failed.");
+            _taskError("PennyAuctionController.startDefinedAuction() failed.");
             return;
         } else {
             PennyAuctionStarted(now, _auction, _pac.getInitialPrize(_index));   
@@ -234,12 +234,8 @@ contract TaskManager is
         returns (uint _reward, uint _index)
     {
         IPennyAuctionController _pac = getPennyAuctionController();
-        uint _numIndexes = _pac.numDefinedAuctions();
-        for (_index = 0; _index < _numIndexes; _index++) {
-            if (!_pac.getIsStartable(_index)) continue;
-            return (_cappedReward(paStartReward), _index);
-        }
-        return (0, 0);
+        _index = _pac.getFirstStartableIndex();
+        if (_index > 0) _reward = _cappedReward(paStartReward);
     }
 
 
@@ -254,7 +250,7 @@ contract TaskManager is
         PennyAuctionsRefreshed(now, _numAuctionsEnded, _feesCollected);
 
         if (_numAuctionsEnded == 0) {
-            _error("No auctions ended.");
+            _taskError("No auctions ended.");
         } else {
             _sendReward(_numAuctionsEnded * paEndReward);   
         }
@@ -267,7 +263,7 @@ contract TaskManager is
         returns (uint _reward, uint _numEndable)
     {
         IPennyAuctionController _pac = getPennyAuctionController();
-        _numEndable = _pac.getNumEndedAuctions();
+        _numEndable = _pac.getNumEndableAuctions();
         _reward = _cappedReward(_numEndable * paEndReward);
     }
 
@@ -275,21 +271,32 @@ contract TaskManager is
     ///////////////////////////////////////////////////////////////////////
     /////////////////// PRIVATE FUNCTIONS /////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    function _error(string _msg) private {
+
+    // Called when task is unable to execute.
+    function _taskError(string _msg) private {
         TaskError(now, msg.sender, _msg);
     }
 
+    // Sends a capped amount of _reward to the msg.sender, and emits proper event.
     function _sendReward(uint _reward) private {
-        _reward = _cappedReward(_reward);
-        _useFromDailyLimit(_reward);
-        if (msg.sender.call.value(_reward)()) {
-            totalRewarded += _reward;
-            RewardSuccess(now, msg.sender, _reward);
+        // Limit the reward to balance or dailyLimitRemaining
+        uint _amount = _cappedReward(_reward);
+        if (_reward > 0 && _amount == 0) {
+            RewardFailure(now, msg.sender, _amount, "Not enough funds, or daily limit reached.");
+            return;
+        }
+
+        // Attempt to send it (even if _reward was 0)
+        if (msg.sender.call.value(_amount)()) {
+            _useFromDailyLimit(_amount);
+            totalRewarded += _amount;
+            RewardSuccess(now, msg.sender, _amount);
         } else {
-            RewardFailure(now, msg.sender, _reward, "Reward rejected by sender (OoG or revert).");
+            RewardFailure(now, msg.sender, _amount, "Reward rejected by recipient (out of gas, or revert).");
         }
     }
 
+    // This caps the reward amount to the minimum of (reward, balance, dailyLimitRemaining)
     function _cappedReward(uint _reward) private view returns (uint) {
         uint _balance = this.balance;
         uint _remaining = getDailyLimitRemaining();
