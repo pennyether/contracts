@@ -746,7 +746,7 @@ describe('VideoPoker', function(){
                         time: null,
                         user: player,
                         id: id,
-                        amt: expPayout
+                        amount: expPayout
                     }]);
                     conditions.finalize.win = true;
                 } else {
