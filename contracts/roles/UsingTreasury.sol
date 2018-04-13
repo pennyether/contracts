@@ -11,8 +11,8 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getTreasury()
 contract ITreasury {
-	function profits() public returns (uint _profits);
-	function distributeToToken() public returns (uint _profits);
+	function profits() public view returns (uint _profits);
+	function issueDividend() public returns (uint _profits);
 }
 
 contract UsingTreasury is

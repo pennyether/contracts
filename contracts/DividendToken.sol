@@ -88,6 +88,7 @@ contract ERC667 is ERC20 {
 	{
 		require(super.transfer(_to, _value));
 		require(HasTokenFallback(_to).tokenFallback(msg.sender, _value, _data));
+		return true;
 	}
 }
 

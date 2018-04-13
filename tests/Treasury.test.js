@@ -355,12 +355,12 @@ describe('Treasury', function(){
     })
 
     describe("Before Setting Token", function(){
-        describe("Can receive profits (but not distribute)", function(){
+        describe("Can receive profits (but not issue dividend)", function(){
             it("Can receive profits", async function(){
                 return assertReceivesProfits(anon, 1e5);
             });
-            it("Cannot distribute (no token)", function(){
-                return assertCannotDistribute("No address to distribute to.");
+            it("Cannot issue dividend (no token)", function(){
+                return assertCannotIssueDividend("No address to send to.");
             });
         })
         it(".executeRaiseCapital() works", async function(){
@@ -458,15 +458,15 @@ describe('Treasury', function(){
             });
         });
 
-        describe(".distributeToToken() works", function(){
+        describe(".issueDividend() works", function(){
             before("Get some profits", function(){
                 return assertReceivesProfits(anon, 1e5);
             });
-            it(".distributeToToken() works", function(){
-                return assertDistributes();
+            it(".issueDividend() works", function(){
+                return assertIssuesDividend();
             });
-            it(".distributeToToken() does not work again", function(){
-                return assertCannotDistribute("No profits to distribute.");
+            it(".issueDividend() does not work again", function(){
+                return assertCannotIssueDividend("No profits to send.");
             });
         });
 
@@ -846,15 +846,15 @@ describe('Treasury', function(){
             .start();
     }
 
-    async function assertCannotDistribute(expMsg) {
+    async function assertCannotIssueDividend(expMsg) {
         const expProfits = await treasury.profits();
         const expProfitsSent = await treasury.profitsSent();
         return createDefaultTxTester()
             .wait(500)
             .startLedger([treasury])
-            .doTx([treasury, "distributeToToken", {from: anon}])
+            .doTx([treasury, "issueDividend", {from: anon}])
             .assertSuccess()
-                .assertOnlyLog("DistributeFailure", {
+                .assertOnlyLog("DividendFailure", {
                     time: null,
                     msg: expMsg
                 })
@@ -865,7 +865,7 @@ describe('Treasury', function(){
             .start();
     }
 
-    async function assertDistributes() {
+    async function assertIssuesDividend() {
         const profits = await treasury.profits();
         const expProfitsSent = (await treasury.profitsSent()).plus(profits);
         const expProfitsTotal = expProfitsSent;
@@ -874,9 +874,9 @@ describe('Treasury', function(){
         return createDefaultTxTester()
             .wait(100)
             .startLedger([anon, treasury, dummyToken])
-            .doTx([treasury, "distributeToToken", {from: anon}])
+            .doTx([treasury, "issueDividend", {from: anon}])
             .assertSuccess()
-                .assertOnlyLog("DistributeSuccess", {
+                .assertOnlyLog("DividendSuccess", {
                     time: null,
                     token: dummyToken,
                     amount: profits

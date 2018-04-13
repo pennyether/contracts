@@ -297,9 +297,9 @@ contract Treasury is
 	event ExecutedSendCapital(uint time, address indexed bankrollable, uint amount);
 	event ExecutedRecallCapital(uint time, address indexed bankrollable, uint amount);
 	event ExecutedRaiseCapital(uint time, uint amount);
-	// distribution events
-	event DistributeSuccess(uint time, address token, uint amount);
-	event DistributeFailure(uint time, string msg);
+	// dividend events
+	event DividendSuccess(uint time, address token, uint amount);
+	event DividendFailure(uint time, string msg);
 
 	// `Requester` provides .fromAdmin() and requires implementation of:
 	//   - executeSendCapital
@@ -368,7 +368,7 @@ contract Treasury is
 
 
 	/*************************************************************/
-	/******* PROFITS AND DISTRIBUTING ****************************/
+	/******* PROFITS AND DIVIDENDS *******************************/
 	/*************************************************************/
 
 	// Can receive Ether from anyone. Typically Bankrollable contracts' profits.
@@ -379,20 +379,20 @@ contract Treasury is
 	}
 
 	// Sends profits to Token
-	function distributeToToken()
+	function issueDividend()
 		public
 		returns (uint _profits)
 	{
 		// Ensure token is set.
 		if (token == address(0)) {
-			DistributeFailure(now, "No address to distribute to.");
+			DividendFailure(now, "No address to send to.");
 			return;
 		}
 
 		// Load _profits to memory (saves gas), and ensure there are profits.
 		_profits = profits;
 		if (_profits <= 0) {
-			DistributeFailure(now, "No profits to distribute.");
+			DividendFailure(now, "No profits to send.");
 			return;
 		}
 
@@ -400,7 +400,7 @@ contract Treasury is
 		profits = 0;
 		profitsSent += _profits;
 		require(token.call.value(_profits)());
-		DistributeSuccess(now, token, _profits);
+		DividendSuccess(now, token, _profits);
 	}
 
 
@@ -520,14 +520,14 @@ contract Treasury is
   	}
 
   	// Returns the full capital allocation table
-  	function capitalAllocation()
-  		public
-  		view
-  		returns (address[] _addresses, uint[] _amounts)
-  	{
-  		// Not available until Solidity 0.4.22
-  		// return capitalLedger.balances();
-  	}
+  	// Returning dynamic arrays is not available until Solidity 0.4.22
+  	// function capitalAllocation()
+  	// 	public
+  	// 	view
+  	// 	returns (address[] _addresses, uint[] _amounts)
+  	// {
+  	// 	return capitalLedger.balances();
+  	// }
 
   	// Returns if _addr.getTreasury() returns this address.
   	// This is not fool-proof, but should prevent accidentally

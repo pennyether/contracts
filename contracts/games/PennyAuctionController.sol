@@ -1,5 +1,6 @@
 pragma solidity ^0.4.19;
 
+import "../common/HasDailyLimit.sol";
 import "../common/Bankrollable.sol";
 import "../roles/UsingAdmin.sol";
 import "../roles/UsingPennyAuctionFactory.sol";
@@ -33,6 +34,7 @@ interface IPennyAuction {
 
 */
 contract PennyAuctionController is
+    HasDailyLimit,
 	Bankrollable,
     UsingAdmin,
 	UsingPennyAuctionFactory
@@ -60,6 +62,7 @@ contract PennyAuctionController is
     }
 
     event Created(uint time);
+    event DailyLimitChanged(uint time, address indexed owner, uint newValue);
 	event Error(uint time, string msg);
 	event DefinedAuctionEdited(uint time, uint index);
     event DefinedAuctionInvalid(uint time, uint index);
@@ -69,12 +72,25 @@ contract PennyAuctionController is
 
 
 	function PennyAuctionController(address _registry) 
+        HasDailyLimit(10 ether)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         UsingPennyAuctionFactory(_registry)
         public
 	{
         Created(now);
+    }
+
+    /*************************************************************/
+    /******** OWNER FUNCTIONS ************************************/
+    /*************************************************************/
+
+    function setDailyLimit(uint _amount)
+        public
+        fromOwner
+    {
+        _setDailyLimit(_amount);
+        DailyLimitChanged(now, msg.sender, _amount);
     }
 
 
@@ -179,7 +195,12 @@ contract PennyAuctionController is
         	_error("Not enough funds to start this auction.");
         	return;
         }
+        if (getDailyLimitRemaining() < dAuction.initialPrize) {
+            _error("Starting game would exceed daily limit");
+            return;
+        }
 
+        // Ensure that if this game is started, revenue comes back to this contract.
         IPennyAuctionFactory _paf = getPennyAuctionFactory();
         if (_paf.getCollector() != address(this)){
             _error("PAF.getCollector() points to a different contract.");
@@ -201,7 +222,8 @@ contract PennyAuctionController is
             return;
         }
 
-		// save it to definedAuction, and return
+		// Get the auction, add it to definedAuctions, and return.
+        _useFromDailyLimit(dAuction.initialPrize);
         _auction = _paf.lastCreatedAuction();
         definedAuctions[_index].auction = IPennyAuction(_auction);
         AuctionStarted(now, _index, _auction, dAuction.initialPrize);
@@ -343,6 +365,7 @@ contract PennyAuctionController is
         if (dAuction.isEnabled == false) return;
         if (dAuction.auction != IPennyAuction(0)) return;
         if (dAuction.initialPrize > this.balance) return;
+        if (dAuction.initialPrize > getDailyLimitRemaining()) return;
         return true;
     }
 

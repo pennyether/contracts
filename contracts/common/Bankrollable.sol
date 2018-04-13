@@ -201,12 +201,12 @@ contract Bankrollable is
         return ledger.balanceOf(_addr);
     }
 
-    function bankrollerTable()
-        public
-        view
-        returns (address[], uint[])
-    {
-        // Not available until Solidity 0.4.22
-        // return ledger.balances();
-    }
+    // Not available until Solidity 0.4.22
+    // function bankrollerTable()
+    //     public
+    //     view
+    //     returns (address[], uint[])
+    // {
+    //     return ledger.balances();
+    // }
 }

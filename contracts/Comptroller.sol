@@ -105,7 +105,7 @@ interface _ICompTreasury {
 	// called when user burns tokens
 	function removeReserve(uint _amount, address _recipient) public;
 	// used to determine if Treasury wants to raise capital.
-	function capitalNeeded() public returns (uint);
+	function capitalNeeded() public view returns (uint);
 }
 contract Comptroller {
 	// These values are set in the constructor and can never be changed.

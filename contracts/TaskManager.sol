@@ -1,5 +1,6 @@
 pragma solidity ^0.4.19;
 
+import "./common/HasDailyLimit.sol";
 import "./common/Bankrollable.sol";
 import "./roles/UsingAdmin.sol";
 import "./roles/UsingPennyAuctionController.sol";
@@ -7,7 +8,9 @@ import "./roles/UsingPennyAuctionController.sol";
 /*
   This is a simple class that pays anybody to execute methods on
   other contracts. The reward amounts are configurable by the Admin,
-  with some hard limits to prevent the Admin from pilfering.
+  with some hard limits to prevent the Admin from pilfering. The
+  contract has a DailyLimit, so even if the Admin is compromised,
+  the contract cannot be drained.
 
   TaskManager is Bankrollable, meaning it can accept bankroll from 
   the Treasury (and have it recalled).  However, it will never generate
@@ -24,6 +27,7 @@ interface _IBankrollable {
 	function profits() public view returns (int _profits);
 }
 contract TaskManager is
+	HasDailyLimit,
 	Bankrollable,
 	UsingAdmin,
 	UsingPennyAuctionController
@@ -32,12 +36,15 @@ contract TaskManager is
 	uint public totalRewarded;
 
 	event Created(uint time);
+	event DailyLimitChanged(uint time, address indexed owner, uint newValue);
 	event TaskError(uint time, address indexed caller, string msg);
 	event RewardSuccess(uint time, address indexed caller, uint reward);
 	event RewardFailure(uint time, address indexed caller, uint reward, string msg);
 
 	// Construct sets the registry and instantiates inherited classes.
 	function TaskManager(address _registry)
+		public
+		HasDailyLimit(1 ether)
 		Bankrollable(_registry)
 		UsingAdmin(_registry)
 		UsingPennyAuctionController(_registry)
@@ -45,48 +52,38 @@ contract TaskManager is
 		Created(now);
 	}
 
-	function _error(string _msg) private {
-		TaskError(now, msg.sender, _msg);
-	}
 
-	function _sendReward(uint _reward) private {
-		_reward = _cappedReward(_reward);
-		if (msg.sender.call.value(_reward)()) {
-			totalRewarded += _reward;
-			RewardSuccess(now, msg.sender, _reward);
-		} else {
-			RewardFailure(now, msg.sender, _reward, "Reward rejected by sender (OoG or revert).");
-		}
-	}
+	///////////////////////////////////////////////////////////////////
+	////////// OWNER FUNCTIONS ////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////
 
-	function _cappedReward(uint _reward) private view returns (uint) {
-		uint _balance = this.balance;
-		return _reward > _balance ? _balance : _reward;
+	function setDailyLimit(uint _amount)
+		public
+		fromOwner
+	{
+		_setDailyLimit(_amount);
+		DailyLimitChanged(now, msg.sender, _amount);
 	}
-
-	// IMPLEMENT BANKROLLABLE FUNCTIONS
-	function getCollateral() public view returns (uint) {}
-	function getWhitelistOwner() public view returns (address){ return getAdmin(); }
 
 
 	///////////////////////////////////////////////////////////////////
-	////////// DISTRIBUTING DIVIDENDS /////////////////////////////////
+	////////// ISSUING A DIVIDEND /////////////////////////////////////
 	///////////////////////////////////////////////////////////////////
 
-	uint public sendDividendsRewardBips;
-	event SendDividendsRewardChanged(uint time, address indexed admin, uint newValue);
-	event SendDividendsSuccess(uint time, address indexed treasury, uint profitsSent);
+	uint public issueDividendRewardBips;
+	event IssueDividendRewardChanged(uint time, address indexed admin, uint newValue);
+	event IssueDividendSuccess(uint time, address indexed treasury, uint profitsSent);
 
-	function setSendDividendsReward(uint _bips)
+	function setIssueDividendReward(uint _bips)
 		public
 		fromAdmin
 	{
 		require(_bips <= 10);
-		sendDividendsRewardBips = _bips;
-		SendDividendsRewardChanged(now, msg.sender, _bips);
+		issueDividendRewardBips = _bips;
+		IssueDividendRewardChanged(now, msg.sender, _bips);
 	}
 
-	function doSendDividends()
+	function doIssueDividend()
 		public
 		returns (uint _reward, uint _profits)
 	{
@@ -98,26 +95,26 @@ contract TaskManager is
 			_error("No profits to send.");
 			return;
 		}
-		// call distributeToToken, use return value to compute _reward
-		_profits = _tr.distributeToToken();
+		// call .issueDividend(), use return value to compute _reward
+		_profits = _tr.issueDividend();
 		if (_profits == 0) {
 			_error("No profits were sent.");
 			return;
 		} else {
-			SendDividendsSuccess(now, address(_tr), _profits);
+			IssueDividendSuccess(now, address(_tr), _profits);
 		}
 		// send reward
-		_reward = (_profits * sendDividendsRewardBips) / 10000;
+		_reward = (_profits * issueDividendRewardBips) / 10000;
 		_sendReward(_reward);
 	}
 		// Returns reward and profits
-		function sendDividendsReward()
+		function issueDividendReward()
 			public
 			view
 			returns (uint _reward, uint _profits)
 		{
 			_profits = getTreasury().profits();
-			_reward = _cappedReward((_profits * sendDividendsRewardBips) / 10000);
+			_reward = _cappedReward((_profits * issueDividendRewardBips) / 10000);
 		}
 
 
@@ -269,4 +266,35 @@ contract TaskManager is
 			_numEndable = _pac.getNumEndedAuctions();
 			_reward = _cappedReward(_numEndable * paEndReward);
 		}
+
+
+	///////////////////////////////////////////////////////////////////////
+	/////////////////// PRIVATE FUNCTIONS /////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
+	function _error(string _msg) private {
+		TaskError(now, msg.sender, _msg);
+	}
+
+	function _sendReward(uint _reward) private {
+		_reward = _cappedReward(_reward);
+		_useFromDailyLimit(_reward);
+		if (msg.sender.call.value(_reward)()) {
+			totalRewarded += _reward;
+			RewardSuccess(now, msg.sender, _reward);
+		} else {
+			RewardFailure(now, msg.sender, _reward, "Reward rejected by sender (OoG or revert).");
+		}
+	}
+
+	function _cappedReward(uint _reward) private view returns (uint) {
+		uint _balance = this.balance;
+		uint _remaining = getDailyLimitRemaining();
+		if (_reward > _balance) _reward = _balance;
+		if (_reward > _remaining) _reward = _remaining;
+		return _reward;
+	}
+
+	// IMPLEMENT BANKROLLABLE FUNCTIONS
+	function getCollateral() public view returns (uint) {}
+	function getWhitelistOwner() public view returns (address){ return getAdmin(); }
 }

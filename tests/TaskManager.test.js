@@ -48,7 +48,7 @@ const DEF_4 = Object.assign({}, DEFAULT_DEF);
 	DEF_4.summary = "4th auction";
 const DEFS = [DEF_0, DEF_1, DEF_2, DEF_3, DEF_4];
 
-const SEND_DIVIDENDS_REWARD_BIPS = new BigNumber(10);
+const ISSUE_DIVIDEND_REWARD_BIPS = new BigNumber(10);
 const SEND_PROFITS_REWARD_BIPS = new BigNumber(50);
 const PA_START_REWARD = new BigNumber(.001e18);
 const PA_END_REWARD = new BigNumber(.001e18);
@@ -159,6 +159,9 @@ describe("MainController", function(){
 				.assertCallReturns([taskManager, "getAdmin"], admin)
 		        .assertCallReturns([taskManager, "getTreasury"], treasury.address)
 		        .assertCallReturns([taskManager, "getPennyAuctionController"], pac.address)
+		        .assertCallReturns([taskManager, "getDailyLimit"], 1e18)
+		        .assertCallReturns([taskManager, "getDailyLimitUsed"], 0)
+		        .assertCallReturns([taskManager, "getDailyLimitRemaining"], 1e18)
 		        .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
 		        .assertBalance(taskManager, 1e16)
 		        .start();
@@ -166,44 +169,43 @@ describe("MainController", function(){
 	});
 
 	describe("Send Dividends Rewards", function(){
-		describe(".setSendDividendsReward()", function(){
+		describe(".setIssueDividendReward()", function(){
 			it("Not callable by non-admin", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setSendDividendsReward", SEND_DIVIDENDS_REWARD_BIPS, {from: anon}])
+					.doTx([taskManager, "setIssueDividendReward", ISSUE_DIVIDEND_REWARD_BIPS, {from: anon}])
 					.assertInvalidOpCode()
 					.start();
 			});
 			it("Works when called from admin", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setSendDividendsReward", SEND_DIVIDENDS_REWARD_BIPS, {from: admin}])
+					.doTx([taskManager, "setIssueDividendReward", ISSUE_DIVIDEND_REWARD_BIPS, {from: admin}])
 					.assertSuccess()
-					//event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
-					.assertOnlyLog("SendDividendsRewardChanged", {
+					.assertOnlyLog("IssueDividendRewardChanged", {
 						time: null,
 						admin: admin,
-						newValue: SEND_DIVIDENDS_REWARD_BIPS
+						newValue: ISSUE_DIVIDEND_REWARD_BIPS
 					})
-					.assertCallReturns([taskManager, "sendDividendsRewardBips"], SEND_DIVIDENDS_REWARD_BIPS)
+					.assertCallReturns([taskManager, "issueDividendRewardBips"], ISSUE_DIVIDEND_REWARD_BIPS)
 					.start();
 			});
 			it("Cannot be changed above 10", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setSendDividendsReward", 11, {from: admin}])
+					.doTx([taskManager, "setIssueDividendReward", 11, {from: admin}])
 					.assertInvalidOpCode()
 					.start();
 			});
 		});
-		describe(".doSendDividends() and .sendDividendsReward()", function(){
-			it(".sendDividendsReward() returns 0", function(){
+		describe(".doIssueDividend() and .issueDividendReward()", function(){
+			it(".issueDividendReward() returns 0", function(){
 				return createDefaultTxTester()
 					.assertCallReturns([treasury, "profits"], 0)
-					.assertCallReturns([taskManager, "sendDividendsReward"], [0, 0])
+					.assertCallReturns([taskManager, "issueDividendReward"], [0, 0])
 					.start();
 			});
-			it(".doSendDividends() returns error", function(){
+			it(".doIssueDividend() returns error", function(){
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon])
-					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.doTx([taskManager, "doIssueDividend", {from: anon}])
 					.assertSuccess()
 						.assertOnlyLog("TaskError", {msg: "No profits to send."})
 					.stopLedger()
@@ -218,19 +220,19 @@ describe("MainController", function(){
 					.assertCallReturns([treasury, "profits"], 1e12)
 					.start();
 			});
-			it(".sendDividendsReward() returns correct value", async function(){
+			it(".issueDividendReward() returns correct value", async function(){
 				const expProfits = await treasury.profits();
-				const expReward = expProfits.mul(SEND_DIVIDENDS_REWARD_BIPS).div(10000);
+				const expReward = expProfits.mul(ISSUE_DIVIDEND_REWARD_BIPS).div(10000);
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "sendDividendsReward"], [expReward, expProfits])
+					.assertCallReturns([taskManager, "issueDividendReward"], [expReward, expProfits])
 					.start();
 			});
-			it(".doSendDividends() works when Treasury sends 0", async function(){
+			it(".doIssueDividend() works when Treasury sends 0", async function(){
 				this.logInfo("Note: The Treasury will fail to send profits, since no token is specified.")
 				return createDefaultTxTester()
 					.assertCallReturns([treasury, "token"], NO_ADDRESS)
 					.startLedger([taskManager, anon, treasury])
-					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.doTx([taskManager, "doIssueDividend", {from: anon}])
 					.assertSuccess()
 						.assertOnlyLog("TaskError", {msg: "No profits were sent."})
 					.stopLedger()
@@ -246,15 +248,15 @@ describe("MainController", function(){
 					.assertCallReturns([treasury, "token"], dummyToken)
 					.start();
 			});
-			it(".doSendDividends works", async function(){
+			it(".doIssueDividend works", async function(){
 				const expProfits = await treasury.profits();
-				const expReward = expProfits.mul(SEND_DIVIDENDS_REWARD_BIPS).div(10000);
+				const expReward = expProfits.mul(ISSUE_DIVIDEND_REWARD_BIPS).div(10000);
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon, treasury, dummyToken])
-					.doTx([taskManager, "doSendDividends", {from: anon}])
+					.doTx([taskManager, "doIssueDividend", {from: anon}])
 					.assertSuccess()
 						.assertLogCount(2)
-						.assertLog("SendDividendsSuccess", {
+						.assertLog("IssueDividendSuccess", {
 							treasury: treasury.address,
 							profitsSent: expProfits
 						})
