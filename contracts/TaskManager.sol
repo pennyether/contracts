@@ -35,11 +35,32 @@ contract TaskManager is
     uint constant public version = 1;
     uint public totalRewarded;
 
+    // Number of basis points to reward caller.
+    // 1 = .01%, 10 = .1%, 100 = 1%. Capped at .1%.
+    uint public issueDividendRewardBips;
+    // Number of basis points to reward caller.
+    // 1 = .01%, 10 = .1%, 100 = 1%. Capped at 1%.
+    uint public sendProfitsRewardBips;
+    // How much to pay for auctions to start and end.
+    // These values are capped at 1 Ether.
+    uint public paStartReward;
+    uint public paEndReward;
+    
     event Created(uint time);
     event DailyLimitChanged(uint time, address indexed owner, uint newValue);
+    // admin events
+    event IssueDividendRewardChanged(uint time, address indexed admin, uint newValue);
+    event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
+    event PennyAuctionRewardsChanged(uint time, address indexed admin, uint paStartReward, uint paEndReward);
+    // base events
     event TaskError(uint time, address indexed caller, string msg);
     event RewardSuccess(uint time, address indexed caller, uint reward);
     event RewardFailure(uint time, address indexed caller, uint reward, string msg);
+    // task events
+    event IssueDividendSuccess(uint time, address indexed treasury, uint profitsSent);
+    event SendProfitsSuccess(uint time, address indexed bankrollable, uint profitsSent);
+    event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
+    event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
 
     // Construct sets the registry and instantiates inherited classes.
     function TaskManager(address _registry)
@@ -67,12 +88,8 @@ contract TaskManager is
 
 
     ///////////////////////////////////////////////////////////////////
-    ////////// ISSUING A DIVIDEND /////////////////////////////////////
+    ////////// ADMIN FUNCTIONS ////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
-
-    uint public issueDividendRewardBips;
-    event IssueDividendRewardChanged(uint time, address indexed admin, uint newValue);
-    event IssueDividendSuccess(uint time, address indexed treasury, uint profitsSent);
 
     function setIssueDividendReward(uint _bips)
         public
@@ -82,6 +99,31 @@ contract TaskManager is
         issueDividendRewardBips = _bips;
         IssueDividendRewardChanged(now, msg.sender, _bips);
     }
+
+    function setSendProfitsReward(uint _bips)
+        public
+        fromAdmin
+    {
+        require(_bips <= 100);
+        sendProfitsRewardBips = _bips;
+        SendProfitsRewardChanged(now, msg.sender, _bips);
+    }
+
+    function setPaRewards(uint _paStartReward, uint _paEndReward)
+        public
+        fromAdmin
+    {
+        require(_paStartReward <= 1 ether);
+        require(_paEndReward <= 1 ether);
+        paStartReward = _paStartReward;
+        paEndReward = _paEndReward;
+        PennyAuctionRewardsChanged(now, msg.sender, paStartReward, paEndReward);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////
+    ////////// ISSUE DIVIDEND TASK ////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
 
     function doIssueDividend()
         public
@@ -120,25 +162,8 @@ contract TaskManager is
 
 
     ///////////////////////////////////////////////////////////////////
-    ////////// SENDING PROFITS OF BANKROLLABLES ///////////////////////
+    ////////// SEND PROFITS TASKS /////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
-
-    // Number of basis points to reward caller.
-    // 1 = .01%, 10 = .1%, 100 = 1%. Capped at 1%.
-    uint public sendProfitsRewardBips;
-
-    event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
-    event SendProfitsSuccess(uint time, address indexed bankrollable, uint profitsSent);
-
-    function setSendProfitsReward(uint _bips)
-        public
-        fromAdmin
-    {
-        require(_bips <= 100);
-        sendProfitsRewardBips = _bips;
-        SendProfitsRewardChanged(now, msg.sender, _bips);
-    }
-
 
     function doSendProfits(address _bankrollable)
         public
@@ -177,31 +202,9 @@ contract TaskManager is
     }
 
 
-
     ///////////////////////////////////////////////////////////////////
-    ////////// MANAGING PENNY AUCTIONS ////////////////////////////////
+    ////////// PENNY AUCTION TASKS ////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
-
-    // How much to pay for auctions to start and end.
-    // These values are capped at 1 Ether.
-    uint public paStartReward;
-    uint public paEndReward;
-
-    event PennyAuctionRewardsChanged(uint time, address indexed admin, uint paStartReward, uint paEndReward);
-    event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
-    event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
-
-    function setPaRewards(uint _paStartReward, uint _paEndReward)
-        public
-        fromAdmin
-    {
-        require(_paStartReward <= 1 ether);
-        require(_paEndReward <= 1 ether);
-        paStartReward = _paStartReward;
-        paEndReward = _paEndReward;
-        PennyAuctionRewardsChanged(now, msg.sender, paStartReward, paEndReward);
-    }
-
 
     // Try to start penny auction, reward upon success.
     function startPennyAuction(uint _index)
