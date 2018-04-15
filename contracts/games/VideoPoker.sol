@@ -44,6 +44,7 @@ contract VideoPoker is
         uint64 maxBet;
         uint16 curPayTableId;
         uint16 numPayTables;
+        uint32 lastDayAdded;
     }
 
     Settings settings;
@@ -126,7 +127,7 @@ contract VideoPoker is
         SettingsChanged(now, msg.sender);
     }
     
-    // Allows admin to permanently add a PayTable
+    // Allows admin to permanently add a PayTable (once per day)
     function addPayTable(
         uint16 _rf, uint16 _sf, uint16 _foak, uint16 _fh,
         uint16 _fl, uint16 _st, uint16 _toak, uint16 _tp, uint16 _jb
@@ -134,6 +135,9 @@ contract VideoPoker is
         public
         fromAdmin
     {
+        uint32 _today = uint32(block.timestamp / 1 days);
+        require(settings.lastDayAdded < _today);
+        settings.lastDayAdded = _today;
         _addPayTable(_rf, _sf, _foak, _fh, _fl, _st, _toak, _tp, _jb);
         PayTableAdded(now, msg.sender, settings.numPayTables-1);
     }

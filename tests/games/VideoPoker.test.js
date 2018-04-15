@@ -131,6 +131,27 @@ describe('VideoPoker', function(){
                     .assertCallReturns([vp, "numPayTables"], expPtId.plus(1))
                     .start();
             });
+            it("doesn't work again (same day)", function(){
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: admin}))
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("works the next day", async function(){
+                await testUtil.fastForward(24*60*60 + 1);
+                const expPtId = await vp.numPayTables();
+                return createDefaultTxTester()
+                    .doTx(callParams.concat({from: admin}))
+                    .assertSuccess()
+                    .assertOnlyLog("PayTableAdded", {
+                        time: null,
+                        admin: admin,
+                        payTableId: expPtId
+                    })
+                    .assertCallReturns([vp, "getPayTable", expPtId], PAYTABLE)
+                    .assertCallReturns([vp, "numPayTables"], expPtId.plus(1))
+                    .start();
+            });
         });
 
         describe(".changeSettings()", function(){
