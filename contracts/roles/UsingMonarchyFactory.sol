@@ -9,30 +9,30 @@ Gives the inherting contract access to:
     [modifier] .fromPaf(): requires the sender is current Paf.
 
 *************************************************/
-// Returned by .getPennyAuctionFactory()
-interface IPennyAuctionFactory {
-    function lastCreatedAuction() public view returns (address _auction);
+// Returned by .getMonarchyFactory()
+interface IMonarchyFactory {
+    function lastCreatedGame() public view returns (address _game);
     function getCollector() public view returns (address _collector);
 }
 
-contract UsingPennyAuctionFactory is
+contract UsingMonarchyFactory is
     UsingRegistry
 {
-    function UsingPennyAuctionFactory(address _registry)
+    function UsingMonarchyFactory(address _registry)
         UsingRegistry(_registry)
         public
     {}
 
-    modifier fromPennyAuctionFactory(){ 
-        require(msg.sender == address(getPennyAuctionFactory()));
+    modifier fromMonarchyFactory(){ 
+        require(msg.sender == address(getMonarchyFactory()));
         _;
     }
 
-    function getPennyAuctionFactory()
+    function getMonarchyFactory()
         public
         view
-        returns (IPennyAuctionFactory)
+        returns (IMonarchyFactory)
     {
-        return IPennyAuctionFactory(addressOf("PENNY_AUCTION_FACTORY"));
+        return IMonarchyFactory(addressOf("MONARCHY_FACTORY"));
     }
 }

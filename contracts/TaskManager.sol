@@ -3,7 +3,7 @@ pragma solidity ^0.4.19;
 import "./common/HasDailyLimit.sol";
 import "./common/Bankrollable.sol";
 import "./roles/UsingAdmin.sol";
-import "./roles/UsingPennyAuctionController.sol";
+import "./roles/UsingMonarchyController.sol";
 
 /*
   This is a simple class that pays anybody to execute methods on
@@ -30,7 +30,7 @@ contract TaskManager is
     HasDailyLimit,
     Bankrollable,
     UsingAdmin,
-    UsingPennyAuctionController
+    UsingMonarchyController
 {
     uint constant public version = 1;
     uint public totalRewarded;
@@ -41,17 +41,17 @@ contract TaskManager is
     // Number of basis points to reward caller.
     // 1 = .01%, 10 = .1%, 100 = 1%. Capped at 1%.
     uint public sendProfitsRewardBips;
-    // How much to pay for auctions to start and end.
+    // How much to pay for games to start and end.
     // These values are capped at 1 Ether.
-    uint public paStartReward;
-    uint public paEndReward;
+    uint public monarchyStartReward;
+    uint public monarchyEndReward;
     
     event Created(uint time);
     event DailyLimitChanged(uint time, address indexed owner, uint newValue);
     // admin events
     event IssueDividendRewardChanged(uint time, address indexed admin, uint newValue);
     event SendProfitsRewardChanged(uint time, address indexed admin, uint newValue);
-    event PennyAuctionRewardsChanged(uint time, address indexed admin, uint paStartReward, uint paEndReward);
+    event MonarchyRewardsChanged(uint time, address indexed admin, uint startReward, uint endReward);
     // base events
     event TaskError(uint time, address indexed caller, string msg);
     event RewardSuccess(uint time, address indexed caller, uint reward);
@@ -59,8 +59,8 @@ contract TaskManager is
     // task events
     event IssueDividendSuccess(uint time, address indexed treasury, uint profitsSent);
     event SendProfitsSuccess(uint time, address indexed bankrollable, uint profitsSent);
-    event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
-    event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
+    event MonarchyGameStarted(uint time, address indexed addr, uint initialPrize);
+    event MonarchyGamesRefreshed(uint time, uint numEnded, uint feesCollected);
 
     // Construct sets the registry and instantiates inherited classes.
     function TaskManager(address _registry)
@@ -68,7 +68,7 @@ contract TaskManager is
         HasDailyLimit(1 ether)
         Bankrollable(_registry)
         UsingAdmin(_registry)
-        UsingPennyAuctionController(_registry)
+        UsingMonarchyController(_registry)
     {
         Created(now);
     }
@@ -109,15 +109,15 @@ contract TaskManager is
         SendProfitsRewardChanged(now, msg.sender, _bips);
     }
 
-    function setPaRewards(uint _paStartReward, uint _paEndReward)
+    function setMonarchyRewards(uint _startReward, uint _endReward)
         public
         fromAdmin
     {
-        require(_paStartReward <= 1 ether);
-        require(_paEndReward <= 1 ether);
-        paStartReward = _paStartReward;
-        paEndReward = _paEndReward;
-        PennyAuctionRewardsChanged(now, msg.sender, paStartReward, paEndReward);
+        require(_startReward <= 1 ether);
+        require(_endReward <= 1 ether);
+        monarchyStartReward = _startReward;
+        monarchyEndReward = _endReward;
+        MonarchyRewardsChanged(now, msg.sender, _startReward, _endReward);
     }
 
 
@@ -203,71 +203,71 @@ contract TaskManager is
 
 
     ///////////////////////////////////////////////////////////////////
-    ////////// PENNY AUCTION TASKS ////////////////////////////////////
+    ////////// MONARCHY TASKS /////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////
 
-    // Try to start penny auction, reward upon success.
-    function startPennyAuction(uint _index)
+    // Try to start monarchy game, reward upon success.
+    function startMonarchyGame(uint _index)
         public
     {
         // Don't bother trying if it's not startable
-        IPennyAuctionController _pac = getPennyAuctionController();
-        if (!_pac.getIsStartable(_index)){
-            _taskError("Auction is not currently startable.");
+        IMonarchyController _mc = getMonarchyController();
+        if (!_mc.getIsStartable(_index)){
+            _taskError("Game is not currently startable.");
             return;
         }
 
-        // Try to start the auction. This may fail.
-        address _auction = _pac.startDefinedAuction(_index);
-        if (_auction == address(0)) {
-            _taskError("PennyAuctionController.startDefinedAuction() failed.");
+        // Try to start the game. This may fail.
+        address _game = _mc.startDefinedGame(_index);
+        if (_game == address(0)) {
+            _taskError("MonarchyConroller.startDefinedGame() failed.");
             return;
         } else {
-            PennyAuctionStarted(now, _auction, _pac.getInitialPrize(_index));   
+            MonarchyGameStarted(now, _game, _mc.getInitialPrize(_index));   
         }
 
         // Reward
-        _sendReward(paStartReward);
+        _sendReward(monarchyStartReward);
     }
 
-    // Return the _reward and _index of the first startable Penny Auction
-    function startPennyAuctionReward()
+    // Return the _reward and _index of the first startable MonarchyGame
+    function startMonarchyGameReward()
         public
         view
         returns (uint _reward, uint _index)
     {
-        IPennyAuctionController _pac = getPennyAuctionController();
-        _index = _pac.getFirstStartableIndex();
-        if (_index > 0) _reward = _cappedReward(paStartReward);
+        IMonarchyController _mc = getMonarchyController();
+        _index = _mc.getFirstStartableIndex();
+        if (_index > 0) _reward = _cappedReward(monarchyStartReward);
     }
 
 
-    // Invoke .refreshAuctions() and pay reward on number of auctions ended.
-    function refreshPennyAuctions()
+    // Invoke .refreshGames() and pay reward on number of games ended.
+    function refreshMonarchyGames()
         public
     {
         // do the call
-        uint _numAuctionsEnded;
+        uint _numGamesEnded;
         uint _feesCollected;
-        (_numAuctionsEnded, _feesCollected) = getPennyAuctionController().refreshAuctions();
-        PennyAuctionsRefreshed(now, _numAuctionsEnded, _feesCollected);
+        (_numGamesEnded, _feesCollected) = getMonarchyController().refreshGames();
+        MonarchyGamesRefreshed(now, _numGamesEnded, _feesCollected);
 
-        if (_numAuctionsEnded == 0) {
-            _taskError("No auctions ended.");
+        if (_numGamesEnded == 0) {
+            _taskError("No games ended.");
         } else {
-            _sendReward(_numAuctionsEnded * paEndReward);   
+            _sendReward(_numGamesEnded * monarchyEndReward);   
         }
     }
     
-    // Return a reward for each Penny Auction that will end
-    function refreshPennyAuctionsReward()
+    // Return a reward for each MonarchyGame that will end
+    function refreshMonarchyGamesReward()
         public
         view
         returns (uint _reward, uint _numEndable)
     {
-        IPennyAuctionController _pac = getPennyAuctionController();
-        _numEndable = _pac.getNumEndableAuctions();
-        _reward = _cappedReward(_numEndable * paEndReward);
+        IMonarchyController _mc = getMonarchyController();
+        _numEndable = _mc.getNumEndableGames();
+        _reward = _cappedReward(_numEndable * monarchyEndReward);
     }
 
 

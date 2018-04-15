@@ -1,9 +1,9 @@
 const Registry = artifacts.require("Registry");
 const TaskManager = artifacts.require("TaskManager");
 const Treasury = artifacts.require("Treasury");
-const PennyAuctionController = artifacts.require("PennyAuctionController");
-const PennyAuctionFactory = artifacts.require("PennyAuctionFactory");
-const PennyAuction = artifacts.require("PennyAuction");
+const MonarchyController = artifacts.require("MonarchyController");
+const MonarchyFactory = artifacts.require("MonarchyFactory");
+const MonarchyGame = artifacts.require("MonarchyGame");
 const TestBankrollable = artifacts.require("TestBankrollable");
 
 const createDefaultTxTester = require("../js/tx-tester/tx-tester.js")
@@ -14,44 +14,44 @@ const BigNumber = web3.toBigNumber(0).constructor;
 const DEFAULT_DEF = {
     summary: "",
     initialPrize: new BigNumber(.01e16),
-    bidPrice: new BigNumber(.001e16),
-    bidIncr: new BigNumber(.0001e16),
-    bidAddBlocks: new BigNumber(2),
+    fee: new BigNumber(.001e16),
+    prizeIncr: new BigNumber(.0001e16),
+    reignBlocks: new BigNumber(2),
     initialBlocks: new BigNumber(10),
     feeIncr: function(){
-        return this.bidPrice.minus(this.bidIncr)
+        return this.fee.minus(this.prizeIncr)
     },
     toArr: function(){
         return [
             this.summary,
             this.initialPrize,
-            this.bidPrice,
-            this.bidIncr,
-            this.bidAddBlocks,
+            this.fee,
+            this.prizeIncr,
+            this.reignBlocks,
             this.initialBlocks
         ];
     }
 };
 
 const DEF_1 = Object.assign({}, DEFAULT_DEF);
-	DEF_1.summary = "1st Auction";
+	DEF_1.summary = "1st Game";
 const DEF_2 = Object.assign({}, DEFAULT_DEF);
-	DEF_2.summary = "2nd Auction (Invalid BID_ADD_BLOCKS_1)";
-	DEF_2.bidAddBlocks = new BigNumber(0);
+	DEF_2.summary = "2nd Game (Invalid reignBlocks)";
+	DEF_2.reignBlocks = new BigNumber(0);
 const DEF_3 = Object.assign({}, DEFAULT_DEF);
-	DEF_3.summary = "3rd auction (huge initialPrize)";
+	DEF_3.summary = "3rd Game (huge initialPrize)";
 	DEF_3.initialPrize = new BigNumber(100e18);
 const DEF_4 = Object.assign({}, DEFAULT_DEF);
-	DEF_4.summary = "4th auction";
+	DEF_4.summary = "4th Game";
 	DEF_4.initialBlocks = DEF_3.initialBlocks.plus(10);
 const DEF_5 = Object.assign({}, DEFAULT_DEF);
-	DEF_5.summary = "5th auction";
+	DEF_5.summary = "5th Game";
 const DEFS = [null, DEF_1, DEF_2, DEF_3, DEF_4, DEF_5];
 
 const ISSUE_DIVIDEND_REWARD_BIPS = new BigNumber(10);
 const SEND_PROFITS_REWARD_BIPS = new BigNumber(50);
-const PA_START_REWARD = new BigNumber(.001e18);
-const PA_END_REWARD = new BigNumber(.001e18);
+const MONARCHY_START_REWARD = new BigNumber(.001e18);
+const MONARCHY_END_REWARD = new BigNumber(.001e18);
 
 const accounts = web3.eth.accounts;
 
@@ -67,8 +67,8 @@ describe("MainController", function(){
 	var registry;
 	var taskManager;
 	var treasury;
-	var pac;
-	var paf;
+	var monarchyController;
+	var monarchyFactory;
 	var bankrollable;
 
 	before("Set it all up", async function(){
@@ -107,20 +107,20 @@ describe("MainController", function(){
         		plugins.addAddresses({treasury: treasury.address});
         	}).start();
 
-        this.logInfo("Create a PennyAuctionController, pointing to Registry.");
+        this.logInfo("Create a MonarchyController, pointing to Registry.");
         await createDefaultTxTester()
-            .doNewTx(PennyAuctionController, [registry.address], {from: anon}).assertSuccess()
+            .doNewTx(MonarchyController, [registry.address], {from: anon}).assertSuccess()
             .withTxResult((res, plugins)=>{
-                pac = res.contract;
-                plugins.addAddresses({pac: pac.address});
+                monarchyController = res.contract;
+                plugins.addAddresses({monarchyController: monarchyController.address});
             }).start();
 
-        this.logInfo("Create a PennyAuctionFactory, pointing to Registry.");
+        this.logInfo("Create a MonarchyFactory, pointing to Registry.");
         await createDefaultTxTester()
-            .doNewTx(PennyAuctionFactory, [registry.address], {from: anon}).assertSuccess()
+            .doNewTx(MonarchyFactory, [registry.address], {from: anon}).assertSuccess()
             .withTxResult((res, plugins)=>{
-                paf = res.contract;
-                plugins.addAddresses({paf: paf.address});
+                monarchyFactory = res.contract;
+                plugins.addAddresses({monarchyFactory: monarchyFactory.address});
             }).start();
 
         this.logInfo("Create a Bankrollable");
@@ -137,9 +137,9 @@ describe("MainController", function(){
                 .assertSuccess()
             .doTx([registry, "register", "TREASURY", treasury.address, {from: owner}])
                 .assertSuccess()
-            .doTx([registry, "register", "PENNY_AUCTION_CONTROLLER", pac.address, {from: owner}])
+            .doTx([registry, "register", "MONARCHY_CONTROLLER", monarchyController.address, {from: owner}])
                 .assertSuccess()
-            .doTx([registry, "register", "PENNY_AUCTION_FACTORY", paf.address, {from: owner}])
+            .doTx([registry, "register", "MONARCHY_FACTORY", monarchyFactory.address, {from: owner}])
                 .assertSuccess()
 	        .start();
 
@@ -158,11 +158,11 @@ describe("MainController", function(){
 			return createDefaultTxTester()
 				.assertCallReturns([taskManager, "getAdmin"], admin)
 		        .assertCallReturns([taskManager, "getTreasury"], treasury.address)
-		        .assertCallReturns([taskManager, "getPennyAuctionController"], pac.address)
+		        .assertCallReturns([taskManager, "getMonarchyController"], monarchyController.address)
 		        .assertCallReturns([taskManager, "getDailyLimit"], 1e18)
 		        .assertCallReturns([taskManager, "getDailyLimitUsed"], 0)
 		        .assertCallReturns([taskManager, "getDailyLimitRemaining"], 1e18)
-		        .assertCallReturns([pac, "getPennyAuctionFactory"], paf.address)
+		        .assertCallReturns([monarchyController, "getMonarchyFactory"], monarchyFactory.address)
 		        .assertBalance(taskManager, 1e16)
 		        .start();
 		});
@@ -376,114 +376,112 @@ describe("MainController", function(){
 		});
 	});
 
-	//event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
-	//event PennyAuctionsRefreshed(uint time, uint numEnded, uint feesCollected);
-	describe("PennyAuction Rewards", function(){
+	describe("Monarchy Rewards", function(){
 		describe("Set up PAC (fund it, and enable)", function(){
-			it("Set up and enable defined auctions.", function(){
+			it("Set up and enable defined games.", function(){
 		    	return createDefaultTxTester()
-		        	.doTx([pac, "editDefinedAuction", 1].concat(DEF_1.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "editDefinedAuction", 2].concat(DEF_2.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "editDefinedAuction", 3].concat(DEF_3.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "editDefinedAuction", 4].concat(DEF_4.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "editDefinedAuction", 5].concat(DEF_5.toArr(), {from: admin})).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 0, true, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 1, true, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 2, true, {from: admin}]).assertSuccess()
-		        	.doTx([pac, "enableDefinedAuction", 3, true, {from: admin}]).assertSuccess()
-		        	.assertCallReturns([pac, "numDefinedAuctions"], 5)
+		        	.doTx([monarchyController, "editDefinedGame", 1].concat(DEF_1.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([monarchyController, "editDefinedGame", 2].concat(DEF_2.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([monarchyController, "editDefinedGame", 3].concat(DEF_3.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([monarchyController, "editDefinedGame", 4].concat(DEF_4.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([monarchyController, "editDefinedGame", 5].concat(DEF_5.toArr(), {from: admin})).assertSuccess()
+		        	.doTx([monarchyController, "enableDefinedGame", 0, true, {from: admin}]).assertSuccess()
+		        	.doTx([monarchyController, "enableDefinedGame", 1, true, {from: admin}]).assertSuccess()
+		        	.doTx([monarchyController, "enableDefinedGame", 2, true, {from: admin}]).assertSuccess()
+		        	.doTx([monarchyController, "enableDefinedGame", 3, true, {from: admin}]).assertSuccess()
+		        	.assertCallReturns([monarchyController, "numDefinedGames"], 5)
 		        	.start();
 			});
-			it("Fund PAC, so it can start auctions", function(){
+			it("Fund MonarchyController, so it can start games", function(){
 				return createDefaultTxTester()
-					.doTx([pac, "addBankroll", {from: anon, value: 1e16}])
+					.doTx([monarchyController, "addBankroll", {from: anon, value: 1e16}])
 					.assertSuccess()
-					.assertCallReturns([pac, "bankrollAvailable"], 1e16)
+					.assertCallReturns([monarchyController, "bankrollAvailable"], 1e16)
 					.start();
 			});
 		});
-		describe(".setPaRewards()", function(){
+		describe(".setMonarchyRewards()", function(){
 			it("Not callable by anon", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setPaRewards", PA_START_REWARD, PA_END_REWARD, {from: anon}])
+					.doTx([taskManager, "setMonarchyRewards", MONARCHY_START_REWARD, MONARCHY_END_REWARD, {from: anon}])
 					.assertInvalidOpCode()
 					.start();
 			});
 			it("Works when called by admin", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setPaRewards", PA_START_REWARD, PA_END_REWARD, {from: admin}])
+					.doTx([taskManager, "setMonarchyRewards", MONARCHY_START_REWARD, MONARCHY_END_REWARD, {from: admin}])
 					.assertSuccess()
-						.assertOnlyLog("PennyAuctionRewardsChanged", {
+						.assertOnlyLog("MonarchyRewardsChanged", {
 							time: null,
 							admin: admin,
-							paStartReward: PA_START_REWARD,
-							paEndReward: PA_END_REWARD
+							startReward: MONARCHY_START_REWARD,
+							endReward: MONARCHY_END_REWARD
 						})
-					.assertCallReturns([taskManager, "paStartReward"], PA_START_REWARD)
-					.assertCallReturns([taskManager, "paEndReward"], PA_END_REWARD)
+					.assertCallReturns([taskManager, "monarchyStartReward"], MONARCHY_START_REWARD)
+					.assertCallReturns([taskManager, "monarchyEndReward"], MONARCHY_END_REWARD)
 					.start();
 			});
 			it("Values above 1 Ether not allowed", function(){
 				return createDefaultTxTester()
-					.doTx([taskManager, "setPaRewards", PA_START_REWARD, 1.01e18, {from: admin}])
+					.doTx([taskManager, "setMonarchyRewards", MONARCHY_START_REWARD, 1.01e18, {from: admin}])
 					.assertInvalidOpCode()
-					.doTx([taskManager, "setPaRewards", 1.01e18, PA_END_REWARD, {from: admin}])
+					.doTx([taskManager, "setMonarchyRewards", 1.01e18, MONARCHY_END_REWARD, {from: admin}])
 					.assertInvalidOpCode()
 					.start();
 			});
 		});
-		describe(".startPennyAuctionReward() and .startPennyAuction()", function(){
-			it(".startPennyAuctionReward() returns [reward, 0]", function(){
+		describe(".startMonarchyGameReward() and .startMonarchyGame()", function(){
+			it(".startMonarchyGameReward() returns [reward, 0]", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 1])
+					.assertCallReturns([taskManager, "startMonarchyGameReward"], [MONARCHY_START_REWARD, 1])
 					.start();
 			});
-			it(".startPennyAuction() errors on invalid index", function(){
-				return assertCannotStartPa(6);
+			it(".startMonarchyGame() errors on invalid index", function(){
+				return assertCannotStartMonarchyGame(6);
 			});
-			it(".startPennyAuction() errors if too expensive", function(){
-				return assertCannotStartPa(3);
+			it(".startMonarchyGame() errors if too expensive", function(){
+				return assertCannotStartMonarchyGame(3);
 			});
-			it(".startPennyAuction() errors if not enabled", function(){
-				return assertCannotStartPa(5);
+			it(".startMonarchyGame() errors if not enabled", function(){
+				return assertCannotStartMonarchyGame(5);
 			});
-			it(".startPennyAuction() works", function(){
-				return assertCanStartPa(1);
+			it(".startMonarchyGame() works", function(){
+				return assertCanStartMonarchyGame(1);
 			});
-			it(".startPennyAuctionReward() now returns [reward, 2]", function(){
+			it(".startMonarchyGameReward() now returns [reward, 2]", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "startPennyAuctionReward"], [PA_START_REWARD, 2])
+					.assertCallReturns([taskManager, "startMonarchyGameReward"], [MONARCHY_START_REWARD, 2])
 					.start();
 			});
 		});
-		describe(".refreshPennyAuctions() and .refreshPennyAuctionsReward()", async function(){
-			const auction1 = PennyAuction.at(await pac.getAuction(1));
+		describe(".refreshMonarchyGames() and .refreshMonarchyGamesReward()", async function(){
+			const game1 = MonarchyGame.at(await monarchyController.getGame(1));
 
-			it(".refreshPennyAuctionsReward() returns 0", function(){
+			it(".refreshMonarchyGamesReward() returns 0", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "refreshPennyAuctionsReward"], [0, 0])
+					.assertCallReturns([taskManager, "refreshMonarchyGamesReward"], [0, 0])
 					.start();
 			});
-			it("Place bids, and end PennyAuction #1", async function(){
-				await auction1.sendTransaction({from: bidder1, value: DEF_1.bidPrice});
-            	await auction1.sendTransaction({from: bidder2, value: DEF_1.bidPrice});
-            	const blocksLeft = await auction1.getBlocksRemaining();
+			it("Do some overthrows, end game #1", async function(){
+				await game1.sendTransaction({from: bidder1, value: DEF_1.fee});
+            	await game1.sendTransaction({from: bidder2, value: DEF_1.fee});
+            	const blocksLeft = await game1.getBlocksRemaining();
             	await testUtil.mineBlocks(blocksLeft);
 			});
-			it(".refreshPennyAuctionsReward() returns correct amount", function(){
+			it(".refreshMonarchyGamesReward() returns correct amount", function(){
 				return createDefaultTxTester()
-					.assertCallReturns([taskManager, "refreshPennyAuctionsReward"], [PA_END_REWARD, 1])
+					.assertCallReturns([taskManager, "refreshMonarchyGamesReward"], [MONARCHY_END_REWARD, 1])
 					.start();
 			});
-			it(".refreshPennyAuctions() ends auction1", async function(){
-				const expPrize = await auction1.prize();
+			it(".refreshMonarchyGames() ends game1", async function(){
+				const expPrize = await game1.prize();
 				return createDefaultTxTester()
 					.startLedger([taskManager, anon, bidder2])
-					.startWatching([auction1])
-					.doTx([taskManager, "refreshPennyAuctions", {from: anon}])
+					.startWatching([game1])
+					.doTx([taskManager, "refreshMonarchyGames", {from: anon}])
 					.assertSuccess()
 						.assertLogCount(2)
-						.assertLog("PennyAuctionsRefreshed", {
+						.assertLog("MonarchyGamesRefreshed", {
 							time: null,
 							numEnded: 1,
 							feesCollected: DEF_1.feeIncr().mul(2)
@@ -491,63 +489,62 @@ describe("MainController", function(){
 						.assertLog("RewardSuccess", {
 							time: null,
 							caller: anon,
-							reward: PA_END_REWARD
+							reward: MONARCHY_END_REWARD
 						})
 					.stopWatching()
-						.assertEvent(auction1, "SendPrizeSuccess")
-						.assertEvent(auction1, "FeesSent")
+						.assertEvent(game1, "SendPrizeSuccess")
+						.assertEvent(game1, "FeesSent")
 					.stopLedger()
-						.assertDelta(taskManager, PA_END_REWARD.mul(-1))
-						.assertDeltaMinusTxFee(anon, PA_END_REWARD)
+						.assertDelta(taskManager, MONARCHY_END_REWARD.mul(-1))
+						.assertDeltaMinusTxFee(anon, MONARCHY_END_REWARD)
 						.assertDelta(bidder2, expPrize)
-					.assertCallReturns([taskManager, "refreshPennyAuctionsReward"], [0, 0])
+					.assertCallReturns([taskManager, "refreshMonarchyGamesReward"], [0, 0])
 					.start();
 			});
 		});
 	});
 
-	async function assertCannotStartPa(index) {
-		const prevAuction = await pac.getAuction(index);
-		const prevDlUsed = await pac.getDailyLimitUsed();
-		const prevDlRemaining = await pac.getDailyLimitRemaining();
+	async function assertCannotStartMonarchyGame(index) {
+		const prevGame = await monarchyController.getGame(index);
+		const prevDlUsed = await monarchyController.getDailyLimitUsed();
+		const prevDlRemaining = await monarchyController.getDailyLimitRemaining();
 		return createDefaultTxTester()
 			.startLedger([taskManager])
-			.doTx([taskManager, "startPennyAuction", index, {from: anon}])
+			.doTx([taskManager, "startMonarchyGame", index, {from: anon}])
 			.assertSuccess()
-				.assertOnlyLog("TaskError", {msg: "Auction is not currently startable."})
+				.assertOnlyLog("TaskError", {msg: "Game is not currently startable."})
 			.stopLedger()
 				.assertNoDelta(taskManager)
-			.assertCallReturns([pac, "getAuction", index], prevAuction)
-			.assertCallReturns([pac, "getDailyLimitUsed"], prevDlUsed)
-			.assertCallReturns([pac, "getDailyLimitRemaining"], prevDlRemaining)
+			.assertCallReturns([monarchyController, "getGame", index], prevGame)
+			.assertCallReturns([monarchyController, "getDailyLimitUsed"], prevDlUsed)
+			.assertCallReturns([monarchyController, "getDailyLimitRemaining"], prevDlRemaining)
 			.start();
 	}
 
-	//event PennyAuctionStarted(uint time, address indexed auctionAddr, uint initialPrize);
-	async function assertCanStartPa(index) {
+	async function assertCanStartMonarchyGame(index) {
 		const prevDlUsed = await taskManager.getDailyLimitUsed();
 		const prevDlRemaining = await taskManager.getDailyLimitRemaining();
 		return createDefaultTxTester()
 			.startLedger([anon, taskManager])
-			.doTx([taskManager, "startPennyAuction", index, {from: anon}])
+			.doTx([taskManager, "startMonarchyGame", index, {from: anon}])
 			.assertSuccess()
 				.assertLogCount(2)
-				.assertLog("PennyAuctionStarted", {
+				.assertLog("MonarchyGameStarted", {
 					time: null,
-					auctionAddr: null,
+					addr: null,
 					initialPrize: DEFS[index].initialPrize
 				})
 				.assertLog("RewardSuccess", {
 					time: null,
 					caller: anon,
-					reward: PA_START_REWARD
+					reward: MONARCHY_START_REWARD
 				})
 			.stopLedger()
-				.assertDeltaMinusTxFee(anon, PA_START_REWARD)
-				.assertDelta(taskManager, PA_START_REWARD.mul(-1))
-			.assertCallReturns([pac, "getAuction", index], {not: NO_ADDRESS})
-			.assertCallReturns([taskManager, "getDailyLimitUsed"], prevDlUsed.plus(PA_START_REWARD))
-			.assertCallReturns([taskManager, "getDailyLimitRemaining"], prevDlRemaining.minus(PA_START_REWARD))
+				.assertDeltaMinusTxFee(anon, MONARCHY_START_REWARD)
+				.assertDelta(taskManager, MONARCHY_START_REWARD.mul(-1))
+			.assertCallReturns([monarchyController, "getGame", index], {not: NO_ADDRESS})
+			.assertCallReturns([taskManager, "getDailyLimitUsed"], prevDlUsed.plus(MONARCHY_START_REWARD))
+			.assertCallReturns([taskManager, "getDailyLimitRemaining"], prevDlRemaining.minus(MONARCHY_START_REWARD))
 			.start();
 	}
 });

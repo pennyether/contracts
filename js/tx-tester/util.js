@@ -1,6 +1,8 @@
 var util = require('util');
 
 function createUtil(web3, assert){
+	const BigNumber = web3.toBigNumber(0).constructor;
+	
 	// add .strEqual to assert.
 	assert.strEqual = function(val1, val2, msg){
 		if (val1 === undefined && val2 !== val1)
@@ -175,6 +177,9 @@ function createUtil(web3, assert){
 		// returns a regular number
 		getBlockNumber: function() {
 			return web3.eth.blockNumber;
+		},
+		getNextBlockNumber: function() {
+			return (new BigNumber(web3.eth.blockNumber)).plus(1);
 		},
 		getBalance: function (address){
 			if (address.address) address = address.address;
