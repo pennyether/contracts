@@ -2,11 +2,12 @@ pragma solidity ^0.4.0;
 
 
 /*
-  A simple Contract that can bid on a PennyAuction. However,
+  A simple Contract that can call a MonarchyGame. However,
   when it is gets sent Ether it uses a lot of gas.
 
-  This is used to test that PennyAuctions dont fail even if the
-  winner is not payable, and that the winner can claim the prize.
+  This is used to test that MonarchyGames can handle OOG attacks.
+  Eg, this player cannot be refunded, and cannot be paid out on a win
+    using the regular amount of gas.
 */
 interface _IEpbMonarchy {
     function fee() public constant returns (uint _fee);

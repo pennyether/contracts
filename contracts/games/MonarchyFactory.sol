@@ -4,13 +4,13 @@ import "./MonarchyGame.sol";
 import "../roles/UsingMonarchyController.sol";
 
 /**
-The PennyAuctionFactory creates instances of PennyAuctions.
+The MonarchyFactory creates instances of MonarchyGames.
     - It sets _collector to the Registry's value of PennyAuctionController
     - It stores the address of lastCreatedAuction, so that the caller
       has a way to retrieve the value in case they are using a 
       low-level call.
-    - It emits an event, this can be used to verify an Auction
-      originated from this PennyAuctionFactory.
+    - It emits an event, this can be used to verify a MonarchyGame
+      originated from this MonarchyFactory.
 */
 contract MonarchyFactory is
     UsingMonarchyController
