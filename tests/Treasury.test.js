@@ -440,9 +440,6 @@ describe('Treasury', function(){
     });
 
     describe("Simulate CrowdSale", function(){
-        it(".addReserve() callable by Comptroller", function(){
-
-        });
         it(".addCapital() callable by Comptroller", function(){
             return assertAddsCapital(dummyComptroller, 1e12);
         });
@@ -892,11 +889,10 @@ describe('Treasury', function(){
 
     async function assertIsBalanced() {
         const balance = testUtil.getBalance(treasury);
-        const reserve = await treasury.reserve();
         const capital = await treasury.capital();
         const profits = await treasury.profits();
-        const expBalance = reserve.plus(capital).plus(profits);
+        const expBalance = capital.plus(profits);
         assert(balance.equals(expBalance), `balance (${balance}), should be ${expBalance}`);
-        console.log("✓ balance == (reserve + capital + profits)");
+        console.log("✓ balance == (capital + profits)");
     }
 });

@@ -7,8 +7,7 @@ pragma solidity ^0.4.19;
    UI: https://www.pennyether.com/status/system#comptroller
 
    The Comptroller creates the DividendToken and DividendTokenLocker,
-   runs the CrowdSale, can raise capital for Treasury, and allows
-   users to burn their tokens for refund.
+   runs the CrowdSale, and can raise capital for Treasury.
 
 
 THE CROWDSALE
@@ -33,9 +32,7 @@ THE CROWDSALE
   Upon a successful CrowdSale:
     - Tokens are unfronzen
     - Owner wallet gets 20% of tokens, which will vest for 600 days.
-    - .5 Ether per token is sent to Treasury as reserve
-      - Comptroller allows tokens to be burned for .5 ETH, guaranteed.
-    - `capital` Ether is sent to the Treasury
+    - `capitalPct` of raised funds go to Treasury
     - the remaning Ether is sent to the owner wallet
 
   Upon an unsuccessful CrowdSale:
@@ -51,9 +48,8 @@ RAISING CAPITAL
   value is > 0, Comptroller will accept Ether in exchange for tokens at
   a rate of 1 Ether per Token, until Treasury.capitalNeeded() is zero.
 
-  Per Ether raised, .5 goes to Treasury as reserve (should the user
-  later decide to burn tokens), and .5 goes to Treasury as raised
-  capital, to be used to fund game contracts.
+  For each Ether raised, a token is minted, and the Ether is sent to
+  the Treasury as Capital.
 
 
 PERMISSIONS
@@ -61,10 +57,11 @@ PERMISSIONS
 
   Comptroller owns the Token, and is only address that can call:
     - token.mint(address, amount)
+        - Initially mints 1 token for the owner
         - During CrowdSale
         - When raising capital for Treasury
     - token.burn(address, amount)
-        - Only after SoftCap is met; when a user burns tokens.
+        - After successful CrowdSale, burns owner's 1 token
 
   The following addresses have permission on Comptroller:
     - Owner Wallet (permanent):
@@ -73,8 +70,6 @@ PERMISSIONS
         - During CrowdSale:
             .fund(): Send Ether, get Tokens. Refunds on failure.
             .endSale(): End the sales, provided conditions are met.
-        - After successful CrowdSale:
-            .burnTokens(): Receive .5 ETH per token burned.
         - After unsuccessful Crowdsale:
             .refund(): Receive a full refund of amount sent to .fund()
         - If Treasury.capitalNeeded() > 0
@@ -100,10 +95,6 @@ CONCLUSION
 interface _ICompTreasury {
     // after CrowdSale, will add funds to bankroll.
     function addCapital() public payable;
-    // after CrowdSale, if softcap met, will allow users to burn tokens.
-    function addReserve() public payable;
-    // called when user burns tokens
-    function removeReserve(uint _amount, address _recipient) public;
     // used to determine if Treasury wants to raise capital.
     function capitalNeeded() public view returns (uint);
 }
@@ -139,12 +130,8 @@ contract Comptroller {
     // CrowdSale purchase
     event BuyTokensSuccess(uint time, address indexed account, uint funded, uint numTokens);
     event BuyTokensFailure(uint time, address indexed account, string reason);
-    // If user sends too much, or if softcap not met.
+    // If user sends too much, or if .refund() called
     event UserRefunded(uint time, address indexed account, uint refund);
-    // Burning Tokens
-    event BurnTokensSuccess(uint time, address indexed tokenHolder, uint numTokens, uint refund);
-    event BurnTokensFailure(uint time, address indexed tokenHolder, uint numTokens, string reason);
-    
 
     function Comptroller(address _wallet, address _treasury)
         public
@@ -258,7 +245,6 @@ contract Comptroller {
     // If SoftCap met:
     //   - Unfreezes tokens.
     //   - Gives owners 20% in TokenLocker, vesting 600 days.
-    //   - Sends .5 Eth per token to Treasury, as reserve.
     //   - Sends `capitalPctBip` to Treasury, as capital raised.
     //   - Sends remaining funds to Owner Wallet
     //
@@ -293,8 +279,6 @@ contract Comptroller {
         token.mint(locker, _lockerAmt);
         locker.startVesting(_lockerAmt, 600);   // vest for 600 days.
 
-        // Move half of tokens' ETH value to reserve
-        treasury.addReserve.value(token.totalSupply() / 2)();
         // Send up to `_capitalAmt` ETH to treasury as capital
         uint _capitalAmt = (totalRaised * capitalPctBips) / 10000;
         if (this.balance < _capitalAmt) _capitalAmt = this.balance;
@@ -311,34 +295,6 @@ contract Comptroller {
     /********** AFTER CROWDSALE **********************************/
     /*************************************************************/
 
-    // If sale was successful, allows the sender to burn up to _numTokens
-    //   - If the sender does not have that many tokens, will
-    //     burn their entire balance.
-    function burnTokens(uint _numTokens)
-        public
-    {
-        // Ensure sale ended and softcap was met
-        if (!wasSaleEnded)
-            return BurnTokensFailure(now, msg.sender, _numTokens, "CrowdSale has not ended.");
-        if (!wasSoftCapMet)
-            return BurnTokensFailure(now, msg.sender, _numTokens, "SoftCap not met. Use .refund()");
-
-        // If numTokens is too large, use their whole balance.
-        // Error if no tokens to burn.
-        uint _balance = token.balanceOf(msg.sender);
-        uint _amtToBurn = _numTokens > _balance ? _balance : _numTokens;
-        if (_amtToBurn == 0) {
-            return BurnTokensFailure(now, msg.sender, _numTokens, "User has no tokens.");
-        }
-
-        // Burn user's tokens, and send bankroll to user
-        // .removeFromBankroll will fail if unable to send.
-        uint _burnRefund = _amtToBurn / 2;
-        token.burn(msg.sender, _amtToBurn);
-        treasury.removeReserve(_burnRefund, msg.sender);
-        BurnTokensSuccess(now, msg.sender, _amtToBurn, _burnRefund);
-    }
-
     // If softCap was not met, allow users to get full refund.
     function refund()
         public
@@ -353,16 +309,16 @@ contract Comptroller {
         UserRefunded(now, msg.sender, _amt);
     }
 
-    // Callable any time Treasury.capitalNeeded() > 0
+    // Callable any time Treasury.capitalNeeded() > 0.
     //
-    // This mints tokens and dilutes everyone, including owners.
-    // This aligns the owners with investors: there's no reason to 
-    // raise capital unless it is needed.
+    // For each Ether received, 1 Token is minted, and the Ether is sent
+    //  to the Treasury as Captial.
     //
-    // For each 1 Ether received:
-    //  - will issue 1 Token to the sender.
-    //  - will allocate .5 ETH as reserve.
-    //  - will allocate .5 ETH as capital.
+    // Raising capital dilutes everyone, owners included, and as such
+    //  would only realistically happen if the raised funds are expected
+    //  to generate returns. Additionally, the Ether raised only goes to
+    //  Treasury -- 0 goes to the owners -- so there is no incentive to
+    //  raise capital other than to increase dividends.
     function fundCapital()
         public
         payable
@@ -378,16 +334,11 @@ contract Comptroller {
         if (_amount == 0) {
             return _errorBuyingTokens("No capital is needed.");
         }
-        
-        // Calculate how much goes to reserve and capital. (50/50)
-        uint _reserve = _amount / 2;
-        uint _capital = _amount - _reserve;
 
-        // Mint tokens, send capital and reserve.
+        // Mint tokens, send capital.
         totalRaised += _amount;
         token.mint(msg.sender, _amount);
-        treasury.addCapital.value(_capital)();
-        treasury.addReserve.value(_reserve)();
+        treasury.addCapital.value(_amount)();
         BuyTokensSuccess(now, msg.sender, _amount, _amount);
 
         // Refund excess
@@ -423,7 +374,7 @@ contract Comptroller {
         view
         returns (uint _amt)
     {
-        return treasury.capitalNeeded() * 2;
+        return treasury.capitalNeeded();
     }
 
     // Returns the total amount of tokens minted at a given _ethAmt raised.

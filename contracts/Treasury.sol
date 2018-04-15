@@ -216,11 +216,7 @@ contract Requestable is
 
 UI: https://www.pennyether.com/status/treasury
 
-The Treasury manages 3 balances:
-
-    * reserve: Ether strictly used to pay for a user burning tokens.
-        - Is incremented by Comptroller after tokens are purchased.
-        - Reserve only ever leaves to pay Token Holders for burning.
+The Treasury manages 2 balances:
 
     * capital: Ether that can be sent to bankrollable contracts.
         - Is controlled via `Requester` governance, by the Admin (which is mutable)

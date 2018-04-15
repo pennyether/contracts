@@ -237,9 +237,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     const totalRaised = await comptroller.totalRaised();
                     const expTotalSupply = (await token.totalSupply()).minus(1).mul(1.25);
                     const expCapital = totalRaised.mul(CAPITAL_PCT_BIPS.div(10000)).floor();
-                    const expReserve = expTotalSupply.mul(.5);
-                    const expTreasuryDelta = expReserve.plus(expCapital);
-                    const expWalletDelta = totalRaised.minus(expTreasuryDelta);
+                    const expWalletDelta = totalRaised.minus(expCapital);
                     // these should not change
                     const expAcc1Tokens = await token.balanceOf(account1);
                     const expAcc2Tokens = await token.balanceOf(account2);
@@ -247,7 +245,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
                     this.logInfo("Sale should succeed:");
                     this.logInfo(`  - Total Raised: ${toEth(totalRaised)}`)
-                    this.logInfo(`  - Treasury should get reserve: ${toEth(expReserve)}`);
                     this.logInfo(`  - Treasury should get capital: ${toEth(expCapital)}`);
                     this.logInfo(`  - Wallet should get remaining: ${toEth(expWalletDelta)}`);
                     await createDefaultTxTester()
@@ -260,15 +257,11 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                             .assertEvent(treasury, "CapitalRaised", {
                                 amount: expCapital
                             })
-                            .assertEvent(treasury, "ReserveAdded", {
-                                sender: comptroller.address,
-                                amount: expReserve
-                            })
                         .assertCallReturns([comptroller, "wasSaleEnded"], true)
                         .assertCallReturns([comptroller, "wasSoftCapMet"], true)
                         .stopLedger()
                             .assertBalance(comptroller, 0)
-                            .assertDelta(treasury, expTreasuryDelta)
+                            .assertDelta(treasury, expCapital)
                             .assertDelta(wallet, expWalletDelta)
                         .start();
 
@@ -318,25 +311,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         return assertCannotRefund(account1);
                     });
                 })
-                describe("Burning works", function(){
-                    it("Doens't work for user with no tokens", function(){
-                        return assertCannotBurnTokens(accountWithNoTokens, 1e18, "User has no tokens.");
-                    })
-                    it("Burning half of account1's tokens works", async function(){
-                        const amt = (await token.balanceOf(account1)).div(2);
-                        return assertCanBurnTokens(account1, amt, this.logInfo);
-                    });
-                    it("Burning account1's remaining tokens works", async function(){
-                        const remaining = await token.balanceOf(account1);
-                        this.logInfo("This tests that sending a large amount will burn the remaining tokens.");
-                        this.logInfo(`Account1 has ${toEth(remaining, "tokens")} remaining, will try to burn double that.`);
-                        return assertCanBurnTokens(account1, remaining.mul(2), this.logInfo);
-                    });
-                    it("Burn all of account2's tokens", async function(){
-                        const acct2remaining = await token.balanceOf(account2);
-                        await assertCanBurnTokens(account2, acct2remaining, this.logInfo);
-                    });
-                });
                 describe("Raising capital works", function(){
                     before("Make Treasury need 1e18 ETH in capital", function(){
                         return increaseCapitalNeeded(1e16);
@@ -360,11 +334,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                         const totalSupply = await token.totalSupply();
                         console.log(`Wallet owns ${toEth(walletTokens, "tokens")} of ${toEth(totalSupply, "tokens")}`);
                         assert(walletTokens.div(totalSupply).gt(.999999999), "Wallet owns more than 99.9999999%");
-                    });
-                });
-                describe("Burning does nothing (softCap not met)", function(){
-                    it("account1 cannot burn any tokens", function(){
-                        return assertCannotBurnTokens(account1, 1e18, "SoftCap not met. Use .refund()");
                     });
                 });
                 describe("Refunding works", function(){
@@ -512,62 +481,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 .start();
         }
 
-        async function assertCanBurnTokens(acct, numTokens, logInfo) {
-            numTokens = new BigNumber(numTokens);
-            var expNumTokens = numTokens;
-            // alter numTokens if not in user's balance
-            const prevAccTokens = await token.balanceOf(acct);
-            if (prevAccTokens.lt(expNumTokens)){
-                logInfo(`Cannot burn all ${toEth(numTokens, "tokens")}, account only has ${toEth(prevAccTokens,"tokens")}.`);
-                expNumTokens = prevAccTokens;
-            }
-            const expWei = expNumTokens.div(2);
-            logInfo(`Should burn ${toEth(expNumTokens, "tokens")} for ${toEth(expWei)}.`);
-            logInfo(`Ether refund should come from the Treasury reserve.`);
-
-            const expectedTokens = prevAccTokens.minus(expNumTokens);
-            const prevReserve = await treasury.reserve();
-            await createDefaultTxTester()
-                .startLedger([comptroller, treasury, acct])
-                .startWatching([treasury, token])
-                .doTx([comptroller, "burnTokens", numTokens, {from: acct}])
-                .assertSuccess()
-                    .assertOnlyLog("BurnTokensSuccess", {
-                        time: null,
-                        tokenHolder: acct,
-                        refund: expWei,
-                        numTokens: expNumTokens
-                    })
-                .stopLedger()
-                    .assertNoDelta(comptroller)
-                    .assertDelta(treasury, expWei.mul(-1))
-                    .assertDeltaMinusTxFee(acct, expWei)
-                .stopWatching()
-                    .assertOnlyEvent(treasury, "ReserveRemoved", {
-                        amount: expWei
-                    })
-                    .assertEventCount(token, 1)
-                    .assertEvent(token, "TokensBurned", {
-                        account: acct,
-                        amount: expNumTokens,
-                    })
-                .assertCallReturns([treasury, "reserve"], prevReserve.minus(expWei))
-                .assertCallReturns([token, "balanceOf", acct], prevAccTokens.minus(expNumTokens))
-                .start();
-        }
-        function assertCannotBurnTokens(account, amt, msg) {
-            return createDefaultTxTester()
-                .doTx([comptroller, "burnTokens", amt, {from: account}])
-                .assertSuccess()
-                .assertOnlyLog("BurnTokensFailure", {
-                    time: null,
-                    tokenHolder: account,
-                    numTokens: amt,
-                    reason: msg
-                })
-                .start();
-        }
-
         async function assertCanRefund(account, expAmt) {
             const numTokens = await token.balanceOf(account);
             console.log(`Account should be refunded ${toEth(expAmt)} for ${toEth(numTokens, "tokens")}.`);
@@ -601,7 +514,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
         async function assertCanFundCapital(account, amt, logInfo) {
             amt = new BigNumber(amt);
-            const needed = (await treasury.capitalNeeded()).mul(2);
+            const needed = await treasury.capitalNeeded();
             const expAmt = BigNumber.min(needed, amt);
             const expRefund = amt.minus(needed);
             const expTokens = expAmt;
@@ -629,7 +542,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
 
             const prevBalance = await token.balanceOf(account);
             const prevTotalSupply = await token.totalSupply();
-            const prevReserve = await treasury.reserve();
             const prevCapital = await treasury.capital();
             const prevCapitalRaised = await treasury.capitalRaised();
             const prevCapitalNeeded = await treasury.capitalNeeded();
@@ -650,22 +562,16 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 .stopWatching()
                     .assertEvent(treasury, "CapitalRaised", {
                         time: null,
-                        amount: expAmt.mul(.5)
-                    })
-                    .assertEvent(treasury, "ReserveAdded", {
-                        time: null,
-                        sender: comptroller.address,
-                        amount: expAmt.mul(.5)
+                        amount: expAmt
                     })
                 .stopLedger()
                     .assertNoDelta(comptroller)
                     .assertDeltaMinusTxFee(account, expAmt.mul(-1))
                 .assertCallReturns([token, "balanceOf", account], prevBalance.plus(expTokens))
                 .assertCallReturns([token, "totalSupply"], prevTotalSupply.plus(expTokens))
-                .assertCallReturns([treasury, "reserve"], prevReserve.plus(expAmt.mul(.5)))
-                .assertCallReturns([treasury, "capital"], prevCapital.plus(expAmt.mul(.5)))
-                .assertCallReturns([treasury, "capitalRaised"], prevCapitalRaised.plus(expAmt.mul(.5)))
-                .assertCallReturns([treasury, "capitalNeeded"], prevCapitalNeeded.minus(expAmt.mul(.5)))
+                .assertCallReturns([treasury, "capital"], prevCapital.plus(expAmt))
+                .assertCallReturns([treasury, "capitalRaised"], prevCapitalRaised.plus(expAmt))
+                .assertCallReturns([treasury, "capitalNeeded"], prevCapitalNeeded.minus(expAmt))
                 .start();
         }
         function assertCannotFundCapital(account, amt, errMsg) {
@@ -733,9 +639,6 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 })
                 it(".endSale() doesn't work.", function(){
                     return assertCannotEndSale();
-                });
-                it(".burnTokens() doesn't work.", function(){
-                    return assertCannotBurnTokens(account1, 1e15, "CrowdSale has not ended.");
                 });
                 it(".refund() doesn't work.", function(){
                     return assertCannotRefund();
