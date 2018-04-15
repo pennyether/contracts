@@ -10,7 +10,7 @@ Gives the inherting contract access to:
 
 *************************************************/
 // Returned by .getTreasury()
-contract ITreasury {
+interface ITreasury {
     function profits() public view returns (uint _profits);
     function issueDividend() public returns (uint _profits);
 }
