@@ -192,7 +192,7 @@ function testWithParams(name, params) {
                     await ensureNotOverthrowable(player1, FEE.minus(1), "Value sent must match fee.");
                 });
                 it("works correctly", async function(){
-                    await ensureOverthrowable(player1);    
+                    await ensureOverthrowable(player1);
                 });
                 it("monarch cannot overthrow himself", async function(){
                     await ensureNotOverthrowable(player1, FEE, "You are already the Monarch.");
@@ -227,17 +227,20 @@ function testWithParams(name, params) {
                     const newFees = (await game.fees()).plus(fee);
                     const newNumOverthrows = (await game.numOverthrows()).plus(1);
                     const newBlockEnded = testUtil.getNextBlockNumber().plus(REIGN_BLOCKS);
+                    const FIRST_DECREE = "hello";
+                    const SECOND_DECREE = "hello two";
+                    const THIRD_DECREE = "hello three";
 
                     var tx1, tx2, tx3;
                     var tx1fee, tx2fee, tx3fee;
                     await createDefaultTxTester()
                         .startLedger([overthrower1, overthrower2, overthrower3, game])
                         .doFn(() => { testUtil.stopMining(); })
-                        .doFn(() => { tx1 = game.sendTransaction({from: overthrower1, value: FEE, gas: "200000"}); })
+                        .doFn(() => { tx1 = game.overthrow(FIRST_DECREE, {from: overthrower1, value: FEE, gas: "200000"}); })
                         .wait(100)
-                        .doFn(() => { tx2 = game.sendTransaction({from: overthrower2, value: FEE, gas: "200001"}); })
+                        .doFn(() => { tx2 = game.overthrow(SECOND_DECREE, {from: overthrower2, value: FEE, gas: "200001"}); })
                         .wait(100)
-                        .doFn(() => { tx3 = game.sendTransaction({from: overthrower3, value: FEE, gas: "200002"}); })
+                        .doFn(() => { tx3 = game.overthrow(THIRD_DECREE, {from: overthrower3, value: FEE, gas: "200002"}); })
                         .wait(100, "Stopped mining, queued both tx1, tx2, and tx3")
                         .doFn(() => {
                             console.log("Mining block now...");
@@ -281,32 +284,40 @@ function testWithParams(name, params) {
                                 newMonarch: overthrower1, 
                                 prevMonarch: null
                             })
-                            .assertGasUsedLt(36000)
+                            .assertGasUsedLt(38000)
                         .print("")
                         .doTx(() => tx2, "Second overthrow, refunds the first.")
                             .assertSuccess()
                             .assertLogCount(2)
-                            .assertLog('OverthrowRefundSuccess', {recipient: overthrower1})
+                            .assertLog('OverthrowRefundSuccess', {
+                                recipient: overthrower1,
+                                msg: "Another overthrow occurred on the same block."
+                            })
                             .assertLog('OverthrowOccurred', {
                                 newMonarch: overthrower2,
                                 prevMonarch: overthrower1
                             })
-                            .assertGasUsedLt(41000)
+                            .assertGasUsedLt(48000)
                         .print("")
                         .doTx(() => tx3, "Third overthrow, refunds the second.")
                             .assertSuccess()
                             .assertLogCount(2)
-                            .assertLog('OverthrowRefundSuccess', {recipient: overthrower2})
+                            .assertLog('OverthrowRefundSuccess', {
+                                recipient: overthrower2,
+                                msg: "Another overthrow occurred on the same block."
+                            })
                             .assertLog('OverthrowOccurred', {
                                 newMonarch: overthrower3,
                                 prevMonarch: overthrower2
                             })
-                            .assertGasUsedLt(41000)
+                            .assertGasUsedLt(48000)
                         .print("")
                             .assertCallReturns([game, 'prize'], newPrize, "is incremented only once")
                             .assertCallReturns([game, 'fees'], newFees, "is incremented only once")
                             .assertCallReturns([game, 'numOverthrows'], newNumOverthrows, "is incremented only once")
                             .assertCallReturns([game, 'blockEnded'], newBlockEnded, "is incremented only once")
+                            .assertCallReturns([game, 'monarch'], overthrower3, "is last overthrower")
+                            .assertCallReturns([game, 'decree'], isDecree(THIRD_DECREE), "is last decree")
                         .stopLedger()
                             .assertDelta(overthrower1, ()=>tx1fee.mul(-1), "lost txFee (but got refunded)")
                             .assertDelta(overthrower2, ()=>tx2fee.mul(-1), "lost txFee (but got refunded)")
@@ -327,6 +338,7 @@ function testWithParams(name, params) {
                     const newFees = (await game.fees()).plus(fee.mul(2));
                     const newNumOverthrows = (await game.numOverthrows()).plus(2);
                     const newBlockEnded = testUtil.getNextBlockNumber().plus(REIGN_BLOCKS);
+                    const decree = "My Decree.";
 
                     var tx1, tx2;
                     var tx1fee, tx2fee;
@@ -335,7 +347,7 @@ function testWithParams(name, params) {
                         .doFn(() => { testUtil.stopMining(); })
                         .doFn(() => { tx1 = maliciousPlayer.doOverthrow(game.address, {from: anon, gas: "200000"}); })
                         .wait(100)
-                        .doFn(() => { tx2 = game.sendTransaction({from: overthrower2, value: FEE, gas: "200001"}); })
+                        .doFn(() => { tx2 = game.overthrow(decree, {from: overthrower2, value: FEE, gas: "200001"}); })
                         .wait(100, "Stopped mining, queued both tx1 and tx2.")
                         .doFn(() => {
                             console.log("Mining block now...");
@@ -373,11 +385,14 @@ function testWithParams(name, params) {
                                 newMonarch: overthrower2,
                                 prevMonarch: maliciousPlayer.address
                             })
-                            .assertGasUsedLt(43000)
+                            .assertGasUsedLt(50000)
+                        .print("")
                             .assertCallReturns([game, 'prize'], newPrize, "is incremented twice")
                             .assertCallReturns([game, 'fees'], newFees, "is incremented twice")
                             .assertCallReturns([game, 'numOverthrows'], newNumOverthrows, "is incremented twice")
                             .assertCallReturns([game, 'blockEnded'], newBlockEnded, "is incremented only once")
+                            .assertCallReturns([game, 'monarch'], overthrower2, "is second overthrower")
+                            .assertCallReturns([game, 'decree'], isDecree(decree), "is second decree")
                         .stopLedger()
                             .assertDelta(maliciousPlayer, FEE.mul(-1), "lost fee")
                             .assertDelta(overthrower2, ()=>FEE.plus(tx2fee).mul(-1), "lost fee+txFee")
@@ -558,7 +573,8 @@ function testWithParams(name, params) {
         });
 
         // everything should increment and player should be new monarch
-        async function ensureOverthrowable(player) {
+        async function ensureOverthrowable(player, decree) {
+            decree = decree || "";
             const fee = FEE.minus(PRIZE_INCR);
             const prizeIncr = FEE.minus(fee);
             const newPrize = (await game.prize()).plus(prizeIncr);
@@ -570,7 +586,7 @@ function testWithParams(name, params) {
 
             await createDefaultTxTester()
                 .startLedger([player, game])
-                .doTx(() => game.sendTransaction({from: player, value: FEE}))
+                .doTx(() => game.overthrow(web3.fromUtf8(decree), {from: player, value: FEE}))
                 .stopLedger()
                     .assertDelta(game, FEE, "increased by fee")
                     .assertDeltaMinusTxFee(player, FEE.mul(-1), "decreased by FEE and txFee")
@@ -580,9 +596,10 @@ function testWithParams(name, params) {
                         newMonarch: player,
                         prevMonarch: prevMonarch
                     })
-                .assertGasUsedLt(36000)
+                .assertGasUsedLt(38000)
                     .assertCallReturns([game, 'numOverthrows'], newNumOverthrows, "increased by 1")
                     .assertCallReturns([game, 'totalFees'], newTotalFees)
+                    .assertCallReturns([game, 'decree'], isDecree(decree))
                     .assertCallReturns([game, 'prize'], newPrize, "increased by prizeIncr")
                     .assertCallReturns([game, 'fees'], newFees, "increased by feeIncr")
                     .assertCallReturns([game, 'monarch'], player, "is new monarch")
@@ -596,18 +613,21 @@ function testWithParams(name, params) {
             const prevFees = await game.fees();
             const prevNumOverthrows = await game.numOverthrows();
             const prevBlockEnded = await game.blockEnded();
+            const prevDecree = web3.toUtf8(await game.decree());
             return createDefaultTxTester()
                 .startLedger([player, game])
-                .doTx(() => game.sendTransaction({from: player, value: feeAmt}))
+                .doTx(() => game.overthrow("Some decree", {from: player, value: feeAmt}))
                 .assertSuccess()
                     .assertOnlyLog("OverthrowRefundSuccess", {msg: errorMsg, recipient: player})
                     .assertCallReturns([game, 'prize'], prevPrize, 'not incremented')
                     .assertCallReturns([game, 'fees'], prevFees, 'not incremented')
                     .assertCallReturns([game, 'numOverthrows'], prevNumOverthrows, 'not incremented')
                     .assertCallReturns([game, 'blockEnded'], prevBlockEnded, 'not incremented')
+                    .assertCallReturns([game, 'decree'], isDecree(prevDecree))
                 .stopLedger()
                     .assertLostTxFee(player)
                     .assertNoDelta(game)
+                .assertGasUsedLt(36000)
                 .start();
         }
         // fees should be transferred to collected, then set to 0
@@ -651,6 +671,11 @@ function testWithParams(name, params) {
                     .assertLostTxFee(anon)
                     .assertNoDelta(game)
                 .start();
+        }
+        function isDecree(decree) {
+            return {
+                custom: (v) => web3.toUtf8(v) == decree
+            };
         }
     });
 }

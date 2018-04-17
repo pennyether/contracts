@@ -41,6 +41,7 @@ contract MonarchyGame {
         uint32 blockEnded;      // the time at which no further overthrows can occur  
         uint32 prevBlock;       // block of the most recent overthrow
         bool isPaid;            // whether or not the winner has been paid
+        bytes23 decree;         // 23 leftover bytes for decree
     }
 
     // These values are set on construction and don't change.
@@ -61,7 +62,7 @@ contract MonarchyGame {
 
     event SendPrizeError(uint time, string msg);
     event Started(uint time, uint initialBlocks);
-    event OverthrowOccurred(uint time, address indexed newMonarch, address indexed prevMonarch);
+    event OverthrowOccurred(uint time, address indexed newMonarch, bytes23 decree, address indexed prevMonarch);
     event OverthrowRefundSuccess(uint time, string msg, address indexed recipient);
     event OverthrowRefundFailure(uint time, string msg, address indexed recipient);
     event SendPrizeSuccess(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
@@ -120,34 +121,38 @@ contract MonarchyGame {
     //  - Refunds if overthrow is too late, user is already monarch, or incorrect value passed.
     //  - Upon an overthrow-in-same-block, refends previous monarch.
     //
-    // Gas Cost: 33k - 43k
-    //     Overhead: 26k
-    //       - 22k: tx overhead
-    //       -  2k: event: BidOccurred
+    // Gas Cost: 34k - 50k
+    //     Overhead: 25k
+    //       - 23k: tx overhead
     //       -  2k: SLOADs, execution
-    //     Failure: 33k
-    //       - 26k: overhead
-    //       -  8k: send refund
-    //     Clean: 36k
-    //       - 26k: overhead
-    //       - 10k: update Vars (monarch, numOverthrows, prize, blockEnded, prevBlock)
-    //     Refund Success: 41k
-    //       - 26k: overhead
-    //       -  8k: send
-    //       -  5k: update Vars (monarch)
+    //     Failure: 34k
+    //       - 25k: overhead
+    //       -  7k: send refund
     //       -  2k: event: OverthrowRefundSuccess
-    //     Refund Failure: 43k
-    //       - 26k: overhead
-    //       - 10k: send failure
-    //       -  5k: update Vars (monarch, numOverthrows, prize)
+    //     Clean: 37k
+    //       - 25k: overhead
+    //       - 10k: update Vars (monarch, numOverthrows, prize, blockEnded, prevBlock, decree)
+    //       -  2k: event: OverthrowOccurred
+    //     Refund Success: 46k
+    //       - 25k: overhead
+    //       -  7k: send
+    //       - 10k: update Vars (monarch, decree)
+    //       -  2k: event: OverthrowRefundSuccess
+    //       -  2k: event: OverthrowOccurred
+    //     Refund Failure: 50k
+    //       - 25k: overhead
+    //       - 11k: send failure
+    //       - 10k: update Vars (monarch, numOverthrows, prize, decree)
     //       -  2k: event: OverthrowRefundFailure
-    //
-    //  Invalid Overthrow: 32k
-    //    - 22k: tx overhead
-    //    -  3k: send to msg.sender
-    //    -  2k: 1 event: BidRefundSuccess
-    //    -  2k: SLOADs, execution
+    //       -  2k: event: OverthrowOccurred
     function()
+        public
+        payable
+    {
+        overthrow(0);
+    }
+
+    function overthrow(bytes23 _decree)
         public
         payable
     {
@@ -184,26 +189,29 @@ contract MonarchyGame {
             vars.prizeGwei = uint64(_newPrizeGwei);
             vars.blockEnded = _newBlockEnded;
             vars.prevBlock = uint32(block.number);
+            vars.decree = _decree;
         }
         if (!_isClean && _wasRefundSuccess){
             // when a refund occurs, we just swap winners.
             // overthrow count and prize do not get reset.
             vars.monarch = msg.sender;
+            vars.decree = _decree;
         }
         if (!_isClean && !_wasRefundSuccess){
             vars.monarch = msg.sender;   
             vars.prizeGwei = uint64(_newPrizeGwei);
             vars.numOverthrows = _newNumOverthrows;
+            vars.decree = _decree;
         }
 
         // Emit the proper events.
         if (!_isClean){
             if (_wasRefundSuccess)
-                OverthrowRefundSuccess(now, "Another bid occurred on the same block.", _prevMonarch);
+                OverthrowRefundSuccess(now, "Another overthrow occurred on the same block.", _prevMonarch);
             else
                 OverthrowRefundFailure(now, ".send() failed.", _prevMonarch);
         }
-        OverthrowOccurred(now, msg.sender, _prevMonarch);
+        OverthrowOccurred(now, msg.sender, _decree, _prevMonarch);
     }
         // called from the bidding function above.
         // refunds sender, or throws to revert entire tx.
@@ -304,6 +312,9 @@ contract MonarchyGame {
     }
     function isPaid() public view returns (bool) {
         return vars.isPaid;
+    }
+    function decree() public view returns (bytes23) {
+        return vars.decree;
     }
     ///////////////////////////////////////////////////////////
 

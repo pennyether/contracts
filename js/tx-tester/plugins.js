@@ -480,6 +480,9 @@ function createPlugins(testUtil, ledger) {
 					},
 					not: function(r, e) {
 						assert.strNotEqual(r, e);
+					},
+					custom: function(r, e) {
+						assert(e(r));
 					}
 				};
 				// Return if we expect null or undefined.
