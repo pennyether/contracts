@@ -282,7 +282,8 @@ function testWithParams(name, params) {
                             .assertOnlyLog('OverthrowOccurred', {
                                 time: null,
                                 newMonarch: overthrower1, 
-                                prevMonarch: null
+                                prevMonarch: null,
+                                fee: FEE
                             })
                             .assertGasUsedLt(38000)
                         .print("")
@@ -291,26 +292,30 @@ function testWithParams(name, params) {
                             .assertLogCount(2)
                             .assertLog('OverthrowRefundSuccess', {
                                 recipient: overthrower1,
-                                msg: "Another overthrow occurred on the same block."
+                                msg: "Another overthrow occurred on the same block.",
+                                amount: FEE
                             })
                             .assertLog('OverthrowOccurred', {
                                 newMonarch: overthrower2,
-                                prevMonarch: overthrower1
+                                prevMonarch: overthrower1,
+                                fee: FEE
                             })
-                            .assertGasUsedLt(48000)
+                            .assertGasUsedLt(48500)
                         .print("")
                         .doTx(() => tx3, "Third overthrow, refunds the second.")
                             .assertSuccess()
                             .assertLogCount(2)
                             .assertLog('OverthrowRefundSuccess', {
                                 recipient: overthrower2,
-                                msg: "Another overthrow occurred on the same block."
+                                msg: "Another overthrow occurred on the same block.",
+                                amount: FEE
                             })
                             .assertLog('OverthrowOccurred', {
                                 newMonarch: overthrower3,
-                                prevMonarch: overthrower2
+                                prevMonarch: overthrower2,
+                                fee: FEE
                             })
-                            .assertGasUsedLt(48000)
+                            .assertGasUsedLt(48500)
                         .print("")
                             .assertCallReturns([game, 'prize'], newPrize, "is incremented only once")
                             .assertCallReturns([game, 'fees'], newFees, "is incremented only once")
@@ -380,12 +385,16 @@ function testWithParams(name, params) {
                         .doTx(() => tx2, "Next overthrow, causes refund failure")
                             .assertSuccess()
                             .assertLogCount(2)
-                            .assertLog('OverthrowRefundFailure', {recipient: maliciousPlayer.address})
+                            .assertLog('OverthrowRefundFailure', {
+                                recipient: maliciousPlayer.address,
+                                amount: FEE
+                            })
                             .assertLog('OverthrowOccurred', {
                                 newMonarch: overthrower2,
-                                prevMonarch: maliciousPlayer.address
+                                prevMonarch: maliciousPlayer.address,
+                                fee: FEE
                             })
-                            .assertGasUsedLt(50000)
+                            .assertGasUsedLt(51000)
                         .print("")
                             .assertCallReturns([game, 'prize'], newPrize, "is incremented twice")
                             .assertCallReturns([game, 'fees'], newFees, "is incremented twice")
@@ -425,7 +434,11 @@ function testWithParams(name, params) {
                             .assertDelta(game, FEE, "increased by FEE")
                             .assertDelta(maliciousPlayer, FEE.mul(-1), "lost FEE")
                         .stopWatching()
-                            .assertOnlyEvent(game, 'OverthrowOccurred', {newMonarch: maliciousPlayer.address, time: null})
+                            .assertOnlyEvent(game, 'OverthrowOccurred', {
+                                time: null,
+                                newMonarch: maliciousPlayer.address,
+                                fee: FEE
+                            })
                         .start();
                 });
             });
@@ -594,7 +607,8 @@ function testWithParams(name, params) {
                     .assertOnlyLog('OverthrowOccurred', {
                         time: null,
                         newMonarch: player,
-                        prevMonarch: prevMonarch
+                        prevMonarch: prevMonarch,
+                        fee: FEE
                     })
                 .assertGasUsedLt(38000)
                     .assertCallReturns([game, 'numOverthrows'], newNumOverthrows, "increased by 1")

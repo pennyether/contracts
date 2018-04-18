@@ -90,7 +90,7 @@ describe('InstaDice', function(){
                 .assertSuccess()
                 .assertOnlyLog("SettingsChanged", {
                     time: null,
-                    sender: admin
+                    admin: admin
                 })
                 .assertCallReturns([dice, "minBet"], MIN_BET)
                 .assertCallReturns([dice, "maxBet"], MAX_BET)

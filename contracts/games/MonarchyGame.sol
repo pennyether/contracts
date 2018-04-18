@@ -62,9 +62,9 @@ contract MonarchyGame {
 
     event SendPrizeError(uint time, string msg);
     event Started(uint time, uint initialBlocks);
-    event OverthrowOccurred(uint time, address indexed newMonarch, bytes23 decree, address indexed prevMonarch);
-    event OverthrowRefundSuccess(uint time, string msg, address indexed recipient);
-    event OverthrowRefundFailure(uint time, string msg, address indexed recipient);
+    event OverthrowOccurred(uint time, address indexed newMonarch, bytes23 decree, address indexed prevMonarch, uint fee);
+    event OverthrowRefundSuccess(uint time, string msg, address indexed recipient, uint amount);
+    event OverthrowRefundFailure(uint time, string msg, address indexed recipient, uint amount);
     event SendPrizeSuccess(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
     event SendPrizeFailure(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
     event FeesSent(uint time, address indexed collector, uint amount);
@@ -207,11 +207,11 @@ contract MonarchyGame {
         // Emit the proper events.
         if (!_isClean){
             if (_wasRefundSuccess)
-                OverthrowRefundSuccess(now, "Another overthrow occurred on the same block.", _prevMonarch);
+                OverthrowRefundSuccess(now, "Another overthrow occurred on the same block.", _prevMonarch, msg.value);
             else
-                OverthrowRefundFailure(now, ".send() failed.", _prevMonarch);
+                OverthrowRefundFailure(now, ".send() failed.", _prevMonarch, msg.value);
         }
-        OverthrowOccurred(now, msg.sender, _decree, _prevMonarch);
+        OverthrowOccurred(now, msg.sender, _decree, _prevMonarch, msg.value);
     }
         // called from the bidding function above.
         // refunds sender, or throws to revert entire tx.
@@ -219,7 +219,7 @@ contract MonarchyGame {
             private
         {
             require(msg.sender.call.value(msg.value)());
-            OverthrowRefundSuccess(now, _msg, msg.sender);
+            OverthrowRefundSuccess(now, _msg, msg.sender, msg.value);
         }
 
 

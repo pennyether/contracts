@@ -87,7 +87,7 @@ contract InstaDice is
     
     // Admin events
     event Created(uint time);
-    event SettingsChanged(uint time, address indexed sender);
+    event SettingsChanged(uint time, address indexed admin);
 
     // Events
     event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint payout);
