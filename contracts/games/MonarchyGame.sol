@@ -338,11 +338,11 @@ contract MonarchyGame {
 
     // The following are computed /////////////////////////////
     function isEnded() public view returns (bool) {
-        return block.number >= vars.blockEnded;
+        return block.number > vars.blockEnded;
     }
     function getBlocksRemaining() public view returns (uint) {
         if (isEnded()) return 0;
-        return vars.blockEnded - block.number;
+        return (vars.blockEnded - block.number) + 1;
     }
     function fees() public view returns (uint) {
         return vars.isPaid ? this.balance : this.balance - prize();

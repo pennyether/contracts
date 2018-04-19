@@ -618,6 +618,7 @@ function testWithParams(name, params) {
                     .assertCallReturns([game, 'fees'], newFees, "increased by feeIncr")
                     .assertCallReturns([game, 'monarch'], player, "is new monarch")
                     .assertCallReturns([game, 'blockEnded'], newBlockEnded, "increased by reignBlocks")
+                    .assertCallReturns([game, 'getBlocksRemaining'], await game.reignBlocks())
                 .start();
         }
         // makes sure the user cannot overthrow.
