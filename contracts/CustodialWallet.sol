@@ -12,7 +12,7 @@ would change the "custodian" of this wallet. This ensures
 ownership of contracts is always recoverable.
 
 Supervisor and Owner accounts are inteded to be cold
-wallets, and as such, can be changed any time they are used.
+wallets, and as such, must be changed any time they are used.
 For added security, Supervisor and Owner wallets can be
 multi-sig wallets.
 
@@ -25,6 +25,7 @@ multi-sig wallets.
 - Owner can:
    - change the supervisor
    - must provide a new owner
+   - this account is intended to never be used, and stored super-securely
  */
 contract CustodialWallet {
     address public owner;
@@ -63,7 +64,7 @@ contract CustodialWallet {
         if (_to.call.value(msg.value)(_data)){
             CallSuccess(now, _to, _msg);
             return true;
-        }else {
+        } else {
             CallFailure(now, _to, _msg);
             return false;
         }

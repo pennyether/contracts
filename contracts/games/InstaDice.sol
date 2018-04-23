@@ -10,18 +10,16 @@ import "../roles/UsingAdmin.sol";
 
 This contract allows for users to wager a limited amount on then
 outcome of a random roll between [1, 100]. The user may choose
-a number, and if the roll is less than or equal ot that number,
+a number, and if the roll is less than or equal to that number,
 they will win a payout that is inversely proportional to the
 number they chose (lower numbers pay out more).
 
 When a roll is "finalized", it means the result was determined
-and the payout to the user if they won. Each time somebody rolls,
-up to between 1 or 2 previous rolls are finalized. This ensures
-rolls are automatically finalized and paid out.
-
-One exception is with multiple rolls in the same block. When this
-occurs, the finalization queue grows. All N rolls in one block
-will be finalized once (at most) N rolls occur in later blocks.
+and the payout paid to the user if they won. Each time somebody 
+rolls, their previous roll is finalized. Roll results are based
+on blockhash, and since only the last 256 blockhashes are 
+available (who knows why it is so limited...), the user must
+finalize within 256 blocks or their roll loses.
 
 Note about randomness:
   Although using blockhash for randomness is not advised,
@@ -38,28 +36,20 @@ contract InstaDice is
     Bankrollable,
     UsingAdmin
 {
-    // Each roll will be 1 256-bit value stored in a map.
-    struct Roll {
-        // [first 256-bit segment]
-        uint32 id;      // id, for convenience
-        uint32 userId;  // cheaper to look-up than to store address
-        uint64 bet;     // max of 18 ether
-        uint8 number;   // max of 255
-        uint72 payout;  // max of > 1m ether
-        uint32 block;   // max of 4b (120 yrs from now)
-        uint8 result;   // max of 255
-        bool isPaid;    // true after paid
+    struct User {
+        uint32 id;
+        uint32 r_id;
+        uint32 r_block;
+        uint8 r_number;
+        uint72 r_payout;
     }
 
-    // These variables are the only ones modifiable.
-    // We put them in a struct with the hopes that optimizer
-    //   will do one write if any/all of them change.
-    struct Vars {
-        uint32 curId;
-        uint32 curUserId;
-        uint64 totalWageredGwei;
-        uint32 finalizeId;
-        uint64 totalWonGwei;
+    // These stats are updated on each roll.
+    struct Stats {
+        uint32 numUsers;
+        uint32 numRolls;
+        uint96 totalWagered;
+        uint96 totalWon;
     }
     
     // Admin controlled settings
@@ -71,17 +61,8 @@ contract InstaDice is
         uint16 feeBips;   // each bip is .01%, eg: 100 = 1% fee.
     }
 
-    // Keep track of all rolls
-    mapping (uint32 => Roll) public rolls;
-
-    // Store a two-way mapping of address <=> userId
-    // If we've seen a user before, rolling will be just 1 write
-    //  per Roll struct vs 2 writes.
-    // The trade-off is 3 writes for new users. Seems fair.
-    mapping (address => uint32) public userIds;
-    mapping (uint32 => address) public userAddresses;
-
-    Vars vars;
+    mapping (address => User) public users;
+    Stats stats;
     Settings settings;
     uint8 constant public version = 1;
     
@@ -93,15 +74,14 @@ contract InstaDice is
     event RollWagered(uint time, uint32 indexed id, address indexed user, uint bet, uint8 number, uint payout);
     event RollRefunded(uint time, address indexed user, string msg, uint bet, uint8 number);
     event RollFinalized(uint time, uint32 indexed id, address indexed user, uint8 result, uint payout);
-    event PayoutSuccess(uint time, uint32 indexed id, address indexed user, uint payout);
-    event PayoutFailure(uint time, uint32 indexed id, address indexed user, uint payout);
+    event PayoutError(uint time, string msg);
 
     function InstaDice(address _registry)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         public
     {
-        vars.finalizeId = 1;
+        stats.totalWagered = 1;  // initialize to 1 to make first roll cheaper.
         settings.maxBet = .3 ether;
         settings.minBet = .001 ether;
         settings.minNumber = 5;
@@ -144,259 +124,192 @@ contract InstaDice is
     ////// PUBLIC FUNCTIONS ///////////////////////////
     ///////////////////////////////////////////////////
 
-    // Adds a new roll to the rolls map.
-    // The result will be immediately available: .getRollResult() / .getRollPayout()
-    // Automatically finalizes one or two rolls in the queue.
-    // This means this roll will be finalized eventually (usually next)
-    //
-    // Painstakingly optimized for Gas Cost:
-    //
-    //   - creating roll:                55k, 95k (new roller)
-    //      - 22k: tx overhead
-    //      -  3k: validation
-    //      -  5k: _createNewRoll()
-    //      - 20k: if new roller, via _createNewRoll()
-    //      -  3k: event (RollWagered)
-    //      -  2k: SLOADs, execution 
-    //
-    //   - resolving nothing:            56k, 96k (new roller)
-    //      - 55k, 95k: [above]
-    //      -  1k: SLOADs, execution
-    //
-    //   - resolving one losing roll:    72k, 112k (new roller)
-    //      - 55k, 95k: [above]
-    //      - 10k: 2 updates: roll.result, finalizeId
-    //      -  3k: event (RollFinalized)
-    //      -  3k: SLOADs, execution
-    //
-    //   - resolving two losing rolls:   90k, 130k (new roller)
-    //      - 55k, 95k: above
-    //      - 16k: resolving first roll [above]
-    //      - 16k: resolving second roll [above]
-    //      -  2k: SLOADs, execution
-    //
-    //   - resolving a winning roll:     95k, 135k (new roller)
-    //      - 55k, 95k: [above]
-    //      - 21k: send winnings
-    //      - 10k: 3 updates: [roll.result,isPaid], [totalWonGwei,finalizeId]
-    //      -  5k: events (PayoutSuccess, RollFinalized)
-    //      -  3k: SLOADs, execution
+    // Resolves the last roll for the user.
+    // Then creates a new roll.
+    // Gas:
+    //    Total: 56k (new), or up to 44k (repeat)
+    //    Overhead: 36k
+    //       22k: tx overhead
+    //        2k: SLOAD
+    //        3k: execution
+    //        2k: curMaxBet()
+    //        5k: update stats
+    //        2k: RollWagered event
+    //    New User: 20k
+    //       20k: create user
+    //    Repeat User: 8k, 16k
+    //        5k: update user
+    //        3k: RollFinalized event
+    //        8k: pay last roll
     function roll(uint8 _number)
         public
         payable
+        returns (bool _success)
     {
-        // Ensure bet and number are valid
-        // To save SLOADs, read entire settings to memory.
-        Settings memory _settings = settings;
-        if (_number < _settings.minNumber)
-            return _errorAndRefund("Roll number too small.", msg.value, _number);
-        if (_number > _settings.maxNumber)
-            return _errorAndRefund("Roll number too large.", msg.value, _number);
-        if (msg.value < _settings.minBet)
-            return _errorAndRefund("Bet too small.", msg.value, _number);
-        if (msg.value > _settings.maxBet)
-            return _errorAndRefund("Bet too large.", msg.value, _number);
-        if (msg.value > curMaxBet())
-            return _errorAndRefund("May be unable to payout on a win.", msg.value, _number);
+        // Ensure bet and number are valid.
+        if (!_validateBetOrRefund(_number)) return;
 
-        // safe to cast: msg.value < minBet < .625 ETH < 2**64
-        uint64 _bet = uint64(msg.value);
-        uint72 _payout = computePayout(_bet, _number);
-        
-        // Create the Roll (and _userId)
-        uint32 _curId = _createNewRoll(_bet, _number, _payout);
-        RollWagered(now, _curId, msg.sender, _bet, _number, _payout);
-
-        // Finalize no rolls, 1 winning roll, or two losing rolls.
-        _finalizeSomeRolls();
-    }
-        // Only called from above.
-        // Refunds user the full value, and logs an error
-        function _errorAndRefund(string _msg, uint _bet, uint8 _number)
-            private
-        {
-            require(msg.sender.call.value(msg.value)());
-            RollRefunded(now, msg.sender, _msg, _bet, _number);
-        }
-
-    // Pays out a user for a roll, if they won and .isPaid is false.
-    // If sent 0, defaults to latest roll
-    function payoutRoll(uint32 _id)
-        public
-    {
-        if (_id == 0) _id = vars.curId;
-
-        Roll storage _r = rolls[_id];
-        // Ensure roll exists, and is not of the same block.
-        if (_r.block==0 || _r.block==block.number) return;
-        // Finalize the roll. This may attempt to pay user.
-        _finalizeRoll(_r);
-        // If not paid yet, and won, try to pay with full gas.
-        if (_r.result<=_r.number && !_r.isPaid) _attemptPayout(_r, true);
-    }
-
-    // Finalizes a number of rolls in the queue
-    // Just in case Queue gets too large.
-    function finalizeRolls(uint _num)
-        public
-        returns (uint32 _numFinalized)
-    {
-        while (_numFinalized < _num) {
-            var (_didFinalize, ) = _finalizeNext(false);
-            if (!_didFinalize) break;
-            else _numFinalized++;
-        }
-        return _numFinalized;
-    }
-
-    ////////////////////////////////////////////////////
-    ////// PRIVATE FUNCTIONS ///////////////////////////
-    ////////////////////////////////////////////////////
-
-    // Only called from roll()
-    // Gets or creates user (2 possible writes)
-    // Saves roll in 1 write.
-    function _createNewRoll(uint64 _bet, uint8 _number, uint72 _payout)
-        private
-        returns (uint32 _curId)
-    {
-        // get or create userId
-        uint32 _curUserId = vars.curUserId;
-        uint32 _userId = userIds[msg.sender];
-        if (_userId == 0) {
-            _curUserId++;
-            userIds[msg.sender] = _curUserId;
-            userAddresses[_curUserId] = msg.sender;
-            _userId = _curUserId;
-        }
-
-        // Increment vars together (1 update)
-        _curId = vars.curId + 1;
-        uint64 _totalWagered = vars.totalWageredGwei + _bet / 1e9;
-        vars.curUserId = _curUserId;
-        vars.totalWageredGwei = _totalWagered;
-        vars.curId = _curId;
-
-        _saveRoll(_curId, _userId, _bet, _number, _payout);
-    }
-    // Does 1 write.
-    function _saveRoll(uint32 _curId, uint32 _userId, uint64 _bet, uint8 _number, uint72 _payout)
-        private
-    {
-        Roll storage _r = rolls[_curId];
-        _r.id = _curId;
-        _r.userId = _userId;
-        _r.bet = _bet;
-        _r.number = _number;
-        _r.payout = _payout;
-        _r.block = uint32(block.number);
-        _r.result = 0;
-        _r.isPaid = false;
-    }
-    
-    // Finalizes a roll's results. Only callable once per roll.
-    //
-    //   On Win: stores the result, tries to pay the user.
-    //   On Loss: emits RollFinalized() event. changes no state.
-    //   Throws: if roll is invalid, or not yet resolvable
-    //   Returns:
-    //     - If the roll was finalized as a win or loss.
-    function _finalizeRoll(Roll storage _r)
-        private
-        returns (bool _didPayment)
-    {
-        // Should never try to finalize invalid rolls.
-        // Or rolls of the current block.
-        assert(_r.block > 0);
-        assert(_r.block != block.number);
-        // Already finalized. Return false.
-        if (_r.result != 0) return false;
-        
-        // Get the result, isWinner, and payout.
-        // Return false if !isWinner.
-        address _user = userAddresses[_r.userId];
-        uint8 _result = computeResult(_r.block, _r.id);
-        bool _isWinner = _result <= _r.number;
-        if (!_isWinner) {
-            _r.result = _result;
-            RollFinalized(now, _r.id, _user, _result, 0);
+        // Ensure one bet per block.
+        User memory _user = users[msg.sender];
+        if (_user.r_block == uint32(block.number)){
+            _errorAndRefund("Only one bet per block allowed.", msg.value, _number);
             return false;
         }
+        // Finalize last roll, if there is one.
+        Stats memory _stats = stats;
+        if (_user.r_block != 0) _finalizePreviousRoll(_user, _stats);
 
-        // Update stats. Calling this first saves gas.
-        vars.totalWonGwei += uint64(_r.payout / 1e9);
+        // Compute new stats data
+        _stats.numUsers = _user.id == 0 ? _stats.numUsers + 1 : _stats.numUsers;
+        _stats.numRolls = stats.numRolls + 1;
+        _stats.totalWagered = stats.totalWagered + uint96(msg.value);
+        _saveStats(_stats);
 
-        // Update roll result, try to payout with min gas.
-        _r.result = _result;
-        _attemptPayout(_r, false);
+        // Compute new user data
+        _user.id = _user.id == 0 ? _stats.numUsers : _user.id;
+        _user.r_id = _stats.numRolls;
+        _user.r_block = uint32(block.number);
+        _user.r_number = _number;
+        _user.r_payout = computePayout(msg.value, _number);
+        _saveUser(msg.sender, _user);
 
-        // emit event
-        RollFinalized(now, _r.id, _user, _result, _r.payout);
+        // Save user in one write.
+        RollWagered(now, _user.r_id, msg.sender, msg.value, _user.r_number, _user.r_payout);
         return true;
     }
 
-    // Finalizes 0 rolls, 1 winning roll, or 2 losing rolls.
-    function _finalizeSomeRolls()
-        private
+    // Finalizes the previous roll and pays out user if they won.
+    // Gas: 45k
+    //   21k: tx overhead
+    //    1k: SLOADs
+    //    2k: execution
+    //    8k: send winnings
+    //    5k: update user
+    //    5k: update stats
+    //    3k: RollFinalized event
+    function payoutPreviousRoll()
+        public
+        returns (bool _success)
     {
-        // Finalize the next in queue.
-        bool _didFinalize; bool _didPayment;
-        (_didFinalize, _didPayment) = _finalizeNext(false);
-
-        // If didn't finalize (eg, same block or empty queue)
-        //  or if it did finalize and roll won, then stop.
-        if (!_didFinalize || _didPayment) return;
-
-        // See if the next exists, and finalize if it's a loss.
-        _finalizeNext(true);
-    }
-
-    // Finalizes the next in queue, or returns (false, false)
-    // Note: If roll is already finalized, it will still return (true, ?)
-    function _finalizeNext(bool _onlyIfLoss)
-        private
-        returns (bool _didFinalize, bool _didPayment)
-    {
-        // Can't finalize a nonexistant roll.
-        if (vars.finalizeId > vars.curId) return;
-
-        // Get roll. Return if its of this block, or its a win (and _onlyIfLoss)
-        Roll storage _r = rolls[vars.finalizeId];
-        if (_r.block == block.number) return;
-        if (_onlyIfLoss && computeResult(_r.block, _r.id) <= _r.number) return;
-        
-        // Otherwise, finalize it, and Increment Id.
-        _didPayment = _finalizeRoll(_r);
-        vars.finalizeId++;
-
-        // Return values, in case somebody cares.
-        return (true, _didPayment);
-    }
-
-    // Pays the user the payout of the roll.
-    // If the roll is finalized, won, and not already paid.
-    function _attemptPayout(Roll storage _r, bool _useFullGas)
-        private
-        returns (bool _didPayment)
-    {
-        // Make sure roll is finalized, won, and not paid.
-        assert(_r.result!=0 && _r.result <= _r.number && !_r.isPaid);
-        
-        // Set .isPaid to true, pay user. Rollback on failure.
-        address _user = userAddresses[_r.userId];
-        uint _payout = _r.payout;
-        _r.isPaid = true;
-        _didPayment = _useFullGas
-            ? _user.call.value(_payout)()
-            : _user.send(_payout);
-        if (_didPayment) {
-            PayoutSuccess(now, _r.id, _user, _payout);
-        } else {
-            _r.isPaid = false;
-            PayoutFailure(now, _r.id, _user, _payout);
+        // Load last roll in one SLOAD.
+        User storage _user = users[msg.sender];
+        // Error if on same block.
+        if (_user.r_block == uint32(block.number)){
+            PayoutError(now, "Cannot payout roll on the same block");
+            return false;
         }
+        // Error if nothing to payout.
+        if (_user.r_block == 0){
+            PayoutError(now, "No roll to pay out.");
+            return false;
+        }
+
+        // Finalize previous roll (this may update stats)
+        Stats memory _stats = stats;
+        _finalizePreviousRoll(_user, _stats);
+
+        // Clear last roll, update stats
+        _user.r_id = 0;
+        _user.r_block = 0;
+        _user.r_number = 0;
+        _user.r_payout = 0;
+        stats.totalWon = _stats.totalWon;
+        return true;
     }
 
+
+    ////////////////////////////////////////////////////////
+    ////// PRIVATE FUNCTIONS ///////////////////////////////
+    ////////////////////////////////////////////////////////
+
+    // Save stats in one SSTORE. Ridiculous, but this is how to do it.
+    function _saveStats(Stats memory _stats)
+        private
+    {
+        uint32 _numUsers = _stats.numUsers;
+        uint32 _numRolls = _stats.numRolls;
+        uint96 _totalWagered = _stats.totalWagered;
+        uint96 _totalWon = _stats.totalWon;
+        stats.numUsers = _numUsers;
+        stats.numRolls = _numRolls;
+        stats.totalWagered = _totalWagered;
+        stats.totalWon = _totalWon;
+    }
+    
+    // Save user in one SSTORE. Ridiculous, but this is how to do it.
+    function _saveUser(address _addr, User memory _user)
+        private
+    {
+        uint32 _id = _user.id;
+        uint32 _r_id = _user.r_id;
+        uint32 _r_block = _user.r_block;
+        uint8 _r_number = _user.r_number;
+        uint72 _r_payout = _user.r_payout;
+        User storage user = users[_addr];
+        user.id = _id;
+        user.r_id = _r_id;
+        user.r_block = _r_block;
+        user.r_number = _r_number;
+        user.r_payout = _r_payout;
+    }
+
+    // Validates the bet, or refunds the user.
+    function _validateBetOrRefund(uint8 _number)
+        private
+        returns (bool _isValid)
+    {
+        Settings memory _settings = settings;
+        if (_number < _settings.minNumber) {
+            _errorAndRefund("Roll number too small.", msg.value, _number);
+            return false;
+        }
+        if (_number > _settings.maxNumber){
+            _errorAndRefund("Roll number too large.", msg.value, _number);
+            return false;
+        }
+        if (msg.value < _settings.minBet){
+            _errorAndRefund("Bet too small.", msg.value, _number);
+            return false;
+        }
+        if (msg.value > _settings.maxBet){
+            _errorAndRefund("Bet too large.", msg.value, _number);
+            return false;
+        }
+        if (msg.value > curMaxBet()){
+            _errorAndRefund("May be unable to payout on a win.", msg.value, _number);
+            return false;
+        }
+        return true;
+    }
+
+    // Finalizes the previous roll for the _user.
+    // There must be a previous roll, or this throws.
+    // Returns true, unless user wins and we couldn't pay.
+    function _finalizePreviousRoll(User memory _user, Stats memory _stats)
+        private
+    {
+        assert(_user.r_block != uint32(block.number));
+        assert(_user.r_block != 0);
+        
+        // compute result and isWinner
+        uint8 _result = computeResult(_user.r_block, _user.r_id);
+        bool _isWinner = _result <= _user.r_number;
+        if (_isWinner) {
+            require(msg.sender.call.value(_user.r_payout)());
+            _stats.totalWon += _user.r_payout;
+        }
+        // they won and we paid, or they lost. roll is finalized.
+        RollFinalized(now, _user.r_id, msg.sender, _result, _isWinner ? _user.r_payout : 0);
+    }
+
+    // Only called from above.
+    // Refunds user the full value, and logs an error
+    function _errorAndRefund(string _msg, uint _bet, uint8 _number)
+        private
+    {
+        require(msg.sender.call.value(msg.value)());
+        RollRefunded(now, msg.sender, _msg, _bet, _number);
+    }
 
 
     ///////////////////////////////////////////////////
@@ -452,38 +365,6 @@ contract InstaDice is
         );
     }
 
-    // Return the result, or compute it and return it.
-    // Note: providers may compute the result incorrectly
-    //       due to a delay in updating block.blockhash().
-    //       This will cause a result of 101.
-    function getRollResult(uint32 _id)
-        public
-        view
-        returns (uint8 _result)
-    {
-        require(_id <= vars.curId && _id > 0);
-        Roll storage _r = rolls[_id];
-        return _r.result == 0
-            ? computeResult(_r.block, _id)
-            : _r.result;
-    }
-
-    // Returns how much payout resulted from a roll
-    // Note: providers may compute the result incorrectly
-    //       due to a delay in updating block.blockhash().
-    //       This will cause a result of 0.
-    function getRollPayout(uint32 _id)
-        public
-        view
-        returns (uint _amount)
-    {
-        require(_id <= vars.curId && _id > 0);
-        Roll storage _r = rolls[_id];
-        return getRollResult(_id) <= _r.number
-            ? _r.payout
-            : 0;
-    }
-
     // Returns a number between 1 and 100 (inclusive)
     // If blockNumber is too far past, returns 101.
     function computeResult(uint32 _blockNumber, uint32 _id)
@@ -496,24 +377,18 @@ contract InstaDice is
         return uint8(uint(keccak256(_blockHash, _id)) % 100 + 1);
     }
 
-    // Expose all Vars /////////////////////////////////
-    function curId() public view returns (uint32) {
-        return vars.curId;
+    // Expose all Stats /////////////////////////////////
+    function numUsers() public view returns (uint32) {
+        return stats.numUsers;
     }
-    function curUserId() public view returns (uint32) {
-        return vars.curUserId;
-    }
-    function finalizeId() public view returns (uint32) {
-        return vars.finalizeId;
+    function numRolls() public view returns (uint32) {
+        return stats.numRolls;
     }
     function totalWagered() public view returns (uint) {
-        return uint(vars.totalWageredGwei) * 1e9;
+        return stats.totalWagered;
     }
     function totalWon() public view returns (uint) {
-        return uint(vars.totalWonGwei) * 1e9;
-    }
-    function getNumUnfinalized() public view returns (uint) {
-        return vars.curId - (vars.finalizeId-1);
+        return stats.totalWon;
     }
     //////////////////////////////////////////////////////
 

@@ -171,24 +171,18 @@ describe('Treasury', function(){
             });
 
             describe(".executeRequest()", function(){
-                it("Not callable from anon", function(){
-                    return createDefaultTxTester()
-                        .doTx([treasury, "executeRequest", request1Id, {from: anon}])
-                        .assertInvalidOpCode()
-                        .start();
-                });
                 it("Not callable on invalid id", function(){
                    return createDefaultTxTester()
-                        .doTx([treasury, "executeRequest", INVALID_ID, {from: admin}])
+                        .doTx([treasury, "executeRequest", INVALID_ID, {from: anon}])
                         .assertInvalidOpCode()
                         .start(); 
                 });
-                it(".executeRequest() works.", function(){
+                it(".executeRequest() works, callable by anyone", function(){
                     return assertExecutesRequest(request1Id, false, "Not enough capital.");
                 });
                 it("Not callable again", function(){
                     return createDefaultTxTester()
-                        .doTx([treasury, "executeRequest", request1Id, {from: admin}])
+                        .doTx([treasury, "executeRequest", request1Id, {from: anon}])
                         .assertInvalidOpCode()
                         .start();
                 });
@@ -569,7 +563,7 @@ describe('Treasury', function(){
         if (expSuccess === -1) {
             console.log("Note: Executing is expected to fail.");
             return createDefaultTxTester()
-                .doTx([treasury, "executeRequest", id, {from: admin}])
+                .doTx([treasury, "executeRequest", id, {from: anon}])
                 .assertInvalidOpCode()
                 .start();
         }
@@ -582,7 +576,7 @@ describe('Treasury', function(){
         const expNumCompleted = (await treasury.numCompletedRequests()).plus(1);
 
         return createDefaultTxTester()
-            .doTx([treasury, "executeRequest", id, {from: admin}])
+            .doTx([treasury, "executeRequest", id, {from: anon}])
             .silence(!!silence)
             .assertSuccess()
             .assertLog("RequestExecuted", {

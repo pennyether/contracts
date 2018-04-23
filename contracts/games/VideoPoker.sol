@@ -78,15 +78,12 @@ contract VideoPoker is
     event PayTableAdded(uint time, address admin, uint payTableId);
     event SettingsChanged(uint time, address admin);
     // Game Events
-    event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet, uint payTableId, uint uiid);
+    event BetSuccess(uint time, address indexed user, uint32 indexed id, uint bet, uint payTableId);
     event BetFailure(uint time, address indexed user, uint bet, string msg);
     event DrawSuccess(uint time, address indexed user, uint32 indexed id, uint32 iHand, uint8 draws, uint8 warnCode);
     event DrawFailure(uint time, address indexed user, uint32 indexed id, uint8 draws, string msg);
     event FinalizeSuccess(uint time, address indexed user, uint32 indexed id, uint32 dHand, uint8 handRank, uint payout, uint8 warnCode);
     event FinalizeFailure(uint time, address indexed user, uint32 indexed id, string msg);
-    // If _payout = true on finalization
-    event PayoutSuccess(uint time, address indexed user, uint32 indexed id, uint amount);
-    event PayoutFailure(uint time, address indexed user, uint32 indexed id, uint amount);
     // Credits
     event CreditsAdded(uint time, address indexed user, uint32 indexed id, uint amount);
     event CreditsUsed(uint time, address indexed user, uint32 indexed id, uint amount);
@@ -170,7 +167,7 @@ contract VideoPoker is
     //   -  3k: event
     //   -  2k: curMaxBet()
     //   -  2k: SLOAD, execution
-    function bet(uint _uiid)
+    function bet()
         public
         payable
     {
@@ -184,7 +181,7 @@ contract VideoPoker is
 
         // no uint64 overflow: _bet < maxBet < .625 ETH < 2e64
         uint32 _id = _createNewGame(uint64(_bet));
-        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId, _uiid);
+        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
     }
 
     // Allows a user to create a game from Credits.
@@ -197,7 +194,7 @@ contract VideoPoker is
     //   -  2k: 1 event: CreditsUsed
     //   -  5k: update credits[user]
     //   -  1k: SLOAD, execution
-    function betWithCredits(uint64 _bet, uint _uiid)
+    function betWithCredits(uint64 _bet)
         public
     {
         if (_bet > settings.maxBet)
@@ -212,17 +209,17 @@ contract VideoPoker is
         uint32 _id = _createNewGame(uint64(_bet));
         credits[msg.sender] -= _bet;
         CreditsUsed(now, msg.sender, _id, _bet);
-        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId, _uiid);
+        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
     }
 
-    function betFromGame(uint32 _id, bytes32 _hashCheck, uint _uiid)
+    function betFromGame(uint32 _id, bytes32 _hashCheck)
         public
     {
         bool _didFinalize = finalize(_id, _hashCheck);
         uint64 _bet = games[_id].bet;
         if (!_didFinalize)
             return _betFailure("Failed to finalize prior game.", _bet, false);
-        betWithCredits(_bet, _uiid);
+        betWithCredits(_bet);
     }
 
         // Logs an error, and optionally refunds user the _bet
@@ -348,8 +345,9 @@ contract VideoPoker is
         private
     {
         if (_amt == 0) return;
+        uint64 _incr = _gameId == 0 ? 0 : uint64(_amt / 1e9);
         uint88 _totalCredits = vars.totalCredits + uint88(_amt);
-        uint64 _totalWonGwei = vars.totalWonGwei + uint64(_amt / 1e9);
+        uint64 _totalWonGwei = vars.totalWonGwei + _incr;
         vars.totalCredits = _totalCredits;
         vars.totalWonGwei = _totalWonGwei;
         credits[_user] += _amt;
@@ -361,7 +359,7 @@ contract VideoPoker is
     function _uncreditUser(address _user, uint _amt)
         private
     {
-        if (_amt > credits[_user]) _amt = credits[_user];
+        if (_amt > credits[_user] || _amt == 0) _amt = credits[_user];
         if (_amt == 0) return;
         vars.totalCredits -= uint88(_amt);
         credits[_user] -= _amt;

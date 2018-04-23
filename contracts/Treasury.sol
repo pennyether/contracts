@@ -94,10 +94,9 @@ contract Requestable is
     }
 
     // Executes (or times out) a request if it is not already cancelled or executed.
-    // Note: This may revert if the executeFn() reverts. It'll timedout eventually.
+    // Note: This may revert if the executeFn() reverts. It'll time-out eventually.
     function executeRequest(uint32 _id)
         public
-        fromAdmin
     {
         // Require Request exists, is not cancelled, is not executed.
         // Also require is past WAITING_TIME since creation.

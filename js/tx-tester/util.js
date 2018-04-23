@@ -237,6 +237,34 @@ function createUtil(web3, assert){
 			return type === '[object Function]' || type === '[object AsyncFunction]'
 				? Promise.resolve(val())
 				: Promise.resolve(val);
+		},
+
+		// multiple transactions in ganache are buggy.
+		// this function ensures they occur in expected order, and fixes results.
+		fixTxArray: function(txs, txResArr) {
+			const tx1res = txResArr[0];
+            const block = web3.eth.getBlock(tx1res.receipt.blockNumber);
+            expBlock = block.blockNumber;
+            if (block.transactions.length != txs.length)
+                throw new Error(`Block has ${block.transactions.length} txs, expected ${txs.length}.`);
+            
+            // ensure transactions occurred in expected order.
+            txResArr.forEach((txRes, i) => {
+                const hash = txRes.tx;
+                if (block.transactions[i] != hash){
+                    console.log("block.transactions", block.transactions);
+                    console.log("txRes.txs", txResArr.map(txRes=>txRes.tx));
+                    throw new Error(`Incorrect order: tx[${i}] was not in block.transactions[${i}]`);
+                }
+                // fix logs bug (all logs included in all receipts/logs)
+                txRes.receipt.logs = txRes.receipt.logs.filter((l) => l.transactionHash == hash);
+                txRes.logs = txRes.logs.filter((l) => l.transactionHash == hash);
+            });
+            // fix ganache bug where .gasUsed includes previous tx's gasUsed
+            for (var i=txResArr.length-1; i>=0; i--){
+                if (i > 0) txResArr[i].receipt.gasUsed -= txResArr[i-1].receipt.gasUsed;
+            }
+            console.log("All txs executed on same block, in expected order.");
 		}
 	}
 	return _self;

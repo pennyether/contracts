@@ -336,7 +336,6 @@ describe('VideoPoker', function(){
             var expCurId = await vp.curId();
             const expGameId = expCurId.plus(1);
             const expPayTableId = await vp.curPayTableId();
-            const expUiId = Math.floor(Math.random()*1000000000);
 
             // Test bet size, record expected error message.
             var errMsg;
@@ -357,8 +356,7 @@ describe('VideoPoker', function(){
                     user: player,
                     id: expGameId,
                     bet: betSize,
-                    payTableId: expPayTableId,
-                    uiid: expUiId
+                    payTableId: expPayTableId
                 }]);
                 expGas = expGas.plus(27000);    // 1 write, 1 update, SLOADs
                 expCurId = expGameId;
@@ -385,7 +383,7 @@ describe('VideoPoker', function(){
             // do TX, and assert success and proper deltas and logs
             const txTester = createDefaultTxTester()
                 .startLedger([vp, player])
-                .doTx([vp, "bet", [expUiId], {from: player, value: betSize}])
+                .doTx([vp, "bet", [], {from: player, value: betSize}])
                 .stopLedger()
                 .assertSuccess();
 

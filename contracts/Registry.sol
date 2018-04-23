@@ -10,7 +10,7 @@ Registry allows a permanent owner to map names to addresses.
 Anyone can find a mapped address by calling .addressOf(),
 which throws if the name is not registered to an address.
 
-Registry uses a doubly linked list to maintain an interable
+Registry uses a doubly linked list to maintain an iterable
 list of name => address mappings. When a name is mapped to
 the address 0, it is removed from the list.
 
