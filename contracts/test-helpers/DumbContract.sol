@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 /*
   A simple Contract that is called by CustodialWallet tests.

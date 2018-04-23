@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.19;
 
 
 /*
@@ -9,14 +9,14 @@ pragma solidity ^0.4.0;
   Eg, this player cannot be refunded, and cannot be paid out on a win
     using the regular amount of gas.
 */
-interface _IEpbMonarchy {
+interface _IMmpMonarchy {
     function fee() public constant returns (uint _fee);
     function payWinner(uint _gasLimit) public returns (bool _success, uint _prizeSent);
 }
 contract MaliciousMonarchyPlayer {
     
     function doOverthrow(address addr) public {
-        _IEpbMonarchy game = _IEpbMonarchy(addr);
+        _IMmpMonarchy game = _IMmpMonarchy(addr);
         uint _fee = game.fee();
         require(game.call.value(_fee)());
     }
@@ -25,7 +25,7 @@ contract MaliciousMonarchyPlayer {
         public
         returns (bool _success, uint _prizeSent)
     {
-        _IEpbMonarchy game = _IEpbMonarchy(addr);
+        _IMmpMonarchy game = _IMmpMonarchy(addr);
         return game.payWinner(0); 
     }
 
