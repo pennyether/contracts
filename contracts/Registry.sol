@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /*****************************************************
 ************* PENNYETHER REGISTRY ********************
@@ -44,11 +44,11 @@ contract Registry {
     event Unregistered(uint time, bytes32 name);
 
     // Constructor sets the owner
-    function Registry(address _owner)
+    constructor(address _owner)
         public
     {
         owner = _owner;
-        Created(now);
+        emit Created(now);
     }
 
 
@@ -71,7 +71,7 @@ contract Registry {
         }
         // Update the address
         entry.addr = _addr;
-        Registered(now, _name, _addr);
+        emit Registered(now, _name, _addr);
     }
 
     function unregister(bytes32 _name)
@@ -86,7 +86,7 @@ contract Registry {
         entries[entry.prev].next = entry.next;
         entries[entry.next].prev = entry.prev;
         delete entries[_name];
-        Unregistered(now, _name);
+        emit Unregistered(now, _name);
     }
 
 

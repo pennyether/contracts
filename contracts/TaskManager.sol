@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./common/HasDailyLimit.sol";
 import "./common/Bankrollable.sol";
@@ -23,7 +23,7 @@ import "./roles/UsingMonarchyController.sol";
   redeployed.
 */
 interface _IBankrollable {
-    function sendProfits() public returns (uint _profits);
+    function sendProfits() external returns (uint _profits);
     function profits() public view returns (int _profits);
 }
 contract TaskManager is
@@ -63,14 +63,14 @@ contract TaskManager is
     event MonarchyGamesRefreshed(uint time, uint numEnded, uint feesCollected);
 
     // Construct sets the registry and instantiates inherited classes.
-    function TaskManager(address _registry)
+    constructor(address _registry)
         public
         HasDailyLimit(1 ether)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         UsingMonarchyController(_registry)
     {
-        Created(now);
+        emit Created(now);
     }
 
 
@@ -83,7 +83,7 @@ contract TaskManager is
         fromOwner
     {
         _setDailyLimit(_amount);
-        DailyLimitChanged(now, msg.sender, _amount);
+        emit DailyLimitChanged(now, msg.sender, _amount);
     }
 
 
@@ -97,7 +97,7 @@ contract TaskManager is
     {
         require(_bips <= 10);
         issueDividendRewardBips = _bips;
-        IssueDividendRewardChanged(now, msg.sender, _bips);
+        emit IssueDividendRewardChanged(now, msg.sender, _bips);
     }
 
     function setSendProfitsReward(uint _bips)
@@ -106,7 +106,7 @@ contract TaskManager is
     {
         require(_bips <= 100);
         sendProfitsRewardBips = _bips;
-        SendProfitsRewardChanged(now, msg.sender, _bips);
+        emit SendProfitsRewardChanged(now, msg.sender, _bips);
     }
 
     function setMonarchyRewards(uint _startReward, uint _endReward)
@@ -117,7 +117,7 @@ contract TaskManager is
         require(_endReward <= 1 ether);
         monarchyStartReward = _startReward;
         monarchyEndReward = _endReward;
-        MonarchyRewardsChanged(now, msg.sender, _startReward, _endReward);
+        emit MonarchyRewardsChanged(now, msg.sender, _startReward, _endReward);
     }
 
 
@@ -143,7 +143,7 @@ contract TaskManager is
             _taskError("No profits were sent.");
             return;
         } else {
-            IssueDividendSuccess(now, address(_tr), _profits);
+            emit IssueDividendSuccess(now, address(_tr), _profits);
         }
         // send reward
         _reward = (_profits * issueDividendRewardBips) / 10000;
@@ -181,7 +181,7 @@ contract TaskManager is
             return;
         } else {
             _profits = _newTrBalance - _oldTrBalance;
-            SendProfitsSuccess(now, _bankrollable, _profits);
+            emit SendProfitsSuccess(now, _bankrollable, _profits);
         }
         
         // Cap reward to current balance (or send will fail)
@@ -223,7 +223,7 @@ contract TaskManager is
             _taskError("MonarchyConroller.startDefinedGame() failed.");
             return;
         } else {
-            MonarchyGameStarted(now, _game, _mc.getInitialPrize(_index));   
+            emit MonarchyGameStarted(now, _game, _mc.getInitialPrize(_index));   
         }
 
         // Reward
@@ -250,7 +250,7 @@ contract TaskManager is
         uint _numGamesEnded;
         uint _feesCollected;
         (_numGamesEnded, _feesCollected) = getMonarchyController().refreshGames();
-        MonarchyGamesRefreshed(now, _numGamesEnded, _feesCollected);
+        emit MonarchyGamesRefreshed(now, _numGamesEnded, _feesCollected);
 
         if (_numGamesEnded == 0) {
             _taskError("No games ended.");
@@ -277,7 +277,7 @@ contract TaskManager is
 
     // Called when task is unable to execute.
     function _taskError(string _msg) private {
-        TaskError(now, msg.sender, _msg);
+        emit TaskError(now, msg.sender, _msg);
     }
 
     // Sends a capped amount of _reward to the msg.sender, and emits proper event.
@@ -285,7 +285,7 @@ contract TaskManager is
         // Limit the reward to balance or dailyLimitRemaining
         uint _amount = _cappedReward(_reward);
         if (_reward > 0 && _amount == 0) {
-            RewardFailure(now, msg.sender, _amount, "Not enough funds, or daily limit reached.");
+            emit RewardFailure(now, msg.sender, _amount, "Not enough funds, or daily limit reached.");
             return;
         }
 
@@ -293,15 +293,15 @@ contract TaskManager is
         if (msg.sender.call.value(_amount)()) {
             _useFromDailyLimit(_amount);
             totalRewarded += _amount;
-            RewardSuccess(now, msg.sender, _amount);
+            emit RewardSuccess(now, msg.sender, _amount);
         } else {
-            RewardFailure(now, msg.sender, _amount, "Reward rejected by recipient (out of gas, or revert).");
+            emit RewardFailure(now, msg.sender, _amount, "Reward rejected by recipient (out of gas, or revert).");
         }
     }
 
     // This caps the reward amount to the minimum of (reward, balance, dailyLimitRemaining)
     function _cappedReward(uint _reward) private view returns (uint) {
-        uint _balance = this.balance;
+        uint _balance = address(this).balance;
         uint _remaining = getDailyLimitRemaining();
         if (_reward > _balance) _reward = _balance;
         if (_reward > _remaining) _reward = _remaining;

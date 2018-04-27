@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./Ledger.sol";
 import "./AddressSet.sol";
@@ -52,7 +52,7 @@ contract Bankrollable is
     event RemovedFromWhitelist(uint time, address indexed addr, address indexed wlOwner);
 
     // Constructor creates the ledger and whitelist, with self as owner.
-    function Bankrollable(address _registry)
+    constructor(address _registry)
         UsingTreasury(_registry)
         public
     {
@@ -70,7 +70,7 @@ contract Bankrollable is
         public
     {
         bool _didAdd = whitelist.add(_addr);
-        if (_didAdd) AddedToWhitelist(now, _addr, msg.sender);
+        if (_didAdd) emit AddedToWhitelist(now, _addr, msg.sender);
     }
 
     function removeFromWhitelist(address _addr)
@@ -78,7 +78,7 @@ contract Bankrollable is
         public
     {
         bool _didRemove = whitelist.remove(_addr);
-        if (_didRemove) RemovedFromWhitelist(now, _addr, msg.sender);
+        if (_didRemove) emit RemovedFromWhitelist(now, _addr, msg.sender);
     }
 
     /*****************************************************/
@@ -96,7 +96,7 @@ contract Bankrollable is
         require(whitelist.size()==0 || whitelist.has(msg.sender));
         ledger.add(msg.sender, msg.value);
         bankroll = ledger.total();
-        BankrollAdded(now, msg.sender, msg.value, bankroll);
+        emit BankrollAdded(now, msg.sender, msg.value, bankroll);
     }
 
     // Removes up to _amount from Ledger, and sends it to msg.sender._callbackFn
@@ -107,7 +107,8 @@ contract Bankrollable is
         // cap amount at the balance minus collateral, or nothing at all.
         address _bankroller = msg.sender;
         uint _collateral = getCollateral();
-        uint _available = this.balance > _collateral ? this.balance - _collateral : 0;
+        uint _balance = address(this).balance;
+        uint _available = _balance > _collateral ? _balance - _collateral : 0;
         if (_amount > _available) _amount = _available;
 
         // Try to remove _amount from ledger, get actual _amount removed.
@@ -117,7 +118,7 @@ contract Bankrollable is
 
         bytes4 _sig = bytes4(keccak256(_callbackFn));
         require(_bankroller.call.value(_amount)(_sig));
-        BankrollRemoved(now, _bankroller, _amount, bankroll);
+        emit BankrollRemoved(now, _bankroller, _amount, bankroll);
         return _amount;
     }
 
@@ -133,7 +134,7 @@ contract Bankrollable is
         // Send profits to Treasury
         address _tr = getTreasury();
         require(_tr.call.value(_profits)());
-        ProfitsSent(now, _tr, _profits);
+        emit ProfitsSent(now, _tr, _profits);
     }
 
 
@@ -159,7 +160,7 @@ contract Bankrollable is
         view
         returns (int _profits)
     {
-        int _balance = int(this.balance);
+        int _balance = int(address(this).balance);
         int _threshold = int(bankroll + getCollateral());
         return _balance - _threshold;
     }
@@ -182,7 +183,7 @@ contract Bankrollable is
         view
         returns (uint _amount)
     {
-        uint _balance = this.balance;
+        uint _balance = address(this).balance;
         uint _bankroll = bankroll;
         uint _collat = getCollateral();
         // Balance is below collateral!
@@ -201,12 +202,11 @@ contract Bankrollable is
         return ledger.balanceOf(_addr);
     }
 
-    // Not available until Solidity 0.4.22
-    // function bankrollerTable()
-    //     public
-    //     view
-    //     returns (address[], uint[])
-    // {
-    //     return ledger.balances();
-    // }
+    function bankrollerTable()
+        public
+        view
+        returns (address[], uint[])
+    {
+        return ledger.balances();
+    }
 }

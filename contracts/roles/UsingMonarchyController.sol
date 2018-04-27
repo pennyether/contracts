@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./UsingRegistry.sol";
 
@@ -11,19 +11,19 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getMonarchyController()
 interface IMonarchyController {
-    function refreshGames() public returns (uint _numGamesEnded, uint _feesSent);
-    function startDefinedGame(uint _index) payable public returns (address _game);
+    function refreshGames() external returns (uint _numGamesEnded, uint _feesSent);
+    function startDefinedGame(uint _index) external payable returns (address _game);
     function getFirstStartableIndex() public view returns (uint _index);
-    function getNumEndableGames() public constant returns (uint _count);
-    function getAvailableFees() public constant returns (uint _feesAvailable);
-    function getInitialPrize(uint _index) public constant returns (uint);
-    function getIsStartable(uint _index) public constant returns (bool);
+    function getNumEndableGames() public view returns (uint _count);
+    function getAvailableFees() public view returns (uint _feesAvailable);
+    function getInitialPrize(uint _index) public view returns (uint);
+    function getIsStartable(uint _index) public view returns (bool);
 }
 
 contract UsingMonarchyController is
     UsingRegistry
 {
-    function UsingMonarchyController(address _registry)
+    constructor(address _registry)
         UsingRegistry(_registry)
         public
     {}
@@ -35,7 +35,7 @@ contract UsingMonarchyController is
 
     function getMonarchyController()
         public
-        constant
+        view
         returns (IMonarchyController)
     {
         return IMonarchyController(addressOf("MONARCHY_CONTROLLER"));

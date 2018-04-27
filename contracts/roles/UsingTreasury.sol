@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./UsingRegistry.sol";
 
@@ -11,14 +11,14 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getTreasury()
 interface ITreasury {
+    function issueDividend() external returns (uint _profits);
     function profits() public view returns (uint _profits);
-    function issueDividend() public returns (uint _profits);
 }
 
 contract UsingTreasury is
     UsingRegistry
 {
-    function UsingTreasury(address _registry)
+    constructor(address _registry)
         UsingRegistry(_registry)
         public
     {}
@@ -30,7 +30,7 @@ contract UsingTreasury is
     
     function getTreasury()
         public
-        constant
+        view
         returns (ITreasury)
     {
         return ITreasury(addressOf("TREASURY"));

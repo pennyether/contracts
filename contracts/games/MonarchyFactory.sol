@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 import "./MonarchyGame.sol";
 
 import "../roles/UsingMonarchyController.sol";
@@ -28,11 +28,14 @@ contract MonarchyFactory is
         uint reignBlocks,
         uint initialBlocks
     );
+    event Created(uint time);
 
-    function MonarchyFactory(address _registry)
+    constructor(address _registry)
         UsingMonarchyController(_registry)
         public
-    {}
+    {
+        emit Created(now);
+    }
 
     // create an game, event, and return.
     function createGame(
@@ -61,7 +64,7 @@ contract MonarchyFactory is
         });
         lastCreatedGame = _game;
 
-        GameCreated({
+        emit GameCreated({
             time: now,
             addr: _game,
             collector: _collector,

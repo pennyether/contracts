@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "../common/Bankrollable.sol";
 
@@ -11,7 +11,7 @@ contract TestBankrollable is Bankrollable {
     address public whitelistOwner;
     uint private collateral;
 
-    function TestBankrollable(address _registry)
+    constructor(address _registry)
         Bankrollable(_registry)
         public
     { }

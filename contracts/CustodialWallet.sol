@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /*********************************************************
 ***************** Custodial Wallet ***********************
@@ -44,13 +44,13 @@ contract CustodialWallet {
     event SupervisorChanged(uint time, address indexed prevAddr, address indexed newAddr);
     event OwnerChanged(uint time, address indexed prevAddr, address indexed newAddr);
     
-    function CustodialWallet(address _custodian, address _supervisor, address _owner)
+    constructor(address _custodian, address _supervisor, address _owner)
         public
     {
         _setCustodian(_custodian);
         _setSupervisor(_supervisor);
         _setOwner(_owner);
-        Created(now);
+        emit Created(now);
     }
     
     // Does a call on behalf of this wallet.
@@ -62,10 +62,10 @@ contract CustodialWallet {
         returns (bool _success)
     {
         if (_to.call.value(msg.value)(_data)){
-            CallSuccess(now, _to, _msg);
+            emit CallSuccess(now, _to, _msg);
             return true;
         } else {
-            CallFailure(now, _to, _msg);
+            emit CallFailure(now, _to, _msg);
             return false;
         }
     }
@@ -80,12 +80,12 @@ contract CustodialWallet {
         _setSupervisor(_newSupervisor);
         require(_recipient != 0);
 
-        uint _amt = this.balance;
-        if (_recipient.call.value(this.balance)()){
-            CollectSuccess(now, _recipient, _amt);
+        uint _amt = address(this).balance;
+        if (_recipient.call.value(_amt)()){
+            emit CollectSuccess(now, _recipient, _amt);
             return true;
         } else {
-            CollectFailure(now, _recipient, _amt);
+            emit CollectFailure(now, _recipient, _amt);
             return false;
         }
     }
@@ -117,7 +117,7 @@ contract CustodialWallet {
         private
     {
         require(_newCustodian > 0);
-        CustodianChanged(now, custodian, _newCustodian);
+        emit CustodianChanged(now, custodian, _newCustodian);
         custodian = _newCustodian;
     }
 
@@ -125,7 +125,7 @@ contract CustodialWallet {
         private
     {
         require(_newSupervisor > 0);
-        SupervisorChanged(now, supervisor, _newSupervisor);
+        emit SupervisorChanged(now, supervisor, _newSupervisor);
         supervisor = _newSupervisor;
     }
 
@@ -133,7 +133,7 @@ contract CustodialWallet {
         private
     {
         require(_newOwner > 0);
-        OwnerChanged(now, owner, _newOwner);
+        emit OwnerChanged(now, owner, _newOwner);
         owner = _newOwner;
     }
 

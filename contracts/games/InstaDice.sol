@@ -76,7 +76,7 @@ contract InstaDice is
     event RollFinalized(uint time, uint32 indexed id, address indexed user, uint8 result, uint payout);
     event PayoutError(uint time, string msg);
 
-    function InstaDice(address _registry)
+    constructor(address _registry)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         public
@@ -87,7 +87,7 @@ contract InstaDice is
         settings.minNumber = 5;
         settings.maxNumber = 98;
         settings.feeBips = 100;
-        Created(now);
+        emit Created(now);
     }
 
 
@@ -116,7 +116,7 @@ contract InstaDice is
         settings.minNumber = _minNumber;
         settings.maxNumber = _maxNumber;
         settings.feeBips = _feeBips;
-        SettingsChanged(now, msg.sender);
+        emit SettingsChanged(now, msg.sender);
     }
     
 
@@ -174,7 +174,7 @@ contract InstaDice is
         users[msg.sender] = _user;
 
         // Save user in one write.
-        RollWagered(now, _user.r_id, msg.sender, msg.value, _user.r_number, _user.r_payout);
+        emit RollWagered(now, _user.r_id, msg.sender, msg.value, _user.r_number, _user.r_payout);
         return true;
     }
 
@@ -195,12 +195,12 @@ contract InstaDice is
         User storage _user = users[msg.sender];
         // Error if on same block.
         if (_user.r_block == uint32(block.number)){
-            PayoutError(now, "Cannot payout roll on the same block");
+            emit PayoutError(now, "Cannot payout roll on the same block");
             return false;
         }
         // Error if nothing to payout.
         if (_user.r_block == 0){
-            PayoutError(now, "No roll to pay out.");
+            emit PayoutError(now, "No roll to pay out.");
             return false;
         }
 
@@ -268,7 +268,7 @@ contract InstaDice is
             _stats.totalWon += _user.r_payout;
         }
         // they won and we paid, or they lost. roll is finalized.
-        RollFinalized(now, _user.r_id, msg.sender, _result, _isWinner ? _user.r_payout : 0);
+        emit RollFinalized(now, _user.r_id, msg.sender, _result, _isWinner ? _user.r_payout : 0);
     }
 
     // Only called from above.
@@ -277,7 +277,7 @@ contract InstaDice is
         private
     {
         require(msg.sender.call.value(msg.value)());
-        RollRefunded(now, msg.sender, _msg, _bet, _number);
+        emit RollRefunded(now, msg.sender, _msg, _bet, _number);
     }
 
 
@@ -341,7 +341,7 @@ contract InstaDice is
         view
         returns (uint8 _result)
     {
-        bytes32 _blockHash = block.blockhash(_blockNumber);
+        bytes32 _blockHash = blockhash(_blockNumber);
         if (_blockHash == 0) { return 101; }
         return uint8(uint(keccak256(_blockHash, _id)) % 100 + 1);
     }

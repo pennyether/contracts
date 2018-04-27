@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /************************************************************************
 *********************** COMPTROLLER *************************************
@@ -94,7 +94,7 @@ CONCLUSION
 // This is the interface to the Treasury.
 interface _ICompTreasury {
     // after CrowdSale, will add funds to bankroll.
-    function addCapital() public payable;
+    function addCapital() external payable;
     // used to determine if Treasury wants to raise capital.
     function capitalNeeded() public view returns (uint);
 }
@@ -133,7 +133,7 @@ contract Comptroller {
     // If user sends too much, or if .refund() called
     event UserRefunded(uint time, address indexed account, uint refund);
 
-    function Comptroller(address _wallet, address _treasury)
+    constructor(address _wallet, address _treasury)
         public
     {
         wallet = _wallet;
@@ -144,7 +144,7 @@ contract Comptroller {
         // Ensure it is not transferrable, since we'll burn it after CrowdSale.
         token.mint(wallet, 1);
         token.freeze(true);
-        Created(now, wallet, treasury, token, locker);
+        emit Created(now, wallet, treasury, token, locker);
     }
 
 
@@ -168,7 +168,7 @@ contract Comptroller {
         hardCap = _hardCap;
         bonusCap = _bonusCap;
         capitalPctBips = _capitalPctBips;
-        SaleInitalized(now);
+        emit SaleInitalized(now);
     }
 
 
@@ -209,7 +209,7 @@ contract Comptroller {
         // Mark sale as started if haven't done so already.
         if (!wasSaleStarted) {
             wasSaleStarted = true;
-            SaleStarted(now);
+            emit SaleStarted(now);
         }
 
         // Only allow up to (hardCap - totalRaised) to be raised.
@@ -221,7 +221,7 @@ contract Comptroller {
         uint _numTokens = getTokensFromEth(_amtToFund);
         token.mint(msg.sender, _numTokens);
         totalRaised += _amtToFund;
-        BuyTokensSuccess(now, msg.sender, _amtToFund, _numTokens);
+        emit BuyTokensSuccess(now, msg.sender, _amtToFund, _numTokens);
 
         // Increment the amount they funded, if softCap not met.
         if (totalRaised < softCap) {
@@ -232,7 +232,7 @@ contract Comptroller {
         uint _refund = msg.value > _amtToFund ? msg.value - _amtToFund : 0;
         if (_refund > 0){
             require(msg.sender.call.value(_refund)());
-            UserRefunded(now, msg.sender, _refund);
+            emit UserRefunded(now, msg.sender, _refund);
         }
     }
         
@@ -266,7 +266,7 @@ contract Comptroller {
         // Softcap not met. Mint tokens so wallet owns ~100%.
         if (!wasSoftCapMet) {
             token.mint(wallet, 1e30);
-            SaleFailed(now);
+            emit SaleFailed(now);
             return;
         }
 
@@ -281,13 +281,13 @@ contract Comptroller {
 
         // Send up to `_capitalAmt` ETH to treasury as capital
         uint _capitalAmt = (totalRaised * capitalPctBips) / 10000;
-        if (this.balance < _capitalAmt) _capitalAmt = this.balance;
+        if (address(this).balance < _capitalAmt) _capitalAmt = address(this).balance;
         treasury.addCapital.value(_capitalAmt)();
         
         // Send remaining balance to wallet
-        wallet.call.value(this.balance)();
+        if (wallet.call.value(address(this).balance)()) {}
         // Emit event once and forever
-        SaleSuccessful(now);
+        emit SaleSuccessful(now);
     }
 
 
@@ -306,7 +306,7 @@ contract Comptroller {
         uint _amt = amtFunded[msg.sender];
         amtFunded[msg.sender] = 0;
         require(msg.sender.call.value(_amt)());
-        UserRefunded(now, msg.sender, _amt);
+        emit UserRefunded(now, msg.sender, _amt);
     }
 
     // Callable any time Treasury.capitalNeeded() > 0.
@@ -339,13 +339,13 @@ contract Comptroller {
         totalRaised += _amount;
         token.mint(msg.sender, _amount);
         treasury.addCapital.value(_amount)();
-        BuyTokensSuccess(now, msg.sender, _amount, _amount);
+        emit BuyTokensSuccess(now, msg.sender, _amount, _amount);
 
         // Refund excess
         uint _refund = msg.value > _amount ? msg.value - _amount : 0;
         if (_refund > 0) {
             require(msg.sender.call.value(_refund)());
-            UserRefunded(now, msg.sender, _refund);
+            emit UserRefunded(now, msg.sender, _refund);
         }
     }
 
@@ -360,7 +360,7 @@ contract Comptroller {
         private
     {
         require(msg.sender.call.value(msg.value)());
-        BuyTokensFailure(now, msg.sender, _reason);
+        emit BuyTokensFailure(now, msg.sender, _reason);
     }
 
 

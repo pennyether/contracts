@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "../common/HasDailyLimit.sol";
 import "../common/Bankrollable.sol";
@@ -73,14 +73,14 @@ contract MonarchyController is
     event FeesCollected(uint time, uint amount);
 
 
-    function MonarchyController(address _registry) 
+    constructor(address _registry) 
         HasDailyLimit(10 ether)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         UsingMonarchyFactory(_registry)
         public
     {
-        Created(now);
+        emit Created(now);
     }
 
     /*************************************************************/
@@ -92,7 +92,7 @@ contract MonarchyController is
         fromOwner
     {
         _setDailyLimit(_amount);
-        DailyLimitChanged(now, msg.sender, _amount);
+        emit DailyLimitChanged(now, msg.sender, _amount);
     }
 
 
@@ -115,7 +115,7 @@ contract MonarchyController is
         returns (bool _success)
     {
         if (_index-1 > numDefinedGames || _index > 20) {
-            Error(now, "Index out of bounds.");
+            emit Error(now, "Index out of bounds.");
             return;
         }
 
@@ -126,7 +126,7 @@ contract MonarchyController is
         definedGames[_index].prizeIncr = _prizeIncr;
         definedGames[_index].reignBlocks = _reignBlocks;
         definedGames[_index].initialBlocks = _initialBlocks;
-        DefinedGameEdited(now, _index);
+        emit DefinedGameEdited(now, _index);
         return true;
     }
 
@@ -136,11 +136,11 @@ contract MonarchyController is
         returns (bool _success)
     {
         if (_index-1 >= numDefinedGames) {
-            Error(now, "Index out of bounds.");
+            emit Error(now, "Index out of bounds.");
             return;
         }
         definedGames[_index].isEnabled = _bool;
-        DefinedGameEnabled(now, _index, _bool);
+        emit DefinedGameEnabled(now, _index, _bool);
         return true;
     }
 
@@ -179,7 +179,7 @@ contract MonarchyController is
             _error("Game is already started.");
             return;
         }
-        if (this.balance < dGame.initialPrize) {
+        if (address(this).balance < dGame.initialPrize) {
             _error("Not enough funds to start this game.");
             return;
         }
@@ -196,7 +196,7 @@ contract MonarchyController is
         }
 
         // Try to create game via factory.
-        bool _success = _mf.call.value(dGame.initialPrize)(
+        bool _success = address(_mf).call.value(dGame.initialPrize)(
             bytes4(keccak256("createGame(uint256,uint256,int256,uint256,uint256)")),
             dGame.initialPrize,
             dGame.fee,
@@ -205,7 +205,7 @@ contract MonarchyController is
             dGame.initialBlocks
         );
         if (!_success) {
-            DefinedGameFailedCreation(now, _index);
+            emit DefinedGameFailedCreation(now, _index);
             _error("MonarchyFactory could not create game (invalid params?)");
             return;
         }
@@ -214,14 +214,14 @@ contract MonarchyController is
         _useFromDailyLimit(dGame.initialPrize);
         _game = _mf.lastCreatedGame();
         definedGames[_index].game = IMonarchyGame(_game);
-        GameStarted(now, _index, _game, dGame.initialPrize);
+        emit GameStarted(now, _index, _game, dGame.initialPrize);
         return _game;
     }
         // Emits an error with a given message
         function _error(string _msg)
             private
         {
-            Error(now, _msg);
+            emit Error(now, _msg);
         }
 
     function startDefinedGameManually(uint _index)
@@ -274,10 +274,10 @@ contract MonarchyController is
                 endedGames.push(_game);
                 _numGamesEnded++;
 
-                GameEnded(now, _i, address(_game), _game.monarch());
+                emit GameEnded(now, _i, address(_game), _game.monarch());
             }
         }
-        if (_feesCollected > 0) FeesCollected(now, _feesCollected);
+        if (_feesCollected > 0) emit FeesCollected(now, _feesCollected);
         return (_numGamesEnded, _feesCollected);
     }
 
@@ -395,7 +395,7 @@ contract MonarchyController is
         if (_index >= numDefinedGames) return;
         if (dGame.isEnabled == false) return;
         if (dGame.game != IMonarchyGame(0)) return;
-        if (dGame.initialPrize > this.balance) return;
+        if (dGame.initialPrize > address(this).balance) return;
         if (dGame.initialPrize > getDailyLimitRemaining()) return;
         return true;
     }

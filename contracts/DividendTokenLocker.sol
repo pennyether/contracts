@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /*********************************************************
 *************** DIVIDEND TOKEN LOCKER ********************
@@ -39,13 +39,13 @@ contract DividendTokenLocker {
     event Collected(uint time, address recipient, uint amount);
     
     // Initialize the comptroller, token, and owner addresses.
-    function DividendTokenLocker(address _token, address _owner)
+    constructor(address _token, address _owner)
         public
     {
         comptroller = msg.sender;
         token = IDividendToken(_token);
         owner = _owner;
-        Created(now, comptroller, token, owner);
+        emit Created(now, comptroller, token, owner);
     }
 
     // Allow this contract to get sent Ether (eg, dividendsOwed)
@@ -66,7 +66,7 @@ contract DividendTokenLocker {
         vestingAmt = _numTokens;
         vestingStartDay = _today();
         vestingDays = _vestingDays;
-        VestingStarted(now, _numTokens, _vestingDays);
+        emit VestingStarted(now, _numTokens, _vestingDays);
     }
 
 
@@ -82,11 +82,11 @@ contract DividendTokenLocker {
         require(msg.sender == owner);
         // Collect dividends, and get new balance.
         token.collectOwedDividends();
-        uint _amount = this.balance;
+        uint _amount = address(this).balance;
 
         // Send amount (if any), emit event.
         if (_amount > 0) require(owner.call.value(_amount)());
-        Collected(now, owner, _amount);
+        emit Collected(now, owner, _amount);
     }
 
     // Allows the owner to transfer tokens, such that the
@@ -102,7 +102,7 @@ contract DividendTokenLocker {
         if (_numTokens > 0) {
             token.transfer(_to, _numTokens);
         }
-        Transferred(now, _to, _numTokens);
+        emit Transferred(now, _to, _numTokens);
     }
 
 

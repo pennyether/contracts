@@ -35,9 +35,11 @@ function execute(command){
 function executeAndSave(filepath, resultfilepath) {
 	const filename = path.relative(rootDir, filepath);
 	const titleStr = `Test results for: ${filename}`;
+	var startTime = +new Date();
 	return execute(`${testScript} ${filepath}`).then((res)=>{
 		const htmlStr = (new Converter({fg: "#000"})).toHtml(res);
 		saveTestResult(titleStr, htmlStr, resultfilepath);
+		return (+new Date()) - startTime;
 	}).catch((e)=>{
 		saveTestResult(titleStr, e.toString(), resultfilepath);
 	});
@@ -66,6 +68,9 @@ function saveTestResult(titleStr, htmlStr, filepath) {
 </html>
 `;
 	console.log(`  * Saving result to ${filepath}...`);
+
+	const dir = path.dirname(filepath);
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 	fs.writeFileSync(filepath, html);
 	return filepath;
 }
@@ -76,40 +81,55 @@ function saveAllTests() {
 		fs.mkdirSync(outputDir)
 	}
 
-	const links = [];
 	const testFiles = [
-		"CustodialWallet.test.js",
-		"DividendToken.test.js",
-		"DividendTokenLocker.test.js",
-		"Treasury.test.js",
-		"Comptroller.test.js",
-		"Registry.test.js",
-		"TaskManager.test.js",
-		"games/InstaDice.test.js",
-		"games/VideoPoker.test.js",
-		"games/VideoPokerUtil.test.js",
-		"games/MonarchyGame.test.js",
-		"games/MonarchyFactory.test.js",
-		"games/MonarchyController.js",
-		"common/AddressSet.test.js",
-		"common/Bankrollable.test.js",
-		"common/Ledger.test.js"
+		// "CustodialWallet.test.js",
+		// "DividendToken.test.js",
+		// "DividendTokenLocker.test.js",
+		// "Treasury.test.js",
+		// "Comptroller.test.js",
+		// "Registry.test.js",
+		// "TaskManager.test.js",
+		// "games/InstaDice.test.js",
+		// "games/VideoPoker.test.js",
+		// "games/VideoPokerUtils.test.js",
+		// "games/MonarchyGame.test.js",
+		// "games/MonarchyFactory.test.js",
+		// "games/MonarchyController.test.js",
+		// "common/AddressSet.test.js",
+		// "common/Bankrollable.test.js",
+		// "common/Ledger.test.js"
 	]
 	var p = Promise.resolve();
 	testFiles.forEach(async function(testfile){
 		const testfilepath = path.join(testsDir, testfile);
-		const filename = path.basename(testfile) + ".html";
+		const filename = `${testfile}.html`;
 		const resultfilepath = path.join(outputDir, filename);
 		p = p.then(()=>{
-				console.log(`=== ${testfilepath} ===`);
-				executeAndSave(testfilepath, resultfilepath)
-			}).then(()=>{
-				console.log('  * Done');
-				links.push(`<li><a href="./${filename}">${filename}</a></li>`);	
-			});
+			console.log(`=== ${testfilepath} ===`);
+			return executeAndSave(testfilepath, resultfilepath);
+		}).then((t)=>{
+			console.log(`  * Done in ${t/1000}s`);
+			console.log('');	
+		});
 	});
 
 	p.then(()=>{
+		const getAllFiles = dir =>
+			fs.readdirSync(dir).reduce((files, file) => {
+				const name = path.join(dir, file);
+				const isDirectory = fs.statSync(name).isDirectory();
+				return isDirectory ? [...files, ...getAllFiles(name)] : [...files, name];
+			}, []);
+
+		const links = [];
+		getAllFiles(outputDir).forEach(file => {
+			if (file.indexOf("test.js")===-1) return;
+			const href = path.relative(outputDir, file);
+			const contract = href.replace(".test.js.html", ".sol");
+			links.push(`<li><a href="./${href}">${contract}</a></li>`);
+		});
+
+		// todo: just create list based on existance of file
 		console.log("Saving index.html...");
 		const html = `
 			<html>

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /**
     This is a simple class that maintains a doubly linked list of
@@ -34,7 +34,7 @@ contract Ledger {
     modifier fromOwner() { require(msg.sender==owner); _; }
 
     // Constructor sets the owner
-    function Ledger(address _owner)
+    constructor(address _owner)
         public
     {
         owner = _owner;

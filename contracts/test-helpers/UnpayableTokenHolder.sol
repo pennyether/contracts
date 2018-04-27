@@ -1,7 +1,7 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 interface _IUthToken {
-    function collectDividends() public;
+    function collectDividends() external;
 }
 
 /*
@@ -17,7 +17,7 @@ contract UnpayableTokenHolder {
     }
 
     function tokenFallback(address sender, uint amt, bytes data) public returns (bool _success) {
-        TokenFallback(msg.sender, sender, amt, data);
+        emit TokenFallback(msg.sender, sender, amt, data);
         return true;
     }
 

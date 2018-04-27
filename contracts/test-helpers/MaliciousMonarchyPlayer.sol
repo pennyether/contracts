@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 
 /*
@@ -10,15 +10,15 @@ pragma solidity ^0.4.19;
     using the regular amount of gas.
 */
 interface _IMmpMonarchy {
-    function fee() public constant returns (uint _fee);
-    function payWinner(uint _gasLimit) public returns (bool _success, uint _prizeSent);
+    function payWinner(uint _gasLimit) external returns (bool _success, uint _prizeSent);
+    function fee() public view returns (uint _fee);
 }
 contract MaliciousMonarchyPlayer {
     
     function doOverthrow(address addr) public {
         _IMmpMonarchy game = _IMmpMonarchy(addr);
         uint _fee = game.fee();
-        require(game.call.value(_fee)());
+        require(address(game).call.value(_fee)());
     }
 
     function doRedemption(address addr)

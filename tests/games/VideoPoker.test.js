@@ -383,7 +383,7 @@ describe('VideoPoker', function(){
             // do TX, and assert success and proper deltas and logs
             const txTester = createDefaultTxTester()
                 .startLedger([vp, player])
-                .doTx([vp, "bet", [], {from: player, value: betSize}])
+                .doTx([vp, "bet", {from: player, value: betSize}])
                 .stopLedger()
                 .assertSuccess();
 

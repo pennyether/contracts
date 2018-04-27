@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 
 
@@ -19,12 +19,12 @@ contract ERC20 {
     event Approval(address indexed owner, address indexed spender, uint amount);
     event AllowanceUsed(address indexed owner, address indexed spender, uint amount);
 
-    function ERC20(string _name, string _symbol)
+    constructor(string _name, string _symbol)
         public
     {
         name = _name;
         symbol = _symbol;
-        Created(now);
+        emit Created(now);
     }
 
     function transfer(address _to, uint _value)
@@ -39,7 +39,7 @@ contract ERC20 {
         returns (bool success)
     {
         allowance[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
@@ -52,7 +52,7 @@ contract ERC20 {
         address _spender = msg.sender;
         require(allowance[_from][_spender] >= _value);
         allowance[_from][_spender] -= _value;
-        AllowanceUsed(_from, _spender, _value);
+        emit AllowanceUsed(_from, _spender, _value);
         return _transfer(_from, _to, _value);
     }
 
@@ -66,18 +66,18 @@ contract ERC20 {
         require(balanceOf[_to] + _value > balanceOf[_to]);
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         return true;
     }
 }
 
 interface HasTokenFallback {
     function tokenFallback(address _from, uint256 _amount, bytes _data)
-        public
+        external
         returns (bool success);
 }
 contract ERC667 is ERC20 {
-    function ERC667(string _name, string _symbol)
+    constructor(string _name, string _symbol)
         public
         ERC20(_name, _symbol)
     {}
@@ -169,7 +169,7 @@ contract DividendToken is ERC667
     event CollectedDividends(uint time, address indexed account, uint amount);
     event DividendReceived(uint time, address indexed sender, uint amount);
 
-    function DividendToken(string _name, string _symbol)
+    constructor(string _name, string _symbol)
         public
         ERC667(_name, _symbol)
     {}
@@ -184,7 +184,7 @@ contract DividendToken is ERC667
         // So, no multiplication overflow unless msg.value > 1e45 wei (1e27 ETH)
         totalPointsPerToken += (msg.value * POINTS_PER_WEI) / totalSupply;
         dividendsTotal += msg.value;
-        DividendReceived(now, msg.sender, msg.value);
+        emit DividendReceived(now, msg.sender, msg.value);
     }
 
     /*************************************************************/
@@ -198,7 +198,7 @@ contract DividendToken is ERC667
         _updateCreditedPoints(_to);
         totalSupply += _amount;
         balanceOf[_to] += _amount;
-        TokensMinted(now, _to, _amount, totalSupply);
+        emit TokensMinted(now, _to, _amount, totalSupply);
     }
     
     // Credits dividends, burns tokens.
@@ -211,7 +211,7 @@ contract DividendToken is ERC667
         balanceOf[_account] -= _amount;
         totalSupply -= _amount;
         totalBurned += _amount;
-        TokensBurned(now, _account, _amount, totalSupply);
+        emit TokensBurned(now, _account, _amount, totalSupply);
     }
 
     // when set to true, prevents tokens from being transferred
@@ -221,7 +221,8 @@ contract DividendToken is ERC667
     {
         if (isFrozen == _isFrozen) return;
         isFrozen = _isFrozen;
-        _isFrozen ? Frozen(now) : UnFrozen(now);
+        if (_isFrozen) emit Frozen(now);
+        else emit UnFrozen(now);
     }
 
     /*************************************************************/
@@ -275,7 +276,7 @@ contract DividendToken is ERC667
         _amount = creditedPoints[msg.sender] / POINTS_PER_WEI;
         creditedPoints[msg.sender] = 0;
         dividendsCollected += _amount;
-        CollectedDividends(now, msg.sender, _amount);
+        emit CollectedDividends(now, msg.sender, _amount);
         require(msg.sender.call.value(_amount)());
     }
 

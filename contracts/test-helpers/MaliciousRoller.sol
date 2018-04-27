@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 
 /*
@@ -7,8 +7,8 @@ pragma solidity ^0.4.19;
   This tests cases where InstaDice payment could fail.
 */
 interface _IMrInstaDice {
-    function roll(uint8 _number) public payable returns (bool);
-    function payoutPreviousRoll() public returns (bool);
+    function roll(uint8 _number) external payable returns (bool);
+    function payoutPreviousRoll() external returns (bool);
 }
 contract MaliciousRoller {
     

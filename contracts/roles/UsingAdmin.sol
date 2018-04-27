@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./UsingRegistry.sol";
 
@@ -13,7 +13,7 @@ Gives the inherting contract access to:
 contract UsingAdmin is
     UsingRegistry
 {
-    function UsingAdmin(address _registry)
+    constructor(address _registry)
         UsingRegistry(_registry)
         public
     {}

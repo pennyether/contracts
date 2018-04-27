@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /*
   A simple Contract that is called by CustodialWallet tests.
@@ -17,7 +17,7 @@ contract DumbContract {
     function sendBalance()
         public
     {
-        msg.sender.transfer(this.balance);
+        msg.sender.transfer(address(this).balance);
     }
 
     function payToSetVal2(uint _val2)

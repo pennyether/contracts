@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "./UsingRegistry.sol";
 
@@ -18,7 +18,7 @@ interface IMonarchyFactory {
 contract UsingMonarchyFactory is
     UsingRegistry
 {
-    function UsingMonarchyFactory(address _registry)
+    constructor(address _registry)
         UsingRegistry(_registry)
         public
     {}

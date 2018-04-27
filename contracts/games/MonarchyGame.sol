@@ -69,7 +69,7 @@ contract MonarchyGame {
     event SendPrizeFailure(uint time, address indexed redeemer, address indexed recipient, uint amount, uint gasLimit);
     event FeesSent(uint time, address indexed collector, uint amount);
 
-    function MonarchyGame(
+    constructor(
         address _collector,
         uint _initialPrize,
         uint _fee,
@@ -109,7 +109,7 @@ contract MonarchyGame {
         vars.prevBlock = uint32(block.number);
         vars.blockEnded = uint32(block.number + _initialBlocks);
 
-        Started(now, _initialBlocks);
+        emit Started(now, _initialBlocks);
     }
 
 
@@ -207,11 +207,11 @@ contract MonarchyGame {
         // Emit the proper events.
         if (!_isClean){
             if (_wasRefundSuccess)
-                OverthrowRefundSuccess(now, "Another overthrow occurred on the same block.", _prevMonarch, msg.value);
+                emit OverthrowRefundSuccess(now, "Another overthrow occurred on the same block.", _prevMonarch, msg.value);
             else
-                OverthrowRefundFailure(now, ".send() failed.", _prevMonarch, msg.value);
+                emit OverthrowRefundFailure(now, ".send() failed.", _prevMonarch, msg.value);
         }
-        OverthrowOccurred(now, msg.sender, _decree, _prevMonarch, msg.value);
+        emit OverthrowOccurred(now, msg.sender, _decree, _prevMonarch, msg.value);
     }
         // called from the bidding function above.
         // refunds sender, or throws to revert entire tx.
@@ -219,7 +219,7 @@ contract MonarchyGame {
             private
         {
             require(msg.sender.call.value(msg.value)());
-            OverthrowRefundSuccess(now, _msg, msg.sender, msg.value);
+            emit OverthrowRefundSuccess(now, _msg, msg.sender, msg.value);
         }
 
 
@@ -234,11 +234,11 @@ contract MonarchyGame {
     {
         // make sure game has ended, and is not paid
         if (!isEnded()) {
-            SendPrizeError(now, "The game has not ended.");
+            emit SendPrizeError(now, "The game has not ended.");
             return (false, 0);
         }
         if (vars.isPaid) {
-            SendPrizeError(now, "The prize has already been paid.");
+            emit SendPrizeError(now, "The prize has already been paid.");
             return (false, 0);
         }
 
@@ -256,7 +256,7 @@ contract MonarchyGame {
 
         // emit proper event. rollback .isPaid on failure.
         if (_paySuccessful) {
-            SendPrizeSuccess({
+            emit SendPrizeSuccess({
                 time: now,
                 redeemer: msg.sender,
                 recipient: _winner,
@@ -266,7 +266,7 @@ contract MonarchyGame {
             return (true, _prize);
         } else {
             vars.isPaid = false;
-            SendPrizeFailure({
+            emit SendPrizeFailure({
                 time: now,
                 redeemer: msg.sender,
                 recipient: _winner,
@@ -285,7 +285,7 @@ contract MonarchyGame {
         _feesSent = fees();
         if (_feesSent == 0) return;
         require(settings.collector.call.value(_feesSent)());
-        FeesSent(now, settings.collector, _feesSent);
+        emit FeesSent(now, settings.collector, _feesSent);
     }
 
 
@@ -345,7 +345,8 @@ contract MonarchyGame {
         return (vars.blockEnded - block.number) + 1;
     }
     function fees() public view returns (uint) {
-        return vars.isPaid ? this.balance : this.balance - prize();
+        uint _balance = address(this).balance;
+        return vars.isPaid ? _balance : _balance - prize();
     }
     function totalFees() public view returns (uint) {
         int _feePerOverthrowGwei = int(settings.feeGwei) - settings.prizeIncrGwei;

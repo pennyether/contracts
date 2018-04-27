@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /******* USING Registry **************************
 
@@ -9,8 +9,8 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getRegistry()
 interface IRegistry {
-    function owner() public constant returns (address _addr);
-    function addressOf(bytes32 _name) public constant returns (address _addr);
+    function owner() public view returns (address _addr);
+    function addressOf(bytes32 _name) public view returns (address _addr);
 }
 
 contract UsingRegistry {
@@ -21,7 +21,7 @@ contract UsingRegistry {
         _;
     }
 
-    function UsingRegistry(address _registry)
+    constructor(address _registry)
         public
     {
         require(_registry != 0);
@@ -30,7 +30,7 @@ contract UsingRegistry {
 
     function addressOf(bytes32 _name)
         internal
-        constant
+        view
         returns(address _addr)
     {
         return registry.addressOf(_name);
@@ -38,7 +38,7 @@ contract UsingRegistry {
 
     function getOwner()
         public
-        constant
+        view
         returns (address _addr)
     {
         return registry.owner();
@@ -46,7 +46,7 @@ contract UsingRegistry {
 
     function getRegistry()
         public
-        constant
+        view
         returns (IRegistry _addr)
     {
         return registry;

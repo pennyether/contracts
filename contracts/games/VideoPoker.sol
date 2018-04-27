@@ -89,7 +89,7 @@ contract VideoPoker is
     event CreditsUsed(uint time, address indexed user, uint32 indexed id, uint amount);
     event CreditsCashedout(uint time, address indexed user, uint amount);
         
-    function VideoPoker(address _registry)
+    constructor(address _registry)
         Bankrollable(_registry)
         UsingAdmin(_registry)
         public
@@ -102,7 +102,7 @@ contract VideoPoker is
         // initialize settings
         settings.minBet = .001 ether;
         settings.maxBet = .5 ether;
-        Created(now);
+        emit Created(now);
     }
     
     
@@ -121,7 +121,7 @@ contract VideoPoker is
         settings.minBet = _minBet;
         settings.maxBet = _maxBet;
         settings.curPayTableId = _payTableId;
-        SettingsChanged(now, msg.sender);
+        emit SettingsChanged(now, msg.sender);
     }
     
     // Allows admin to permanently add a PayTable (once per day)
@@ -136,7 +136,7 @@ contract VideoPoker is
         require(settings.lastDayAdded < _today);
         settings.lastDayAdded = _today;
         _addPayTable(_rf, _sf, _foak, _fh, _fl, _st, _toak, _tp, _jb);
-        PayTableAdded(now, msg.sender, settings.numPayTables-1);
+        emit PayTableAdded(now, msg.sender, settings.numPayTables-1);
     }
     
 
@@ -181,7 +181,7 @@ contract VideoPoker is
 
         // no uint64 overflow: _bet < maxBet < .625 ETH < 2e64
         uint32 _id = _createNewGame(uint64(_bet));
-        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
+        emit BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
     }
 
     // Allows a user to create a game from Credits.
@@ -208,8 +208,8 @@ contract VideoPoker is
 
         uint32 _id = _createNewGame(uint64(_bet));
         credits[msg.sender] -= _bet;
-        CreditsUsed(now, msg.sender, _id, _bet);
-        BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
+        emit CreditsUsed(now, msg.sender, _id, _bet);
+        emit BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);
     }
 
     function betFromGame(uint32 _id, bytes32 _hashCheck)
@@ -227,7 +227,7 @@ contract VideoPoker is
             private
         {
             if (_doRefund) require(msg.sender.call.value(_bet)());
-            BetFailure(now, msg.sender, _bet, _msg);
+            emit BetFailure(now, msg.sender, _bet, _msg);
         }
         
 
@@ -267,7 +267,7 @@ contract VideoPoker is
         function _drawFailure(uint32 _id, uint8 _draws, string _msg)
             private
         {
-            DrawFailure(now, msg.sender, _id, _draws, _msg);
+            emit DrawFailure(now, msg.sender, _id, _draws, _msg);
         }
       
 
@@ -302,7 +302,7 @@ contract VideoPoker is
             private
             returns (bool)
         {
-            FinalizeFailure(now, msg.sender, _id, _msg);
+            emit FinalizeFailure(now, msg.sender, _id, _msg);
             return false;
         }
 
@@ -351,7 +351,7 @@ contract VideoPoker is
         vars.totalCredits = _totalCredits;
         vars.totalWonGwei = _totalWonGwei;
         credits[_user] += _amt;
-        CreditsAdded(now, _user, _gameId, _amt);
+        emit CreditsAdded(now, _user, _gameId, _amt);
     }
 
     // Lowers totalCredits and credits[user].
@@ -364,7 +364,7 @@ contract VideoPoker is
         vars.totalCredits -= uint88(_amt);
         credits[_user] -= _amt;
         require(_user.call.value(_amt)());
-        CreditsCashedout(now, _user, _amt);
+        emit CreditsCashedout(now, _user, _amt);
     }
 
     // Creates a new game with the specified bet and current PayTable.
@@ -424,7 +424,7 @@ contract VideoPoker is
 
         // Deal the initial hand, or set draws to 5.
         uint32 _iHand;
-        bytes32 _iBlockHash = block.blockhash(_game.iBlock);
+        bytes32 _iBlockHash = blockhash(_game.iBlock);
         uint8 _warnCode;
         if (_iBlockHash != 0) {
             // Ensure they are drawing against expected hand
@@ -442,7 +442,7 @@ contract VideoPoker is
         _game.draws = _draws;
         _game.dBlock = uint32(block.number);
 
-        DrawSuccess(now, msg.sender, _id, _game.iHand, _draws, _warnCode);
+        emit DrawSuccess(now, msg.sender, _id, _game.iHand, _draws, _warnCode);
     }
 
     // Resolves game based on .iHand and .draws, crediting user on a win.
@@ -482,7 +482,7 @@ contract VideoPoker is
         uint32 _iHand;  // set if draws are 0, and iBlock is fresh
         uint8 _warnCode;
         if (_game.draws != 0) {
-            _blockhash = block.blockhash(_game.dBlock);
+            _blockhash = blockhash(_game.dBlock);
             if (_blockhash != 0) {
                 // draw cards to iHand, use as dHand
                 _dHand = drawToHand(uint(keccak256(_blockhash, _id)), _game.iHand, _game.draws);
@@ -497,7 +497,7 @@ contract VideoPoker is
                 }
             }
         } else {
-            _blockhash = block.blockhash(_game.iBlock);
+            _blockhash = blockhash(_game.iBlock);
             if (_blockhash != 0) {
                 // ensure they are drawing against expected hand
                 if (_blockhash != _hashCheck) {
@@ -512,7 +512,7 @@ contract VideoPoker is
                 _finalizeFailure(_id, "Initial hand not available. Drawing 5 new cards.");
                 _game.draws = 31;
                 _game.dBlock = uint32(block.number);
-                DrawSuccess(now, _user, _id, 0, 31, WARN_IHAND_TIMEOUT);
+                emit DrawSuccess(now, _user, _id, 0, 31, WARN_IHAND_TIMEOUT);
                 return;
             }
         }
@@ -531,7 +531,7 @@ contract VideoPoker is
         // Compute _payout, credit user, emit event.
         uint _payout = payTables[_game.payTableId][_handRank] * uint(_game.bet);
         if (_payout > 0) _creditUser(_user, _payout, _id);
-        FinalizeSuccess(now, _user, _id, _game.dHand, _game.handRank, _payout, _warnCode);
+        emit FinalizeSuccess(now, _user, _id, _game.dHand, _game.handRank, _payout, _warnCode);
     }
 
 
@@ -594,7 +594,7 @@ contract VideoPoker is
         if (_game.iHand != 0) return _game.iHand;
         if (_game.iBlock == 0) return;
         
-        bytes32 _iBlockHash = block.blockhash(_game.iBlock);
+        bytes32 _iBlockHash = blockhash(_game.iBlock);
         if (_iBlockHash == 0) return;
         return getHand(uint(keccak256(_iBlockHash, _id)));
     }
@@ -611,7 +611,7 @@ contract VideoPoker is
         if (_game.draws == 0) return _game.iHand;
         if (_game.dBlock == 0) return;
 
-        bytes32 _dBlockHash = block.blockhash(_game.dBlock);
+        bytes32 _dBlockHash = blockhash(_game.dBlock);
         if (_dBlockHash == 0) return _game.iHand;
         return drawToHand(uint(keccak256(_dBlockHash, _id)), _game.iHand, _game.draws);
     }

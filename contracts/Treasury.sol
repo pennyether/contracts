@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 // Requester needs to use the current Admin from Registry.
 import "./roles/UsingAdmin.sol";
@@ -54,7 +54,7 @@ contract Requestable is
     event RequestCancelled(uint time, uint indexed id, uint indexed typeId, address indexed target, string msg);
     event RequestExecuted(uint time, uint indexed id, uint indexed typeId, address indexed target, bool success, string msg);
 
-    function Requestable(address _registry)
+    constructor(address _registry)
         UsingAdmin(_registry)
         public
     { }
@@ -73,7 +73,7 @@ contract Requestable is
         requests[_id].target = _target;
         requests[_id].value = _value;
         _addPendingRequestId(_id);
-        RequestCreated(now, _id, _typeId, _target, _value, _msg);
+        emit RequestCreated(now, _id, _typeId, _target, _value, _msg);
     }
 
     // Cancels a request.
@@ -89,7 +89,7 @@ contract Requestable is
         r.cancelledMsg = _msg;
         _removePendingRequestId(_id);
         cancelledRequestIds.push(_id);
-        RequestCancelled(now, r.id, r.typeId, r.target, _msg);
+        emit RequestCancelled(now, r.id, r.typeId, r.target, _msg);
     }
 
     // Executes (or times out) a request if it is not already cancelled or executed.
@@ -129,7 +129,7 @@ contract Requestable is
         r.executedMsg = _msg;
         _removePendingRequestId(_id);
         completedRequestIds.push(_id);
-        RequestExecuted(now, r.id, r.typeId, r.target, _success, _msg);
+        emit RequestExecuted(now, r.id, r.typeId, r.target, _success, _msg);
     }
 
     // Pushes id onto the array, throws if too many.
@@ -235,20 +235,21 @@ The Treasury manages 2 balances:
         - Can be sent to Token at any time, by anyone, via .distributeToToken()
 
 All Ether entering and leaving Treasury is allocated to one of the three balances.
-Thus, the balance of Treasury will always equal: reserve + capital + profits.
+Thus, the balance of Treasury will always equal: capital + profits.
 
 Roles:
     Owner:       can set Comptroller and Token addresses, once.
-    Comptroller: can add and remove reserve.
+    Comptroller: can add and remove "raised" capital
     Admin:       can trigger requests.
     Token:       receives profits via .distributeToToken().
-    Anybody:     can call .distributeToToken() for a .1% reward.
+    Anybody:     can call .distributeToToken() for a .1% reward
+                 can add capital
 
 */
 // Allows Treasury to add/remove capital to/from Bankrollable instances.
 interface _ITrBankrollable {
-    function removeBankroll(uint _amount, string _callbackFn) public;
-    function addBankroll() payable public;
+    function removeBankroll(uint _amount, string _callbackFn) external;
+    function addBankroll() external payable;
 }
 
 contract Treasury is
@@ -262,7 +263,6 @@ contract Treasury is
     address public comptroller;
 
     // Balances
-    uint public reserve;  // Ether held in reserve, owned by Token Holders.
     uint public capital;  // Ether held as capital. Spendable/Recoverable via Requests
     uint public profits;  // Ether received via fallback fn, distributable to Token.
     
@@ -288,9 +288,6 @@ contract Treasury is
     event CapitalAdded(uint time, address indexed sender, uint amount);
     event CapitalRemoved(uint time, address indexed recipient, uint amount);
     event CapitalRaised(uint time, uint amount);
-    // reserve-related events
-    event ReserveAdded(uint time, address indexed sender, uint amount);
-    event ReserveRemoved(uint time, uint amount);
     // profit-related events
     event ProfitsReceived(uint time, address indexed sender, uint amount);
     // request-related events
@@ -306,13 +303,13 @@ contract Treasury is
     //   - executeSendCapital
     //   - executeRecallCapital
     //   - executeRaiseCapital
-    function Treasury(address _registry, address _owner)
+    constructor(address _registry, address _owner)
         Requestable(_registry)
         public
     {
         owner = _owner;
         capitalLedger = new Ledger(this);
-        Created(now);
+        emit Created(now);
     }
 
 
@@ -327,7 +324,7 @@ contract Treasury is
     {
         require(token == address(0));
         token = _token;
-        TokenSet(now, msg.sender, _token);
+        emit TokenSet(now, msg.sender, _token);
     }
 
     // Callable once to set the Comptroller address
@@ -337,34 +334,7 @@ contract Treasury is
     {
         require(comptroller == address(0));
         comptroller = _comptroller;
-        ComptrollerSet(now, msg.sender, _comptroller);  
-    }
-    
-
-    /*************************************************************/
-    /******* RESERVE FUNCTIONS ***********************************/
-    /*************************************************************/
-    
-    // Called by Comptroller after ICO to set reserve to half of numTokens.
-    function addReserve()
-        public
-        payable
-        fromComptroller
-    {
-        reserve += msg.value;
-        ReserveAdded(now, msg.sender, msg.value);
-    }
-
-    // Comptroller calls this when somebody burns their tokens.
-    // This sends the reserve to the user.
-    function removeReserve(uint _amount, address _recipient)
-        public
-        fromComptroller
-    {
-        assert(reserve >= _amount && this.balance >= _amount);
-        reserve -= _amount;
-        require(_recipient.call.value(_amount)());
-        ReserveRemoved(now, _amount);
+        emit ComptrollerSet(now, msg.sender, _comptroller);  
     }
 
 
@@ -376,7 +346,7 @@ contract Treasury is
     function () public payable {
         profits += msg.value;
         profitsTotal += msg.value;
-        ProfitsReceived(now, msg.sender, msg.value);
+        emit ProfitsReceived(now, msg.sender, msg.value);
     }
 
     // Sends profits to Token
@@ -386,14 +356,14 @@ contract Treasury is
     {
         // Ensure token is set.
         if (token == address(0)) {
-            DividendFailure(now, "No address to send to.");
+            emit DividendFailure(now, "No address to send to.");
             return;
         }
 
         // Load _profits to memory (saves gas), and ensure there are profits.
         _profits = profits;
         if (_profits <= 0) {
-            DividendFailure(now, "No profits to send.");
+            emit DividendFailure(now, "No profits to send.");
             return;
         }
 
@@ -401,7 +371,7 @@ contract Treasury is
         profits = 0;
         profitsSent += _profits;
         require(token.call.value(_profits)());
-        DividendSuccess(now, token, _profits);
+        emit DividendSuccess(now, token, _profits);
     }
 
 
@@ -418,9 +388,9 @@ contract Treasury is
         capital += msg.value;
         if (msg.sender == comptroller) {
             capitalRaised += msg.value;
-            CapitalRaised(now, msg.value);
+            emit CapitalRaised(now, msg.value);
         }
-        CapitalAdded(now, msg.sender, msg.value);
+        emit CapitalAdded(now, msg.sender, msg.value);
     }
 
 
@@ -446,8 +416,8 @@ contract Treasury is
 
         // Send it (this throws on failure). Then emit events.
         _ITrBankrollable(_bankrollable).addBankroll.value(_value)();
-        CapitalRemoved(now, _bankrollable, _value);
-        ExecutedSendCapital(now, _bankrollable, _value);
+        emit CapitalRemoved(now, _bankrollable, _value);
+        emit ExecutedSendCapital(now, _bankrollable, _value);
         return (true, "Sent bankroll to target.");
     }
 
@@ -463,7 +433,7 @@ contract Treasury is
         capitalLedger.subtract(_bankrollable, _recalled);
         
         // Emit and return
-        ExecutedRecallCapital(now, _bankrollable, _recalled);
+        emit ExecutedRecallCapital(now, _bankrollable, _recalled);
         return (true, "Received bankoll back from target.");
     }
 
@@ -474,7 +444,7 @@ contract Treasury is
     {
         // Increase target amount.
         capitalRaisedTarget += _value;
-        ExecutedRaiseCapital(now, _value);
+        emit ExecutedRaiseCapital(now, _value);
         return (true, "Capital target raised.");
     }
 
@@ -488,9 +458,9 @@ contract Treasury is
         capital -= _value;
         profits += _value;
         profitsTotal += _value;
-        CapitalRemoved(now, this, _value);
-        ProfitsReceived(now, this, _value);
-        ExecutedDistributeCapital(now, _value);
+        emit CapitalRemoved(now, this, _value);
+        emit ProfitsReceived(now, this, _value);
+        emit ExecutedDistributeCapital(now, _value);
         return (true, "Capital moved to profits.");
     }
 
@@ -537,14 +507,13 @@ contract Treasury is
     }
 
     // Returns the full capital allocation table
-    // Returning dynamic arrays is not available until Solidity 0.4.22
-    // function capitalAllocation()
-    //  public
-    //  view
-    //  returns (address[] _addresses, uint[] _amounts)
-    // {
-    //  return capitalLedger.balances();
-    // }
+    function capitalAllocation()
+        public
+        view
+        returns (address[] _addresses, uint[] _amounts)
+    {
+        return capitalLedger.balances();
+    }
 
     // Returns if _addr.getTreasury() returns this address.
     // This is not fool-proof, but should prevent accidentally

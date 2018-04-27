@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /*
     Exposes the following internal methods:
@@ -18,7 +18,7 @@ contract HasDailyLimit {
     DailyLimitVars private vars;
     uint constant MAX_ALLOWED = 2**112 - 1;
 
-    function HasDailyLimit(uint _limit) public {
+    constructor(uint _limit) public {
         _setDailyLimit(_limit);
     }
 
