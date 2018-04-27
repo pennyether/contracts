@@ -346,9 +346,7 @@ describe('DividendToken', function(){
             itCanGetOwedDividends("Owed dividends for account2 and account3 should be 0.");
         });
 
-        after("Everyone can collect correctly", function(){
-            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
-        })
+        collectAll(true);
     });
 
     describe("Dividends while minting and burning", async function(){
@@ -379,9 +377,7 @@ describe('DividendToken', function(){
             itCanGetOwedDividends("Amounts are incremented taking into account decreased totalSupply");
         })
 
-        after("Everyone can collect correctly", async function(){
-            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
-        });
+        collectAll(true);
     });
 
     describe("Dividends with .transfer()", async function(){
@@ -401,9 +397,7 @@ describe('DividendToken', function(){
         itCanReceiveDeposit(2e11);
         itCanGetOwedDividends("Account1 should not receive more owed dividends.");
 
-        after("Everyone can collect correctly", async function(){
-            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
-        });
+        collectAll(true);
     });
 
     describe("Dividends with .transferFrom()", async function(){
@@ -434,9 +428,7 @@ describe('DividendToken', function(){
         itCanReceiveDeposit(2e11);
         itCanGetOwedDividends("Account1 should get no more dividends. Account2 should get a lot more.");
 
-        after("Everyone can collect correctly", async function(){
-            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
-        });
+        collectAll(true);
     });
 
     describe("Dividends with .transferAndCall()", async function(){
@@ -460,10 +452,18 @@ describe('DividendToken', function(){
 
         itCanReceiveDeposit(2e11);
         itCanGetOwedDividends("Account1 should get no more dividends.");
-
-        after("Everyone can collect correctly", async function(){
-            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+        it("UnpayableTokenHolder unable to collect dividends", async function(){
+            this.logInfo("UnpayableTokenHolder show throw on its fallback fn.");
+            await createDefaultTxTester()
+                .doTx([unpayable, "collectDividends"])
+                .assertInvalidOpCode()
+                .assertCallReturns([token, "getOwedDividends", unpayable.address], {not: 0})
+                .assertCallReturns([token, "balanceOf", unpayable.address], 1000)
+                .start();
         });
+
+        // false means not all dividends should be collected (unpayable never collects)
+        collectAll(false);
     });
 
 
@@ -500,6 +500,19 @@ describe('DividendToken', function(){
         expOwedDives = trackedAccounts.map(() => new BigNumber(0));
     }
 
+    function collectAll(assertAllCollected) {
+        after("Everyone can collect correctly", async function(){
+            trackedAccounts.forEach((acct, i) => itCanCollectDividend(i));
+            if (assertAllCollected) {
+                it(`TotalCollected == TotalDividends`, async function(){
+                    const expDivsCollected = await token.dividendsTotal();
+                    return createDefaultTxTester()
+                        .assertCallReturns([token, "dividendsCollected"], expDivsCollected, "returns dividendsTotal()")
+                        .start();
+                });
+            }
+        });
+    }
 
     async function itCanReceiveDeposit(amt) {
         amt = new BigNumber(amt);

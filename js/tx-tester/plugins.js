@@ -123,6 +123,7 @@ function createPlugins(testUtil, ledger) {
 			if (ctx.txName===undefined) throw new Error("'doTx' was never called.");
 
 			if (ctx.txErr) {
+				console.log("txRes", ctx.txRes, "txErr", ctx.txErr);
 				var e = new Error(`${ctx.txName}, got this error: ${util.format(ctx.txErr)}`);
 				e.stack = ctx.txErr.stack;
 				throw e;
@@ -443,7 +444,7 @@ function createPlugins(testUtil, ledger) {
 			const name = callParams[1];
 			const args = callParams.slice(2);
 			const argsStr = args ? str(args, true) : "";
-			msg = `${str(contract)}.${name}.call(${argsStr})`;
+			fnStr = `${str(contract)}.${name}.call(${argsStr})`;
 			if (!contract[name] || !contract[name].call)
 				throw new Error(`"${name}"" is not a method of ${str(contract)}`);
 
@@ -451,7 +452,7 @@ function createPlugins(testUtil, ledger) {
 			try {
 				result = await contract[name].call.apply(contract, args);
 			} catch (e) {
-				throw new Error(`Call Threw: ${msg} -- ${e}`);
+				throw new Error(`Call Threw: ${fnStr} -- ${e}`);
 			}
 
 			const resultStr = str(result);
@@ -460,13 +461,14 @@ function createPlugins(testUtil, ledger) {
 				assertValues(result, expected);
 			} catch(e) {
 				throw new Error(
-					`${msg} returned unexpected result.` + 
+					`${fnStr} returned unexpected result.` + 
 					`\n   Error: ${e.message}` +
 					`\n   Result: ${resultStr}` +
 					`\n   Expected: ${expectedStr}`
 				);	
 			}
-			console.log(`✓ ${msg} returns ${expectedStr}`);
+			msg = msg ? msg : `returns ${expectedStr}`;
+			console.log(`✓ ${fnStr} ${msg}`);
 
 			function assertValues(res, exp) {
 				const asserters = {

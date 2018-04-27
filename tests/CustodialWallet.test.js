@@ -41,7 +41,7 @@ describe('CustodialWallet', function(){
         await createDefaultTxTester()
             .doNewTx(CustodialWallet, [cust1, supervisor1, owner1], {from: anon})
             .assertSuccess()
-            .assertLogCount(3)
+            .assertLogCount(4)
                 .assertLog("CustodianChanged", {
                     prevAddr: NO_ADDRESS,
                     newAddr: cust1
@@ -54,6 +54,7 @@ describe('CustodialWallet', function(){
                     prevAddr: NO_ADDRESS,
                     newAddr: owner1
                 })
+                .assertLog("Created")
             .withTxResult((res, plugins)=>{
                 cWallet = res.contract;
                 plugins.addAddresses({cWallet: cWallet.address});

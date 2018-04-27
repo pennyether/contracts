@@ -27,7 +27,7 @@ contract Requestable is
     uint32 public constant MAX_PENDING_REQUESTS = 10;
 
     // Requests.
-    enum RequestType {SendCapital, RecallCapital, RaiseCapital}
+    enum RequestType {SendCapital, RecallCapital, RaiseCapital, DistributeCapital}
     struct Request {
         // Params to handle state and history.
         uint32 id;
@@ -53,7 +53,6 @@ contract Requestable is
     event RequestCreated(uint time, uint indexed id, uint indexed typeId, address indexed target, uint value, string msg);
     event RequestCancelled(uint time, uint indexed id, uint indexed typeId, address indexed target, string msg);
     event RequestExecuted(uint time, uint indexed id, uint indexed typeId, address indexed target, bool success, string msg);
-
 
     function Requestable(address _registry)
         UsingAdmin(_registry)
@@ -121,6 +120,8 @@ contract Requestable is
             (_success, _msg) = executeRecallCapital(r.target, r.value);
         } else if (_type == RequestType.RaiseCapital) {
             (_success, _msg) = executeRaiseCapital(r.value);
+        } else if (_type == RequestType.DistributeCapital) {
+            (_success, _msg) = executeDistributeCapital(r.value);
         }
 
         // Save results, and emit.
@@ -168,6 +169,9 @@ contract Requestable is
         internal returns (bool _success, string _msg);
 
     function executeRaiseCapital(uint _value)
+        internal returns (bool _success, string _msg);
+
+    function executeDistributeCapital(uint _value)
         internal returns (bool _success, string _msg);
     //////////////////////////////////////////////////////////////////
 
@@ -293,6 +297,7 @@ contract Treasury is
     event ExecutedSendCapital(uint time, address indexed bankrollable, uint amount);
     event ExecutedRecallCapital(uint time, address indexed bankrollable, uint amount);
     event ExecutedRaiseCapital(uint time, uint amount);
+    event ExecutedDistributeCapital(uint time, uint amount);
     // dividend events
     event DividendSuccess(uint time, address token, uint amount);
     event DividendFailure(uint time, string msg);
@@ -471,6 +476,22 @@ contract Treasury is
         capitalRaisedTarget += _value;
         ExecutedRaiseCapital(now, _value);
         return (true, "Capital target raised.");
+    }
+
+    // Moves capital to profits
+    function executeDistributeCapital(uint _value)
+        internal
+        returns (bool _success, string _result)
+    {
+        if (_value > capital)
+            return (false, "Not enough capital.");
+        capital -= _value;
+        profits += _value;
+        profitsTotal += _value;
+        CapitalRemoved(now, this, _value);
+        ProfitsReceived(now, this, _value);
+        ExecutedDistributeCapital(now, _value);
+        return (true, "Capital moved to profits.");
     }
 
 

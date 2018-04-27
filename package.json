@@ -7,7 +7,7 @@
     "bignumber.js": "^5.0.0",
     "chai": "4.1.2",
     "chalk": "2.3.0",
-    "solc": "0.4.19",
+    "solc": "^0.4.23",
     "truffle-contract": "3.0.1"
   }
 }

@@ -93,9 +93,9 @@ describe('Treasury', function(){
                     .start();
             });
             it("Fails if invalid typeId", function(){
-                this.logInfo("Valid typeIds are 0, 1, and 2. 3 is not valid.")
+                this.logInfo("Valid typeIds are 0, 1, 2, 3. 4 is not valid.")
                 return createDefaultTxTester()
-                    .doTx([treasury, "createRequest", 3, 0, 0, "foo", {from: admin}])
+                    .doTx([treasury, "createRequest", 4, 0, 0, "foo", {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             });
@@ -248,7 +248,9 @@ describe('Treasury', function(){
         });
         describe(".executeSendCapital()", function(){
             it("fails if target doesnt have .getTreasury()", function(){
-                return assertExecutesSendCapital(anon, 1e9, false, "Bankrollable does not have correct Treasury.");
+                this.logInfo("In this example, we try to send bankroll to a regular account.");
+                this.logInfo("This should fail, as it does not implement Bankrollable.");
+                return assertExecutesSendCapital(dummyToken, 1e9, false, "Bankrollable does not have correct Treasury.");
             });
             it("fails if not enough capital", function(){
                 return assertExecutesSendCapital(br, 11e9, false, "Not enough capital.");
@@ -292,6 +294,14 @@ describe('Treasury', function(){
             });
             it("nothing happens if called again", function(){
                 return assertExecutesRecallCapital(br, 10e9, true, "Received bankoll back from target."); 
+            });
+        });
+        describe(".executeDistributeCapital()", function(){
+            it("fails if not enough capital", function(){
+                return assertExecutesDistributeCapital(10e18, false, "Not enough capital.");
+            });
+            it("works", function(){
+                return assertExecutesDistributeCapital(1e9, true, "Capital moved to profits."); 
             });
         });
         describe("send and recall capital from many different contracts", function(){
@@ -492,7 +502,7 @@ describe('Treasury', function(){
     async function assertCreatesRequest(type, target, value, msg, silence) {
         if (target.address) target = target.address;
 
-        const allowed = ["SendCapital", "RecallCapital", "RaiseCapital"];
+        const allowed = ["SendCapital", "RecallCapital", "RaiseCapital", "DistributeCapital"];
         const typeId = allowed.indexOf(type);
         if (typeId === -1)
             throw new Error(`invalid type: ${type}. Must be one of: ${allowed}`);
@@ -697,8 +707,7 @@ describe('Treasury', function(){
                     time: null,
                     recipient: bankrollable,
                     amount: amt
-                })
-                
+                });
         }
 
         const ledger = Ledger.at(await treasury.capitalLedger());
@@ -772,6 +781,25 @@ describe('Treasury', function(){
             .assertCallReturns([treasury, "capitalNeeded"], expCapitalNeeded)
             .doFn(assertIsBalanced)
             .start();
+    }
+
+    async function assertExecutesDistributeCapital(amt, expSuccess, expMsg) {
+        amt = new BigNumber(amt);
+        const expIncrease = expSuccess ? amt : new BigNumber(0);
+        const expCapital = (await treasury.capital()).minus(expIncrease);
+        const expProfits = (await treasury.profits()).plus(expIncrease);
+
+        return createDefaultTxTester()
+            .startLedger([treasury])
+            .doFn(()=>{
+                return runRequest("DistributeCapital", NO_ADDRESS, amt, expSuccess, expMsg)
+            })
+            .stopLedger()
+                .assertNoDelta(treasury)
+            .assertCallReturns([treasury, "capital"], expCapital, `Decreases by ${amt}`)
+            .assertCallReturns([treasury, "profits"], expProfits, `Increases by ${amt}`)
+            .doFn(assertIsBalanced)
+            .start();   
     }
 
     /////////////////////////////////////////////////////////////

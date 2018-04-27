@@ -42,15 +42,21 @@ contract AddressSet {
         public
         returns (bool _didCreate)
     {
+        // Do not allow the adding of HEAD.
         if (_address == address(0)) return;
         Entry storage entry = entries[_address];
+        // If already exists, do nothing. Otherwise set it.
         if (entry.exists) return;
+        else entry.exists = true;
 
         // Replace first entry with this one.
-        entry.exists = true;
-        entry.next = entries[0x0].next;
-        entries[entries[0x0].next].prev = _address;
-        entries[0x0].next = _address;
+        // Before: HEAD <-> X <-> Y
+        // After: HEAD <-> THIS <-> X <-> Y
+        // do: THIS.NEXT = [0].next; [0].next.prev = THIS; [0].next = THIS; THIS.prev = 0;
+        Entry storage HEAD = entries[0x0];
+        entry.next = HEAD.next;
+        entries[HEAD.next].prev = _address;
+        HEAD.next = _address;
         return true;
     }
 
@@ -59,11 +65,16 @@ contract AddressSet {
         public
         returns (bool _didExist)
     {
+        // Do not allow the removal of HEAD.
         if (_address == address(0)) return;
-        Entry storage entry = entries[_address];        
+        Entry storage entry = entries[_address];
+        // If it doesn't exist already, there is nothing to do.
         if (!entry.exists) return;
 
         // Stitch together next and prev, delete entry.
+        // Before: X <-> THIS <-> Y
+        // After: X <-> Y
+        // do: THIS.next.prev = this.prev; THIS.prev.next = THIS.next;
         entries[entry.prev].next = entry.next;
         entries[entry.next].prev = entry.prev;
         delete entries[_address];
@@ -105,6 +116,7 @@ contract AddressSet {
         // Populate names and addresses
         uint _size = size();
         _addresses = new address[](_size);
+        // Iterate forward through all entries until the end.
         uint _i = 0;
         Entry memory _curEntry = entries[0x0];
         while (_curEntry.next > 0) {

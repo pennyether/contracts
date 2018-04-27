@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import "../common/Bankrollable.sol";
 import "../roles/UsingAdmin.sol";
@@ -163,7 +163,7 @@ contract InstaDice is
         _stats.numUsers = _user.id == 0 ? _stats.numUsers + 1 : _stats.numUsers;
         _stats.numRolls = stats.numRolls + 1;
         _stats.totalWagered = stats.totalWagered + uint96(msg.value);
-        _saveStats(_stats);
+        stats = _stats;
 
         // Compute new user data
         _user.id = _user.id == 0 ? _stats.numUsers : _user.id;
@@ -171,7 +171,7 @@ contract InstaDice is
         _user.r_block = uint32(block.number);
         _user.r_number = _number;
         _user.r_payout = computePayout(msg.value, _number);
-        _saveUser(msg.sender, _user);
+        users[msg.sender] = _user;
 
         // Save user in one write.
         RollWagered(now, _user.r_id, msg.sender, msg.value, _user.r_number, _user.r_payout);
@@ -221,37 +221,6 @@ contract InstaDice is
     ////////////////////////////////////////////////////////
     ////// PRIVATE FUNCTIONS ///////////////////////////////
     ////////////////////////////////////////////////////////
-
-    // Save stats in one SSTORE. Ridiculous, but this is how to do it.
-    function _saveStats(Stats memory _stats)
-        private
-    {
-        uint32 _numUsers = _stats.numUsers;
-        uint32 _numRolls = _stats.numRolls;
-        uint96 _totalWagered = _stats.totalWagered;
-        uint96 _totalWon = _stats.totalWon;
-        stats.numUsers = _numUsers;
-        stats.numRolls = _numRolls;
-        stats.totalWagered = _totalWagered;
-        stats.totalWon = _totalWon;
-    }
-    
-    // Save user in one SSTORE. Ridiculous, but this is how to do it.
-    function _saveUser(address _addr, User memory _user)
-        private
-    {
-        uint32 _id = _user.id;
-        uint32 _r_id = _user.r_id;
-        uint32 _r_block = _user.r_block;
-        uint8 _r_number = _user.r_number;
-        uint72 _r_payout = _user.r_payout;
-        User storage user = users[_addr];
-        user.id = _id;
-        user.r_id = _r_id;
-        user.r_block = _r_block;
-        user.r_number = _r_number;
-        user.r_payout = _r_payout;
-    }
 
     // Validates the bet, or refunds the user.
     function _validateBetOrRefund(uint8 _number)

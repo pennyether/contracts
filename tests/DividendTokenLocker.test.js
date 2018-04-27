@@ -76,7 +76,7 @@ describe('DividendTokenLocker', function(){
     describe(".startVesting()", function(){
         before("Mint some tokens for TokenLocker", function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", locker.address, VESTING_AMT, {from: dummyComptroller}])
+                .doTx([token, "mint", locker.address, VESTING_AMT, {from: dummyComptroller}])
                 .assertSuccess()
                 .assertCallReturns([token, "balanceOf", locker.address], VESTING_AMT)
                 .start();
@@ -144,7 +144,7 @@ describe('DividendTokenLocker', function(){
         });
         it("Mint another 1e18 tokens to locker", function(){
             return createDefaultTxTester()
-                .doTx([token, "mintTokens", locker.address, 1e18, {from: dummyComptroller}])
+                .doTx([token, "mint", locker.address, 1e18, {from: dummyComptroller}])
                 .assertSuccess()
                 .start();
         });

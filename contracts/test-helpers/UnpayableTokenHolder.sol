@@ -16,8 +16,9 @@ contract UnpayableTokenHolder {
         _IUthToken(token).collectDividends();
     }
 
-    function tokenFallback(address sender, uint amt, bytes data) public {
+    function tokenFallback(address sender, uint amt, bytes data) public returns (bool _success) {
         TokenFallback(msg.sender, sender, amt, data);
+        return true;
     }
 
     function () public payable {

@@ -20,6 +20,9 @@ function execute(command){
 		if (!s.code) {
 			const result = s.stdout.toString();
 			console.log(`  * Execution successful.`);
+			if (result.indexOf("SMOCHA FINISHED WITH ERRORS") !== -1) {
+				console.log(`  * TEST CONTAINED ERRORS`);
+			}
 			res(result);
 		} else {
 			const result = s.stderr.toString();
@@ -75,16 +78,22 @@ function saveAllTests() {
 
 	const links = [];
 	const testFiles = [
-		"CustodialWallet.js",
-		"DividendToken.js",
-		"DividendTokenLocker.js",
-		"Treasury.js",
-		"Comptroller.js",
-		"MainController.js",
-		"InstaDice.js",
-		"PennyAuction.js",
-		"PennyAuctionFactory.js",
-		"PennyAuctionController.js",
+		"CustodialWallet.test.js",
+		"DividendToken.test.js",
+		"DividendTokenLocker.test.js",
+		"Treasury.test.js",
+		"Comptroller.test.js",
+		"Registry.test.js",
+		"TaskManager.test.js",
+		"games/InstaDice.test.js",
+		"games/VideoPoker.test.js",
+		"games/VideoPokerUtil.test.js",
+		"games/MonarchyGame.test.js",
+		"games/MonarchyFactory.test.js",
+		"games/MonarchyController.js",
+		"common/AddressSet.test.js",
+		"common/Bankrollable.test.js",
+		"common/Ledger.test.js"
 	]
 	var p = Promise.resolve();
 	testFiles.forEach(async function(testfile){

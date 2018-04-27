@@ -156,14 +156,15 @@ function SmochaLogger() {
 		else if (_skips.length) statusColorize = chalk.gray.bold.inverse;
 		else statusColorize = chalk.green.bold.inverse;
 
-		const smochaFinished = statusColorize(" SMOCHA FINISHED ");
+		const finishStr = _errors.length ? "SMOCHA FINISHED WITH ERRORS" : "SMOCHA FINISHED SUCCESSFULLY";
+		const smochaFinished = statusColorize(` ${finishStr} `);
 		const numPasses = chalk.green.bold(_passes.length) + chalk.green(" passed.");
 		const numErrors = chalk.red.bold(_errors.length) + chalk.red(" errors.");
 		const numSkips = chalk.gray.bold(_skips.length) + chalk.gray(" skipped.");
 		const duration = (((new Date()) - _startTime) / 1000).toFixed(2);
 
 		console.log("");
-		console.log(`  =========== ${smochaFinished}  ===========`);
+		console.log(`  =========== ${smochaFinished} ===========`);
 		console.log("");
 		console.log(`  ${numPasses} ${numErrors} ${numSkips} ${duration}s`);
 		console.log("");
