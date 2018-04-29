@@ -126,8 +126,8 @@ contract VideoPoker is
     
     // Allows admin to permanently add a PayTable (once per day)
     function addPayTable(
-        uint16 _rf, uint16 _sf, uint16 _4k, uint16 _fh,
-        uint16 _fl, uint16 _st, uint16 _3k, uint16 _tp, uint16 _jb
+        uint16 _rf, uint16 _sf, uint16 _fk, uint16 _fh,
+        uint16 _fl, uint16 _st, uint16 _tk, uint16 _tp, uint16 _jb
     )
         public
         fromAdmin
@@ -135,7 +135,7 @@ contract VideoPoker is
         uint32 _today = uint32(block.timestamp / 1 days);
         require(settings.lastDayAdded < _today);
         settings.lastDayAdded = _today;
-        _addPayTable(_rf, _sf, _4k, _fh, _fl, _st, _3k, _tp, _jb);
+        _addPayTable(_rf, _sf, _fk, _fh, _fl, _st, _tk, _tp, _jb);
         emit PayTableAdded(now, msg.sender, settings.numPayTables-1);
     }
     
@@ -314,23 +314,23 @@ contract VideoPoker is
     // Appends a PayTable to the mapping.
     // It ensures sane values. (Double the defaults)
     function _addPayTable(
-        uint16 _rf, uint16 _sf, uint16 _4k, uint16 _fh,
-        uint16 _fl, uint16 _st, uint16 _3k, uint16 _tp, uint16 _jb
+        uint16 _rf, uint16 _sf, uint16 _fk, uint16 _fh,
+        uint16 _fl, uint16 _st, uint16 _tk, uint16 _tp, uint16 _jb
     )
         private
     {
-        require(_rf<=1600 && _sf<=100 && _4k<=50 && _fh<=18 && _fl<=12 
-                 && _st<=8 && _3k<=6 && _tp<=4 && _jb<=2);
+        require(_rf<=1600 && _sf<=100 && _fk<=50 && _fh<=18 && _fl<=12 
+                 && _st<=8 && _tk<=6 && _tp<=4 && _jb<=2);
 
         uint16[12] memory _pt;
         _pt[HAND_UNDEFINED] = 0;
         _pt[HAND_RF] = _rf;
         _pt[HAND_SF] = _sf;
-        _pt[HAND_4K] = _fk;
+        _pt[HAND_FK] = _fk;
         _pt[HAND_FH] = _fh;
         _pt[HAND_FL] = _fl;
         _pt[HAND_ST] = _st;
-        _pt[HAND_3K] = _3k;
+        _pt[HAND_TK] = _tk;
         _pt[HAND_TP] = _tp;
         _pt[HAND_JB] = _jb;
         _pt[HAND_HC] = 0;

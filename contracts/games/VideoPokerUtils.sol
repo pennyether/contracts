@@ -4,11 +4,11 @@ contract VideoPokerUtils {
     uint constant HAND_UNDEFINED = 0;
     uint constant HAND_RF = 1;
     uint constant HAND_SF = 2;
-    uint constant HAND_4K = 3;
+    uint constant HAND_FK = 3;
     uint constant HAND_FH = 4;
     uint constant HAND_FL = 5;
     uint constant HAND_ST = 6;
-    uint constant HAND_3K = 7;
+    uint constant HAND_TK = 7;
     uint constant HAND_TP = 8;
     uint constant HAND_JB = 9;
     uint constant HAND_HC = 10;
@@ -133,11 +133,11 @@ contract VideoPokerUtils {
 
         if (_numPairs > 0){
             // If they have quads, they can't have royal flush, so we can return.
-            if (_maxSet==4) return HAND_4K;
+            if (_maxSet==4) return HAND_FK;
             // One of the two pairs was the trips, so it's a full house.
             if (_maxSet==3 && _numPairs==2) return HAND_FH;
             // Trips is their best hand (no straight or flush possible)
-            if (_maxSet==3) return HAND_3K;
+            if (_maxSet==3) return HAND_TK;
             // Two pair is their best hand (no straight or flush possible)
             if (_numPairs==2) return HAND_TP;
             // One pair is their best hand (no straight or flush possible)
