@@ -37,7 +37,8 @@ describe('Treasury', function(){
 
         this.logInfo("Create Registry, and register ADMIN");
         await createDefaultTxTester()
-            .doNewTx(Registry, [owner], {from: anon}).assertSuccess()
+            .doNewTx(Registry, [owner], {from: anon})
+            .assertSuccess()
             .withTxResult((txRes, plugins)=>{
                 registry = txRes.contract;
                 plugins.addAddresses({registry: registry});
@@ -50,6 +51,7 @@ describe('Treasury', function(){
         this.logInfo("Create Treasury, register it");
         await createDefaultTxTester()
             .doNewTx(Treasury, [registry.address, owner], {from: anon})
+            .assertSuccess()
             .withTxResult((txRes, plugins)=>{
                 treasury = txRes.contract;
                 plugins.addAddresses({treasury: treasury});
@@ -62,6 +64,7 @@ describe('Treasury', function(){
         this.logInfo("Create mockComptroller, pointing to Treasury");
         await createDefaultTxTester()
             .doNewTx(MockComptroller, [], {from: anon})
+            .assertSuccess()
             .withTxResult(async function(txRes, plugins){
                 mockComptroller = txRes.contract;
                 plugins.addAddresses({
@@ -72,6 +75,7 @@ describe('Treasury', function(){
         this.logInfo("Create Bankrollable contract");
         await createDefaultTxTester()
             .doNewTx(TestBankrollable, [registry.address], {from: anon})
+            .assertSuccess()
             .withTxResult((txRes, plugins)=>{
                 br = txRes.contract;
                 plugins.addAddresses({bankrollable: br});

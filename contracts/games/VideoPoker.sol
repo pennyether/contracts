@@ -126,8 +126,8 @@ contract VideoPoker is
     
     // Allows admin to permanently add a PayTable (once per day)
     function addPayTable(
-        uint16 _rf, uint16 _sf, uint16 _foak, uint16 _fh,
-        uint16 _fl, uint16 _st, uint16 _toak, uint16 _tp, uint16 _jb
+        uint16 _rf, uint16 _sf, uint16 _4k, uint16 _fh,
+        uint16 _fl, uint16 _st, uint16 _3k, uint16 _tp, uint16 _jb
     )
         public
         fromAdmin
@@ -135,7 +135,7 @@ contract VideoPoker is
         uint32 _today = uint32(block.timestamp / 1 days);
         require(settings.lastDayAdded < _today);
         settings.lastDayAdded = _today;
-        _addPayTable(_rf, _sf, _foak, _fh, _fl, _st, _toak, _tp, _jb);
+        _addPayTable(_rf, _sf, _4k, _fh, _fl, _st, _3k, _tp, _jb);
         emit PayTableAdded(now, msg.sender, settings.numPayTables-1);
     }
     
@@ -259,7 +259,7 @@ contract VideoPoker is
             return _drawFailure(_id, _draws, "Invalid draws.");
         if (_draws == 0)
             return _drawFailure(_id, _draws, "Cannot draw 0 cards. Use finalize instead.");
-        if (_game.handRank != uint8(HandRank.Undefined))
+        if (_game.handRank != HAND_UNDEFINED)
             return _drawFailure(_id, _draws, "Game already finalized.");
         
         _draw(_game, _id, _draws, _hashCheck);
@@ -292,7 +292,7 @@ contract VideoPoker is
             return _finalizeFailure(_id, "Initial hand not avaiable.");
         if (_game.dBlock == block.number)
             return _finalizeFailure(_id, "Drawn cards not available.");
-        if (_game.handRank != uint8(HandRank.Undefined))
+        if (_game.handRank != HAND_UNDEFINED)
             return _finalizeFailure(_id, "Game already finalized.");
 
         _finalize(_game, _id, _hashCheck);
@@ -314,27 +314,27 @@ contract VideoPoker is
     // Appends a PayTable to the mapping.
     // It ensures sane values. (Double the defaults)
     function _addPayTable(
-        uint16 _rf, uint16 _sf, uint16 _foak, uint16 _fh,
-        uint16 _fl, uint16 _st, uint16 _toak, uint16 _tp, uint16 _jb
+        uint16 _rf, uint16 _sf, uint16 _4k, uint16 _fh,
+        uint16 _fl, uint16 _st, uint16 _3k, uint16 _tp, uint16 _jb
     )
         private
     {
-        require(_rf<=1600 && _sf<=100 && _foak<=50 && _fh<=18 && _fl<=12 
-                 && _st<=8 && _toak<=6 && _tp<=4 && _jb<=2);
+        require(_rf<=1600 && _sf<=100 && _4k<=50 && _fh<=18 && _fl<=12 
+                 && _st<=8 && _3k<=6 && _tp<=4 && _jb<=2);
 
         uint16[12] memory _pt;
-        _pt[uint8(HandRank.Undefined)] = 0;
-        _pt[uint8(HandRank.RoyalFlush)] = _rf;
-        _pt[uint8(HandRank.StraightFlush)] = _sf;
-        _pt[uint8(HandRank.FourOfAKind)] = _foak;
-        _pt[uint8(HandRank.FullHouse)] = _fh;
-        _pt[uint8(HandRank.Flush)] = _fl;
-        _pt[uint8(HandRank.Straight)] = _st;
-        _pt[uint8(HandRank.ThreeOfAKind)] = _toak;
-        _pt[uint8(HandRank.TwoPair)] = _tp;
-        _pt[uint8(HandRank.JacksOrBetter)] = _jb;
-        _pt[uint8(HandRank.HighCard)] = 0;
-        _pt[uint8(HandRank.NotComputable)] = 0;
+        _pt[HAND_UNDEFINED] = 0;
+        _pt[HAND_RF] = _rf;
+        _pt[HAND_SF] = _sf;
+        _pt[HAND_4K] = _fk;
+        _pt[HAND_FH] = _fh;
+        _pt[HAND_FL] = _fl;
+        _pt[HAND_ST] = _st;
+        _pt[HAND_3K] = _3k;
+        _pt[HAND_TP] = _tp;
+        _pt[HAND_JB] = _jb;
+        _pt[HAND_HC] = 0;
+        _pt[HAND_NOT_COMPUTABLE] = 0;
         payTables[settings.numPayTables] = _pt;
         settings.numPayTables++;
     }
@@ -473,7 +473,7 @@ contract VideoPoker is
         private
     {
         // Require game is not already finalized
-        assert(_game.handRank == uint8(HandRank.Undefined));
+        assert(_game.handRank == HAND_UNDEFINED);
 
         // Compute _dHand
         address _user = userAddresses[_game.userId];
@@ -519,7 +519,7 @@ contract VideoPoker is
 
         // Compute _handRank. be sure dHand is not empty
         uint8 _handRank = _dHand == 0
-            ? uint8(HandRank.NotComputable)
+            ? uint8(HAND_NOT_COMPUTABLE)
             : uint8(getHandRank(_dHand));
 
         // This only happens if draws==0, and iHand was drawable.
@@ -557,7 +557,7 @@ contract VideoPoker is
     //  won within a 255 block period is extremely low.
     function curMaxBet() public view returns (uint) {
         // Return largest bet such that RF*2*bet = bankrollable
-        uint _maxPayout = payTables[settings.curPayTableId][uint(HandRank.RoyalFlush)] * 2;
+        uint _maxPayout = payTables[settings.curPayTableId][HAND_RF] * 2;
         return bankrollAvailable() / _maxPayout;
     }
 
@@ -624,7 +624,7 @@ contract VideoPoker is
     {
         uint32 _dHand = getDHand(_id);
         return _dHand == 0
-            ? uint8(HandRank.NotComputable)
+            ? uint8(HAND_NOT_COMPUTABLE)
             : uint8(getHandRank(_dHand));
     }
 
@@ -659,6 +659,5 @@ contract VideoPoker is
     function numPayTables() public view returns (uint) {
         return settings.numPayTables;
     }
-
     /////////////////////////////////////////////////////
 }

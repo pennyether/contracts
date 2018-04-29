@@ -55,7 +55,7 @@ function compile(solFilepaths) {
 		return sources[filepath] = {content: fs.readFileSync(filepath).toString()};
 	});
 	const solc = require("solc");
-	const outputs = ["abi","evm.bytecode.object","devdoc","userdoc"];
+	const outputs = ["abi","evm.bytecode.object"];
 	if (options.showGasEstimates) outputs.push("evm.gasEstimates");
 
 	const solcInput = {
@@ -121,8 +121,6 @@ function handleResult(result){
 			const [name, obj] = entry;
 			const json = {
 				abi: obj.abi,
-				userdoc: obj.userdoc,
-				devdoc: obj.devdoc,
 				unlinked_binary: obj.evm.bytecode.object
 			};
 			const filepath = path.join(buildDir, `${name}.json`);

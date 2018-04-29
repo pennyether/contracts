@@ -1,20 +1,18 @@
 pragma solidity ^0.4.23;
 
 contract VideoPokerUtils {
-    enum HandRank {
-        Undefined,
-        RoyalFlush,
-        StraightFlush,
-        FourOfAKind,
-        FullHouse,
-        Flush,
-        Straight,
-        ThreeOfAKind,
-        TwoPair,
-        JacksOrBetter,
-        HighCard,
-        NotComputable
-    }
+    uint constant HAND_UNDEFINED = 0;
+    uint constant HAND_RF = 1;
+    uint constant HAND_SF = 2;
+    uint constant HAND_4K = 3;
+    uint constant HAND_FH = 4;
+    uint constant HAND_FL = 5;
+    uint constant HAND_ST = 6;
+    uint constant HAND_3K = 7;
+    uint constant HAND_TP = 8;
+    uint constant HAND_JB = 9;
+    uint constant HAND_HC = 10;
+    uint constant HAND_NOT_COMPUTABLE = 11;
 
     /*****************************************************/
     /********** PUBLIC PURE FUNCTIONS ********************/
@@ -81,11 +79,11 @@ contract VideoPokerUtils {
     // Looks at a hand of 5-cards, determines strictly the HandRank.
     // Gas Cost: up to 7k depending on hand.
     function getHandRank(uint32 _hand)
-        pure
         public
-        returns (HandRank)
+        pure
+        returns (uint)
     {
-        if (_hand == 0) return HandRank.NotComputable;
+        if (_hand == 0) return HAND_NOT_COMPUTABLE;
 
         uint _card;
         uint[] memory _valCounts = new uint[](13);
@@ -106,7 +104,7 @@ contract VideoPokerUtils {
         uint _val;
         for (_i=0; _i<5; _i++) {
             _card = readFromCards(_hand, _i);
-            if (_card > 51) return HandRank.NotComputable;
+            if (_card > 51) return HAND_NOT_COMPUTABLE;
             
             // update val and suit counts, and if it's a flush
             _val = _card % 13;
@@ -135,17 +133,17 @@ contract VideoPokerUtils {
 
         if (_numPairs > 0){
             // If they have quads, they can't have royal flush, so we can return.
-            if (_maxSet==4) return HandRank.FourOfAKind;
+            if (_maxSet==4) return HAND_4K;
             // One of the two pairs was the trips, so it's a full house.
-            if (_maxSet==3 && _numPairs==2) return HandRank.FullHouse;
+            if (_maxSet==3 && _numPairs==2) return HAND_FH;
             // Trips is their best hand (no straight or flush possible)
-            if (_maxSet==3) return HandRank.ThreeOfAKind;
+            if (_maxSet==3) return HAND_3K;
             // Two pair is their best hand (no straight or flush possible)
-            if (_numPairs==2) return HandRank.TwoPair;
+            if (_numPairs==2) return HAND_TP;
             // One pair is their best hand (no straight or flush possible)
-            if (_numPairs == 1 && (_pairVal >= 10 || _pairVal==0)) return HandRank.JacksOrBetter;
+            if (_numPairs == 1 && (_pairVal >= 10 || _pairVal==0)) return HAND_JB;
             // They have a low pair (no straight or flush possible)
-            return HandRank.HighCard;
+            return HAND_HC;
         }
 
         // They have no pair. Do they have a straight?
@@ -156,11 +154,11 @@ contract VideoPokerUtils {
             : _maxNonAce - _minNonAce == 4;
         
         // Check for hands in order of rank.
-        if (_hasStraight && _hasFlush && _minNonAce==9) return HandRank.RoyalFlush;
-        if (_hasStraight && _hasFlush) return HandRank.StraightFlush;
-        if (_hasFlush) return HandRank.Flush;
-        if (_hasStraight) return HandRank.Straight;
-        return HandRank.HighCard;
+        if (_hasStraight && _hasFlush && _minNonAce==9) return HAND_RF;
+        if (_hasStraight && _hasFlush) return HAND_SF;
+        if (_hasFlush) return HAND_FL;
+        if (_hasStraight) return HAND_ST;
+        return HAND_HC;
     }
 
     // Not used anywhere, but added for convenience
