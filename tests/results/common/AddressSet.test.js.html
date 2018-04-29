@@ -24,133 +24,133 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">AddressSet<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up AddressSet </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create an AddressSet<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: AddressSet.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 3678, 565940 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (202 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: AddressSet.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 4105, 565940 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (207 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Add / Remove not callable by non-owner<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .add() fails </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .remove() fails </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account1</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (22 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Add / Subtract from Ledger<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">We will test a large variety of cases.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 3681, 90103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 4108, 90103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account1</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (111 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (131 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account1</u>, {from: <u>owner</u>}) was successful (block 3682, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account1</u>, {from: <u>owner</u>}) was successful (block 4109, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account1</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns []<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (96 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (110 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 3683, 90103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 4110, 90103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account1</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (108 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (109 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account1 (again) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry already added<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 3684, 23777 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account1</u>, {from: <u>owner</u>}) was successful (block 4111, 23777 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account1</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (151 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (108 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account2</u>, {from: <u>owner</u>}) was successful (block 3685, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account2</u>, {from: <u>owner</u>}) was successful (block 4112, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account2</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (108 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (133 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 3686, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 4113, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account2</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (115 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (116 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account2 (again) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry already removed.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 3687, 23810 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 4114, 23810 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account2</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (103 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (164 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account2</u>, {from: <u>owner</u>}) was successful (block 3688, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account2</u>, {from: <u>owner</u>}) was successful (block 4115, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account2</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (107 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (117 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account3 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account3</u>, {from: <u>owner</u>}) was successful (block 3689, 75039 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account3</u>, {from: <u>owner</u>}) was successful (block 4116, 75039 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account3</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account3</u>, <u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (115 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (125 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account4 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account4</u>, {from: <u>owner</u>}) was successful (block 3690, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account4</u>, {from: <u>owner</u>}) was successful (block 4117, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 4<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account4</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account4</u>, <u>account3</u>, <u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (116 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (130 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Add account5 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account5</u>, {from: <u>owner</u>}) was successful (block 3691, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.add(<u>account5</u>, {from: <u>owner</u>}) was successful (block 4118, 75103 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 5<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account5</u>) returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account5</u>, <u>account4</u>, <u>account3</u>, <u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (124 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (140 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account3 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account3</u>, {from: <u>owner</u>}) was successful (block 3692, 22890 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account3</u>, {from: <u>owner</u>}) was successful (block 4119, 22890 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 4<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account3</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account5</u>, <u>account4</u>, <u>account2</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (126 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (133 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 3693, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account2</u>, {from: <u>owner</u>}) was successful (block 4120, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account2</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account5</u>, <u>account4</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (113 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (133 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account4 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account4</u>, {from: <u>owner</u>}) was successful (block 3694, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account4</u>, {from: <u>owner</u>}) was successful (block 4121, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account4</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account5</u>, <u>account1</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (175 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (122 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account1</u>, {from: <u>owner</u>}) was successful (block 3695, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account1</u>, {from: <u>owner</u>}) was successful (block 4122, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account1</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns [<u>account5</u>]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (101 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (117 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account5 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be deleted<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account5</u>, {from: <u>owner</u>}) was successful (block 3696, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>set</u>.remove(<u>account5</u>, {from: <u>owner</u>}) was successful (block 4123, 22922 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.size.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.has.call(<u>account5</u>) returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>set</u>.addresses.call() returns []<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (95 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (100 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED SUCCESSFULLY </b><span style="color:#000"> ===========
 
-  <span style="color:#0A0"><b>18</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 2.24s
+  <span style="color:#0A0"><b>18</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 2.38s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>

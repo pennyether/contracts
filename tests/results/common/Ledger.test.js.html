@@ -24,113 +24,113 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Ledger<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Ledger </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create a Ledger<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Ledger.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 3729, 622590 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (207 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Ledger.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 4156, 622590 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (201 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Add / Subtract not callable by non-owner<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .add() fails </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account1</u>, 1000 GWei, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (38 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .subtract() fails </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 1000 GWei, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (25 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Add / Subtract from Ledger<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Each of these tests asserts expected ledgerTotal and mappings.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">We will test a large variety of cases.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds to account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account1</u>, 2 GWei, {from: <u>owner</u>}) was successful (block 3732, 110882 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account1</u>, 2 GWei, {from: <u>owner</u>}) was successful (block 4159, 110882 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account1</u>) returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>], [2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (117 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (122 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes some of account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be decreased.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 3733, 34593 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 4160, 34593 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account1</u>) returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>], [1 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (108 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (116 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes rest of account1, when high value passed </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be removed from ledger.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 5 GWei, {from: <u>owner</u>}) was successful (block 3734, 28250 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 5 GWei, {from: <u>owner</u>}) was successful (block 4161, 28250 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account1</u>) returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (108 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (106 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account2</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 3735, 110882 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account2</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 4162, 110882 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account2</u>) returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account2</u>], [1 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (109 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (172 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds more to account2 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be increased.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account2</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 3736, 34615 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account2</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 4163, 34615 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account2</u>) returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account2</u>], [2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (104 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (105 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds account3 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account3</u>, 3 GWei, {from: <u>owner</u>}) was successful (block 3737, 95818 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account3</u>, 3 GWei, {from: <u>owner</u>}) was successful (block 4164, 95818 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 5 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account3</u>) returns 3 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account3</u>, <u>account2</u>], [3 GWei, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (124 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (133 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds account4 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account4</u>, 4 GWei, {from: <u>owner</u>}) was successful (block 3738, 95882 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account4</u>, 4 GWei, {from: <u>owner</u>}) was successful (block 4165, 95882 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 9 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account4</u>) returns 4 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account4</u>, <u>account3</u>, <u>account2</u>], [4 GWei, 3 GWei, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (186 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (123 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Adds account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be added to front of mappings.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 3739, 95882 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.add(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 4166, 95882 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 10 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account1</u>) returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>, <u>account4</u>, <u>account3</u>, <u>account2</u>], [1 GWei, 4 GWei, 3 GWei, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (122 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (140 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account3 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be removed from ledger.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account3</u>, 3 GWei, {from: <u>owner</u>}) was successful (block 3740, 28186 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account3</u>, 3 GWei, {from: <u>owner</u>}) was successful (block 4167, 28186 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 7 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account3</u>) returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>, <u>account4</u>, <u>account2</u>], [1 GWei, 4 GWei, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (127 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (130 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Leaves 1 wei in account4 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be decreased.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 3.999999999 GWei, {from: <u>owner</u>}) was successful (block 3741, 34657 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 3.999999999 GWei, {from: <u>owner</u>}) was successful (block 4168, 34657 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 3.000000001 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account4</u>) returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>, <u>account4</u>, <u>account2</u>], [1 GWei, 1, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (107 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (121 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account4 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be removed from ledger.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 1, {from: <u>owner</u>}) was successful (block 3742, 28154 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 1, {from: <u>owner</u>}) was successful (block 4169, 28154 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 3 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account4</u>) returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account1</u>, <u>account2</u>], [1 GWei, 2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (111 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (118 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry should be removed from ledger.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 3743, 28218 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account1</u>, 1 GWei, {from: <u>owner</u>}) was successful (block 4170, 28218 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account1</u>) returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account2</u>], [2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (107 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (121 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Removes account1 (again) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Entry doesn't exist. Nothing should change.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 4 GWei, {from: <u>owner</u>}) was successful (block 3744, 24139 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>ledger</u>.subtract(<u>account4</u>, 4 GWei, {from: <u>owner</u>}) was successful (block 4171, 24139 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.total.call() returns 2 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balanceOf.call(<u>account4</u>) returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>ledger</u>.balances.call() returns [[<u>account2</u>], [2 GWei]]<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (107 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (112 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED SUCCESSFULLY </b><span style="color:#000"> ===========
 
-  <span style="color:#0A0"><b>15</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 1.93s
+  <span style="color:#0A0"><b>15</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 2.01s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>

@@ -22,17 +22,17 @@
 
 <span style="color:#AAA">├ <span style="color:#000"> <b>File: tests/Comptroller.test.js</b> </span></span></span></span> 
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is not met and hard cap is not met<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5395 to 5396.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 387 to 388.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Treasury, and create Comptroller. </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, and register Admin<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 5397, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 5398, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 389, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 390, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 5399, 3771592 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 391, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by dummyWallet.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 5400, 3011324 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 392, 3011324 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 5401, 51144 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 393, 51144 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
@@ -40,14 +40,14 @@
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0xd31b118ff92749970d3ab6e1ce6c6c0a5ff21395<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0xabb8bb28e76057c2b560c16a980246f8be462673<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x1125f3d76e794845055bc476b4a776cbdca009a9<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x8abe27af12700ae573ce960c8b6a009204a19a97<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x9535521a64edf9ba38cadffec76a47a7023c32eb<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x6027b9c4e319c234ca17c4ad579bf843b8768f65<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0xf70e31c8a170112d77c1e198aa4d6668ea4502d6<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0x0d31b8a0ac02e2d75d5d8a38ff9f720faad4776c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x99cc93f6c8f15512f8d8c7802ae62ed594be4472<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x4a1a1d4dbbb04638e09adaebf085b0e84c82932f<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x5ebc34ff327219fb76573d8241bdaa0259742f2b<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x2f08ad5a0490965f69b206abe4dd02d2be13d8c8<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (2001 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (891 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() returns <u>wallet</u><span style="color:#000"> </span></span></span></span> 
@@ -59,65 +59,65 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSoftCapMet.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (191 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (239 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fund() doesn't work (sale not yet started) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5402, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 394, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (196 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (52 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1658115061, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1541745993, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (31 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5404, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 396, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (815 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (681 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, 1, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (6 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (5 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658115078 GWei, 1.658115108 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.541746012 GWei, 1.541746042 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658115078 GWei, 1.658115108 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (55 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.541746012 GWei, 1.541746042 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if capitalPctBips > 10000 </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658115078 GWei, 1.658115108 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (142 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.541746012 GWei, 1.541746042 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (26 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658115078 GWei, 1.658115108 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 5408, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (197 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.541746012 GWei, 1.541746042 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 400, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (56 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 16 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 18 seconds.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658115078 GWei, 1.658115108 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 5409, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.541746012 GWei, 1.541746042 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 401, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.658115078 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.658115108 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.541746012 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.541746042 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() returns 0.01 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() returns 0.03 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() returns 0.02 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.capitalPctBips.call() returns 2500<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (446 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (280 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5410, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 402, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (179 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (47 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5410 to 5411.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 16 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (499 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 402 to 403.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 18 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (518 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
@@ -125,7 +125,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00718 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 5412, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 404, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
@@ -138,92 +138,92 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1156 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1007 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1658115080, dateSaleEnded: 1658115108<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1541746013, dateSaleEnded: 1541746042<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (15 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (5 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5414, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 406, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (790 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (611 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends in failure.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast-forward to end of CrowdSale </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5414 to 5415.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 28 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (623 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 406 to 407.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 29 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (620 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can now be ended. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should fail, since soft cap not met.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Tokens should remain frozen.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 5416, 71592 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 408, 71592 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleFailed()' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSoftCapMet.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (370 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (115 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">After the ICO (soft cap not met)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Wallet owns PennyEther<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Wallet owns more than 99.9999999% of tokens </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Wallet owns 1000000000000.00000 tokens of 1000000000000.00718 tokens<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (40 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (42 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Refunding works<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Can refund account1 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Account should be refunded 0.00500 ETH for 0.00718 tokens.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <u>account1</u>}) was successful (block 5417, 22052 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <u>account1</u>}) was successful (block 409, 22052 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(time, account, refund)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by -0.005 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0.005 ETH but lost txFee (110260 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (805 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (647 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot refund account1 again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (44 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (26 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Comptroller has no remaining balance </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Everyone has been refunded.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>comptroller</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (110 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (99 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Cannot fund capital to Treasury<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Make Treasury need 1e10 ETH in capital </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Treasury has a surplus of capital by 0.00000 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Will increase capitalRaisedTarget by 1.00000 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 1 ETH, "", {from: <u>admin</u>}) was successful (block 5419, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 1 ETH, "", {from: <u>admin</u>}) was successful (block 411, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5419 to 5420.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 411 to 412.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 5421, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 413, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ExecutedRaiseCapital(amount)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 1 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1028 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (654 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() does not work </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 5422, 32553 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 414, 32553 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained 0 Wei but lost txFee (162765 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (940 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (710 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is met and hard cap is not met<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5422 to 5423.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 414 to 415.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Treasury, and create Comptroller. </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, and register Admin<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 5424, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 5425, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 416, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 417, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 5426, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 418, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by dummyWallet.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 5427, 3011324 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 419, 3011324 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 5428, 51144 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 420, 51144 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
@@ -231,14 +231,14 @@
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0xd31b118ff92749970d3ab6e1ce6c6c0a5ff21395<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x5803682e13dfd1c334ea6e122c69ca1569e613dc<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x9dec9e2ea4fa9c7bed58c42d6c6055353514392b<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x3278c2342e288a7db8f076c8af50f87005f02a3a<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0xd62aa585d365e758a2ea7843cad125ee9181ef15<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0x03d58ab46fec07b1a64e3d7671c036d20c61cdaa<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x29bae1d26469b3f9c10d1c259dabb47cdcc4653e<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0x0d31b8a0ac02e2d75d5d8a38ff9f720faad4776c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x40a96cdc9608c1770810c6c31caa51ac33466ac5<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x08518f835be47f499b3d956cb02e490751d613cb<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x5db382186d468088ec978490de9f13779119eecc<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0xd37a718d2f69ef898df772d6d9ab62f9a652cb29<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1811 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (790 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() returns <u>wallet</u><span style="color:#000"> </span></span></span></span> 
@@ -250,65 +250,65 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSoftCapMet.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (190 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (166 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fund() doesn't work (sale not yet started) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5429, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 421, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (190 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (75 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1658719917, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542350849, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5431, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 423, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (847 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (633 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, 1, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (5 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658719935 GWei, 1.658719965 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (34 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542350868 GWei, 1.542350898 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658719935 GWei, 1.658719965 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (58 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542350868 GWei, 1.542350898 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (26 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if capitalPctBips > 10000 </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658719935 GWei, 1.658719965 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (47 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542350868 GWei, 1.542350898 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658719935 GWei, 1.658719965 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 5435, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (210 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542350868 GWei, 1.542350898 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 427, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (47 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 17 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 18 seconds.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.658719935 GWei, 1.658719965 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 5436, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542350868 GWei, 1.542350898 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 428, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.658719935 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.658719965 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.542350868 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.542350898 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() returns 0.01 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() returns 0.03 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() returns 0.02 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.capitalPctBips.call() returns 2500<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (523 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (305 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5437, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 429, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (168 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (47 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5437 to 5438.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 17 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (484 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 429 to 430.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 18 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (488 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
@@ -316,7 +316,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00718 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 5439, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 431, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
@@ -329,24 +329,24 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1070 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (921 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1658719937, dateSaleEnded: 1658719965<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542350869, dateSaleEnded: 1542350898<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (22 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5441, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 433, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (789 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (638 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the soft cap...<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account2 buys some tokens (should meet soft cap) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 31.25% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
@@ -354,7 +354,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00500 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00656 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Soft Cap of 0.01000 ETH will be met.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 5442, 75267 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 434, 75267 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
@@ -364,7 +364,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0.01375 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1143 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (841 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account3 buys some tokens (should meet bonus cap) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Note: We send just a little more than exceeds bonus cap<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This more thoroughly tests the bonus computation.<span style="color:#000"></span></span></i>  
@@ -374,7 +374,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.01000 ETH. Will raise another: 0.01010 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.01010 ETH to 0.01135 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Bonus Cap of 0.02000 ETH will be met.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 5443, 75254 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 435, 75254 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.0101 ETH.<span style="color:#000"> </span></span></span></span> 
@@ -384,35 +384,35 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0.0251 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1067 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (844 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1658719940, dateSaleEnded: 1658719965<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542350872, dateSaleEnded: 1542350898<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (22 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5445, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 437, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (782 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (646 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends successfully.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast-forward to end of CrowdSale </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5445 to 5446.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 25 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (670 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 437 to 438.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 26 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (602 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can now be ended. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should succeed:<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Total Raised: 0.02010 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Treasury should get capital: 0.00502 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should get remaining: 0.01507 ETH<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 5447, 209392 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 439, 209392 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleSuccessful()' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalRaised(amount)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns true<span style="color:#000"> </span></span></span></span> 
@@ -433,34 +433,34 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Check that TokenLocker has proper vesting<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingAmt.call() returns 0.006275 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingStartDay.call() returns 19198<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingStartDay.call() returns 17851<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingDays.call() returns 600<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1664 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1402 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">After the ICO (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.refund() does nothing (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() for account1 fails </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (25 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Raising capital works<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Make Treasury need 1e18 ETH in capital </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Treasury has a surplus of capital by 0.00502 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Will increase capitalRaisedTarget by 0.01000 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 0.015025 ETH, "", {from: <u>admin</u>}) was successful (block 5449, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 0.015025 ETH, "", {from: <u>admin</u>}) was successful (block 441, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5449 to 5450.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 441 to 442.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 5451, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 443, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ExecutedRaiseCapital(amount)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0.01 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1049 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (652 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will fund capital: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00500 ETH tokens...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.005 ETH}) was successful (block 5452, 83147 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.005 ETH}) was successful (block 444, 83147 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalRaised(time, amount)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
@@ -471,12 +471,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 0.010025 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0.010025 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0.005 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1429 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1231 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() works, limiting amount to amount needed </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will fund capital: 0.15000 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will only convert 0.00500 ETH to 0.00500 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">0.14500 ETH will be refunded.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.15 ETH}) was successful (block 5453, 92452 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.15 ETH}) was successful (block 445, 92452 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(account, refund)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -488,25 +488,25 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 0.015025 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0.015025 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1425 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1218 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() does not work if 0 needed </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 5454, 35792 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 446, 35792 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained 0 Wei but lost txFee (178960 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (786 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (637 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Test Case where softCap is met and hard cap is met<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5454 to 5455.<span style="color:#000"> </span></span></b></span></span> 
+<span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 446 to 447.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up Treasury, and create Comptroller. </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, and register Admin<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 5456, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 5457, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>regOwner</u>, {from: <u>anon</u>}) was successful (block 448, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>regOwner</u>}) was successful (block 449, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, which points to registry.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 5458, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>wallet</u>, {from: <u>anon</u>}) was successful (block 450, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Comptroller, owned by dummyWallet.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 5459, 3011260 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Comptroller.new(<u>wallet</u>, <u>treasury</u>, {from: <u>anon</u>}) was successful (block 451, 3011324 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Init Treasury to point to Comptroller and Token<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 5460, 51080 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller([<u>comptroller</u>], {from: <u>wallet</u>}) was successful (block 452, 51144 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account1:            0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  account2:            0x5048b489a37d552285368f52cc661b189a1f25b0<span style="color:#000"> </span></span></span></span> 
@@ -514,14 +514,14 @@
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  accountWithNoTokens: 0x28428219b2a75191775d55abfa0c9b49b6d068e0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:               0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:                0xd31b118ff92749970d3ab6e1ce6c6c0a5ff21395<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x4f9ae046518dc542ed6b634000428980a8844224<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0xb0a81533b6ce440ce664350139edb5d6425f5012<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0x998a1879409a14d2dc387bda95a8e78f6e611354<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  comptroller:         0x42d2e97ae9108968c32a43a70625c73db65c65fb<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  locker:              0xe7206a34166e257c758809ebab41bbf7b3ff57ba<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:            0xba74e579f846d8b1371d1bab141b1feabd6a29c7<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  regOwner:            0x0d31b8a0ac02e2d75d5d8a38ff9f720faad4776c<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0x2977c131a92e51652b9cdd5737c148eb2c5f8c17<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0x0a8a00446e792193f611abaa14c5f28a8a288faf<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  token:               0xd30b4a63a5bbce15bfbff4765de127cde0b65329<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:            0xc298e8d94c9b26f5ba112037876175352ac49de3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  wallet:              0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1685 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (839 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Comptroller is initialized correctly<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> before: Has correct state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wallet.call() returns <u>wallet</u><span style="color:#000"> </span></span></span></span> 
@@ -533,65 +533,65 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSoftCapMet.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (191 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (162 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fund() doesn't work (sale not yet started) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5461, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 453, 32269 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (180 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (49 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1659324777, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542955708, dateSaleEnded: 0<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (18 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5463, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 455, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (768 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (619 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">.initSale()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> not callable by anon </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1, 3, 2, 1, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if softCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.659324795 GWei, 1.659324825 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542955726 GWei, 1.542955756 GWei, 3, 2, 1, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (33 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if bonusCap > hardCap </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.659324795 GWei, 1.659324825 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (54 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542955726 GWei, 1.542955756 GWei, 1, 2, 3, 1, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> fails if capitalPctBips > 10000 </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.659324795 GWei, 1.659324825 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (49 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542955726 GWei, 1.542955756 GWei, 1, 2, 3, 10001, {from: <u>wallet</u>}) failed<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> works from owner </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.659324795 GWei, 1.659324825 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 5467, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (191 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542955726 GWei, 1.542955756 GWei, 1, 3, 2, 1, {from: <u>wallet</u>}) was successful (block 459, 145017 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (53 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> can be called again, since sale has not started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 16 seconds.<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will start in 17 seconds.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">CrowdSale will end 30 seconds after it starts.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.659324795 GWei, 1.659324825 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 5468, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.initSale(1.542955726 GWei, 1.542955756 GWei, 0.01 ETH, 0.03 ETH, 0.02 ETH, 2500, {from: <u>wallet</u>}) was successful (block 460, 55849 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.659324795 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.659324825 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleStarted.call() returns 1.542955726 GWei<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.dateSaleEnded.call() returns 1.542955756 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.softCap.call() returns 0.01 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.hardCap.call() returns 0.03 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.bonusCap.call() returns 0.02 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.capitalPctBips.call() returns 2500<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (515 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (370 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale starting<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Is not started yet. </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5469, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 461, 32479 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (172 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (58 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Fast forward to date started </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5469 to 5470.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 16 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (493 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 461 to 462.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 18 seconds<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (498 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Account1 can buy some tokens<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 43.75% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
@@ -599,7 +599,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00000 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00718 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**This starts the sale.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 5471, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.005 ETH}) was successful (block 463, 146902 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
@@ -612,24 +612,24 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleStarted()' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1060 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (848 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1659324796, dateSaleEnded: 1659324825<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542955728, dateSaleEnded: 1542955756<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (19 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (17 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (34 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5473, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 465, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (786 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (650 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the soft cap...<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account2 buys some tokens (should meet soft cap) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Will receive 31.25% bonus on 0.00500 ETH.<span style="color:#000"></span></span></i>  
@@ -637,7 +637,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.00500 ETH. Will raise another: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00656 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Soft Cap of 0.01000 ETH will be met.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 5474, 75267 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.005 ETH}) was successful (block 466, 75267 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.005 ETH.<span style="color:#000"> </span></span></span></span> 
@@ -647,7 +647,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0.01375 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1070 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (848 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account3 buys some tokens (should meet bonus cap) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Note: We send just a little more than exceeds bonus cap<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This more thoroughly tests the bonus computation.<span style="color:#000"></span></span></i>  
@@ -657,7 +657,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">TotalRaised: 0.01000 ETH. Will raise another: 0.01010 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.01010 ETH to 0.01135 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Bonus Cap of 0.02000 ETH will be met.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 5475, 75254 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account3</u>, value: 0.0101 ETH}) was successful (block 467, 75254 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> changed by 0.0101 ETH.<span style="color:#000"> </span></span></span></span> 
@@ -667,24 +667,24 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0.0251 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1048 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (840 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">During sale, several functions don't work.<span style="color:#000"> </span></span></b></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1659324800, dateSaleEnded: 1659324825<span style="color:#000"></span></span></i>  
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">Blocktime: 1542955730, dateSaleEnded: 1542955756<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Check state </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns false<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (16 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .endSale() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() doesn't work. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <undefined>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (16 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (4 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() doesn't work. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 5477, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account1</u>, value: 0.001 ETH}) was successful (block 469, 32313 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account1</u> gained 0 Wei but lost txFee (161565 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (789 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (637 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Meet the hard cap...<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Account1 buys some tokens (should meet hard cap) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Note: We send just a bit more than exceeds the Hard Cap.<span style="color:#000"></span></span></i>  
@@ -695,7 +695,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will only convert 0.00990 ETH to tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">0.01000 ETH will be refunded.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">**Hard Cap of 0.03000 ETH will be met.**<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.0199 ETH}) was successful (block 5478, 69953 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account1</u>, value: 0.0199 ETH}) was successful (block 470, 69953 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(account, refund)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -706,18 +706,18 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.totalSupply.call() returns 0.035 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleStarted.call() returns true<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1111 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (918 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot buy more tokens </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.001 ETH}) was successful (block 5479, 33127 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fund({from: <u>account2</u>, value: 0.001 ETH}) was successful (block 471, 33127 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (183 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (46 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">CrowdSale ends successfully.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Sale can immediately be ended. </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Sale should succeed:<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Total Raised: 0.03000 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Treasury should get capital: 0.00750 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">  - Wallet should get remaining: 0.02250 ETH<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 5480, 209182 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.endSale({from: <u>anon</u>}) was successful (block 472, 209182 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'SaleSuccessful()' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalRaised(amount)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>comptroller</u>.wasSaleEnded.call() returns true<span style="color:#000"> </span></span></span></span> 
@@ -738,34 +738,34 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>token</u>.isFrozen.call() returns false<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Check that TokenLocker has proper vesting<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingAmt.call() returns 0.00875 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingStartDay.call() returns 19205<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingStartDay.call() returns 17858<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>locker</u>.vestingDays.call() returns 600<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1673 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1360 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">After the ICO (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.refund() does nothing (soft cap met)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .refund() for account1 fails </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.refund({from: <u>account1</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (27 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Raising capital works<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Make Treasury need 1e18 ETH in capital </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Treasury has a surplus of capital by 0.00750 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Will increase capitalRaisedTarget by 0.01000 ETH.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 0.0175 ETH, "", {from: <u>admin</u>}) was successful (block 5482, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, 0, 0.0175 ETH, "", {from: <u>admin</u>}) was successful (block 474, 162262 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 5482 to 5483.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 474 to 475.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 5484, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(1, {from: <u>admin</u>}) was successful (block 476, 123646 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ExecutedRaiseCapital(amount)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0.01 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (964 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (698 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will fund capital: 0.00500 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will convert 0.00500 ETH to 0.00500 ETH tokens...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.005 ETH}) was successful (block 5485, 83147 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.005 ETH}) was successful (block 477, 83147 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalRaised(time, amount)' event was found from <u>treasury</u><span style="color:#000"> </span></span></span></span> 
@@ -776,12 +776,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 0.0125 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0.0125 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0.005 ETH<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1455 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1216 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() works, limiting amount to amount needed </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will fund capital: 0.15000 ETH<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Will only convert 0.00500 ETH to 0.00500 ETH tokens...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">0.14500 ETH will be refunded.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.15 ETH}) was successful (block 5486, 92452 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 0.15 ETH}) was successful (block 478, 92452 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 2 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensSuccess(account, funded, numTokens)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'UserRefunded(account, refund)' log was found<span style="color:#000"> </span></span></span></span> 
@@ -793,17 +793,17 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 0.0175 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0.0175 ETH<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1420 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1200 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .fundCapital() does not work if 0 needed </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 5487, 35792 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>comptroller</u>.fundCapital({from: <u>account3</u>, value: 10 GWei}) was successful (block 479, 35792 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'BuyTokensFailure(time, account, reason)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>comptroller</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>account3</u> gained 0 Wei but lost txFee (178960 GWei)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (816 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (647 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED SUCCESSFULLY </b><span style="color:#000"> ===========
 
-  <span style="color:#0A0"><b>86</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 47.17s
+  <span style="color:#0A0"><b>86</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 35.32s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>
