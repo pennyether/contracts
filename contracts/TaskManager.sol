@@ -131,7 +131,7 @@ contract TaskManager is
     {
         // get amount of profits
         ITreasury _tr = getTreasury();
-        _profits = _tr.profits();
+        _profits = _tr.profitsSendable();
         // quit if no profits to send.
         if (_profits == 0) {
             _taskError("No profits to send.");
@@ -156,7 +156,7 @@ contract TaskManager is
         view
         returns (uint _reward, uint _profits)
     {
-        _profits = getTreasury().profits();
+        _profits = getTreasury().profitsSendable();
         _reward = _cappedReward((_profits * issueDividendRewardBips) / 10000);
     }
 

@@ -82,22 +82,22 @@ function saveAllTests() {
 	}
 
 	const testFiles = [
-		// "CustodialWallet.test.js",
-		// "DividendToken.test.js",
-		// "DividendTokenLocker.test.js",
-		// "Treasury.test.js",
-		// "Comptroller.test.js",
-		// "Registry.test.js",
-		// "TaskManager.test.js",
-		// "games/InstaDice.test.js",
-		// "games/VideoPoker.test.js",
-		// "games/VideoPokerUtils.test.js",
-		// "games/MonarchyGame.test.js",
-		// "games/MonarchyFactory.test.js",
-		// "games/MonarchyController.test.js",
-		// "common/AddressSet.test.js",
-		// "common/Bankrollable.test.js",
-		// "common/Ledger.test.js"
+		"CustodialWallet.test.js",
+		"DividendToken.test.js",
+		"DividendTokenLocker.test.js",
+		"Treasury.test.js",
+		"Comptroller.test.js",
+		"Registry.test.js",
+		"TaskManager.test.js",
+		"games/InstaDice.test.js",
+		"games/VideoPoker.test.js",
+		"games/VideoPokerUtils.test.js",
+		"games/MonarchyGame.test.js",
+		"games/MonarchyFactory.test.js",
+		"games/MonarchyController.test.js",
+		"common/AddressSet.test.js",
+		"common/Bankrollable.test.js",
+		"common/Ledger.test.js"
 	]
 	var p = Promise.resolve();
 	testFiles.forEach(async function(testfile){

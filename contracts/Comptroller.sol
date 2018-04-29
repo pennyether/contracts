@@ -61,7 +61,7 @@ PERMISSIONS
         - During CrowdSale
         - When raising capital for Treasury
     - token.burn(address, amount)
-        - After successful CrowdSale, burns owner's 1 token
+        - never called
 
   The following addresses have permission on Comptroller:
     - Owner Wallet (permanent):
@@ -102,7 +102,7 @@ contract Comptroller {
     // These values are set in the constructor and can never be changed.
     address public wallet;              // Wallet can call .initSale().
     _ICompTreasury public treasury;     // Location of the treasury.
-    DividendToken public token;         // Token contract that can mint / burn tokens
+    DividendToken public token;         // Token contract
     DividendTokenLocker public locker;  // Locker that holds PennyEther's tokens.
 
     // These values are set on .initSale()
@@ -140,9 +140,6 @@ contract Comptroller {
         treasury = _ICompTreasury(_treasury);
         token = new DividendToken("PennyEtherToken", "PENNY");
         locker = new DividendTokenLocker(token, _wallet);
-        // When initialized, the wallet should own the only token.
-        // Ensure it is not transferrable, since we'll burn it after CrowdSale.
-        token.mint(wallet, 1);
         token.freeze(true);
         emit Created(now, wallet, treasury, token, locker);
     }
@@ -270,8 +267,7 @@ contract Comptroller {
             return;
         }
 
-        // Burn wallet's 1 token, and allow tokens to be transferred.
-        token.burn(wallet, 1);
+        // Unfreeze tokens
         token.freeze(false);
 
         // Mint 1/4 to locker (resuling in 20%), and start vesting.

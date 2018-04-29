@@ -35,13 +35,12 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
         var locker;
 
         testUtil.mineBlocks(1);
-        const DAILY_LIMIT = new BigNumber(1e14);
         const DATE_STARTED = testUtil.getBlockTime() + 20;
         const DATE_ENDED = DATE_STARTED + 30;
         const SOFT_CAP = new BigNumber(1e16);
         const BONUS_CAP = new BigNumber(2e16);
         const HARD_CAP = new BigNumber(3e16);
-        const CAPITAL_PCT_BIPS = new BigNumber(750);
+        const CAPITAL_PCT_BIPS = new BigNumber(2500);
 
         before("Set up Treasury, and create Comptroller.", async function(){
             await createDefaultTxTester().nameAddresses({
@@ -88,10 +87,8 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     });
                 }).start();
 
-            this.logInfo("Init Treasury to point to Comptroller and Token, set Daily limit");
+            this.logInfo("Init Treasury to point to Comptroller and Token");
             await createDefaultTxTester()
-                .doTx([treasury, "initToken", [token.address], {from: wallet}])
-                .assertSuccess()
                 .doTx([treasury, "initComptroller", [comptroller.address], {from: wallet}])
                 .assertSuccess()
                 .start();
@@ -109,7 +106,8 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                     .assertCallReturns([comptroller, "wasSaleStarted"], false)
                     .assertCallReturns([comptroller, "wasSaleEnded"], false)
                     .assertCallReturns([comptroller, "wasSoftCapMet"], false)
-                    .assertCallReturns([token, "balanceOf", wallet], 1)
+                    .assertCallReturns([token, "totalSupply"], 0)
+                    .assertCallReturns([token, "isFrozen"], true)
                     .start();
             })
             it(".fund() doesn't work (sale not yet started)", function(){
@@ -235,7 +233,7 @@ async function testCase(MEET_SOFT_CAP, MEET_HARD_CAP) {
                 it(itStr, async function(){
                     // treasury should get .5 for all burnable, plus capital
                     const totalRaised = await comptroller.totalRaised();
-                    const expTotalSupply = (await token.totalSupply()).minus(1).mul(1.25);
+                    const expTotalSupply = (await token.totalSupply()).mul(1.25);
                     const expCapital = totalRaised.mul(CAPITAL_PCT_BIPS.div(10000)).floor();
                     const expWalletDelta = totalRaised.minus(expCapital);
                     // these should not change

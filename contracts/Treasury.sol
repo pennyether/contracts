@@ -232,7 +232,7 @@ The Treasury manages 2 balances:
 
     * profits: Ether received via fallback fn. Can be sent to Token at any time.
         - Are received via fallback function, typically by bankrolled contracts.
-        - Can be sent to Token at any time, by anyone, via .distributeToToken()
+        - Can be sent to Token at any time, by anyone, via .issueDividend()
 
 All Ether entering and leaving Treasury is allocated to one of the three balances.
 Thus, the balance of Treasury will always equal: capital + profits.
@@ -241,9 +241,9 @@ Roles:
     Owner:       can set Comptroller and Token addresses, once.
     Comptroller: can add and remove "raised" capital
     Admin:       can trigger requests.
-    Token:       receives profits via .distributeToToken().
-    Anybody:     can call .distributeToToken() for a .1% reward
-                 can add capital
+    Token:       receives profits via .issueDividend().
+    Anybody:     can call .issueDividend()
+                 can call .addCapital()
 
 */
 // Allows Treasury to add/remove capital to/from Bankrollable instances.
@@ -251,39 +251,38 @@ interface _ITrBankrollable {
     function removeBankroll(uint _amount, string _callbackFn) external;
     function addBankroll() external payable;
 }
+interface _ITrComptroller {
+    function treasury() public view returns (address);
+    function token() public view returns (address);
+    function wasSaleEnded() public view returns (bool);
+}
 
 contract Treasury is
     Requestable
 {
-    // Address that can initToken and initComptroller
+    // Address that can initComptroller
     address public owner;
-    // Address that dividends are sent to. Settable once (by owner).
-    address public token;
-    // Address that can adjust reserve. Settable once (by owner).
-    address public comptroller;
+    // Capital sent from this address is considered "capitalRaised"
+    // This also contains the token that dividends will be sent to.
+    _ITrComptroller public comptroller;
 
     // Balances
-    uint public capital;  // Ether held as capital. Spendable/Recoverable via Requests
-    uint public profits;  // Ether received via fallback fn, distributable to Token.
+    uint public capital;  // Ether held as capital. Sendable/Recallable via Requests
+    uint public profits;  // Ether received via fallback fn. Distributable only to Token.
     
     // Capital Management
     uint public capitalRaised;        // The amount of capital raised from Comptroller.
     uint public capitalRaisedTarget;  // The target amount of capitalRaised.
-    Ledger public capitalLedger;      // Tracks capital sent per address
+    Ledger public capitalLedger;      // Tracks capital allocated per address
 
     // Stats
     uint public profitsSent;          // Total profits ever sent.
     uint public profitsTotal;         // Total profits ever received.
 
-    // for functions only callable by Comptroller
-    modifier fromComptroller() { require(msg.sender==comptroller); _; }
-    modifier fromOwner(){ require(msg.sender==owner); _; }
-
     // EVENTS
     event Created(uint time);
     // Admin triggered events
-    event TokenSet(uint time, address sender, address token);
-    event ComptrollerSet(uint time, address sender, address comptroller);
+    event ComptrollerSet(uint time, address comptroller, address token);
     // capital-related events
     event CapitalAdded(uint time, address indexed sender, uint amount);
     event CapitalRemoved(uint time, address indexed recipient, uint amount);
@@ -317,24 +316,18 @@ contract Treasury is
     /*************** OWNER FUNCTIONS *****************************/
     /*************************************************************/
 
-    // Callable once to set the Token address
-    function initToken(address _token)
-        public
-        fromOwner
-    {
-        require(token == address(0));
-        token = _token;
-        emit TokenSet(now, msg.sender, _token);
-    }
-
     // Callable once to set the Comptroller address
-    function initComptroller(address _comptroller)
+    function initComptroller(_ITrComptroller _comptroller)
         public
-        fromOwner
     {
-        require(comptroller == address(0));
+        // only owner can call this.
+        require(msg.sender == owner);
+        // comptroller must not already be set.
+        require(address(comptroller) == address(0));
+        // comptroller's treasury must point to this.
+        require(_comptroller.treasury() == address(this));
         comptroller = _comptroller;
-        emit ComptrollerSet(now, msg.sender, _comptroller);  
+        emit ComptrollerSet(now, _comptroller, comptroller.token());
     }
 
 
@@ -355,11 +348,15 @@ contract Treasury is
         returns (uint _profits)
     {
         // Ensure token is set.
-        if (token == address(0)) {
-            emit DividendFailure(now, "No address to send to.");
+        if (address(comptroller) == address(0)) {
+            emit DividendFailure(now, "Comptroller not yet set.");
             return;
         }
-
+        // Ensure the CrowdSale is completed
+        if (comptroller.wasSaleEnded() == false) {
+            emit DividendFailure(now, "CrowdSale not yet completed.");
+            return;
+        }
         // Load _profits to memory (saves gas), and ensure there are profits.
         _profits = profits;
         if (_profits <= 0) {
@@ -368,10 +365,11 @@ contract Treasury is
         }
 
         // Set profits to 0, and send to Token
+        address _token = comptroller.token();
         profits = 0;
         profitsSent += _profits;
-        require(token.call.value(_profits)());
-        emit DividendSuccess(now, token, _profits);
+        require(_token.call.value(_profits)());
+        emit DividendSuccess(now, _token, _profits);
     }
 
 
@@ -386,7 +384,7 @@ contract Treasury is
         payable
     {
         capital += msg.value;
-        if (msg.sender == comptroller) {
+        if (msg.sender == address(comptroller)) {
             capitalRaised += msg.value;
             emit CapitalRaised(now, msg.value);
         }
@@ -475,6 +473,16 @@ contract Treasury is
         returns (uint _amount)
     {
         return profitsSent + profits;
+    }
+
+    function profitsSendable()
+        public
+        view
+        returns (uint _amount)
+    {
+        if (address(comptroller)==0) return 0;
+        if (!comptroller.wasSaleEnded()) return 0;
+        return profits;
     }
 
     // Returns the amount of capital needed to reach capitalRaisedTarget.

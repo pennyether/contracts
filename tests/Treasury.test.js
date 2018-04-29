@@ -1,7 +1,6 @@
 const Registry = artifacts.require("Registry");
 const Treasury = artifacts.require("Treasury");
-const Comptroller = artifacts.require("Comptroller");
-const DividendToken = artifacts.require("DividendToken");
+const MockComptroller = artifacts.require("MockComptroller");
 const TestBankrollable = artifacts.require("TestBankrollable");
 const Ledger = artifacts.require("Ledger");
 
@@ -16,23 +15,22 @@ describe('Treasury', function(){
     const accounts = web3.eth.accounts;
     const owner = accounts[1];
     const admin = accounts[2];
-    const dummyComptroller = accounts[3];
-    const dummyToken = accounts[4];
-    const anon = accounts[5];
+    const anon = accounts[3];
+    const notBankrollable = accounts[4];
+    const dummyToken = accounts[5];
     const NO_ADDRESS = "0x0000000000000000000000000000000000000000";
     var registry;
     var treasury;
+    var mockComptroller;
     var br;
 
-    const DAILY_LIMIT = new BigNumber(1000000);
 
     before("Set up registry and treasury", async function(){
         const addresses = {
             owner: owner,
             admin: admin,
-            dummyComptroller: dummyComptroller,
-            dummyToken: dummyToken,
             anon: anon,
+            notBankrollable: notBankrollable,
             NO_ADDRESS: NO_ADDRESS
         };
         await createDefaultTxTester().nameAddresses(addresses).start();
@@ -61,6 +59,16 @@ describe('Treasury', function(){
             .assertSuccess()
             .start();
 
+        this.logInfo("Create mockComptroller, pointing to Treasury");
+        await createDefaultTxTester()
+            .doNewTx(MockComptroller, [], {from: anon})
+            .withTxResult(async function(txRes, plugins){
+                mockComptroller = txRes.contract;
+                plugins.addAddresses({
+                    mockComptroller: mockComptroller
+                });
+            }).start();
+
         this.logInfo("Create Bankrollable contract");
         await createDefaultTxTester()
             .doNewTx(TestBankrollable, [registry.address], {from: anon})
@@ -77,7 +85,6 @@ describe('Treasury', function(){
             return createDefaultTxTester()
                 .assertBalance(treasury, 0)
                 .assertCallReturns([treasury, "getAdmin"], admin)
-                .assertCallReturns([treasury, "token"], NO_ADDRESS)
                 .assertCallReturns([treasury, "comptroller"], NO_ADDRESS)
                 .assertCallReturns([treasury, "getOwner"], owner)
                 .start();
@@ -113,7 +120,6 @@ describe('Treasury', function(){
 
         describe(".cancelRequest()", function(){
             var ID;
-            const TYPE = "SendCapital";
             const CANCEL_REASON = "Some reason.";
 
             before("Create SendCapital request", async function(){
@@ -209,6 +215,10 @@ describe('Treasury', function(){
         });
 
         describe("Cannot create too many requests", async function(){
+            this.logInfo("This tests against an attack where a malicious Admin creates");
+            this.logInfo(" so many requests that they cannot all possibly be cancelled.");
+            this.logInfo("To prevent this situation, there is a limit to how many Requests");
+            this.logInfo(" can be in a 'Pending' state.");
             const max = await treasury.MAX_PENDING_REQUESTS()
             const curPending = await treasury.numPendingRequests();
             const numToCreate = max.minus(curPending);
@@ -250,7 +260,7 @@ describe('Treasury', function(){
             it("fails if target doesnt have .getTreasury()", function(){
                 this.logInfo("In this example, we try to send bankroll to a regular account.");
                 this.logInfo("This should fail, as it does not implement Bankrollable.");
-                return assertExecutesSendCapital(dummyToken, 1e9, false, "Bankrollable does not have correct Treasury.");
+                return assertExecutesSendCapital(notBankrollable, 1e9, false, "Bankrollable does not have correct Treasury.");
             });
             it("fails if not enough capital", function(){
                 return assertExecutesSendCapital(br, 11e9, false, "Not enough capital.");
@@ -290,7 +300,7 @@ describe('Treasury', function(){
                 this.logInfo("Here we request way more back than we put in.")
                 this.logInfo("It should work, but only send back the remainder.");
                 this.logInfo("Since no more is being bankrolled, mapping should be removed.");
-                return assertExecutesRecallCapital(br, 10e9, true, "Received bankoll back from target."); 
+                return assertExecutesRecallCapital(br, 50e9, true, "Received bankoll back from target."); 
             });
             it("nothing happens if called again", function(){
                 return assertExecutesRecallCapital(br, 10e9, true, "Received bankoll back from target."); 
@@ -363,8 +373,13 @@ describe('Treasury', function(){
             it("Can receive profits", async function(){
                 return assertReceivesProfits(anon, 1e5);
             });
-            it("Cannot issue dividend (no token)", function(){
-                return assertCannotIssueDividend("No address to send to.");
+            it(".profitsSendable() returns 0 (no comptroller)", function(){
+                return createDefaultTxTester()
+                    .assertCallReturns([treasury, "profitsSendable"], 0)
+                    .start();
+            });
+            it("Cannot issue dividend (no comptroller)", function(){
+                return assertCannotIssueDividend("Comptroller not yet set.");
             });
         })
         it(".executeRaiseCapital() works", async function(){
@@ -372,97 +387,89 @@ describe('Treasury', function(){
         });
     });
 
-    describe("Setting Comptroller and Token", function(){
+    describe("Setting Comptroller", function(){
         describe(".initComptroller()", function(){
+            before("Set-up comptroller", async function(){
+                await mockComptroller.setToken(dummyToken, {from: anon});
+                await mockComptroller.setTreasury(treasury.address, {from: anon});
+            });
             it("Cannot be set by anon", async function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", dummyComptroller, {from: anon}])
+                    .doTx([treasury, "initComptroller", mockComptroller.address, {from: anon}])
                     .assertInvalidOpCode()
                     .start();
             })
             it("Cannot be set by admin", async function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", dummyComptroller, {from: admin}])
+                    .doTx([treasury, "initComptroller", mockComptroller.address, {from: admin}])
                     .assertInvalidOpCode()
                     .start();
             })
-            it("Works", function(){
+            it("Cannot be set to bad comptroller", async function(){
+                this.logInfo("We set mockComptroller's .treasury() to something random.");
+                this.logInfo("Treasury should reject comptroller.");
+                await mockComptroller.setTreasury(anon, {from: anon});
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
+                    .doTx([treasury, "initComptroller", mockComptroller.address, {from: owner}])
+                    .assertInvalidOpCode()
+                    .start();
+            });
+            it("Works", async function(){
+                this.logInfo("We set mockComptroller's .treasury() to treasury.");
+                this.logInfo("Treasury should accept comptroller now.");
+                await mockComptroller.setTreasury(treasury.address, {from: anon});
+                return createDefaultTxTester()
+                    .doTx([treasury, "initComptroller", mockComptroller.address, {from: owner}])
                     .assertSuccess()
                     .assertOnlyLog("ComptrollerSet", {
                         time: null,
-                        comptroller: dummyComptroller
+                        comptroller: mockComptroller.address,
+                        token: dummyToken
                     })
-                    .assertCallReturns([treasury, "comptroller"], dummyComptroller)
+                    .assertCallReturns([treasury, "comptroller"], mockComptroller.address)
                     .start();
             });
             it("Cannot be set again", function(){
                 return createDefaultTxTester()
-                    .doTx([treasury, "initComptroller", dummyComptroller, {from: owner}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-        })
-        describe(".initToken()", function(){
-            it("Cannot be set from anon", function(){
-                return createDefaultTxTester()
-                    .doTx([treasury, "initToken", dummyToken, {from: anon}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-            it("Cannot be set from admin", function(){
-                return createDefaultTxTester()
-                    .doTx([treasury, "initToken", dummyToken, {from: admin}])
-                    .assertInvalidOpCode()
-                    .start();
-            });
-            it("Can be set by owner", function(){
-                return createDefaultTxTester()
-                    .doTx([treasury, "initToken", dummyToken, {from: owner}])
-                    .assertSuccess()
-                        .assertOnlyLog("TokenSet", {
-                            time: null,
-                            token: dummyToken
-                        })
-                    .assertCallReturns([treasury, "token"], dummyToken)
-                    .start();
-            });
-            it("Cannot be set again", function(){
-                return createDefaultTxTester()
-                    .doTx([treasury, "initToken", dummyToken, {from: owner}])
+                    .doTx([treasury, "initComptroller", mockComptroller.address, {from: owner}])
                     .assertInvalidOpCode()
                     .start();
             });
         });
     });
 
-    describe(".executeRaiseCapital()", function(){
-        it("Still works", function(){
-            return assertExecutesRaiseCapital(1e9, true, "Capital target raised.");
+    describe("Before CrowdSale", function(){
+        it(".profitsSendable() returns 0 (CrowdSale not yet completed)", function(){
+                return createDefaultTxTester()
+                    .assertCallReturns([treasury, "profitsSendable"], 0)
+                    .start();
+            });
+        it("Cannot issue dividend", function(){
+            return assertCannotIssueDividend("CrowdSale not yet completed.");
         });
     });
 
-    describe("Simulate CrowdSale", function(){
-        it(".addCapital() callable by Comptroller", function(){
-            return assertAddsCapital(dummyComptroller, 1e12);
+    describe("Simulate CrowdSale", async function(){
+        it("End mockComptroller's CrowdSale (sets wasSaleEnded to true)", function(){
+            return createDefaultTxTester()
+                .doTx([mockComptroller, "endCrowdSale", {from: anon}])
+                .assertSuccess()
+                .assertCallReturns([mockComptroller, "wasSaleEnded"], true)
+                .start();
         });
     });
 
     describe("After CrowdSale", function(){
-        describe("Can add and use capital", function(){
-            it(".addCapital() works", function(){
-                return assertAddsCapital(anon, 1e9);
-            });
-            it(".executeSendCapital() works", function(){
-                return assertExecutesSendCapital(br, 1e9, true, "Sent bankroll to target.");
-            });
-        });
-
-        describe(".issueDividend() works", function(){
+        describe(".issueDividend() now works", function(){
             before("Get some profits", function(){
                 return assertReceivesProfits(anon, 1e5);
             });
+            it(".profitsSendable() returns correct value", async function(){
+                const profits = await treasury.profits();
+                return createDefaultTxTester()
+                    .assertCallReturns([treasury, "profitsSendable"], profits)
+                    .start();
+            })
             it(".issueDividend() works", function(){
                 return assertIssuesDividend();
             });
@@ -471,7 +478,13 @@ describe('Treasury', function(){
             });
         });
 
-        describe("Can get bankroll back", function(){
+        describe("Can still add, send, and recall capital", function(){
+            it(".addCapital() works", function(){
+                return assertAddsCapital(anon, 1e9);
+            });
+            it(".executeSendCapital() works", function(){
+                return assertExecutesSendCapital(br, 1e9, true, "Sent bankroll to target.");
+            });
             it(".executeRecallCapital() works", function(){
                 return assertExecutesRecallCapital(br, 5e10, true, "Received bankoll back from target.");
             });
@@ -666,7 +679,7 @@ describe('Treasury', function(){
             amtToBeRemoved = amt;
             entry[1] = entry[1].minus(amt);
         } else {
-            console.log(`Bankrollable mapping should be deleted. Only ${amt} to be recalled.`);
+            console.log(`Bankrollable mapping should be deleted. Only ${amtToBeRemoved} to be recalled.`);
             amtToBeRemoved = entry[1];
             const index = EXP_BANKROLLED_MAPPINGS.indexOf(entry);
             EXP_BANKROLLED_MAPPINGS.splice(index, 1);
@@ -811,7 +824,7 @@ describe('Treasury', function(){
 
     async function assertAddsCapital(account, amt) {
         amt = new BigNumber(amt);
-        const isRaised = account == dummyComptroller;
+        const isRaised = account == mockComptroller.address;
         const expCapital = (await treasury.capital()).plus(amt);
         const expCapitalRaised = (await treasury.capitalRaised()).plus(isRaised ? amt : 0);
         const expLogs = [["CapitalAdded",{

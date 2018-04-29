@@ -12,7 +12,7 @@ Gives the inherting contract access to:
 // Returned by .getTreasury()
 interface ITreasury {
     function issueDividend() external returns (uint _profits);
-    function profits() public view returns (uint _profits);
+    function profitsSendable() public view returns (uint _profits);
 }
 
 contract UsingTreasury is
