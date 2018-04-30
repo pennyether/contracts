@@ -11,8 +11,8 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getMonarchyFactory()
 interface IMonarchyFactory {
-    function lastCreatedGame() public view returns (address _game);
-    function getCollector() public view returns (address _collector);
+    function lastCreatedGame() external view returns (address _game);
+    function getCollector() external view returns (address _collector);
 }
 
 contract UsingMonarchyFactory is

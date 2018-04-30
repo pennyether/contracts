@@ -7,14 +7,14 @@ import "../roles/UsingMonarchyFactory.sol";
 
 // An interface to MonarchyGame instances.
 interface IMonarchyGame {
-    function prize() public constant returns(uint);
-    function numOverthrows() public constant returns(uint);
-    function fees() public constant returns (uint _fees);
-    function monarch() public constant returns (address _addr);
-    function isEnded() public constant returns (bool _bool);
-    function isPaid() public constant returns (bool _bool);
-    function sendPrize(uint _gasLimit) public returns (bool _success, uint _prizeSent);
-    function sendFees() public returns (uint _feesSent);
+    function sendPrize(uint _gasLimit) external returns (bool _success, uint _prizeSent);
+    function sendFees() external returns (uint _feesSent);
+    function prize() external view returns(uint);
+    function numOverthrows() external view returns(uint);
+    function fees() external view returns (uint _fees);
+    function monarch() external view returns (address _addr);
+    function isEnded() external view returns (bool _bool);
+    function isPaid() external view returns (bool _bool);
 }
 
 /*

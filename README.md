@@ -1,6 +1,6 @@
 # Penny Ether Contracts
 
-This repo contains open-sourced PennyEther contracts, a description of how they work, and lots of tests.
+This repo contains open-sourced PennyEther contracts, a description of how they work, and lots of tests. Descriptions of each contract are below, and each `.sol` file also contains a detailed technical description as well.
 
 This repo also contains some pretty useful open sourced testing tools for testing Ethereum contracts. In the future, they will be moved to a separate package.
 
@@ -19,6 +19,7 @@ _Note: Node 8 or higher required._
 - Fire up `Gananche`. If you don't have it: `npm install -g ganache-cli` then `ganache-cli`
 - To run a test: `./scripts/test.js tests/Comptroller.js`
 - To run all tests: `./scripts/test.js all` (this will run _a lot_ of tests!)
+- To run all tests, and save results: `./scripts/create-test-results.js`
 
 <div style='border: 1px solid gray; padding: 10px; background: #FFFFFA; border-radius: 5px;'>
 If you receive an error that Web3 couldn't connect, make sure you have `testrpc` or `ganache` running on `localhost:8545`.  If you do not have Ganache, do: `npm install -g ganache-cli` then `ganache-cli`.
@@ -28,7 +29,7 @@ If you receive an error that Web3 couldn't connect, make sure you have `testrpc`
 
 ### Contracts
 
-Here's a rundown of our contracts, and how they interact with one another. For more details about what all of this means, please see our whitepaper.
+Here's a rundown of our contracts, and how they interact with one another. For more details about what all of this means, please see <a href="https://www.pennyether.com/ico/whitepaper.html">the whitepaper</a>.
 
 - <a id="comptroller"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Comptroller.sol">**Comptroller.sol**</a>: Runs CrowdSale, controls tokens, and talks to `Treasury`.
 	- <a id="dividendtoken"></a>**Creates <a href="https://github.com/pennyether/contracts/tree/master/contracts/DividendToken.sol">`DividendToken`</a>**:
@@ -40,65 +41,131 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 		- Tokens can be frozen (this will only happen during the CrowdSale).
 
 	- <a id="tokenlocker"></a>**Creates <a href="https://github.com/pennyether/contracts/tree/master/contracts/DividendTokenLocker.sol">`TokenLocker`</a>**:
-		- This contract will hold `10%` of the `totalSupply` of tokens after the CrowdSale ends.
-		- PennyEther can claim the `owedDividends`, but nothing else. We cannot burn or transfer these tokens.
+		- This contract holds PENNY Tokens, and allows `owner` to transfer tokens and/or collect accrued dividends of these tokens.
+		- Tokens "vest" linearly over a period defined by `comptroller`, which is hard-coded to use 600 days. Tokens cannot be transferred by `owner` unless they are vested.
 
 	- **Can initiate the CrowdSale, during which**:
 		- Tokens are frozen (cannot be transferred).
 		- `1 ETH` gets `1 Token` (minimum allowed is `0.000000001 ETH`)
-			- The first `20,000 ETH` will receive a `50%` bonus, on a linear scale.
-			- Eg: The `1st ETH` will receive `~1.5 tokens`, the `10,000th ETH` will receive `~1.25 tokens`, the `20,000 ETH` will receive `~1 Token`.
+			- The first `bonusCap` Ether will receive a `50%` bonus, on a linear scale.
+			- Eg: If `bonusCap` is 10,000:
+				- The `1st ETH` will receive `~1.5 tokens`
+				- The `5,000th ETH` will receive `~1.25 tokens`
+				- The `10,000th ETH` will receive `1 token`
 		- If `SoftCap` is not reached, all participants can collect a full refund by calling `.refund()`
-		- If `HardCap` is reached, the crowdsale ends.
+		- If `HardCap` is reached, the crowdsale ends immediately thereafter.
 
-	- After the crowdsale:
-		- `TokenLocker` and `CustodialWallet` tokens are minted, such that they each end with `10%` of `totalSupply`.
+	- <b>After the crowdsale</b>:
+		- `TokenLocker` is minted `20%` of all tokens, and the vesting starts.
 		- Participants end with `80%` of all tokens minted.
-		- No tokens can ever be minted again.
 		- Proceeds are distributed:
-			- `.5 * totalSupply * .9` wei is sent to `Treasury` as bankroll. This ensures all tokens can be burned for a full refund (`TokenLocker's` 10% of tokens are excluded.)
-			- 14 days of daily funding, `~30ETH`, are added to `Treasury`, ensuring a 2 week buffer period is in place.
-			- The remaining proceeds are sent to `CustodialWallet` as capital.
-		- Tokens can be burned. Burning `1 Token` will remove `.5 ETH` from `Treasury`'s bankroll, and refund the user that `.5 ETH`. It will also burn `.125 Tokens` from `TokenLocker`, to ensure `TokenLocker` always has 10% of `totalSupply`.
-			- Note: In the unlikely case that `Treasury` does not have sufficient funds to pay for burning all of a user's tokens, it will burn as many tokens as possible. The rest can be burned if/when `Treasury` gains a balance.
+			- `capitalPct` of Ether raised is sent to the `Treasury` as Capital, to be used to bankroll contracts
+			- The remaining Ether raised is sent to `Owner Wallet`, to be used at the owners' discretion (salary, marketing, advertising, etc).
 
-- <a id="treasury"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Treasury.sol">**Treasury.sol**</a>: Holds the bankroll, pays dividends on demand.
-	- Is able to fund `MainController` a limited amount per day.
-	- Allows `Comptroller` to tell `Treasury` to remove bankroll and send it to a user.
-	- Allows anyone to trigger a dividend event by calling `.distributeToToken()`, provided `(Treasury balance) > (daily limit * 14)`.
+	- <b>Raising additional capital</b>
+		- If `Treasury`'s `capitalTarget` is above `capitalRaised`, the Comptroller will sell tokens @ `1 PENNY per 1 Ether`. The proceeds will be sent to `Treasury` as `capitalRaised`.
+		- When raising additional capital, more tokens are minted, and _everyone_'s ownership is diluted, including the owners'. This disincentivizes raising capital unless that capital can earn a return.
+
+	- Notes:
+		- All addresses are hard-coded. The addresses of the `treasury` and `token`, for example, cannot be changed. 
+
+- <a id="treasury"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Treasury.sol">**Treasury.sol**</a>: Manages capital and issues dividends on demand.
+	- Uses `Governance` to manage Capital
+		- A `Governance Request` can be created by the current `Admin`
+		- A `Request` specifies a `type`, `target`, `value`, and `reason`.
+		- A `Request` can be cancelled by the current `Admin` within 1 week.
+		- A `Request` can be executed (by anyone) if not cancelled within 1 week.
+
+	- There are four available `Governance Request` types.
+		- `SendCapitalRequest`, if executed, will send `value` Ether to the `target` contract. This Ether can later be recalled.
+		- `RecallCapitalRequest`, if executed, will recall _up to_ `value` Ether from `target`. It's possible that `target` has insufficient funds, in which case it should send back as much as possible.
+		- `DistributeCapitalRequest`, if executed, will send `Capital` directly to `profits`, allowing a dividend to be issued.
+		- `RaiseCapitalRequest` will increase the `capitalTarget` by `value`, allowing `Comptroller` to sell tokens. (This is unlikely to be needed in the foreseeable future, but is provided just in case)
+
+
+	- Allows anyone to call `.issueDividend()`, provided `profits` > 0. This sends `profits` to the `PENNY Token`
+	- Notes:
+		- `token` is hard-coded and cannot be changed. This ensures that `profits` always go to the expected `token`.
+		- `comptroller` is hard-coded and cannot be changed. This ensures that `capitalRaised` always increases when the `comptroller` raises capital.
+
+	
 - <a id="registry"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Registry.sol">**Registry.sol**</a>: This is how we upgrade all versioned contracts.
 	- Contains a `string => address` mapping of names to addresses.
-	- When a contract is upgraded, the mapping is changed. All depedendant contracts (`Treasury`, and anything below) will use the new addresses on subsequent calls.
-	- Only the owner wallet can change mappings.
-- <a id="maincontroller"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/MainController.sol">**MainController.sol**</a>: This contract keeps PennyEther running autonomously by overseeing all `GameControllers`.
-	- It rewards users for calling functions that help the system, called `Tasks`:
-		- Starting a Penny Auction: Creates a new `Penny Auction` contract that will send all fees earned to `Treasury`
-		- Refreshing Penny Auctions:
-			- Causes all running Penny Auctions to send their accrued fees to `Treasury`
-			- For any auctions that are complete, pays the winner and moves the auction to *endedAuctions* so that another can be started in its place.
+	- Most contracts internally use `registry.addressOf(str)` to get the address of another contract, eg `register.addressOf("ADMIN")` to get the current `Admin`.
+	- When a contract is redeployed, and the mapping is changed, all dependant contracts will thus start calling the _new_ version automatically.
+	- Only the `owner wallet` can change mappings.
+
+	
+- <a id="taskmanager"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/TaskManager.sol">**TaskManager.sol**</a>: This contract keeps PennyEther running autonomously by incentivizing users to perform `Tasks` that pay a reward.
+	- This contract gets bankrolled just like a game would, but will never produce profits.
 	- When new types of games are added, this will be upgraded to provide additional rewards to ensure PennyEther remains autonomous.
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuctionController.sol">**PennyAuctionController.sol**</a>: The `Game Controller` for Penny Auctions.  It manages all running and ended PennyAuctions. To prevent copycats, this contract will be made open source after the ICO. Tests and the ABI are available in this repo.
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/InstaDice.sol">**InstaDice.sol**</a>: The `Game Controller` for InstaDice.
-	- Allows anyone to add bankroll (realistically, only PennyEther will do this)
+	- The following `Tasks` are available:
+		- Telling a `Bankrolled` contract to send its `profits` to `Treasury`. This pays a reward proportional to the amount of profits sent. This ensures profits will always get sent to `Treasury` in a timely fashion.
+		- Starting a MonarchyGame: Creates a new `MonarchyGame`, if possible, and pays a small fixed fee. This ensures there are always `MonarchyGame`s running.
+		- Refreshing Monarchy Games:
+			- Causes all running games to send their accrued fees to `MonarchyController`
+			- For any games that are complete, pays the winner and moves the game to *endedGames* so that another can be started in its place.
+	- Notes:
+		- This contract can only pay out a `dailyLimit` of rewards. This prevents a malicious `Admin` from draining the entire balance by setting very high `reward`s.
+		- This contract contains limits on the reward amounts. These limits may need to be adjusted as the price of Ether fluctuates.
+
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/common/Bankrollable.sol">**Bankrollable.sol**</a>: The base class for all game controllers. By simply inheriting this class, inhouse or 3rd-party developers can easily create contracts to be run on the PennyEther platform.
+	- This allows Ether to be easily sent and recalled (from a whitelist of addresses)
+	- Allows anyone to call `.sendProfits()`, which will send `balance - (bankrolled + collateral)` to _only_ the `Treasury`. By inheriting this class, `TaskManager` will automatically be able to reward users for calling `.sendProfits()`.
+	- Optionally ensures inheritors keep `collateral` from ever being sent. For example, `VideoPoker` maintains `credits` for users, and sets `collateral` to the amount of `credits` owed. If `.sendProfits()` is ever called, `Bankrollable` ensures those `credits` are never sent as profits.
+
+
+
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/InstaDice.sol">**InstaDice.sol**</a>: The `Game Controller` for InstaDice. It is `Bankrollable`.
 	- Allows users to send ETH in return for a chance at winning more.
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuctionFactory.sol">**PennyAuctionFactory.sol**</a>: A contact that can create `PennyAuction.sol` contract instances. This exists on its own for etherscan verification purposes, as well as to simplify to codebase.
-- <a id="pennyauction"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/PennyAuction.sol">**PennyAuction.sol**</a>: A new instance of this contract is created for each Penny Auction.
+	- Uses the the transaction's `blockhash` to determine if a roll is a win or loss.
+	- Pays out the previous roll on the current roll. This saves a tremendous amount of gas.
+	- Allows the previous roll to be paid out manually.
+	- Enforces a maximum bet to ensure zero incentive for miners to cheat `blockhash`
+
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/VideoPoker.sol">**VideoPoker.sol**</a>: The `Game Controller` for VideoPoker. It is `Bankrollable`.
+	- This inherits `VideoPokerUtils.sol`, which contains `pure` functions that can draw and rank 5-card poker hands efficiently.
+	- Stores all game details. A game consists of an initial hand, a `draws` number, and a final hand.
+	- The initial hand is determined from the `bet` transaction's `blockhash`.
+	- The drawn hand is determined from the `draw` transaction's `blockhash`
+	- `Finalizing` will look at the final hand and `credit` the user on a win.
+	- Since `blockhash` is only available for 255 blocks, a user must `draw` or `finalize` within 255 blocks of `betting` or `drawing`, respectively. If they fail to do so, the `initial hand` or `draw hand` will be unavailabled.
+	- This contract sets the total `credits` as `collateral`, ensuring that even if all `bankroll` is removed, it will still have a balance to pay owed `credits`.
+
+	
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/MonarchyController.sol">**MonarchyController.sol**</a>: The `Game Controller` for `MonarchyGame`s. It is `Bankrollable`.
+	- Allows `Admin` to set (and enable and disable) pre-defined game parameters called `definedGame`s.
+	- If `enabled` and unstarted, a `definedGame` can be started by anyone (typically the `TaskManager`), provided `MonarchyController` has a sufficient balance to start the game, and has not used its `dailyLimit`.
+	- When a game is created, its `collector` is permanently set to be `MonarchyController` -- that is, all overthrow fees will be sent back to this contract.
+	- `.refreshGames()` causes all active games to send their accrued fees. This also ends any games that are completed, and moves them to the `endedGames` array, allowing the `definedGame` to be started once again.
+	- Enforces a `dailyLimit` in how much can be spent starting games. This minimizes the damage if `Admin` becomes evil, or if games are somehow ending too quickly.
+	
+- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/MonarchyFactory.sol">**MonarchyFactory.sol**</a>: A contract that can create `MonarchyGame.sol` contract instances. This exists on its own for etherscan verification purposes, as well as to simplify the codebase.
+	- Will always set `MonarchyGame.collector` to `MonarchyFactory`.
+	- Fails gracefully if the contract is unable to be created.
+
+- <a id="monarchygame"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/games/MonarchyGame.sol">**MonarchyGame.sol**</a>: A new instance of this contract is created for each MonarchyGame.
+	- Contains logic for running a game in a very gas-efficient manner.
+	- Sends `overthrow` fees to `collector`.
+	- Allows anyone to send the winnings to the winner, provided the game is completed.
+
+
 - <a href="https://github.com/pennyether/contracts/tree/master/contracts/CustodialWallet.sol">**CustodialWallet.sol**</a>: This contract essentially owns PennyEther, and uses a 2-tier cold wallet ownership structure.
 	- The `custodian` can make calls on behalf of this wallet.
 	- The `supervisor` (cold wallet) can:
-		- Obtain the balance of the contract
+		- Send balance of the contract to a recipient.
 		- Change the `custodian` (and must provide a new `supervisor` wallet)
 	- The `owner` (very cold wallet) can:
 		- Change the `supervisor` (and must provide a new `owner` wallet)
 
 ### Roles
 
-Since contracts interact with registered contracts quite frequently, we created inheritible classes for each, called **`roles`**.
+Since contracts interact with registered contracts quite frequently, we created inheritible classes for each, called **`roles`**. Together with the `Registry` this allows for simple role management and upgradability.
 
-- An example of this is <a href="https://github.com/pennyether/contracts/tree/master/contracts/Treasury.sol">`Treasury`</a> which inherits <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles/UsingMainController.sol">`roles/UsingMainController`</a>.
-- Whenever `Treasury` needs to get the address of the current `MainController`, it uses the inherited `getMainController()` method. 
-- Whenever it needs to ensure a call is from `MainController`, it uses the inherited `fromMainController()` function modifier.
-- `getMainController()` will return an `IMainController` object, which is an interface that defines what methods are available.
+- An example of this is <a href="https://github.com/pennyether/contracts/tree/master/contracts/TaskManager.sol">`TaskManager`</a> which inherits <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles/UsingMonarchyController.sol">`roles/UsingMonarchyController`</a>.
+- Whenever `TaskManager` needs to get the address of the current `MonarchyController`, it uses the inherited `getMonarchyController()` method, which returns an `IMonarchyController` interface.
+- A common `role` is `UsingAdmin`, which provides a `.fromAdmin()` function modifier. Contracts that use this will automatically permission against the current `Admin`.
+- If the mapping for a `role` is changed in the `Registry`, it immediately takes effect accross all contracts that use that role. For example, if the `Admin` mapping in `Registry` is changed, this takes effect immediately in all contracts.
 - <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles">`/contracts/roles`</a> contains all roles.
 - <a href="https://github.com/pennyether/contracts/tree/master/contracts/roles">`/contracts/interfaces`</a> contains the interfaces returned by the roles.
 
@@ -160,82 +227,72 @@ createDefaultTxTester()
 
 One of our goals is to ensure Penny Ether can run itself, with very limited input from the owner or admin. Additionally, we've set up the system so that _even if_ an adversary were to gain ownership control (or we turned evil), the damage possible is _severely_ limited.
 
-### Roles
+### Actors
 
-The following roles exist, with their permissions listed:
+The following actors exist, with their permissions listed:
 
 - **Owner** via `CustodialWallet.sol` _(see above)_
-	- Can make changes to the registry, adding or upgrading the following contracts (`MainController`, `PennyAuctionController`, `PennyAuctionFactory`, `InstaDice`, any new contracts)
-	- Controls 50% of proceeds from the CrowdSale, and 10% of tokens.
-	- Can retrieve dividends accrued by `TokenLocker` (but cannot transfer or burn the tokens)
+	- Can make changes to the `Registry`, adding or upgrading the following contracts (`TaskManager`, `MonarchyController`, `InstaDice`, `VideoPoker`, and any new contracts)
 	- Can change the `Admin` account.
-	- One time permissions:
-		- Can set the `Treasury` address in the `Comptroller` once.
-		- Can set the `Token` address in the `Treasury` once.
-		- Can set the `Comptroller` address in the `Treasury` once.
-		- Can tell `Comptroller` to initiate the CrowdSale once.
+	- Can collect dividends, and transfer vested tokens from `TokenLocker`
+	- Can configure the CrowdSale
+	- Receives some proceed from the CrowdSale.
+	- Can set `dailyLimit` of `TaskManager` and `MonarchyController`
 
 - **Admin**
-	- Can change `Treasury` `dailyFundLimit` by +/- 5% each day.
-	- Can change `Treasury` `distrubuteReward` to up to 1%.
-	- Can change `MainController` rewards.
-		- This rewards are considered "funding" by the `Treasury`, so they are limited.
-	- Can set pre-defined auctions in `PennyAuctionController`
-		- This ensures PennyAuctions are always running
+	- Can configure `TaskManager`, `Monarchy`, `InstaDice`, and `VideoPoker` parameters, within limits.
+	- Can issue `Governance Requests` to `Treasury`.
 
 ### Scenarios
 
-Let's go over a few scenarios, and their possible impact on Penny Ether
+Let's go over a few scenarios, and their possible impact on PennyEther. Note that the below cases only count _if the DAO has not been instated_. Once the DAO is instated, Token Holders will collectively have full control over all actors.
 
 - **`Admin` account compromised**:
 	- Possibilities:
-		- The admin could change the settings as listed above. For example, an admin could cause up to the `dailyFundLimit` to be sent to a poorly configured game, or reward.
+		- The admin could change the settings as listed above. For example, they may increase the reward size for some `Tasks`, or alter the minimum/maximum bets of `InstaDice` and `VideoPoker` (within some limit).
 	- Possible Financial Loss:
-		- `dailyFundLimit` per day -- not guaranteed to go to the attacker.
+		- Extremely limited. `dailyLimit`s ensure `MonarchyController` and `TaskManager` do not get drained. Game Controllers may temporarily not take bets due to the changed configuration.
 	- Remediation:
-		- `Supervisor` immediately changes the `Admin` address to a secure one.
+		- `Custodian` immediately changes the `Admin` address to a secure one.
 		- New `Admin` reverts any changes made.
 
 - **`Custodian` account compromised**:
 	- Possibilities:
-		- All of the above.
-		- Could change the `MainController` registry entry to their own wallet, so they receive `dailyFundLimit` per day.
-		- Could deploy games where the revenue goes to their own wallet.
+		- Same as previous case.
+		- Can cause all games to not produce revenues.
+		- Can cause profits of games to be temporarily sent to another contract.
 	- Financial Loss:
-		- `dailyFundLimit` per day -- with funds going directly to the attacker.
+		- Same as previous case.
 		- Revenues may no longer go to `Treasury`, but to attacker.
 	- Remeditation:
 		- `Supervisor` immediately changes the `Custodian` address to a secure one.
 		- New `Custodian` reverts all changes.
-		- Same remediations as above.
+		- Same remediations as previous case.
 
 - **`Supervisor` account compromised**:
 	- Possibilities:
-		- All of the above.
+		- Same as previous case.
 		- Could get all available funds in `CustodialWallet`
 	- Financial Loss:
-		- `dailyFundLimit` per day -- with funds going directly to the attacker.
-		- Revenues may no longer go to `Treasury`, but to attacker.
+		- Same as previous case.
 		- PennyEther loses whatever balance is in `CustodialWallet` (likely not too much)
 	- Remediation:
 		- `Owner` immediately changes `Supervisor` address to a secure one.
-		- Same remediations as above.
+		- Same remediations as previous case.
 	- Notes: As noted in `CustodialWallet.sol`, `supervisor` wallet is held in cold storage.
 
 - **`Owner` account compromised**:
 	- Possibilities:
 		- All of the above, but cannot be remediated.
 	- Financial Loss:
-		- `dailyFundLimit` per day -- with funds going directly to the attacker.
-		- Revenues may no longer go to `Treasury`, but to attacker.
-		- PennyEther loses whatever balance is in `CustodialWallet` (likely not too much)
+		- Same as previous case.
+		- All `Capital` will be in control of attacker.
+		- All Ether bankrolled to game contracts will be in control of attacker.
 	- Remediation:
-		- Token holders are told to burn their tokens for .5 ETH per token.
-		- If all tokens are burned, maximum payout to attacker is `dailyFundLimit * 14`.
+		- A new `Registry`, `Treasury`, and `Comptroller` can be redeployed, pointing to the existing `PENNY Token`.
+		- However, there will be zero capital. It's likely PennyEther team would provide capital, but there's no assurance.
 	- Notes: As noted in `CustodialWallet.sol`, `owner` wallet is held in deep cold storage, and will likely never need to be used.
 
-- Additional Notes
-	- `Treasury` has a buffer between the `bankroll` amount, and the `minimum dividend threshold` of `14 * dailyLimit`. This means if dividends were just distributed, there is a guaranteed 14 days of solvency where _all_ tokens can be burned for a refund.
 		
 ### Audits
 

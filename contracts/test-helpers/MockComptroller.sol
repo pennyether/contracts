@@ -9,7 +9,7 @@ contract MockComptroller {
     address public token;
     bool public wasSaleEnded;
 
-    function setToken(address _addr){ token = _addr; }
-    function setTreasury(address _addr){ treasury = _addr; }
-    function endCrowdSale(){ wasSaleEnded = true; }
+    function setToken(address _addr) public { token = _addr; }
+    function setTreasury(address _addr) public { treasury = _addr; }
+    function endCrowdSale() public { wasSaleEnded = true; }
 }

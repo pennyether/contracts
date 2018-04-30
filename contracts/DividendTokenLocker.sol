@@ -18,9 +18,9 @@ Comptroller Permissions:
     - Specifies the amount to vest, and over what period
 */
 contract IDividendToken {
-    function collectOwedDividends() public returns (uint);
-    function transfer(address _to, uint _value) public;
-    function balanceOf(address _addr) public view returns (uint);
+    function collectOwedDividends() external returns (uint);
+    function transfer(address _to, uint _value) external;
+    function balanceOf(address _addr) external view returns (uint);
 }
 contract DividendTokenLocker {
     // set in the constructor

@@ -13,11 +13,11 @@ Gives the inherting contract access to:
 interface IMonarchyController {
     function refreshGames() external returns (uint _numGamesEnded, uint _feesSent);
     function startDefinedGame(uint _index) external payable returns (address _game);
-    function getFirstStartableIndex() public view returns (uint _index);
-    function getNumEndableGames() public view returns (uint _count);
-    function getAvailableFees() public view returns (uint _feesAvailable);
-    function getInitialPrize(uint _index) public view returns (uint);
-    function getIsStartable(uint _index) public view returns (bool);
+    function getFirstStartableIndex() external view returns (uint _index);
+    function getNumEndableGames() external view returns (uint _count);
+    function getAvailableFees() external view returns (uint _feesAvailable);
+    function getInitialPrize(uint _index) external view returns (uint);
+    function getIsStartable(uint _index) external view returns (bool);
 }
 
 contract UsingMonarchyController is

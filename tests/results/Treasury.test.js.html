@@ -24,15 +24,15 @@
 <span style="color:#AAA">│  ├ <span style="color:#000"> <b><span style="color:#000">Treasury<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> before: Set up registry and treasury </span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Registry, and register ADMIN<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 248, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 249, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Registry.new(<u>owner</u>, {from: <u>anon</u>}) was successful (block 171, 669491 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("ADMIN", <u>admin</u>, {from: <u>owner</u>}) was successful (block 172, 91573 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Treasury, register it<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>owner</u>, {from: <u>anon</u>}) was successful (block 250, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 251, 91765 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: Treasury.new(<u>registry</u>, <u>owner</u>, {from: <u>anon</u>}) was successful (block 173, 3771656 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 174, 91765 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create mockComptroller, pointing to Treasury<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: MockComptroller.new(, {from: <u>anon</u>}) was successful (block 252, 203037 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: MockComptroller.new(, {from: <u>anon</u>}) was successful (block 175, 203037 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create Bankrollable contract<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: TestBankrollable.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 253, 2387918 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ newTx: TestBankrollable.new(<u>registry</u>, {from: <u>anon</u>}) was successful (block 176, 2387918 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Named Addresses:<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  admin:           0x771e73c55e8aba9cbfecbfd808f3734263cc64de<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  anon:            0x64a7383400204cfa493dca5cd9bb07507b22d56a<span style="color:#000"> </span></span></span></span> 
@@ -43,69 +43,69 @@
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  owner:           0xf6190b65560fca1bd5f84d815ab75db13e035cd3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  registry:        0xc0feb1f0c0d51ca7499666e360213cc478dc642e<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <span style="color:#AAA">  treasury:        0x3d7062cbcf7883c91fba197c14037bc6436963ec<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (880 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (939 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Initially<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Should have correct addresses </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Balance of <u>treasury</u> should equal 0 Wei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getAdmin.call() returns <u>admin</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.comptroller.call() returns <u>NO_ADDRESS</u><span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getOwner.call() returns <u>owner</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (187 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (178 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Requester<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.createRequest()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be called by non-admin </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "foo", {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Fails if invalid typeId </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Valid typeIds are 0, 1, 2, 3. 4 is not valid.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(4, 0, 0, "foo", {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (37 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (42 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works otherwise </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This demonstrates the above calls would otherwise succeed.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "foo", {from: <u>admin</u>}) was successful (block 256, 147646 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (71 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "foo", {from: <u>admin</u>}) was successful (block 179, 147646 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (72 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works (full test) </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x0000000000000000000000000000000000000000 with value 0...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 0, "Test Message", {from: <u>admin</u>}) was successful (block 257, 103272 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 0, "Test Message", {from: <u>admin</u>}) was successful (block 180, 103272 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(2) returns [2, <null>, <u>NO_ADDRESS</u>, 0, false, {not: 0}, <null>, <null>, "Test Message", "", ""]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(1) returns 2<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (206 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (198 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.cancelRequest()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Create SendCapital request </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x0000000000000000000000000000000000000000 with value 1...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 258, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 181, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(3) returns [3, <null>, <u>NO_ADDRESS</u>, 1, false, {not: 0}, <null>, <null>, "Send 1 Wei to nobod...", "", ""]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 3<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (281 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (211 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Fails if not admin </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(3, "Some reason.", {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (33 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (35 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Fails on invalid ID </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(100, "Some reason.", {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (32 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (29 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(3, "Some cancellation r...", {from: <u>admin</u>}) was successful (block 261, 112712 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(3, "Some cancellation r...", {from: <u>admin</u>}) was successful (block 184, 112712 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCancelled(time, id, typeId, target, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(3) returns [3, 0, <u>NO_ADDRESS</u>, 1, false, 1.526021112 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Some cancellation r...", ""]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(3) returns [3, 0, <u>NO_ADDRESS</u>, 1, false, 1.525550551 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Some cancellation r...", ""]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCancelledRequests.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.cancelledRequestIds.call(0) returns 3<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (241 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (310 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be called again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(3, "Some reason.", {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (36 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Executing / Cancelling / Timing out<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Create three requests, fast forward a week. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create first request. This will execute.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x0000000000000000000000000000000000000000 with value 1...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 263, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 186, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 4<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(4) returns [4, <null>, <u>NO_ADDRESS</u>, 1, false, {not: 0}, <null>, <null>, "Send 1 Wei to nobod...", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -114,7 +114,7 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create second request. We will cancel it.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x0000000000000000000000000000000000000000 with value 1...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 264, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 187, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 5<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(5) returns [5, <null>, <u>NO_ADDRESS</u>, 1, false, {not: 0}, <null>, <null>, "Send 1 Wei to nobod...", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -123,7 +123,7 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Create third request. We will time it out.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x0000000000000000000000000000000000000000 with value 1...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 265, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>NO_ADDRESS</u>, 1, "Send 1 Wei to nobod...", {from: <u>admin</u>}) was successful (block 188, 118912 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 6<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(6) returns [6, <null>, <u>NO_ADDRESS</u>, 1, false, {not: 0}, <null>, <null>, "Send 1 Wei to nobod...", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -131,49 +131,49 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(4) returns 6<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Fast forward 1 week.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 265 to 266.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 188 to 189.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1100 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1080 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.executeRequest()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Not callable on invalid id </span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(100, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (31 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> .executeRequest() works, callable by anyone </span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(4, {from: <u>anon</u>}) was successful (block 268, 113931 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(4, {from: <u>anon</u>}) was successful (block 191, 113931 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(4) returns [4, 0, <u>NO_ADDRESS</u>, 1, false, 1.526021112 GWei, 0, {not: 0}, "Send 1 Wei to nobod...", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(4) returns [4, 0, <u>NO_ADDRESS</u>, 1, false, 1.525550551 GWei, 0, {not: 0}, "Send 1 Wei to nobod...", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 4<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 1<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(0) returns 4<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (242 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (244 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Not callable again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(4, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.cancelRequest()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> .cancelRequest() works after WAITING_TIME </span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(5, "Some cancellation r...", {from: <u>admin</u>}) was successful (block 270, 83437 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.cancelRequest(5, "Some cancellation r...", {from: <u>admin</u>}) was successful (block 193, 83437 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCancelled(time, id, typeId, target, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(5) returns [5, 0, <u>NO_ADDRESS</u>, 1, false, 1.526021113 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Some cancellation r...", ""]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(5) returns [5, 0, <u>NO_ADDRESS</u>, 1, false, 1.525550551 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Some cancellation r...", ""]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCancelledRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.cancelledRequestIds.call(1) returns 5<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (247 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (250 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> .executeRequest() fails. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(5, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (22 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.executeRequest() fails after another week.<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> Fast forward another week </span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 271 to 272.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 194 to 195.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (427 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (421 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> .executeRequest() results in cancellation. </span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(6, {from: <u>admin</u>}) was successful (block 273, 81260 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(6, {from: <u>admin</u>}) was successful (block 196, 81260 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCancelled(time, id, typeId, target, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(6) returns [6, 0, <u>NO_ADDRESS</u>, 1, false, 1.526021113 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Request timed out.", ""]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(6) returns [6, 0, <u>NO_ADDRESS</u>, 1, false, 1.525550552 GWei, {not: 0}, 0, "Send 1 Wei to nobod...", "Request timed out.", ""]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCancelledRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.cancelledRequestIds.call(2) returns 6<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (340 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (258 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Cannot create too many requests<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">This tests against an attack where a malicious Admin creates<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555"> so many requests that they cannot all possibly be cancelled.<span style="color:#000"></span></span></i>  
@@ -181,7 +181,7 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555"> can be in a 'Pending' state.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Create max amount of requests. </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 1 of 8...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "", {from: <u>admin</u>}) was successful (block 274, 101864 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "", {from: <u>admin</u>}) was successful (block 197, 101864 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 2 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 3 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 4 of 8...<span style="color:#000"></span></span></i>  
@@ -189,10 +189,10 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 6 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 7 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating 8 of 8...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (489 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (559 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Should not be able to create another </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, 0, 0, "", {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (48 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (39 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cancel them all </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cancelling 1 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cancelling 2 of 8...<span style="color:#000"></span></span></i>  
@@ -202,23 +202,23 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cancelling 6 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cancelling 7 of 8...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Cancelling 8 of 8...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (640 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (585 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Capital Management<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .addCapital() works </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addCapital({value: 10 GWei, from: <u>anon</u>}) was successful (block 291, 43971 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addCapital({value: 10 GWei, from: <u>anon</u>}) was successful (block 214, 43971 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalAdded(time, sender, amount)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 10 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (266 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (264 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.executeSendCapital()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> fails if target doesnt have .getTreasury() </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">In this example, we try to send bankroll to a regular account.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">This should fail, as it does not implement Bankrollable.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x5048b489a37d552285368f52cc661b189a1f25b0 with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>notBankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 292, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>notBankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 215, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 15<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(15) returns [15, <null>, <u>notBankrollable</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -226,13 +226,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 15<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 292 to 293.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 215 to 216.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(15, {from: <u>anon</u>}) was successful (block 294, 125594 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(15, {from: <u>anon</u>}) was successful (block 217, 125594 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(15) returns [15, 0, <u>notBankrollable</u>, 1 GWei, false, 1.527230719 GWei, 0, {not: 0}, "Msg", "", "Bankrollable does n..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(15) returns [15, 0, <u>notBankrollable</u>, 1 GWei, false, 1.526760157 GWei, 0, {not: 0}, "Msg", "", "Bankrollable does n..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(1) returns 15<span style="color:#000"> </span></span></span></span> 
@@ -242,11 +242,11 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1691 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1751 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> fails if not enough capital </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 11000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 11 GWei, "Msg", {from: <u>admin</u>}) was successful (block 295, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 11 GWei, "Msg", {from: <u>admin</u>}) was successful (block 218, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 16<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(16) returns [16, <null>, <u>bankrollable</u>, 11 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -254,13 +254,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 16<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 295 to 296.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 218 to 219.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(16, {from: <u>anon</u>}) was successful (block 297, 83981 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(16, {from: <u>anon</u>}) was successful (block 220, 83981 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(16) returns [16, 0, <u>bankrollable</u>, 11 GWei, false, 1.527835521 GWei, 0, {not: 0}, "Msg", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(16) returns [16, 0, <u>bankrollable</u>, 11 GWei, false, 1.52736496 GWei, 0, {not: 0}, "Msg", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(2) returns 16<span style="color:#000"> </span></span></span></span> 
@@ -270,15 +270,15 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1691 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1657 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> fails if target has invalid .getTreasury() </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">First, change registry TREASURY<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", 0x3d7062cb..., {from: <u>owner</u>}) was successful (block 298, 31415 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", 0x3d7062cb..., {from: <u>owner</u>}) was successful (block 221, 31415 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Now br's .getTreasury() points to wrong treasury.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 5000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 5 GWei, "Msg", {from: <u>admin</u>}) was successful (block 299, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 5 GWei, "Msg", {from: <u>admin</u>}) was successful (block 222, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 17<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(17) returns [17, <null>, <u>bankrollable</u>, 5 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -286,13 +286,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 17<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 299 to 300.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 222 to 223.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(17, {from: <u>anon</u>}) was successful (block 301, 128713 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(17, {from: <u>anon</u>}) was successful (block 224, 128713 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(17) returns [17, 0, <u>bankrollable</u>, 5 GWei, false, 1.528440324 GWei, 0, {not: 0}, "Msg", "", "Bankrollable does n..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(17) returns [17, 0, <u>bankrollable</u>, 5 GWei, false, 1.527969763 GWei, 0, {not: 0}, "Msg", "", "Bankrollable does n..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 4<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(3) returns 17<span style="color:#000"> </span></span></span></span> 
@@ -304,13 +304,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Reset registry TREASURY<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 302, 31415 gas used)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1827 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>registry</u>.register("TREASURY", <u>treasury</u>, {from: <u>owner</u>}) was successful (block 225, 31415 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1743 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 5000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 5 GWei, "Msg", {from: <u>admin</u>}) was successful (block 303, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 5 GWei, "Msg", {from: <u>admin</u>}) was successful (block 226, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 18<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(18) returns [18, <null>, <u>bankrollable</u>, 5 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -318,13 +318,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 18<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 303 to 304.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 226 to 227.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(18, {from: <u>anon</u>}) was successful (block 305, 312538 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(18, {from: <u>anon</u>}) was successful (block 228, 312538 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(18) returns [18, 0, <u>bankrollable</u>, 5 GWei, true, 1.529045127 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(18) returns [18, 0, <u>bankrollable</u>, 5 GWei, true, 1.528574566 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 5<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(4) returns 18<span style="color:#000"> </span></span></span></span> 
@@ -336,12 +336,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 5 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>bankrollable</u>], [5 GWei]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1846 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1769 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> works again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be increased.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 306, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>bankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 229, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 19<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(19) returns [19, <null>, <u>bankrollable</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -349,13 +349,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 19<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 306 to 307.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 229 to 230.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(19, {from: <u>anon</u>}) was successful (block 308, 145004 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(19, {from: <u>anon</u>}) was successful (block 231, 145004 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(19) returns [19, 0, <u>bankrollable</u>, 1 GWei, true, 1.52964993 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(19) returns [19, 0, <u>bankrollable</u>, 1 GWei, true, 1.529179368 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 2<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 6<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(5) returns 19<span style="color:#000"> </span></span></span></span> 
@@ -367,12 +367,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 6 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>bankrollable</u>], [6 GWei]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1784 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1702 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.executeRecallCapital()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> fails if target doesnt implement .removeBankroll </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x64a7383400204cfa493dca5cd9bb07507b22d56a with value 1000000000000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>anon</u>, 1 ETH, "Msg", {from: <u>admin</u>}) was successful (block 309, 134360 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>anon</u>, 1 ETH, "Msg", {from: <u>admin</u>}) was successful (block 232, 134360 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 20<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(20) returns [20, <null>, <u>anon</u>, 1 ETH, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -380,18 +380,18 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(2) returns 20<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 309 to 310.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 232 to 233.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Note: Executing is expected to fail.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(20, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (766 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (693 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should decrease by 1000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 312, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 235, 134232 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 21<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(21) returns [21, <null>, <u>bankrollable</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -399,13 +399,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 21<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 312 to 313.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 235 to 236.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(21, {from: <u>anon</u>}) was successful (block 314, 182793 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(21, {from: <u>anon</u>}) was successful (block 237, 182793 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(21) returns [21, 1, <u>bankrollable</u>, 1 GWei, true, 1.530859534 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(21) returns [21, 1, <u>bankrollable</u>, 1 GWei, true, 1.530388973 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 7<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(6) returns 21<span style="color:#000"> </span></span></span></span> 
@@ -417,7 +417,7 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 5 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>bankrollable</u>], [5 GWei]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1798 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1704 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> removes mapping if all bankroll is recalled </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Here we request way more back than we put in.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">It should work, but only send back the remainder.<span style="color:#000"></span></span></i>  
@@ -425,7 +425,7 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 50000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 50 GWei, "Msg", {from: <u>admin</u>}) was successful (block 315, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 50 GWei, "Msg", {from: <u>admin</u>}) was successful (block 238, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 22<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(22) returns [22, <null>, <u>bankrollable</u>, 50 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -433,13 +433,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 22<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 315 to 316.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 238 to 239.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(22, {from: <u>anon</u>}) was successful (block 317, 113243 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(22, {from: <u>anon</u>}) was successful (block 240, 113243 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(22) returns [22, 1, <u>bankrollable</u>, 50 GWei, true, 1.531464337 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(22) returns [22, 1, <u>bankrollable</u>, 50 GWei, true, 1.530993775 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 8<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(7) returns 22<span style="color:#000"> </span></span></span></span> 
@@ -451,12 +451,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1819 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1821 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> nothing happens if called again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping doesn't exist.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x65e1da011015bda89647f6b8ee9755580c06e71d with value 10000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 10 GWei, "Msg", {from: <u>admin</u>}) was successful (block 318, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>bankrollable</u>, 10 GWei, "Msg", {from: <u>admin</u>}) was successful (block 241, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 23<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(23) returns [23, <null>, <u>bankrollable</u>, 10 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -464,13 +464,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 23<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 318 to 319.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 241 to 242.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(23, {from: <u>anon</u>}) was successful (block 320, 158142 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(23, {from: <u>anon</u>}) was successful (block 243, 158142 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(23) returns [23, 1, <u>bankrollable</u>, 10 GWei, true, 1.53206914 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(23) returns [23, 1, <u>bankrollable</u>, 10 GWei, true, 1.531598578 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 9<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(8) returns 23<span style="color:#000"> </span></span></span></span> 
@@ -481,12 +481,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1835 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1708 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.executeDistributeCapital()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> fails if not enough capital </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "DistributeCapital Request to 0x0000000000000000000000000000000000000000 with value 10000000000000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(3, <u>NO_ADDRESS</u>, 10 ETH, "Msg", {from: <u>admin</u>}) was successful (block 321, 118144 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(3, <u>NO_ADDRESS</u>, 10 ETH, "Msg", {from: <u>admin</u>}) was successful (block 244, 118144 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 24<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(24) returns [24, <null>, <u>NO_ADDRESS</u>, 10 ETH, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -494,13 +494,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 24<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 321 to 322.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 244 to 245.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(24, {from: <u>anon</u>}) was successful (block 323, 84495 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(24, {from: <u>anon</u>}) was successful (block 246, 84495 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(24) returns [24, 3, <u>NO_ADDRESS</u>, 10 ETH, false, 1.532673943 GWei, 0, {not: 0}, "Msg", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(24) returns [24, 3, <u>NO_ADDRESS</u>, 10 ETH, false, 1.532203381 GWei, 0, {not: 0}, "Msg", "", "Not enough capital."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 10<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(9) returns 24<span style="color:#000"> </span></span></span></span> 
@@ -508,11 +508,11 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() Decreases by 10000000000000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() Increases by 10000000000000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1352 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1411 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "DistributeCapital Request to 0x0000000000000000000000000000000000000000 with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(3, <u>NO_ADDRESS</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 324, 117952 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(3, <u>NO_ADDRESS</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 247, 117952 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 25<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(25) returns [25, <null>, <u>NO_ADDRESS</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -520,13 +520,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 25<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 324 to 325.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 247 to 248.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(25, {from: <u>anon</u>}) was successful (block 326, 150023 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(25, {from: <u>anon</u>}) was successful (block 249, 150023 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(25) returns [25, 3, <u>NO_ADDRESS</u>, 1 GWei, true, 1.533278745 GWei, 0, {not: 0}, "Msg", "", "Capital moved to pr..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(25) returns [25, 3, <u>NO_ADDRESS</u>, 1 GWei, true, 1.532808183 GWei, 0, {not: 0}, "Msg", "", "Capital moved to pr..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 11<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(10) returns 25<span style="color:#000"> </span></span></span></span> 
@@ -534,7 +534,7 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() Decreases by 1000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() Increases by 1000000000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1413 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1315 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">send and recall capital from many different contracts<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <b></b></span></span><i><span style="color:#555">This tests that the doubly linked list works correctly.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Create several bankrollable contracts </span></span> 
@@ -543,14 +543,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating tempBankrollable2...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating tempBankrollable3...<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Creating tempBankrollable4...<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (925 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (974 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Send to #0 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x96dd2d4d66f853bb0a0478dbc888dd63a8840c75 with value 1000...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 332 to 333.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 255 to 256.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -562,14 +562,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 1000<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable0</u>], [1000]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1874 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1800 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Send to #1 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x1015dd2035e938ce19f7fdcdcfce5d816639947a with value 1001...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 335 to 336.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 258 to 259.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -581,14 +581,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 2001<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable1</u>, <u>tempBankrollable0</u>], [1001, 1000]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1816 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1782 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Send to #2 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0xb3ce1d21ec00c62c8684aba7a18771af771aab97 with value 1002...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 338 to 339.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 261 to 262.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -600,14 +600,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 3003<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable2</u>, <u>tempBankrollable1</u>, <u>tempBankrollable0</u>], [1002, 1001, 1000]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1909 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1830 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Send to #3 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0x3636ade1da6c7214c127c38ba9d60870b825583c with value 1003...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 341 to 342.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 264 to 265.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -619,14 +619,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 4006<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable3</u>, <u>tempBankrollable2</u>, <u>tempBankrollable1</u>, <u>tempBankrollable0</u>], [1003, 1002, 1001, 1000]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1919 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1857 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Recall from #0 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x96dd2d4d66f853bb0a0478dbc888dd63a8840c75 with value 1000...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 344 to 345.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 267 to 268.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -638,14 +638,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 3006<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable3</u>, <u>tempBankrollable2</u>, <u>tempBankrollable1</u>], [1003, 1002, 1001]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1811 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1805 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Recall from #2 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0xb3ce1d21ec00c62c8684aba7a18771af771aab97 with value 1002...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 347 to 348.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 270 to 271.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -657,14 +657,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 2004<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable3</u>, <u>tempBankrollable1</u>], [1003, 1001]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1868 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1851 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Recall from #3 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x3636ade1da6c7214c127c38ba9d60870b825583c with value 1003...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 350 to 351.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 273 to 274.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -676,14 +676,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 1001<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable1</u>], [1001]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1912 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1829 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Send to #4 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0xedde51559e7f253e03228ddbf117ff2385c9cb36 with value 1004...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 353 to 354.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 276 to 277.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -695,14 +695,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 2005<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable4</u>, <u>tempBankrollable1</u>], [1004, 1001]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1860 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1776 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Recall from #1 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0x1015dd2035e938ce19f7fdcdcfce5d816639947a with value 1001...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 356 to 357.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 279 to 280.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -714,14 +714,14 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 1004<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable4</u>], [1004]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1869 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1815 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Recall from #4 </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0xedde51559e7f253e03228ddbf117ff2385c9cb36 with value 1004...<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 359 to 360.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 282 to 283.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
@@ -733,32 +733,32 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1897 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1808 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Before Setting Token<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Can receive profits (but not issue dividend)<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Can receive profits </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 100000 Wei, from: <u>anon</u>}) was successful (block 362, 33272 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 100000 Wei, from: <u>anon</u>}) was successful (block 285, 33272 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ProfitsReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 100000 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -100000 Wei but lost txFee (166360 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() returns 1.0001 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsTotal.call() returns 1.0001 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (857 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (897 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .profitsSendable() returns 0 (no comptroller) </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSendable.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (21 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (20 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot issue dividend (no comptroller) </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 363, 23981 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 286, 23981 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DividendFailure(time, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() returns 1.0001 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSent.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (839 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (814 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .executeRaiseCapital() works </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RaiseCapital Request to 0x0000000000000000000000000000000000000000 with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, <u>NO_ADDRESS</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 364, 117952 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(2, <u>NO_ADDRESS</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 287, 117952 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 36<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(36) returns [36, <null>, <u>NO_ADDRESS</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -766,13 +766,13 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 36<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 364 to 365.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 287 to 288.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(36, {from: <u>anon</u>}) was successful (block 366, 120772 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(36, {from: <u>anon</u>}) was successful (block 289, 120772 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(36) returns [36, 2, <u>NO_ADDRESS</u>, 1 GWei, true, 1.539931579 GWei, 0, {not: 0}, "Msg", "", "Capital target rais..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(36) returns [36, 2, <u>NO_ADDRESS</u>, 1 GWei, true, 1.539461016 GWei, 0, {not: 0}, "Msg", "", "Capital target rais..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 22<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(21) returns 36<span style="color:#000"> </span></span></span></span> 
@@ -780,93 +780,93 @@
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaisedTarget.call() returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalNeeded.call() returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1433 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1370 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Setting Comptroller<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.initComptroller()<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Set-up comptroller </span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (56 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (54 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be set by anon </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>anon</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (30 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be set by admin </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>admin</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (24 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be set to bad comptroller </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">We set mockComptroller's .treasury() to something random.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Treasury should reject comptroller.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>owner</u>}) failed<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (60 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (61 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">We set mockComptroller's .treasury() to treasury.<span style="color:#000"></span></span></i>  
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> </span></span><i><span style="color:#555">Treasury should accept comptroller now.<span style="color:#000"></span></span></i>  
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>owner</u>}) was successful (block 374, 50534 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>owner</u>}) was successful (block 297, 50534 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ComptrollerSet(time, comptroller, token)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.comptroller.call() returns <u>mockComptroller</u><span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (100 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (103 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> Cannot be set again </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.initComptroller(<u>mockComptroller</u>, {from: <u>owner</u>}) failed<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Before CrowdSale<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> .profitsSendable() returns 0 (CrowdSale not yet completed) </span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSendable.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (28 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (23 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> Cannot issue dividend </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 376, 26463 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 299, 26463 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DividendFailure(time, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() returns 1.0001 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSent.call() returns 0<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (856 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (826 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">Simulate CrowdSale<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> End mockComptroller's CrowdSale (sets wasSaleEnded to true) </span></span> 
-<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mockComptroller</u>.endCrowdSale({from: <u>anon</u>}) was successful (block 377, 26692 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>mockComptroller</u>.endCrowdSale({from: <u>anon</u>}) was successful (block 300, 26692 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>mockComptroller</u>.wasSaleEnded.call() returns true<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (47 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (44 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  ├ <span style="color:#000"> <b><span style="color:#000">After CrowdSale<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">.issueDividend() now works<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> before: Get some profits </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 100000 Wei, from: <u>anon</u>}) was successful (block 378, 33272 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.sendTransaction({value: 100000 Wei, from: <u>anon</u>}) was successful (block 301, 33272 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'ProfitsReceived(time, sender, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by 100000 Wei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>anon</u> gained -100000 Wei but lost txFee (166360 GWei)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsTotal.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (958 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (845 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .profitsSendable() returns correct value </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSendable.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (50 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (48 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .issueDividend() works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Note: Current profits are: 1000200000<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 379, 46917 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 302, 46917 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DividendSuccess(time, token, amount)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> changed by -1.0002 GWei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>0x6d6e...</u> changed by 1.0002 GWei.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSent.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsTotal.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1048 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1034 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .issueDividend() does not work again </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 380, 26694 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.issueDividend({from: <u>anon</u>}) was successful (block 303, 26694 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'DividendFailure(time, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance of <u>treasury</u> did not change<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profits.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.profitsSent.call() returns 1.0002 GWei<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (839 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (816 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  ├ <span style="color:#000"> <b><span style="color:#000">Can still add, send, and recall capital<span style="color:#000"> </span></span></b></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .addCapital() works </span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addCapital({value: 1 GWei, from: <u>anon</u>}) was successful (block 381, 28971 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.addCapital({value: 1 GWei, from: <u>anon</u>}) was successful (block 304, 28971 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ exactly 1 logs found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'CapitalAdded(time, sender, amount)' log was found<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capital.call() returns 10 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalRaised.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (259 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (262 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .executeSendCapital() works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be added.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "SendCapital Request to 0xedde51559e7f253e03228ddbf117ff2385c9cb36 with value 1000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>tempBankrollable4</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 382, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(0, <u>tempBankrollable4</u>, 1 GWei, "Msg", {from: <u>admin</u>}) was successful (block 305, 134168 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 37<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(37) returns [37, <null>, <u>tempBankrollable4</u>, 1 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -874,13 +874,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 37<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 382 to 383.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 305 to 306.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(37, {from: <u>anon</u>}) was successful (block 384, 313213 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(37, {from: <u>anon</u>}) was successful (block 307, 313213 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(37) returns [37, 0, <u>tempBankrollable4</u>, 1 GWei, true, 1.540536386 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(37) returns [37, 0, <u>tempBankrollable4</u>, 1 GWei, true, 1.540065823 GWei, 0, {not: 0}, "Msg", "", "Sent bankroll to ta..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 23<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(22) returns 37<span style="color:#000"> </span></span></span></span> 
@@ -892,12 +892,12 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 1 GWei<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[<u>tempBankrollable4</u>], [1 GWei]]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1925 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1874 ms)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  ├ <span style="color:#000"> .executeRecallCapital() works </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Bankrollable mapping should be deleted. Only undefined to be recalled.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">First, create request.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Creating "RecallCapital Request to 0xedde51559e7f253e03228ddbf117ff2385c9cb36 with value 50000000000...<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>tempBankrollable4</u>, 50 GWei, "Msg", {from: <u>admin</u>}) was successful (block 385, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.createRequest(1, <u>tempBankrollable4</u>, 50 GWei, "Msg", {from: <u>admin</u>}) was successful (block 308, 134296 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestCreated(time, id, typeId, target, value, msg)' log was the only log<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.curRequestId.call() returns 38<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(38) returns [38, <null>, <u>tempBankrollable4</u>, 50 GWei, false, {not: 0}, <null>, <null>, "Msg", "", ""]<span style="color:#000"> </span></span></span></span> 
@@ -905,13 +905,13 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.pendingRequestIds.call(3) returns 38<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Next, fast-forward so we can execute it.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 385 to 386.<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Mined 1 blocks. BlockNumber increased from 308 to 309.<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Fast forwarded 604801 seconds<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000">  </span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">Execute it and test results.<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(38, {from: <u>anon</u>}) was successful (block 387, 113243 gas used)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ tx: <u>treasury</u>.executeRequest(38, {from: <u>anon</u>}) was successful (block 310, 113243 gas used)<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ 'RequestExecuted(time, id, typeId, target, success, msg)' log was found<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(38) returns [38, 1, <u>tempBankrollable4</u>, 50 GWei, true, 1.541141189 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.getRequest.call(38) returns [38, 1, <u>tempBankrollable4</u>, 50 GWei, true, 1.540670626 GWei, 0, {not: 0}, "Msg", "", "Received bankoll ba..."]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numPendingRequests.call() returns 3<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.numCompletedRequests.call() returns 24<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.completedRequestIds.call(23) returns 38<span style="color:#000"> </span></span></span></span> 
@@ -923,11 +923,11 @@
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ <u>treasury</u>.capitalAllocated.call() returns 0<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ Ledger[0x98a8...].balances.call() returns [[], []]<span style="color:#000"> </span></span></span></span> 
 <span style="color:#AAA">│  │  │  │  │  ├ <span style="color:#000"> <span style="color:#AAA">✓ balance == (capital + profits)<span style="color:#000"> </span></span></span></span> 
-<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1835 ms)<span style="color:#000"> </span></span></span></span> 
+<span style="color:#AAA">│  │  │  │  │  └ <span style="color:#000"> <span style="color:#0A0">✓ passed (1745 ms)<span style="color:#000"> </span></span></span></span> 
 
   =========== <span style="color:#0A0"><b> SMOCHA FINISHED SUCCESSFULLY </b><span style="color:#000"> ===========
 
-  <span style="color:#0A0"><b>58</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 54.90s
+  <span style="color:#0A0"><b>58</b><span style="color:#000"><span style="color:#0A0"> passed.<span style="color:#000"> <span style="color:#A00"><b>0</b><span style="color:#000"><span style="color:#A00"> errors.<span style="color:#000"> <span style="color:#555"><b>0</b><span style="color:#000"><span style="color:#555"> skipped.<span style="color:#000"> 53.37s
 
 </span></span></span></span></span></span></span></span></span></span></span></span></span></span></pre>
 	</body>

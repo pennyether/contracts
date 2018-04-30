@@ -24,7 +24,7 @@ import "./roles/UsingMonarchyController.sol";
 */
 interface _IBankrollable {
     function sendProfits() external returns (uint _profits);
-    function profits() public view returns (int _profits);
+    function profits() external view returns (int _profits);
 }
 contract TaskManager is
     HasDailyLimit,

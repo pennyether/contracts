@@ -9,8 +9,8 @@ Gives the inherting contract access to:
 *************************************************/
 // Returned by .getRegistry()
 interface IRegistry {
-    function owner() public view returns (address _addr);
-    function addressOf(bytes32 _name) public view returns (address _addr);
+    function owner() external view returns (address _addr);
+    function addressOf(bytes32 _name) external view returns (address _addr);
 }
 
 contract UsingRegistry {

@@ -252,9 +252,9 @@ interface _ITrBankrollable {
     function addBankroll() external payable;
 }
 interface _ITrComptroller {
-    function treasury() public view returns (address);
-    function token() public view returns (address);
-    function wasSaleEnded() public view returns (bool);
+    function treasury() external view returns (address);
+    function token() external view returns (address);
+    function wasSaleEnded() external view returns (bool);
 }
 
 contract Treasury is

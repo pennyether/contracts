@@ -96,7 +96,7 @@ interface _ICompTreasury {
     // after CrowdSale, will add funds to bankroll.
     function addCapital() external payable;
     // used to determine if Treasury wants to raise capital.
-    function capitalNeeded() public view returns (uint);
+    function capitalNeeded() external view returns (uint);
 }
 contract Comptroller {
     // These values are set in the constructor and can never be changed.

@@ -11,7 +11,7 @@ pragma solidity ^0.4.23;
 */
 interface _IMmpMonarchy {
     function payWinner(uint _gasLimit) external returns (bool _success, uint _prizeSent);
-    function fee() public view returns (uint _fee);
+    function fee() external view returns (uint _fee);
 }
 contract MaliciousMonarchyPlayer {
     
