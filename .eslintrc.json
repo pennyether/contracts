@@ -1,0 +1,30 @@
+  {
+      "parserOptions": {
+        "ecmaVersion": 2017
+      },
+
+      "env": {
+        "browser": false,
+        "es6": true
+      },
+
+      "globals": {
+        "web3": true,
+        "artifacts": true,
+        "console": true,
+        "assert": true,
+        "require": true,
+        "describe": true,
+        "it": true,
+        "after": true,
+        "before": true
+      },
+
+      "extends": "eslint:recommended",
+
+      "rules": {
+        "no-console": "off",
+        "no-unused-vars": ["error", { "vars": "all", "args": "none", "ignoreRestSiblings": false }],
+        "no-empty": "off"
+      }
+  }

@@ -116,14 +116,14 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 
 
 
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/InstaDice.sol">**InstaDice.sol**</a>: The `Game Controller` for InstaDice. It is `Bankrollable`.
+- <a id="instadice"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/games/InstaDice.sol">**InstaDice.sol**</a>: The `Game Controller` for InstaDice. It is `Bankrollable`.
 	- Allows users to send ETH in return for a chance at winning more.
 	- Uses the the transaction's `blockhash` to determine if a roll is a win or loss.
 	- Pays out the previous roll on the current roll. This saves a tremendous amount of gas.
 	- Allows the previous roll to be paid out manually.
 	- Enforces a maximum bet to ensure zero incentive for miners to cheat `blockhash`
 
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/VideoPoker.sol">**VideoPoker.sol**</a>: The `Game Controller` for VideoPoker. It is `Bankrollable`.
+- <a id="videopoker"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/games/VideoPoker.sol">**VideoPoker.sol**</a>: The `Game Controller` for VideoPoker. It is `Bankrollable`.
 	- This inherits `VideoPokerUtils.sol`, which contains `pure` functions that can draw and rank 5-card poker hands efficiently.
 	- Stores all game details. A game consists of an initial hand, a `draws` number, and a final hand.
 	- The initial hand is determined from the `bet` transaction's `blockhash`.
@@ -133,7 +133,7 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 	- This contract sets the total `credits` as `collateral`, ensuring that even if all `bankroll` is removed, it will still have a balance to pay owed `credits`.
 
 	
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/games/MonarchyController.sol">**MonarchyController.sol**</a>: The `Game Controller` for `MonarchyGame`s. It is `Bankrollable`.
+- <a id="monarchy"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/games/MonarchyController.sol">**MonarchyController.sol**</a>: The `Game Controller` for `MonarchyGame`s. It is `Bankrollable`.
 	- Allows `Admin` to set (and enable and disable) pre-defined game parameters called `definedGame`s.
 	- If `enabled` and unstarted, a `definedGame` can be started by anyone (typically the `TaskManager`), provided `MonarchyController` has a sufficient balance to start the game, and has not used its `dailyLimit`.
 	- When a game is created, its `collector` is permanently set to be `MonarchyController` -- that is, all overthrow fees will be sent back to this contract.
@@ -150,13 +150,16 @@ Here's a rundown of our contracts, and how they interact with one another. For m
 	- Allows anyone to send the winnings to the winner, provided the game is completed.
 
 
-- <a href="https://github.com/pennyether/contracts/tree/master/contracts/CustodialWallet.sol">**CustodialWallet.sol**</a>: This contract essentially owns PennyEther, and uses a 2-tier cold wallet ownership structure.
+- <a id="owner-wallet"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/CustodialWallet.sol">**CustodialWallet.sol**</a>: This contract essentially owns PennyEther, and uses a 2-tier cold wallet ownership structure.
 	- The `custodian` can make calls on behalf of this wallet.
 	- The `supervisor` (cold wallet) can:
 		- Send balance of the contract to a recipient.
 		- Change the `custodian` (and must provide a new `supervisor` wallet)
 	- The `owner` (very cold wallet) can:
 		- Change the `supervisor` (and must provide a new `owner` wallet)
+
+- <a id="dao"></a><a href="https://github.com/pennyether/contracts/tree/master/contracts/Dao">**DAO.sol**</a>: This allows Token Holders to deposit tokens (and still receive dividends), and use those tokens to create and vote on Propositions.
+	- This contract is a work in progress.
 
 ### Roles
 
