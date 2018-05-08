@@ -9,8 +9,6 @@ const BigNumber = web3.toBigNumber(0).constructor;
 
 const BankrollableUtils = require("../helpers/BankrollableUtils.js").Create(web3, createDefaultTxTester);
 
-var FEE_BIPS = 100;   // 1%
-
 describe('InstaDice', function(){
     const accounts = web3.eth.accounts;
     const owner = accounts[1];
@@ -666,7 +664,9 @@ describe('InstaDice', function(){
     }
 
     function computePayout(bet, number) {
-        return (new BigNumber(100)).div(number).mul(bet).mul(10000-FEE_BIPS).div(10000).round();
+        const payout = (new BigNumber(100)).div(number).mul(bet);
+        const fee = payout.mul(FEE_BIPS).div(10000);
+        return payout.minus(fee).floor();
     }
 });
 

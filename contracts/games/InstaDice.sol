@@ -319,19 +319,11 @@ contract InstaDice is
         view
         returns (uint72 _wei)
     {
-        // Cast to uint, makes below math cheaper.
-        uint _feeBips = settings.feeBips;
-        // This is safely castable to uint72 (max value of 4.7e21: 4,700 Ether)
-        // Maxbet is 1e18, and max multiple is 100, so max payout < 1,000 Ether.
-        return uint72(
-            // The forumula: feeBips/10000 * 100/_number * _bet
-            // For accuracy, we multiply by 1e32 and divide by it at the end.
-            // We move multiplication to front and division to back
-            // The largest this can get (before dividing at the end) is:
-            //   1e32 * 1e5 (bips) * 1e2 (100) * 1e18 (max bet) = 1e57
-            // This is well under uint256 overflow of 1e77 
-            1e32 * (10000-_feeBips) * 100 * _bet / _number / 10000 / 1e32
-        );
+        uint _feeBips = settings.feeBips;   // Cast to uint, makes below math cheaper.
+        uint _bigBet = _bet * 1e32;         // Will not overflow unless _bet >> ~1e40
+        uint _bigPayout = (_bigBet * 100) / _number;
+        uint _bigFee = (_bigPayout * _feeBips) / 10000;
+        return uint72( (_bigPayout - _bigFee) / 1e32 );
     }
 
     // Returns a number between 1 and 100 (inclusive)
