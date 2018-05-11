@@ -39,7 +39,7 @@ contract MonarchyController is
     UsingAdmin,
     UsingMonarchyFactory
 {
-    uint constant public version = 1;
+    uint constant public version = 2;
 
     // just some accounting/stats stuff to keep track of
     uint public totalFees;
@@ -114,12 +114,12 @@ contract MonarchyController is
         fromAdmin
         returns (bool _success)
     {
-        if (_index-1 > numDefinedGames || _index > 20) {
+        if (_index > numDefinedGames + 1 || _index > 20) {
             emit Error(now, "Index out of bounds.");
             return;
         }
 
-        if (_index-1 == numDefinedGames) numDefinedGames++;
+        if (_index == numDefinedGames + 1) numDefinedGames++;
         definedGames[_index].summary = _summary;
         definedGames[_index].initialPrize = _initialPrize;
         definedGames[_index].fee = _fee;
@@ -135,7 +135,7 @@ contract MonarchyController is
         fromAdmin
         returns (bool _success)
     {
-        if (_index-1 >= numDefinedGames) {
+        if (_index > numDefinedGames) {
             emit Error(now, "Index out of bounds.");
             return;
         }
@@ -167,7 +167,7 @@ contract MonarchyController is
         returns (address _game)
     {
         DefinedGame memory dGame = definedGames[_index];
-        if (_index-1 >= numDefinedGames) {
+        if (_index > numDefinedGames) {
             _error("Index out of bounds.");
             return;
         }
@@ -392,7 +392,7 @@ contract MonarchyController is
         returns (bool _isStartable)
     {
         DefinedGame memory dGame = definedGames[_index];
-        if (_index >= numDefinedGames) return;
+        if (_index > numDefinedGames) return;
         if (dGame.isEnabled == false) return;
         if (dGame.game != IMonarchyGame(0)) return;
         if (dGame.initialPrize > address(this).balance) return;
