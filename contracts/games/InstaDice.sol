@@ -64,7 +64,7 @@ contract InstaDice is
     mapping (address => User) public users;
     Stats stats;
     Settings settings;
-    uint8 constant public version = 1;
+    uint8 constant public version = 2;
     
     // Admin events
     event Created(uint time);
@@ -81,7 +81,13 @@ contract InstaDice is
         UsingAdmin(_registry)
         public
     {
-        stats.totalWagered = 1;  // initialize to 1 to make first roll cheaper.
+        // populate with prev contracts' stats
+        stats.totalWagered = 3650000000000000000;
+        stats.totalWon = 3537855001272912000;
+        stats.numRolls = 123;
+        stats.numUsers = 19;
+
+        // default settings
         settings.maxBet = .3 ether;
         settings.minBet = .001 ether;
         settings.minNumber = 5;
