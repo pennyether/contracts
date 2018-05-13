@@ -272,14 +272,14 @@ describe('InstaDice', function(){
                     testUtil.stopMining();
                     console.log(`Stopped mining.`);
                 })
-                .wait(1000)
+                .wait(100)
                 .doFn(()=>{
-                    txs[0] = dice.roll(NUMBER, {value: BET, from: PLAYER});
+                    txs[0] = dice.roll(NUMBER, {value: BET, from: PLAYER, gas: 100000});
                     console.log(`Submitted first tx: dice.roll()`)
                 }).wait(100)
                 .doFn(()=>{
-                    txs[1] = dice.payoutPreviousRoll({from: PLAYER});
-                    console.log(`Sumitted second tx: dice.payoutPreviousRoll()`);
+                    txs[1] = dice.payoutPreviousRoll({from: PLAYER, gas: 100001});
+                    console.log(`Submitted second tx: dice.payoutPreviousRoll()`);
                 }).wait(100)
                 .doFn(() => {
                     console.log("Mining block now...");

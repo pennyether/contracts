@@ -150,31 +150,35 @@ contract InstaDice is
         if (!_validateBetOrRefund(_number)) return;
 
         // Ensure one bet per block.
-        User memory _user = users[msg.sender];
-        if (_user.r_block == uint32(block.number)){
+        User memory _prevUser = users[msg.sender];
+        if (_prevUser.r_block == uint32(block.number)){
             _errorAndRefund("Only one bet per block allowed.", msg.value, _number);
             return false;
         }
-        // Finalize last roll, if there is one.
-        Stats memory _stats = stats;
-        if (_user.r_block != 0) _finalizePreviousRoll(_user, _stats);
 
-        // Compute new stats data
-        _stats.numUsers = _user.id == 0 ? _stats.numUsers + 1 : _stats.numUsers;
+        // Create and write new user data before finalizing last roll
+        Stats memory _stats = stats;
+        User memory _newUser = User({
+            id: _prevUser.id == 0 ? _stats.numUsers + 1 : _prevUser.id,
+            r_id: _stats.numRolls + 1,
+            r_block: uint32(block.number),
+            r_number: _number,
+            r_payout: computePayout(msg.value, _number)
+        });
+        users[msg.sender] = _newUser;
+
+        // Finalize last roll, if there was one.
+        // This will throw if user won, but we couldn't pay.
+        if (_prevUser.r_block != 0) _finalizePreviousRoll(_prevUser, _stats);
+
+        // Increment stats data
+        _stats.numUsers = _prevUser.id == 0 ? _stats.numUsers + 1 : _stats.numUsers;
         _stats.numRolls = stats.numRolls + 1;
         _stats.totalWagered = stats.totalWagered + uint96(msg.value);
         stats = _stats;
 
-        // Compute new user data
-        _user.id = _user.id == 0 ? _stats.numUsers : _user.id;
-        _user.r_id = _stats.numRolls;
-        _user.r_block = uint32(block.number);
-        _user.r_number = _number;
-        _user.r_payout = computePayout(msg.value, _number);
-        users[msg.sender] = _user;
-
         // Save user in one write.
-        emit RollWagered(now, _user.r_id, msg.sender, msg.value, _user.r_number, _user.r_payout);
+        emit RollWagered(now, _newUser.r_id, msg.sender, msg.value, _newUser.r_number, _newUser.r_payout);
         return true;
     }
 
@@ -192,27 +196,28 @@ contract InstaDice is
         returns (bool _success)
     {
         // Load last roll in one SLOAD.
-        User storage _user = users[msg.sender];
+        User memory _prevUser = users[msg.sender];
         // Error if on same block.
-        if (_user.r_block == uint32(block.number)){
+        if (_prevUser.r_block == uint32(block.number)){
             emit PayoutError(now, "Cannot payout roll on the same block");
             return false;
         }
         // Error if nothing to payout.
-        if (_user.r_block == 0){
+        if (_prevUser.r_block == 0){
             emit PayoutError(now, "No roll to pay out.");
             return false;
         }
 
-        // Finalize previous roll (this may update stats)
-        Stats memory _stats = stats;
-        _finalizePreviousRoll(_user, _stats);
-
-        // Clear last roll, update stats
+        // Clear last roll data
+        User storage _user = users[msg.sender];
         _user.r_id = 0;
         _user.r_block = 0;
         _user.r_number = 0;
         _user.r_payout = 0;
+
+        // Finalize previous roll and update stats
+        Stats memory _stats = stats;
+        _finalizePreviousRoll(_prevUser, _stats);
         stats.totalWon = _stats.totalWon;
         return true;
     }
@@ -252,8 +257,8 @@ contract InstaDice is
     }
 
     // Finalizes the previous roll for the _user.
-    // There must be a previous roll, or this throws.
-    // Returns true, unless user wins and we couldn't pay.
+    // This will modify _stats, but not _user.
+    // Throws if unable to pay user on a win.
     function _finalizePreviousRoll(User memory _user, Stats memory _stats)
         private
     {

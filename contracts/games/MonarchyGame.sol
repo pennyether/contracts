@@ -3,6 +3,8 @@ pragma solidity ^0.4.23;
 /**
 A PennyAuction-like game to win a prize.
 
+UI: https://www.pennyether.com
+
 How it works:
     - An initial prize is held in the Contract, and the house is the Monarch.
     - Anyone may overthrow the Monarch by paying a small fee.
