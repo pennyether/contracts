@@ -68,7 +68,7 @@ contract VideoPoker is
     mapping(uint16=>uint16[12]) payTables;
 
     // version of the game
-    uint8 public constant version = 1;
+    uint8 public constant version = 2;
     uint8 constant WARN_IHAND_TIMEOUT = 1; // "Initial hand not available. Drawing 5 new cards."
     uint8 constant WARN_DHAND_TIMEOUT = 2; // "Draw cards not available. Using initial hand."
     uint8 constant WARN_BOTH_TIMEOUT = 3;  // "Draw cards not available, and no initial hand."
@@ -97,11 +97,17 @@ contract VideoPoker is
         // Add the default PayTable.
         _addPayTable(800, 50, 25, 9, 6, 4, 3, 2, 1);
         // write to vars, to lower gas-cost for the first game.
-        vars.empty1 = 1;
-        vars.empty2 = 1;
+        // vars.empty1 = 1;
+        // vars.empty2 = 1;
+        // initialze stats to last settings
+        vars.curId = 293;
+        vars.totalWageredGwei =2864600000;
+        vars.curUserId = 38;
+        vars.totalWonGwei = 2450400000;
+
         // initialize settings
         settings.minBet = .001 ether;
-        settings.maxBet = .5 ether;
+        settings.maxBet = .375 ether;
         emit Created(now);
     }
     
@@ -115,8 +121,7 @@ contract VideoPoker is
         public
         fromAdmin
     {
-        require(_minBet <= _maxBet);
-        require(_maxBet <= .625 ether);
+        require(_maxBet <= .375 ether);
         require(_payTableId < settings.numPayTables);
         settings.minBet = _minBet;
         settings.maxBet = _maxBet;
@@ -207,6 +212,7 @@ contract VideoPoker is
             return _betFailure("Insufficient credits", _bet, false);
 
         uint32 _id = _createNewGame(uint64(_bet));
+        vars.totalCredits -= uint88(_bet);
         credits[msg.sender] -= _bet;
         emit CreditsUsed(now, msg.sender, _id, _bet);
         emit BetSuccess(now, msg.sender, _id, _bet, settings.curPayTableId);

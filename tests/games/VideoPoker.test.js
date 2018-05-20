@@ -26,7 +26,7 @@ describe('VideoPoker', function(){
     var registry;
 
     const DEFAULT_MIN_BET = new BigNumber(.001e18);
-    const DEFAULT_MAX_BET = new BigNumber(.5e18);
+    const DEFAULT_MAX_BET = new BigNumber(.375e18);
     const DEFAULT_PAYTABLE = [0, 800, 50, 25, 9, 6, 4, 3, 2, 1, 0, 0];
     const MIN_BET = new BigNumber(.0005e18);
     const MAX_BET = new BigNumber(.2e18);
